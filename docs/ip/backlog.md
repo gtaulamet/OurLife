@@ -4,7 +4,7 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 
 ## Técnico
 
-- Migrar de `net8.0` a `net10.0` cuando Godot lo adopte o se valide que el editor funciona con él. El soporte de .NET 8 termina el 10 de noviembre de 2026. Hacerlo antes de IP8.
+- Migrar de `net8.0` a `net10.0` cuando Godot lo adopte o se valide que el editor funciona con él. El soporte de .NET 8 termina el 10 de noviembre de 2026. Hacerlo antes de IP8. Dato a favor: Godot 4.7.2 ya ejecuta el juego sobre el runtime .NET 10.0.8; falta probar compilar con `net10.0` y exportar.
 - Correr el smoke test de Godot en la CI, instalando Godot en el runner.
 - Biblioteca compartida de utilidades para tests: raíz del repositorio y mapas ASCII.
 

@@ -12,6 +12,12 @@
       "Bash(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch)",
       "Bash(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch --show-current)",
       "Bash(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch --list *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch)",
+      "Bash(git branch --show-current)",
+      "Bash(git branch --list *)",
       "PowerShell(dotnet build *)",
       "PowerShell(dotnet test *)",
       "PowerShell(dotnet restore *)",
@@ -21,7 +27,13 @@
       "PowerShell(git -c safe.directory=D:/Proyectos/Juegos/ourlife diff *)",
       "PowerShell(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch)",
       "PowerShell(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch --show-current)",
-      "PowerShell(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch --list *)"
+      "PowerShell(git -c safe.directory=D:/Proyectos/Juegos/ourlife branch --list *)",
+      "PowerShell(git status *)",
+      "PowerShell(git log *)",
+      "PowerShell(git diff *)",
+      "PowerShell(git branch)",
+      "PowerShell(git branch --show-current)",
+      "PowerShell(git branch --list *)"
     ]
   }
 }

@@ -8,7 +8,7 @@
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| H1.1 Fundaciones | En revisión | `ip1/h1-1-fundaciones` | Falta validar con Godot instalado: abrir el proyecto y correr el smoke test |
+| H1.1 Fundaciones | Hecho | `ip1/h1-1-fundaciones` | Validado con Godot 4.7.2: importación y smoke test con código 0 |
 | H1.2 Núcleo | Pendiente | | |
 | H1.3 Contenido e i18n | Pendiente | | |
 | H1.4 Mapa y generación | Pendiente | | |
@@ -76,10 +76,14 @@
 - El proyecto del juego se llama `game/OurLife.csproj` porque Godot deriva los nombres de la solución y del proyecto del nombre de ensamblado.
 - Renderizador GL Compatibility, suficiente para 2D y compatible con más equipos.
 
-**Pendiente del usuario**
+**Validación**
 
-- Instalar Godot 4.7.2 edición .NET y definir `GODOT_BIN` con el ejecutable de consola.
-- Abrir el proyecto una vez en el editor y correr el smoke test.
-- Opcional: agregar la excepción `safe.directory` de git y crear un repositorio remoto para activar la CI.
+- `dotnet build` sin advertencias y todos los tests en verde.
+- Godot 4.7.2 importa el proyecto sin errores.
+- `--smoke --seed 42 --ticks 5000` sale con código 0; un argumento inválido sale con código 2.
+- El editor ejecuta el juego sobre el runtime .NET 10.0.8, aunque los proyectos compilan para `net8.0`.
+- `/code-review` sobre la rama no reportó hallazgos.
 
-**Nota sobre la revisión:** `/code-review` no pudo ejecutarse porque git rechaza el repositorio sin la excepción `safe.directory` global. Se hizo una revisión manual. Conviene repetir `/code-review` cuando la excepción esté agregada.
+**Pendiente**
+
+- Opcional: crear un repositorio remoto para activar la CI.
