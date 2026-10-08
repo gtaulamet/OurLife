@@ -26,9 +26,10 @@ public sealed partial class RngStreams
     /// <param name="name">Lowercase letters, digits, dots and underscores, e.g. "ai" or "worldgen.trees".</param>
     public Pcg32 Get(string name)
     {
+        ArgumentNullException.ThrowIfNull(name);
         if (!_streams.TryGetValue(name, out var stream))
         {
-            if (name is null || !StreamNamePattern().IsMatch(name))
+            if (!StreamNamePattern().IsMatch(name))
             {
                 throw new ArgumentException(
                     $"Invalid random stream name '{name}'. Use lowercase letters, digits, dots and underscores.",

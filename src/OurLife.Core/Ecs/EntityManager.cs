@@ -32,17 +32,23 @@ public sealed class EntityManager
 
     internal EntityId Create()
     {
-        AliveCount++;
-        if (_freeSlots.Count > 0)
+        EntityId id;
+        if (_freeSlots.TryPeek(out var index))
         {
-            var index = _freeSlots.Dequeue();
+            // Compute the new generation before touching any state, so an overflow leaves it intact.
             var generation = checked(-_generations[index] + 1);
+            _freeSlots.Dequeue();
             _generations[index] = generation;
-            return new EntityId(index, generation);
+            id = new EntityId(index, generation);
+        }
+        else
+        {
+            _generations.Add(1);
+            id = new EntityId(_generations.Count - 1, 1);
         }
 
-        _generations.Add(1);
-        return new EntityId(_generations.Count - 1, 1);
+        AliveCount++;
+        return id;
     }
 
     internal void Destroy(EntityId id)

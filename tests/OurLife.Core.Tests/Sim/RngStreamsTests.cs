@@ -59,6 +59,12 @@ public class RngStreamsTests
         Should.Throw<ArgumentException>(() => new RngStreams(5).Get(name));
     }
 
+    [Fact]
+    public void A_null_name_is_rejected()
+    {
+        Should.Throw<ArgumentNullException>(() => new RngStreams(5).Get(null!));
+    }
+
     private static uint[] Draw(Pcg32 rng, int count) =>
         Enumerable.Range(0, count).Select(_ => rng.NextUInt()).ToArray();
 }

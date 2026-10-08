@@ -119,3 +119,4 @@
 - `dotnet build` sin advertencias y todos los tests en verde.
 - Misma semilla ⇒ misma huella tras 10 000 ticks. Otra semilla o un tick más ⇒ otra huella. Los mismos comandos en los mismos ticks ⇒ la misma huella.
 - Smoke en Godot con `--seed 42 --ticks 5000`: código 0, la misma huella en dos corridas y la fecha esperada. Un `--ticks` negativo sale con código 2.
+- `/code-review` encontró dos detalles menores, ya corregidos: la validación de un nombre nulo de flujo aleatorio y el orden de actualización al reutilizar un hueco de entidad.
