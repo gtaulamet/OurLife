@@ -6,7 +6,7 @@ Todo asset o código de terceros se registra aquí **antes** de entrar al reposi
 
 | Asset | Autor | Licencia | Fuente | Uso en el juego |
 |---|---|---|---|---|
-| Todavía ninguno | | | | |
+| Fuente Tiny5 | Stefan Schmidt, The Tiny5 Project Authors | SIL Open Font License 1.1; texto en `game/assets/fonts/tiny5/OFL.txt` | github.com/Gissio/font_tiny5, vía Google Fonts | Toda la interfaz |
 
 ## Código de terceros
 

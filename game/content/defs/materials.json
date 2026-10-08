@@ -1,0 +1,30 @@
+[
+  { "type": "Material", "id": "soil", "kind": "soil", "color": "#7A5A3A", "mineWorkTicks": 30 },
+  {
+    "type": "Material",
+    "id": "granite",
+    "kind": "stone",
+    "color": "#8C7F7D",
+    "mineWorkTicks": 180,
+    "minedItem": "stone",
+    "minedItemChance": 2500
+  },
+  {
+    "type": "Material",
+    "id": "limestone",
+    "kind": "stone",
+    "color": "#C8BFA8",
+    "mineWorkTicks": 120,
+    "minedItem": "stone",
+    "minedItemChance": 2500
+  },
+  {
+    "type": "Material",
+    "id": "sandstone",
+    "kind": "stone",
+    "color": "#C9A26B",
+    "mineWorkTicks": 100,
+    "minedItem": "stone",
+    "minedItemChance": 2500
+  }
+]

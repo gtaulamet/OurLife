@@ -1,26 +1,35 @@
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 
 namespace OurLife.Core.Sim;
 
 /// <summary>
-/// The whole simulation: world, clock, random streams, commands, events and systems.
-/// Each <see cref="Tick"/> applies the pending commands, runs the scheduled systems in
-/// registration order and advances the clock. Same seed and same commands at the same
-/// ticks always give the same state (see <see cref="ComputeStateHash"/>).
+/// The whole simulation: content, world, clock, random streams, progress, commands, events and
+/// systems. Each <see cref="Tick"/> applies the pending commands, runs the scheduled systems in
+/// registration order and advances the clock. Same content, seed and commands at the same ticks
+/// always give the same state (see <see cref="ComputeStateHash"/>).
 /// </summary>
 public sealed class Simulation
 {
     private readonly List<ScheduledSystem> _systems = [];
 
-    public Simulation(ulong seed, TimeSettings time)
+    public Simulation(ulong seed, DefDatabase content)
     {
-        ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(content);
         Seed = seed;
-        Calendar = new Calendar(time);
+        Content = content;
+        Calendar = new Calendar(content.Time);
         Random = new RngStreams(seed);
+        Progress = new ProgressState(content.FirstEra.Id);
     }
 
     public ulong Seed { get; }
+
+    /// <summary>Validated game content: materials, plants, items, eras, time settings…</summary>
+    public DefDatabase Content { get; }
+
+    /// <summary>Current era and known knowledge of the colony.</summary>
+    public ProgressState Progress { get; }
 
     public Calendar Calendar { get; }
 

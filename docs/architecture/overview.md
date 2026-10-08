@@ -45,10 +45,20 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 | Proyecto | Ruta | Depende de | Notas |
 |---|---|---|---|
 | OurLife.Core | `src/OurLife.Core` | Nada | Simulación pura, `net8.0` |
-| OurLife.Localization | `src/OurLife.Localization` | Nada | Catálogos e ICU, `net8.0` |
+| OurLife.Localization | `src/OurLife.Localization` | Nada | Catálogos e ICU propio, `net8.0` |
 | OurLife (juego) | `game/OurLife.csproj` | Core, Localization | `Godot.NET.Sdk/4.7.2`, namespace `OurLife.Game` |
-| OurLife.Core.Tests | `tests/OurLife.Core.Tests` | Core | xUnit + Shouldly |
-| OurLife.Localization.Tests | `tests/OurLife.Localization.Tests` | Localization | xUnit + Shouldly |
+| OurLife.Core.Tests | `tests/OurLife.Core.Tests` | Core | Unidad, escenarios, determinismo, defs con contenido de prueba |
+| OurLife.Localization.Tests | `tests/OurLife.Localization.Tests` | Localization | ICU, catálogos, `Localizer` |
+| OurLife.Content.Tests | `tests/OurLife.Content.Tests` | Core, Localization | El contenido real de `game/content` y el código que lo usa |
+
+## Contenido
+
+- Los defs viven en `game/content/defs/*.json`: cada archivo es un arreglo de defs y cada def declara su clase en `"type"`.
+- `DefLoader` reporta todos los problemas juntos: tipos desconocidos, campos mal escritos o faltantes, ids repetidos, referencias rotas y valores fuera de rango.
+- `DefDatabase` ordena los defs de cada tipo por id, lo que les da un índice estable.
+- La simulación se crea desde el contenido: `new Simulation(seed, defs)`. Sus valores de tiempo salen del def `TimeConfig`.
+- `UnlockService` decide si un def está disponible según la época y los conocimientos de la colonia (ADR-008).
+- Godot lee `res://content` con `GodotContentSource`; los tests leen la carpeta en disco con `FileSystemContentSource`.
 
 ## Flujo de datos
 
@@ -112,7 +122,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 |---|---|---|
 | Solución, proyectos, tests de arquitectura y de determinismo, modo `--smoke` | H1.1 | Hecho |
 | ECS ligero, ticks, RNG, calendario, comandos, eventos, hash de estado | H1.2 | Hecho, en revisión |
-| Defs, épocas, localización con ICU, puente Godot, ajustes | H1.3 | Pendiente |
+| Defs, épocas, localización con ICU, puente Godot, ajustes | H1.3 | Hecho, en revisión |
 | Mapa 3D, generación, conectividad | H1.4 | Pendiente |
 | Render, cámara, capturas | H1.5 | Pendiente |
 | Pathfinding, IA, trabajos, necesidades | H1.6 | Pendiente |

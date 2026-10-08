@@ -9,8 +9,8 @@
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | H1.1 Fundaciones | Hecho | `ip1/h1-1-fundaciones` | Validado con Godot 4.7.2: importación y smoke test con código 0 |
-| H1.2 Núcleo | En revisión | `ip1/h1-2-nucleo` | Misma semilla ⇒ misma huella tras 10 000 ticks; el smoke corre la simulación |
-| H1.3 Contenido e i18n | Pendiente | | |
+| H1.2 Núcleo | Hecho | `ip1/h1-2-nucleo` | Misma semilla ⇒ misma huella tras 10 000 ticks; el smoke corre la simulación |
+| H1.3 Contenido e i18n | En revisión | `ip1/h1-3-contenido-i18n` | Contenido en JSON validado, español e inglés con cambio en vivo, fuente Tiny5 |
 | H1.4 Mapa y generación | Pendiente | | |
 | H1.5 Render y cámara | Pendiente | | |
 | H1.6 Colonos e IA | Pendiente | | |
@@ -120,3 +120,33 @@
 - Misma semilla ⇒ misma huella tras 10 000 ticks. Otra semilla o un tick más ⇒ otra huella. Los mismos comandos en los mismos ticks ⇒ la misma huella.
 - Smoke en Godot con `--seed 42 --ticks 5000`: código 0, la misma huella en dos corridas y la fecha esperada. Un `--ticks` negativo sale con código 2.
 - `/code-review` encontró dos detalles menores, ya corregidos: la validación de un nombre nulo de flujo aleatorio y el orden de actualización al reutilizar un hueco de entidad.
+
+## Registro de H1.3: Contenido e i18n
+
+**Entregado**
+
+- Defs en JSON validados en `game/content/defs`: configuración de tiempo, época medieval, materiales, plantas, objetos, necesidades, humano y nombres medievales. La spec con el balance está en `docs/gdd/contenido-ip1.md`.
+- `OurLife.Core.Defs`: carga con errores agrupados y claros, `DefDatabase` con índices estables, referencias cruzadas verificadas y `UnlockService` para épocas y conocimientos. La simulación se crea desde el contenido y su progreso entra en la huella del estado.
+- `OurLife.Localization`: catálogos por idioma, subconjunto propio de ICU MessageFormat, reglas de plural, `Localizer` con español por defecto y respaldo.
+- Textos en español e inglés para la interfaz, el calendario y cada def, con nombre, descripción y género gramatical.
+- Godot: lectura de `res://content`, ajustes en `user://settings.cfg`, puente con `TranslationServer`, `TextResolver`, tema con la fuente Tiny5 y una pantalla temporal de prueba de idioma, que el menú principal de H1.7 reemplazará.
+- Modos `--locale` y `--screenshot`, que se adelantaron desde H1.5 para verificar los idiomas con capturas.
+- `tests/OurLife.Content.Tests`: paridad entre idiomas, textos de cada def, claves usadas en el código y ausencia de texto visible fuera de los catálogos.
+
+**Decisiones**
+
+- ICU propio en lugar de MessageFormat.NET, para poder comparar argumentos entre idiomas en los tests (ADR-006).
+- Fuente Tiny5 en lugar de Pixelify Sans, que confunde 5 y S, 2 y Z, 0 y O (`docs/art.md`).
+- Los JSON de contenido son JSON estricto, porque el editor de Godot también los lee.
+- Los valores de tiempo salen del def `TimeConfig`; ya no hay valores de balance en el código.
+
+**Validación**
+
+- `dotnet build` sin advertencias y todos los tests en verde.
+- Smoke en Godot: el contenido y los idiomas cargan, el texto de `ui.mainmenu.new_game` cambia en vivo de "Nueva partida" a "New Game" y la fecha se muestra traducida.
+- Capturas en español e inglés revisadas: todos los textos cambian de idioma y se ven todos los caracteres del español.
+- Con `--screenshot`, una ruta relativa se guarda dentro de `game/`, porque Godot arranca en esa carpeta.
+
+**Pendiente**
+
+- Actualizar la skill `godot-run` cuando se restaure `.claude/`: `--locale` y `--screenshot` ya están disponibles y las rutas relativas parten de `game/`.

@@ -1,0 +1,23 @@
+[
+  {
+    "type": "Plant",
+    "id": "oak",
+    "sprite": "plant.oak",
+    "blocksMovement": true,
+    "chop": { "item": "log", "count": 4, "workTicks": 240 }
+  },
+  {
+    "type": "Plant",
+    "id": "pine",
+    "sprite": "plant.pine",
+    "blocksMovement": true,
+    "chop": { "item": "log", "count": 3, "workTicks": 180 }
+  },
+  {
+    "type": "Plant",
+    "id": "berry_bush",
+    "sprite": "plant.berry_bush",
+    "harvest": { "item": "berries", "count": 8, "workTicks": 60 },
+    "regrowDays": 4
+  }
+]

@@ -26,7 +26,7 @@ dotnet test OurLife.sln
 | `src/OurLife.Core` | Simulación pura (.NET 8, sin Godot) |
 | `src/OurLife.Localization` | Catálogos de texto y formateo ICU (sin Godot) |
 | `game/` | Proyecto Godot `OurLife.csproj` (ensamblado `OurLife`, namespace `OurLife.Game`): código en `game/src`, datos en `game/content`, arte en `game/assets` |
-| `tests/` | xUnit + Shouldly |
+| `tests/` | xUnit + Shouldly: `OurLife.Core.Tests`, `OurLife.Localization.Tests` y `OurLife.Content.Tests`, que valida el contenido real y los textos del código |
 | `docs/` | Plan, GDD, arquitectura, i18n, arte, IPs y backlog |
 
 ## Reglas de arquitectura
@@ -49,8 +49,15 @@ dotnet test OurLife.sln
 
 - Ningún texto visible fuera de `game/content/locales/{es,en}`. El español es el idioma por defecto y de respaldo; no se usa el idioma del sistema operativo.
 - Toda clave nueva se agrega en `es` y en `en` en el mismo commit, con los mismos argumentos.
-- Plural, género y época con ICU MessageFormat. Convención de claves y ejemplos: `docs/i18n.md`.
+- Plural, género y época con el subconjunto de ICU MessageFormat de `OurLife.Localization`. Convención de claves y ejemplos: `docs/i18n.md`.
+- Todo def con textos tiene `name`, `desc` y `gender` en cada idioma.
+- En Godot, un control cuyo texto es una clave lo traduce Godot solo. Un texto con argumentos se formatea con `TextResolver` en un control con `AutoTranslateMode` desactivado, y se vuelve a formatear con `Localizer.LocaleChanged`.
 - Español neutro, sin voseo ni regionalismos.
+
+## Contenido
+
+- Los JSON de `game/content` son JSON estricto: sin comentarios ni comas finales, porque el editor de Godot también los lee.
+- Un def nuevo necesita su spec en `docs/gdd`, sus textos en todos los idiomas y, desde H1.5, su sprite en el atlas.
 
 ## Godot
 

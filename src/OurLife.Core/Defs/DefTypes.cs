@@ -1,0 +1,52 @@
+namespace OurLife.Core.Defs;
+
+/// <summary>Def types the loader knows: their JSON name, class and localization category.</summary>
+internal static class DefTypes
+{
+    private static readonly (string Name, Type ClrType, string? TextCategory)[] Known =
+    [
+        ("Era", typeof(EraDef), "era"),
+        ("Knowledge", typeof(KnowledgeDef), "knowledge"),
+        ("TimeConfig", typeof(TimeConfigDef), null),
+        ("Material", typeof(MaterialDef), "material"),
+        ("Plant", typeof(PlantDef), "plant"),
+        ("Item", typeof(ItemDef), "item"),
+        ("Need", typeof(NeedDef), "need"),
+        ("Creature", typeof(CreatureDef), "creature"),
+        ("NameList", typeof(NameListDef), null),
+    ];
+
+    public static IEnumerable<string> Names => Known.Select(entry => entry.Name);
+
+    public static bool TryGetClrType(string name, out Type clrType)
+    {
+        foreach (var entry in Known)
+        {
+            if (entry.Name == name)
+            {
+                clrType = entry.ClrType;
+                return true;
+            }
+        }
+
+        clrType = typeof(void);
+        return false;
+    }
+
+    public static string NameOf(Type clrType) => Find(clrType).Name;
+
+    public static string? TextCategoryOf(Type clrType) => Find(clrType).TextCategory;
+
+    private static (string Name, Type ClrType, string? TextCategory) Find(Type clrType)
+    {
+        foreach (var entry in Known)
+        {
+            if (entry.ClrType == clrType)
+            {
+                return entry;
+            }
+        }
+
+        throw new ArgumentException($"{clrType.Name} is not a registered def type.", nameof(clrType));
+    }
+}

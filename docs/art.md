@@ -50,7 +50,20 @@ Borrador; el formato definitivo se fija en H1.5.
 
 ## Fuente tipográfica
 
-Fuente pixel libre con cobertura completa del español; ver `docs/i18n.md`.
+**Tiny5**, de Stefan Schmidt, con licencia SIL OFL 1.1, en `game/assets/fonts/tiny5`. Se carga sin suavizado desde `UiTheme`.
+
+Se eligió en H1.3 tras comparar siete fuentes pixel con licencia OFL. El criterio fue cubrir todos los caracteres del español y distinguir a simple vista los caracteres que se confunden, porque el juego muestra muchas cantidades:
+
+| Fuente | Resultado |
+|---|---|
+| Pixelify Sans | Descartada: 5 y S, 2 y Z, 0 y O se confunden |
+| Silkscreen | Descartada: sólo mayúsculas, incómoda para textos largos |
+| Micro5 | Descartada: demasiado pequeña |
+| VT323 | Legible, con estética de terminal; alternativa si Tiny5 cansa en textos largos |
+| DotGothic16, Jersey10 | Legibles, menos nítidas o más angostas |
+| **Tiny5** | Elegida: nítida, caracteres bien diferenciados y cobertura completa |
+
+Tamaños probados: 32, 48 y 64 píxeles. Se ven nítidos con zoom entero.
 
 ## Licencias
 

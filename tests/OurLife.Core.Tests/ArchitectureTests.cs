@@ -28,7 +28,7 @@ public class ArchitectureTests
     {
         // Assembly metadata only lists references that are actually used, so the project
         // file is checked too: an unused reference today becomes a used one tomorrow.
-        var projectFile = File.ReadAllText(Path.Combine(TestPaths.CoreSourceDir, "OurLife.Core.csproj"));
+        var projectFile = File.ReadAllText(RepoPaths.Combine("src", "OurLife.Core", "OurLife.Core.csproj"));
 
         projectFile.ShouldNotContain("Godot", Case.Insensitive);
         projectFile.ShouldNotContain("OurLife.Localization", Case.Insensitive);

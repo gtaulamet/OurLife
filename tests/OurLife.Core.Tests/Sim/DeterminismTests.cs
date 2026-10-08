@@ -59,7 +59,7 @@ public class DeterminismTests
 
     private static Simulation NewSimulation(ulong seed)
     {
-        var simulation = new Simulation(seed, TimeSettings.PlanDefaults);
+        var simulation = new Simulation(seed, TestContent.Minimal);
         simulation.AddSystem(new ChurnSystem());
         return simulation;
     }

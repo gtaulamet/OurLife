@@ -85,7 +85,7 @@ public class SimulationTests
             () => simulation.AddSystem(new RecordingSystem("x", []), interval, offset));
     }
 
-    private static Simulation NewSimulation() => new(seed: 1, TimeSettings.PlanDefaults);
+    private static Simulation NewSimulation() => new(seed: 1, TestContent.Minimal);
 
     private sealed class RecordingSystem(string name, List<string> log) : ISimSystem
     {

@@ -1,0 +1,22 @@
+{
+  "ui.game.title": "OurLife",
+  "ui.mainmenu.new_game": "Nueva partida",
+  "ui.mainmenu.load_game": "Cargar partida",
+  "ui.mainmenu.options": "Opciones",
+  "ui.mainmenu.quit": "Salir",
+  "ui.options.language": "Idioma",
+  "ui.language.es": "Español",
+  "ui.language.en": "English",
+  "ui.probe.title": "Prueba de idioma y fuente",
+  "ui.probe.current_language": "Idioma actual: {language}",
+  "ui.probe.switch_language": "Cambiar idioma",
+  "ui.probe.charset": "Áá Éé Íí Óó Úú Üü Ññ ¿? ¡! «»",
+  "ui.probe.settlers": "{count, plural, one {# colono vive} other {# colonos viven}} en la aldea",
+  "ui.probe.start": "Comienzo de la partida: {date}, {clock}",
+  "time.season.spring": "primavera",
+  "time.season.summer": "verano",
+  "time.season.autumn": "otoño",
+  "time.season.winter": "invierno",
+  "time.date": "Día {day} de {season} de {year}",
+  "time.clock": "{hour}:{minute}"
+}

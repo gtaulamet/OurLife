@@ -31,6 +31,13 @@ public static class StateHasher
             AppendUInt64(hash, stream.Increment);
         }
 
+        AppendString(hash, simulation.Progress.CurrentEra);
+        AppendInt32(hash, simulation.Progress.Knowledge.Count);
+        foreach (var knowledge in simulation.Progress.Knowledge)
+        {
+            AppendString(hash, knowledge);
+        }
+
         var entities = simulation.World.Entities;
         AppendInt32(hash, entities.SlotCount);
         foreach (var generation in entities.Generations)

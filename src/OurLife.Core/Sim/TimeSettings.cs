@@ -1,9 +1,8 @@
 namespace OurLife.Core.Sim;
 
 /// <summary>
-/// Time constants of the simulation. From H1.3 they are loaded from a config def;
-/// <see cref="PlanDefaults"/> holds the values agreed in the master plan until then.
-/// A day always has 24 hours of 60 minutes.
+/// Time constants of the simulation, built from the <c>TimeConfig</c> def of the content
+/// (<c>game/content/defs/config.json</c>). A day always has 24 hours of 60 minutes.
 /// </summary>
 public sealed record TimeSettings
 {
@@ -25,17 +24,6 @@ public sealed record TimeSettings
 
     /// <summary>Hour of the first day at which a new game starts.</summary>
     public required int StartHour { get; init; }
-
-    /// <summary>Values of the master plan, used until the config def exists (H1.3).</summary>
-    public static TimeSettings PlanDefaults { get; } = new()
-    {
-        TicksPerSecond = 10,
-        MinutesPerTick = 1,
-        DaysPerSeason = 15,
-        Seasons = ["spring", "summer", "autumn", "winter"],
-        StartYear = 1200,
-        StartHour = 6,
-    };
 
     public int TicksPerDay => MinutesPerDay / MinutesPerTick;
 

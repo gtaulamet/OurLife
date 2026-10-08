@@ -1,0 +1,22 @@
+{
+  "ui.game.title": "OurLife",
+  "ui.mainmenu.new_game": "New Game",
+  "ui.mainmenu.load_game": "Load Game",
+  "ui.mainmenu.options": "Options",
+  "ui.mainmenu.quit": "Quit",
+  "ui.options.language": "Language",
+  "ui.language.es": "Español",
+  "ui.language.en": "English",
+  "ui.probe.title": "Language and font test",
+  "ui.probe.current_language": "Current language: {language}",
+  "ui.probe.switch_language": "Switch language",
+  "ui.probe.charset": "Áá Éé Íí Óó Úú Üü Ññ ¿? ¡! «»",
+  "ui.probe.settlers": "{count, plural, one {# settler lives} other {# settlers live}} in the village",
+  "ui.probe.start": "Game start: {date}, {clock}",
+  "time.season.spring": "spring",
+  "time.season.summer": "summer",
+  "time.season.autumn": "autumn",
+  "time.season.winter": "winter",
+  "time.date": "Day {day} of {season}, {year}",
+  "time.clock": "{hour}:{minute}"
+}

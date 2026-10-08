@@ -1,0 +1,6 @@
+[
+  { "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 25 },
+  { "type": "Item", "id": "stone", "kind": "raw", "sprite": "item.stone", "stackLimit": 25 },
+  { "type": "Item", "id": "berries", "kind": "food", "sprite": "item.berries", "stackLimit": 75, "nutrition": 400 },
+  { "type": "Item", "id": "provisions", "kind": "food", "sprite": "item.provisions", "stackLimit": 50, "nutrition": 2500 }
+]

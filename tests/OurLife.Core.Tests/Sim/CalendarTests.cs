@@ -8,7 +8,7 @@ public class CalendarTests
     private const int TicksPerDay = 1_440;
     private const int StartOffset = 6 * 60;
 
-    private readonly Calendar _calendar = new(TimeSettings.PlanDefaults);
+    private readonly Calendar _calendar = new(TestContent.Time);
 
     [Fact]
     public void Tick_zero_is_the_start_of_the_game()
@@ -53,7 +53,7 @@ public class CalendarTests
     [Fact]
     public void Settings_that_do_not_divide_a_day_are_rejected()
     {
-        var settings = TimeSettings.PlanDefaults with { MinutesPerTick = 7 };
+        var settings = TestContent.Time with { MinutesPerTick = 7 };
 
         Should.Throw<ArgumentException>(() => new Calendar(settings));
     }
@@ -61,7 +61,7 @@ public class CalendarTests
     [Fact]
     public void A_calendar_without_seasons_is_rejected()
     {
-        var settings = TimeSettings.PlanDefaults with { Seasons = [] };
+        var settings = TestContent.Time with { Seasons = [] };
 
         Should.Throw<ArgumentException>(() => new Calendar(settings));
     }

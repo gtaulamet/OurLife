@@ -1,0 +1,12 @@
+[
+  {
+    "type": "TimeConfig",
+    "id": "default",
+    "ticksPerSecond": 10,
+    "minutesPerTick": 1,
+    "daysPerSeason": 15,
+    "seasons": ["spring", "summer", "autumn", "winter"],
+    "startYear": 1200,
+    "startHour": 6
+  }
+]

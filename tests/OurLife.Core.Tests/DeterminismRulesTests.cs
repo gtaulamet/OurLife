@@ -36,7 +36,7 @@ public class DeterminismRulesTests
             {
                 foreach (var reason in FindViolations(lines[i]))
                 {
-                    var relative = Path.GetRelativePath(TestPaths.RepoRoot, file);
+                    var relative = Path.GetRelativePath(RepoPaths.Root, file);
                     violations.Add($"{relative}:{i + 1}: '{lines[i].Trim()}' ({reason})");
                 }
             }
@@ -83,7 +83,7 @@ public class DeterminismRulesTests
     {
         var separator = Path.DirectorySeparatorChar;
         return Directory
-            .EnumerateFiles(TestPaths.CoreSourceDir, "*.cs", SearchOption.AllDirectories)
+            .EnumerateFiles(RepoPaths.Combine("src", "OurLife.Core"), "*.cs", SearchOption.AllDirectories)
             .Where(path => !path.Contains($"{separator}obj{separator}", StringComparison.Ordinal)
                         && !path.Contains($"{separator}bin{separator}", StringComparison.Ordinal));
     }

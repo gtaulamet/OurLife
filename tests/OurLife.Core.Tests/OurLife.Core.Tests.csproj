@@ -15,8 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="OurLife.Tests.Shared" />
     <Using Include="Shouldly" />
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\RepoPaths.cs" Link="Shared\RepoPaths.cs" />
   </ItemGroup>
 
   <ItemGroup>

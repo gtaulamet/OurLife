@@ -1,0 +1,15 @@
+[
+  {
+    "type": "NameList",
+    "id": "medieval_names",
+    "era": "medieval",
+    "male": [
+      "Rodrigo", "Sancho", "Alfonso", "Fernando", "Gonzalo", "Pedro", "Martín", "Diego", "Nuño", "Bermudo",
+      "Ordoño", "García", "Edmund", "Godric", "Osric", "Wulfric", "Hugh", "Walter", "Thomas", "William"
+    ],
+    "female": [
+      "Elvira", "Urraca", "Jimena", "Sancha", "Teresa", "Mencía", "Leonor", "Berenguela", "Aldonza", "María",
+      "Toda", "Mayor", "Edith", "Matilda", "Agnes", "Cecily", "Margery", "Alice", "Emma", "Joan"
+    ]
+  }
+]

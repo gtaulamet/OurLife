@@ -1,0 +1,19 @@
+[
+  {
+    "type": "Need",
+    "id": "hunger",
+    "max": 10000,
+    "decayPerHour": 200,
+    "lowThreshold": 4000,
+    "criticalThreshold": 1500,
+    "deathAfterHoursAtZero": 72
+  },
+  {
+    "type": "Need",
+    "id": "rest",
+    "max": 10000,
+    "decayPerHour": 600,
+    "lowThreshold": 3000,
+    "criticalThreshold": 1000
+  }
+]
