@@ -63,6 +63,40 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 3. Recalcular la conectividad si el mapa cambió.
 4. Publicar los eventos y avanzar el contador.
 
+## Núcleo: cómo escribir un sistema
+
+```csharp
+public sealed class HungerSystem : ISimSystem
+{
+    private readonly List<EntityId> _colonists = [];   // se reutiliza: sin asignaciones por tick
+
+    public void Tick(Simulation simulation)
+    {
+        var rng = simulation.Random.Get("needs");      // un flujo aleatorio propio por sistema
+        simulation.World.Query<Needs, Colonist>(_colonists);   // orden estable por id
+        foreach (var colonist in _colonists)
+        {
+            var needs = simulation.World.Get<Needs>(colonist);   // clase simple, se modifica en el lugar
+            needs.Hunger -= 3;
+            if (needs.Hunger <= 0)
+            {
+                simulation.Events.Emit(new NotificationEvent(
+                    simulation.CurrentTick,
+                    LocalizedText.Of("event.colonist.starving").With("colonist", colonist),
+                    NotificationSeverity.Danger));
+            }
+        }
+    }
+}
+
+simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cuando tick % 10 == 3
+```
+
+- Los componentes y los comandos son datos planos y serializables, sin referencias a otros objetos del juego.
+- Las consultas copian los resultados, así que se puede crear o destruir entidades mientras se recorren.
+- Los números del ejemplo son ilustrativos: los valores de balance van en defs JSON.
+- La presentación cambia el estado sólo con `simulation.Commands.Enqueue(...)` y lee los eventos con `simulation.Events.DrainTo(...)`.
+
 ## Configuraciones de compilación
 
 | Configuración de la solución | Proyectos .NET | Proyecto Godot | Tests |
@@ -77,7 +111,7 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 | Pieza | Hito | Estado |
 |---|---|---|
 | Solución, proyectos, tests de arquitectura y de determinismo, modo `--smoke` | H1.1 | Hecho |
-| ECS ligero, ticks, RNG, calendario, comandos, eventos, hash de estado | H1.2 | Pendiente |
+| ECS ligero, ticks, RNG, calendario, comandos, eventos, hash de estado | H1.2 | Hecho, en revisión |
 | Defs, épocas, localización con ICU, puente Godot, ajustes | H1.3 | Pendiente |
 | Mapa 3D, generación, conectividad | H1.4 | Pendiente |
 | Render, cámara, capturas | H1.5 | Pendiente |

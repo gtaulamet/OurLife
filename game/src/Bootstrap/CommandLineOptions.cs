@@ -51,7 +51,13 @@ public sealed record CommandLineOptions
                     options = options with { Seed = NumberAfter<ulong>(args, ref i) };
                     break;
                 case "--ticks":
-                    options = options with { Ticks = NumberAfter<int>(args, ref i) };
+                    var ticks = NumberAfter<int>(args, ref i);
+                    if (ticks < 0)
+                    {
+                        throw new ArgumentException("--ticks must be zero or positive.");
+                    }
+
+                    options = options with { Ticks = ticks };
                     break;
                 default:
                     unknown.Add(args[i]);

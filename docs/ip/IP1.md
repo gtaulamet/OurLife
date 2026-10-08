@@ -9,7 +9,7 @@
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | H1.1 Fundaciones | Hecho | `ip1/h1-1-fundaciones` | Validado con Godot 4.7.2: importación y smoke test con código 0 |
-| H1.2 Núcleo | Pendiente | | |
+| H1.2 Núcleo | En revisión | `ip1/h1-2-nucleo` | Misma semilla ⇒ misma huella tras 10 000 ticks; el smoke corre la simulación |
 | H1.3 Contenido e i18n | Pendiente | | |
 | H1.4 Mapa y generación | Pendiente | | |
 | H1.5 Render y cámara | Pendiente | | |
@@ -87,3 +87,35 @@
 **Pendiente**
 
 - Opcional: crear un repositorio remoto para activar la CI.
+- Restaurar `.claude/` después de reiniciar VS Code. Al adelantar `main` se cambió a un commit sin esa carpeta y Windows la dejó bloqueada mientras Claude Code la tenía abierta. Los archivos están a salvo en git, marcados como `skip-worktree`:
+
+  ```powershell
+  git update-index --no-skip-worktree -- (git ls-files .claude)
+  git checkout -- .claude
+  ```
+
+## Registro de H1.2: Núcleo
+
+**Entregado**
+
+- ECS ligero en `OurLife.Core.Ecs`: `EntityId` con generación, `EntityManager` que reutiliza huecos en orden de llegada, `ComponentStore<T>` ordenado por id y `World` con consultas de uno y dos componentes.
+- Simulación en `OurLife.Core.Sim`: `Simulation` con el bucle de ticks, sistemas con intervalo y desfase, `CommandQueue`, `EventBuffer` y `NotificationEvent`.
+- Aleatoriedad: `Pcg32`, verificado contra la salida de la implementación de referencia, y `RngStreams` con un flujo independiente por nombre.
+- Tiempo: `TimeSettings`, `Calendar` y `GameDate` con año absoluto, y `TickPacer` para convertir tiempo real en ticks según la velocidad.
+- `StateHasher`: huella XxHash64 del estado completo.
+- `LocalizedText` en `OurLife.Core.Text`, que valida la convención de claves.
+- La prueba de humo de Godot corre la simulación y muestra la fecha, los milisegundos por tick y la huella.
+
+**Decisiones**
+
+- Los componentes son clases simples que los sistemas modifican en el lugar.
+- Las consultas copian los resultados a una lista que aporta quien llama: no asignan memoria y permiten crear o destruir entidades durante el recorrido.
+- Los huecos de entidades se reutilizan en orden de llegada y con una generación nueva, así una referencia vieja nunca apunta a otra entidad.
+- La huella usa la forma JSON de componentes y comandos, que por eso deben ser datos planos y sin ciclos.
+- Los valores de tiempo viven en `TimeSettings.PlanDefaults` hasta que H1.3 los lea de un def de configuración.
+
+**Validación**
+
+- `dotnet build` sin advertencias y todos los tests en verde.
+- Misma semilla ⇒ misma huella tras 10 000 ticks. Otra semilla o un tick más ⇒ otra huella. Los mismos comandos en los mismos ticks ⇒ la misma huella.
+- Smoke en Godot con `--seed 42 --ticks 5000`: código 0, la misma huella en dos corridas y la fecha esperada. Un `--ticks` negativo sale con código 2.

@@ -12,8 +12,13 @@ Todo asset o código de terceros se registra aquí **antes** de entrar al reposi
 
 | Componente | Autor | Licencia | Fuente | Uso |
 |---|---|---|---|---|
-| Todavía ninguno | | | | |
+| Algoritmo PCG32 (XSH-RR) | Melissa O'Neill | Algoritmo publicado; implementación propia en `src/OurLife.Core/Sim/Pcg32.cs`, verificada contra la salida de la implementación de referencia (Apache 2.0) | pcg-random.org | Generador aleatorio de la simulación |
 
 ## Paquetes NuGet
 
 Las dependencias NuGet se declaran en los archivos `.csproj` y conservan sus propias licencias.
+
+| Paquete | Licencia | Uso |
+|---|---|---|
+| System.IO.Hashing | MIT | Huella XxHash64 del estado de la simulación |
+| xUnit, Shouldly, Microsoft.NET.Test.Sdk, coverlet.collector | Apache 2.0, BSD-3-Clause, MIT, MIT | Tests |

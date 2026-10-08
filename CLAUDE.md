@@ -16,7 +16,8 @@ dotnet test OurLife.sln
 
 - `GODOT_BIN` apunta al ejecutable de consola de Godot 4.7.2 .NET (`..._mono_win64_console.exe`), que espera al proceso y devuelve su salida y su código.
 - Más modos (captura, idioma, semilla): skill `godot-run`.
-- Git: el disco D: es exFAT y git rechaza el repositorio por "dubious ownership". Usa `git -c safe.directory=D:/Proyectos/Juegos/ourlife <comando>` salvo que el usuario haya agregado la excepción global.
+- Git: el disco D: es exFAT. La excepción `safe.directory` ya está configurada en esta máquina; si git rechaza el repositorio por "dubious ownership", usa `git -c safe.directory=D:/Proyectos/Juegos/ourlife <comando>`.
+- Git: nunca cambies a un commit sin `.claude/` mientras Claude Code o VS Code están abiertos. Windows deja la carpeta pendiente de borrado y bloqueada, y eso impide cualquier checkout posterior. Para adelantar `main` usa `git fetch . <rama>:main`.
 
 ## Mapa del repositorio
 
@@ -40,7 +41,9 @@ dotnet test OurLife.sln
 
 - Prohibido: `System.Random`, `Random.Shared`, `DateTime.Now/UtcNow`, `Guid.NewGuid`, `Environment.TickCount`, `Stopwatch` y `Parallel`. Lo verifica un test sobre el código fuente.
 - Prohibido decidir iterando `HashSet` o `Dictionary`: iterar en orden estable, por `EntityId` ascendente.
-- Usar el RNG de la simulación, con un flujo por sistema, y enteros para cantidades acumulativas.
+- Usar el RNG de la simulación, con un flujo por sistema (`simulation.Random.Get("<nombre>")`), y enteros para cantidades acumulativas.
+- Componentes y comandos son datos planos y serializables: la huella del estado (`ComputeStateHash`) los recorre en JSON.
+- Cómo escribir un sistema: ejemplo en `docs/architecture/overview.md`.
 
 ## Localización
 
