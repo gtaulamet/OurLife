@@ -1,0 +1,28 @@
+# Godot: caché del editor, importaciones y compilación C# (se regeneran)
+.godot/
+mono_crash.*.json
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.binlog
+TestResults/
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+
+# Salidas del proyecto: capturas, exportaciones
+out/
+builds/
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Claude Code: ajustes locales de cada persona
+.claude/settings.local.json

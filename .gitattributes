@@ -1,2 +1,26 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalización de fin de línea: LF en el repositorio y en la copia de trabajo.
+* text=auto eol=lf
+
+# Archivos que Windows necesita con CRLF.
+*.sln text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binarios: sin conversión ni diff de texto.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.ogg binary
+*.wav binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.zip binary
+*.pck binary
+*.exe binary
+*.dll binary

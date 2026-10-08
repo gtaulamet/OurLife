@@ -1,0 +1,19 @@
+<Project Sdk="Godot.NET.Sdk/4.7.2">
+
+  <!--
+    Godot derives the names of the solution and of this project from the assembly name
+    (project.godot: dotnet/project/assembly_name="OurLife"), so the files must be
+    ../OurLife.sln and OurLife.csproj. The Sdk version must match the installed editor.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>OurLife.Game</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\OurLife.Core\OurLife.Core.csproj" />
+    <ProjectReference Include="..\src\OurLife.Localization\OurLife.Localization.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,16 @@
+<Project>
+  <!-- Common settings for every project in the repository, including the Godot one. -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!--
+    Pure .NET projects (everything except the Godot project): warnings are errors.
+    Godot.NET.Sdk sets UsingGodotNETSdk before this file is imported.
+  -->
+  <PropertyGroup Condition=" '$(UsingGodotNETSdk)' != 'true' ">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

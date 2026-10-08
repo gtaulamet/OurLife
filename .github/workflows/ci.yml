@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET (SDK 10 para compilar, runtime 8 para los tests)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Restaurar paquetes
+        run: dotnet restore OurLife.sln
+
+      - name: Compilar
+        run: dotnet build OurLife.sln --no-restore --configuration Debug
+
+      - name: Ejecutar tests
+        run: dotnet test OurLife.sln --no-build --configuration Debug --logger trx --results-directory TestResults
+
+      - name: Publicar resultados de tests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
