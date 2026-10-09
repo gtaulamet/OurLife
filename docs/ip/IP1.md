@@ -18,7 +18,7 @@
 | H1.1 Fundaciones | Hecho | `ip1/h1-1-fundaciones` | Validado con Godot 4.7.2: importación y smoke test con código 0 |
 | H1.2 Núcleo | Hecho | `ip1/h1-2-nucleo` | Misma semilla ⇒ misma huella tras 10 000 ticks; el smoke corre la simulación |
 | H1.3 Contenido e i18n | Hecho | `ip1/h1-3-contenido-i18n` | Contenido en JSON validado, español e inglés con cambio en vivo, fuente Tiny5 |
-| H1.4 Mapa y generación | Pendiente | | |
+| H1.4 Mapa y generación | Hecho | `ip1/h1-4-mapa-generacion` | Valle de 96×96×32 generado en unos 20 ms, superficie conectada, regiones de conectividad |
 | H1.5 Render y cámara | Pendiente | | |
 | H1.6 Colonos e IA | Pendiente | | |
 | H1.7 Interacción y UI | Pendiente | | |
@@ -180,3 +180,52 @@
   - Seis se corrigieron. El test de JSON estricto ignora los archivos con punto, las fuentes de disco y de Godot omiten los mismos archivos, y `IcuCase` es inmutable y normaliza `=N`. La huella del estado ordena los conocimientos por su cuenta. La regla de rutas ignoradas y las opciones de enumeración ya no están duplicadas.
   - Dos quedan en el backlog: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
   - Dos no se cambian. Un `select` con un valor sin caso usa `other`, como en ICU. Y la fuente se sigue configurando sólo en la importación: una caché vieja hace fallar el smoke y las capturas, y en el juego normal deja un aviso.
+
+## Registro de H1.4: Mapa y generación
+
+**Entregado**
+
+- Spec en `docs/gdd/mapa-y-generacion.md`: modelo del mapa, reglas de movimiento, pasos de la generación, valores iniciales y criterios de aceptación.
+- `OurLife.Core.Map`:
+  - `GameMap` con arrays densos de forma, material y banderas.
+  - Chunks de 16×16 por nivel que se marcan sucios al cambiar una celda o una vecina.
+  - `MapNavigation` con las reglas de movimiento por suelo, diagonales, rampas y escaleras, que también usará el A* de H1.6.
+  - `Connectivity` con las regiones por relleno.
+- `OurLife.Core.WorldGen`: `GradientNoise` y `WorldGenerator`, que arma el relieve, las pendientes, la tierra, la roca expuesta, los estratos, las rampas, el pasto y la vegetación.
+- Def `WorldGen` validado y `game/content/defs/worldgen.json` con el valle de 96×96×32.
+- Entidades `Position` y `Plant` para las plantas. El mapa entra en la huella del estado.
+- Tests:
+  - `AsciiMap` arma mapas de escenario desde texto.
+  - Tests del mapa, la conectividad, el ruido, la generación y el def.
+  - Tests del valle real en `OurLife.Content.Tests`.
+- El smoke genera el valle y muestra el tiempo, las plantas y las regiones de la superficie.
+
+**Decisiones**
+
+- `z` crece hacia arriba. Un suelo es una celda abierta con piso, y su material es el del piso.
+- La superficie de dos vecinas norte-sur o este-oeste difiere como mucho en un nivel, y cada escalón lleva una rampa. Eso garantiza una superficie conectada sin un paso de reparación.
+- Ruido propio en lugar de FastNoiseLite, como preveía el plan: un archivo, sin código de terceros, y sólo operaciones de punto flotante exactas.
+- Cada capa de la generación usa su propio flujo aleatorio (`worldgen.terrain`, `worldgen.vegetation`…), así un cambio en una capa no altera las demás.
+- Sólo el Core cambia el mapa: `SetTile` es interno, como el progreso de la colonia.
+- Los árboles no cuentan para la conectividad en H1.4; se suman con el pathfinding de H1.6.
+- El juego genera el único def `WorldGen` del contenido hasta que IP7 traiga la elección de sitio.
+
+**Validación**
+
+- `dotnet build` sin advertencias y todos los tests en verde.
+- La misma semilla da el mismo mapa y la misma huella; otra semilla, otro mapa.
+- La superficie forma una sola región con las semillas 1, 2, 3, 42 y 20261009.
+- Con las semillas 1 y 42, el valle real tiene 57 y 55 arbustos de bayas, 122 y 137 robles, y 64 y 75 pinos.
+- Smoke en Godot con `--seed 1` y `--seed 42`: código 0, la misma huella en dos corridas y el valle generado en unos 20 ms, muy por debajo de los 2 s pedidos.
+- Revisé un volcado en ASCII del valle: el fondo serpentea por el centro, las colinas muestran arenisca en las cimas y los estratos van de granito a arenisca.
+- `/code-review` en dos rondas, con 10 y 8 hallazgos, todos corregidos:
+  - `Generate` valida el def y comprueba que no haya mapa antes de tocar la simulación.
+  - `RegionAt` devuelve "sin región" fuera del mapa.
+  - Un solo helper calcula las regiones de la superficie para el smoke y los tests, y el smoke rechaza una superficie donde nadie puede pararse.
+  - El test de la huella detecta si el mapa deja de entrar en ella.
+  - El pasto respeta los extremos de `grassCoverage`.
+  - `rockExposureWobble` y `groveFactorMax` pasan al def, con su validación.
+  - Se validan los estratos contra `strataWobble` y la roca expuesta contra el fondo del valle.
+  - La huella usa little-endian en cualquier máquina.
+  - La cola del relleno de regiones crece según la región.
+- No pasan al def las octavas del ruido, su factor de estiramiento ni el desplazamiento entre estratos. Son la calibración del algoritmo, no balance de juego.

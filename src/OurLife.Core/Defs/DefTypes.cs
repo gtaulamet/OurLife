@@ -14,6 +14,7 @@ internal static class DefTypes
         ("Need", typeof(NeedDef), "need"),
         ("Creature", typeof(CreatureDef), "creature"),
         ("NameList", typeof(NameListDef), null),
+        ("WorldGen", typeof(WorldGenDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

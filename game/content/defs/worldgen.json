@@ -1,0 +1,35 @@
+[
+  {
+    "type": "WorldGen",
+    "id": "valley",
+    "width": 96,
+    "height": 96,
+    "depth": 32,
+    "valleyFloor": 14,
+    "hillHeight": 9,
+    "valleyHalfWidth": 14,
+    "valleyMeander": 8,
+    "terrainNoiseScale": 24,
+    "terrainAmplitude": 3,
+    "detailNoiseScale": 8,
+    "forestNoiseScale": 12,
+    "soilMaterial": "soil",
+    "soilDepthMin": 2,
+    "soilDepthMax": 5,
+    "rockExposureElevation": 7,
+    "rockExposureWobble": 2,
+    "strata": [
+      { "material": "granite", "thickness": 6 },
+      { "material": "limestone", "thickness": 4 },
+      { "material": "sandstone" }
+    ],
+    "strataWobble": 1,
+    "grassCoverage": 8000,
+    "groveFactorMax": 2,
+    "vegetation": [
+      { "plant": "berry_bush", "chance": 150, "minElevation": -5, "maxElevation": 3 },
+      { "plant": "oak", "chance": 350, "minElevation": -5, "maxElevation": 4 },
+      { "plant": "pine", "chance": 400, "minElevation": 2, "maxElevation": 20 }
+    ]
+  }
+]

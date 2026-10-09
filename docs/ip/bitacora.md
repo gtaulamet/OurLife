@@ -8,32 +8,33 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-3-contenido-i18n` |
-| Último commit de código | `007a389 fix(content): correcciones de la revisión de H1.3` |
-| `main` | En `e11e307`, el cierre de H1.2; todavía no incluye H1.3 |
-| Hitos hechos | H1.1, H1.2 y H1.3 |
-| Próximo hito | H1.4 Mapa y generación |
-| Validación | `dotnet build` sin advertencias, 199 tests en verde, smoke con código 0 y capturas es/en revisadas |
-| Huella del smoke por defecto | `2012B074B25F81DF` (semilla 1, 1000 ticks) |
+| Rama de trabajo | `ip1/h1-4-mapa-generacion`, que incluye todo H1.3 |
+| Último commit de código | `feat(core)` de H1.4 en `ip1/h1-4-mapa-generacion` (ver `git log`) |
+| `main` | En `e11e307`, el cierre de H1.2; todavía no incluye H1.3 ni H1.4 |
+| Hitos hechos | H1.1, H1.2, H1.3 y H1.4 |
+| Próximos hitos | H1.5 Render y cámara, y H1.6 Colonos e IA, que pueden ir en paralelo |
+| Validación | `dotnet build` sin advertencias, 271 tests en verde, smoke con código 0 |
+| Huella del smoke | `46B73E675739EF3B` con `--seed 1 --ticks 5000`; `EA32F590F3ABE005` con `--seed 42 --ticks 5000` |
 
 ## Pendientes
 
 En orden:
 
-1. **Adelantar `main` a H1.3**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-3-contenido-i18n:main`.
-2. **Empezar H1.4 Mapa y generación.** El paso a 3D (ADR-009) no cambia este hito.
-   - Rama sugerida: `ip1/h1-4-mapa-generacion`, creada con `git switch -c` desde la rama actual o desde `main` ya adelantado. Crear la rama no toca archivos.
-   - Alcance, en `docs/ip/IP1.md`: mapa 3D con chunks y generación con ruido. El valle mide 96×96×32: pasto y tierra en superficie, colinas con roca expuesta, de 2 a 5 niveles de tierra y luego estratos de granito, caliza y arenisca. Lleva robles, pinos, arbustos de bayas y rampas en las pendientes.
-   - Entregable: misma semilla ⇒ mismo mapa, superficie conectada y generación en menos de 2 s.
-   - Flujo: Plan → spec (game-designer) → Core + tests (sim-engineer) → QA → `/code-review` → commit.
-   - Los materiales se guardan en el mapa por índice de `DefDatabase`. Ese índice cambia si cambia el contenido, así que las partidas guardarán ids.
-
-3. **Al empezar H1.5, que ahora es 3D (ADR-009):**
+1. **Adelantar `main` a H1.4**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-4-mapa-generacion:main`.
+2. **Elegir el próximo hito con el usuario:** H1.5 (render 3D) o H1.6 (colonos e IA). La ruta crítica permite hacerlos en paralelo.
+3. **H1.5 Render y cámara, ahora en 3D (ADR-009):**
    - Pedirle al art-integrator que descargue el Nature Kit, confirme su contenido y su licencia, y arme la lista de modelos que faltan comparándola con los defs de IP1.
    - Renombrar `sprite` a `visual` en los defs y en el Core.
    - Al inicio del hito, revisar con capturas la legibilidad del corte por nivel, la proyección (perspectiva u ortográfica) y si la fuente Tiny5 combina con el 3D.
+   - El render lee `GameMap` y reconstruye los chunks que devuelve `DrainDirtyChunks`; un mapa nuevo los informa todos. Las plantas son entidades con `Position` y `Plant`.
+4. **H1.6 Colonos e IA:**
+   - El A* usa `MapNavigation.GetNeighbours`; `Connectivity` descarta objetivos inalcanzables.
+   - Falta sumar los árboles que bloquean el paso a la conectividad.
+   - Definir la zona de aparición de los colonos y las 30 raciones iniciales.
+   - `AsciiMap`, en `tests/OurLife.Core.Tests/Map`, ya arma mapas de escenario desde texto.
+5. **Para el balance de H1.8:** el fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
 
-El backlog (`docs/ip/backlog.md`) tiene dos temas que no son de H1.4: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
+El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
 
 ## Notas prácticas
 
@@ -42,8 +43,20 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas que no son de H1.4: una pantal
 - **Códigos de salida:** no cortar la salida de Godot con `Select-Object -First`, porque `$LASTEXITCODE` deja de ser confiable. Guardar la salida en una variable y filtrarla después.
 - **Reimportación:** si un `.import` cambia dentro del mismo segundo que la importación anterior, Godot no lo reimporta. Basta con borrar `game/.godot/imported/<archivo>-*` y volver a correr `--import`.
 - **Fuente nítida:** el smoke y `--screenshot` fallan si la caché de la fuente tiene suavizado. El mensaje indica cómo reimportar.
+- **Comandos bloqueados:** un filtro de seguridad rechaza los comandos de PowerShell cuyo texto contiene `/code-review`, aunque sea dentro de un string. Esos textos se editan con la herramienta de edición.
+- **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-09: H1.4 Mapa y generación
+
+- Rama `ip1/h1-4-mapa-generacion`, creada desde `ip1/h1-3-contenido-i18n`.
+- Spec en `docs/gdd/mapa-y-generacion.md`. Hice yo mismo los pasos de spec, Core, tests y QA, siguiendo las reglas de los agentes, sin lanzar subagentes.
+- Core:
+  - `GameMap` con chunks sucios, `MapNavigation`, `Connectivity`, `GradientNoise` y `WorldGenerator`.
+  - El def `WorldGen` con `worldgen.json` y las entidades `Position` y `Plant`. El mapa entra en la huella.
+- El smoke genera el valle en unos 20 ms, con 55 a 57 arbustos de bayas y la superficie conectada.
+- `/code-review` en dos rondas, con 10 y 8 hallazgos, todos corregidos. El detalle está en el registro de H1.4 de `IP1.md`.
 
 ### 2026-10-09: paso a 3D low-poly
 

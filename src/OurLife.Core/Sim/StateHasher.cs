@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.IO.Hashing;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using OurLife.Core.Ecs;
@@ -8,7 +9,7 @@ namespace OurLife.Core.Sim;
 
 /// <summary>
 /// 64-bit fingerprint (XxHash64) of the whole simulation state: tick, seed, random streams,
-/// entity slots, every component and the pending commands. Two runs with the same seed and the
+/// progress, map, entity slots, every component and the pending commands. Two runs with the same seed and the
 /// same commands must give the same fingerprint after the same number of ticks. Components and
 /// commands are hashed through their JSON form, so they must be plain data without cycles.
 /// </summary>
@@ -36,6 +37,17 @@ public static class StateHasher
         foreach (var knowledge in simulation.Progress.Knowledge.Order(StringComparer.Ordinal))
         {
             AppendString(hash, knowledge);
+        }
+
+        if (simulation.HasMap)
+        {
+            var map = simulation.Map;
+            AppendInt32(hash, map.Size.Width);
+            AppendInt32(hash, map.Size.Height);
+            AppendInt32(hash, map.Size.Depth);
+            hash.Append(map.ShapeBytes);
+            AppendLittleEndian(hash, map.MaterialIndexes);
+            hash.Append(map.FlagBytes);
         }
 
         var entities = simulation.World.Entities;
@@ -87,6 +99,20 @@ public static class StateHasher
         var bytes = JsonSerializer.SerializeToUtf8Bytes(value, type, JsonOptions);
         AppendInt32(hash, bytes.Length);
         hash.Append(bytes);
+    }
+
+    /// <summary>Hashes the values in little-endian order on every machine, like the other integers.</summary>
+    private static void AppendLittleEndian(XxHash64 hash, ReadOnlySpan<ushort> values)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            hash.Append(MemoryMarshal.AsBytes(values));
+            return;
+        }
+
+        var swapped = new ushort[values.Length];
+        BinaryPrimitives.ReverseEndianness(values, swapped);
+        hash.Append(MemoryMarshal.AsBytes(swapped.AsSpan()));
     }
 
     private static void AppendString(XxHash64 hash, string value)

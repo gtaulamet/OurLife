@@ -1,5 +1,6 @@
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
+using OurLife.Core.Map;
 
 namespace OurLife.Core.Sim;
 
@@ -12,6 +13,7 @@ namespace OurLife.Core.Sim;
 public sealed class Simulation
 {
     private readonly List<ScheduledSystem> _systems = [];
+    private GameMap? _map;
 
     public Simulation(ulong seed, DefDatabase content)
     {
@@ -36,6 +38,11 @@ public sealed class Simulation
     public TimeSettings Time => Calendar.Settings;
 
     public World World { get; } = new();
+
+    public bool HasMap => _map is not null;
+
+    /// <summary>The terrain, once <see cref="WorldGen.WorldGenerator"/> has generated it.</summary>
+    public GameMap Map => _map ?? throw new InvalidOperationException("The map has not been generated yet.");
 
     public RngStreams Random { get; }
 
@@ -85,6 +92,17 @@ public sealed class Simulation
         {
             Tick();
         }
+    }
+
+    internal void AttachMap(GameMap map)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        if (_map is not null)
+        {
+            throw new InvalidOperationException("The simulation already has a map.");
+        }
+
+        _map = map;
     }
 
     /// <summary>64-bit fingerprint of the current state. Costly: meant for tests and debugging.</summary>

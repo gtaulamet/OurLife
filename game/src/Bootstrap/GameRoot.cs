@@ -2,7 +2,11 @@ using System.Diagnostics;
 using System.Globalization;
 using Godot;
 using OurLife.Core.Defs;
+using OurLife.Core.Ecs;
+using OurLife.Core.Entities;
+using OurLife.Core.Map;
 using OurLife.Core.Sim;
+using OurLife.Core.WorldGen;
 using OurLife.Game.Content;
 using OurLife.Game.Localization;
 using OurLife.Game.UI;
@@ -113,8 +117,9 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// Headless checks: content and texts load, Godot follows language changes, and the
-    /// simulation runs. Real-time measurement lives here, outside the deterministic core.
+    /// Headless checks: content and texts load, Godot follows language changes, the world is
+    /// generated and the simulation runs. Real-time measurement lives here, outside the
+    /// deterministic core.
     /// </summary>
     private void RunSmoke(GameServices services, CommandLineOptions options)
     {
@@ -133,6 +138,12 @@ public partial class GameRoot : Node
 
             var ticks = options.Ticks ?? DefaultSmokeTicks;
             var simulation = new Simulation(options.Seed ?? DefaultSmokeSeed, services.Defs);
+            if (!GenerateWorld(simulation))
+            {
+                GetTree().Quit(ExitFailure);
+                return;
+            }
+
             var stopwatch = Stopwatch.StartNew();
             simulation.Run(ticks);
             stopwatch.Stop();
@@ -158,6 +169,45 @@ public partial class GameRoot : Node
         {
             Fail($"[smoke] FAILED: {ex}", ExitFailure);
         }
+    }
+
+    /// <summary>
+    /// Generates the world and reports its size, the time it took, its plants and whether its
+    /// whole surface is one region.
+    /// </summary>
+    private static bool GenerateWorld(Simulation simulation)
+    {
+        var worlds = simulation.Content.All<WorldGenDef>();
+        if (worlds.Count != 1)
+        {
+            GD.PushError($"[smoke] The content must have exactly one WorldGen def until IP7, found {worlds.Count}.");
+            return false;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        var map = WorldGenerator.Generate(simulation, worlds[0]);
+        stopwatch.Stop();
+
+        var plants = new List<EntityId>();
+        simulation.World.Query<Plant>(plants);
+        var plantCounts = plants
+            .GroupBy(plant => simulation.World.Get<Plant>(plant).Def)
+            .OrderBy(group => group.Key, StringComparer.Ordinal)
+            .Select(group => $"{group.Key} {group.Count()}");
+
+        var surfaceRegions = Connectivity.Compute(map).SurfaceRegions(map);
+
+        GD.Print(string.Create(
+            CultureInfo.InvariantCulture,
+            $"[smoke] world '{worlds[0].Id}' {map.Size.Width}x{map.Size.Height}x{map.Size.Depth} generated in {stopwatch.Elapsed.TotalMilliseconds:F0} ms"));
+        GD.Print($"[smoke] plants: {string.Join(", ", plantCounts)} | surface regions: {surfaceRegions.Count}");
+        if (surfaceRegions.Count != 1 || surfaceRegions[0] == Connectivity.NoRegion)
+        {
+            GD.PushError("[smoke] The surface of the world is not one connected region.");
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
