@@ -87,12 +87,6 @@
 **Pendiente**
 
 - Opcional: crear un repositorio remoto para activar la CI.
-- Restaurar `.claude/` después de reiniciar VS Code. Al adelantar `main` se cambió a un commit sin esa carpeta y Windows la dejó bloqueada mientras Claude Code la tenía abierta. Los archivos están a salvo en git, marcados como `skip-worktree`:
-
-  ```powershell
-  git update-index --no-skip-worktree -- (git ls-files .claude)
-  git checkout -- .claude
-  ```
 
 ## Registro de H1.2: Núcleo
 
@@ -179,7 +173,3 @@
   - Seis se corrigieron. El test de JSON estricto ignora los archivos con punto, las fuentes de disco y de Godot omiten los mismos archivos, y `IcuCase` es inmutable y normaliza `=N`. La huella del estado ordena los conocimientos por su cuenta. La regla de rutas ignoradas y las opciones de enumeración ya no están duplicadas.
   - Dos quedan en el backlog: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
   - Dos no se cambian. Un `select` con un valor sin caso usa `other`, como en ICU. Y la fuente se sigue configurando sólo en la importación: una caché vieja hace fallar el smoke y las capturas, y en el juego normal deja un aviso.
-
-**Pendiente**
-
-- Actualizar la skill `godot-run` cuando se restaure `.claude/`: `--locale` y `--screenshot` ya están disponibles, las rutas relativas parten de `game/`, y después de cambiar un `.import` hay que correr `--import`.

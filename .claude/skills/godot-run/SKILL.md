@@ -10,6 +10,12 @@ description: Compilar OurLife, correr los tests, lanzar el juego o el editor de 
 - Godot 4.7.2 edición .NET.
 - Variable de entorno `GODOT_BIN` con la ruta del ejecutable **de consola**, por ejemplo `Godot_v4.7.2-stable_mono_win64_console.exe`. El ejecutable normal es una aplicación de ventana: la terminal no espera a que termine y no recibe su salida ni su código.
 
+La variable está definida a nivel de usuario, pero la sesión de PowerShell de Claude Code puede no heredarla. En ese caso, léela con:
+
+```powershell
+$env:GODOT_BIN = [System.Environment]::GetEnvironmentVariable('GODOT_BIN','User')
+```
+
 Si `GODOT_BIN` no existe, avisa al usuario y limítate a compilar y a correr los tests.
 
 ## Compilar y testear
@@ -21,13 +27,15 @@ dotnet test OurLife.sln
 
 ## Importar assets
 
-Necesario la primera vez y después de agregar assets:
+Necesario la primera vez, después de agregar assets y después de cambiar un `.import`:
 
 ```powershell
 & $env:GODOT_BIN --headless --path game --import
 ```
 
 Si esa versión no admite `--import`, abre el editor una vez con `& $env:GODOT_BIN --path game --editor`.
+
+Si un `.import` cambia dentro del mismo segundo que la importación anterior, Godot no lo reimporta: borra `game/.godot/imported/<archivo>-*` y vuelve a correr `--import`.
 
 ## Smoke test, sin ventana
 
@@ -36,14 +44,14 @@ Si esa versión no admite `--import`, abre el editor una vez con `& $env:GODOT_B
 $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 ```
 
-## Captura, con ventana (disponible desde H1.5)
+## Captura, con ventana
 
 ```powershell
 & $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --seed 42
 & $env:GODOT_BIN --path game -- --screenshot out/en.png --locale en --seed 42
 ```
 
-Revisa las imágenes con Read. La carpeta `out/` no se versiona.
+Las capturas necesitan ventana, así que se corren sin `--headless`. Una ruta relativa parte de `game/`, porque Godot arranca en esa carpeta: los ejemplos guardan en `game/out/`. Revisa las imágenes con Read. La carpeta `out/` no se versiona.
 
 ## Jugar o abrir el editor
 
@@ -61,5 +69,5 @@ Van después de `--`:
 | `--smoke` | Arranca, valida y sale con código 0 o distinto de 0 | H1.1 |
 | `--ticks <n>` | Ticks a simular en `--smoke` | H1.2 |
 | `--locale <es\|en>` | Fuerza el idioma | H1.3 |
-| `--seed <n>` | Semilla de la partida | H1.4 |
-| `--screenshot <png>` | Guarda una captura y sale | H1.5 |
+| `--seed <n>` | Semilla de la partida | H1.2 |
+| `--screenshot <png>` | Guarda una captura y sale | H1.3 |

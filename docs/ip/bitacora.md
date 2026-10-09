@@ -20,23 +20,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Restaurar `.claude/`.** Sigue bloqueada ("Permission denied") desde el incidente del 2026-10-08. Hay que cerrar y reabrir VS Code y después, en PowerShell:
-
-   ```powershell
-   git update-index --no-skip-worktree -- (git ls-files .claude)
-   git checkout -- .claude
-   git status   # debe quedar limpio
-   ```
-
-   Después, borrar la memoria `claude-dir-restore-pending` y su línea en `MEMORY.md`, y quitar el punto de "Pendiente" de H1.1 en `docs/ip/IP1.md`.
-2. **Actualizar la skill `godot-run`**, una vez restaurada `.claude/`:
-   - Documentar los modos `--locale <es|en>` y `--screenshot <ruta>`.
-   - Las rutas relativas de `--screenshot` parten de `game/`.
-   - Las capturas necesitan ventana, así que se corren sin `--headless`.
-   - Después de cambiar un `.import` hay que correr `--headless --path game --import`.
-   - Quitar luego ese punto de "Pendiente" de H1.3 en `docs/ip/IP1.md`.
-3. **Adelantar `main` a H1.3**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-3-contenido-i18n:main`.
-4. **Empezar H1.4 Mapa y generación.**
+1. **Adelantar `main` a H1.3**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-3-contenido-i18n:main`.
+2. **Empezar H1.4 Mapa y generación.**
    - Rama sugerida: `ip1/h1-4-mapa-generacion`, creada con `git switch -c` desde la rama actual o desde `main` ya adelantado. Crear la rama no toca archivos.
    - Alcance, en `docs/ip/IP1.md`: mapa 3D con chunks y generación con ruido. El valle mide 96×96×32: pasto y tierra en superficie, colinas con roca expuesta, de 2 a 5 niveles de tierra y luego estratos de granito, caliza y arenisca. Lleva robles, pinos, arbustos de bayas y rampas en las pendientes.
    - Entregable: misma semilla ⇒ mismo mapa, superficie conectada y generación en menos de 2 s.
@@ -54,6 +39,12 @@ El backlog (`docs/ip/backlog.md`) recibió en esta sesión dos temas que no son 
 - **Fuente nítida:** el smoke y `--screenshot` fallan si la caché de la fuente tiene suavizado. El mensaje indica cómo reimportar.
 
 ## Historial
+
+### 2026-10-09: restauración de `.claude/`
+
+- Tras reiniciar VS Code, `.claude/` dejó de estar bloqueada. Restauré sus archivos desde git y quité la marca `skip-worktree`.
+- Actualicé la skill `godot-run`: `--locale` y `--screenshot` disponibles desde H1.3, rutas relativas desde `game/`, capturas sin `--headless`, reimportación tras cambiar un `.import` y cómo leer `GODOT_BIN` si la sesión no la hereda.
+- Borré la memoria `claude-dir-restore-pending` y los pendientes correspondientes de `IP1.md`.
 
 ### 2026-10-09: cierre de H1.3
 
