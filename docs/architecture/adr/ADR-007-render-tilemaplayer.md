@@ -1,6 +1,6 @@
 # ADR-007: Render por capas TileMapLayer con TileSet generado
 
-- **Estado:** aceptada
+- **Estado:** reemplazada por [ADR-009](ADR-009-render-3d-low-poly.md) el 2026-10-09, antes de implementarse
 - **Fecha:** 2026-10-08
 
 ## Contexto

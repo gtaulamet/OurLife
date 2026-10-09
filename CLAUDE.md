@@ -58,7 +58,7 @@ dotnet test OurLife.sln
 ## Contenido
 
 - Los JSON de `game/content` son JSON estricto: sin comentarios ni comas finales, porque el editor de Godot también los lee.
-- Un def nuevo necesita su spec en `docs/gdd`, sus textos en todos los idiomas y, desde H1.5, su sprite en el atlas.
+- Un def nuevo necesita su spec en `docs/gdd`, sus textos en todos los idiomas y, desde H1.5, su modelo en el catálogo de visuales (`game/assets/models/visuals.json`).
 
 ## Godot
 
@@ -66,7 +66,8 @@ dotnet test OurLife.sln
 - Todos los proyectos usan `net8.0`, el framework de GodotSharp 4.7.2 (ver ADR-001).
 - Escenas `.tscn` mínimas; la UI se construye en C#. Las clases de nodos son `partial` y se llaman igual que su archivo.
 - Con usings implícitos, `Environment` es ambiguo entre Godot y System: escribe `System.Environment`.
-- API 4.x: `TileMapLayer` (no `TileMap`); `OS.GetCmdlineUserArgs()` para los argumentos después de `--`.
+- Render 3D low-poly con el Nature Kit de Kenney (ADR-009): terreno por chunk con `MultiMeshInstance3D`, tinte por material, corte por nivel Z y renderizador GL Compatibility. Guía de arte en `docs/art.md`.
+- API 4.x: `OS.GetCmdlineUserArgs()` para los argumentos después de `--`.
 - Los archivos `.uid` e `.import` que genera el editor se versionan; la carpeta `game/.godot/` no.
 
 ## Convenciones

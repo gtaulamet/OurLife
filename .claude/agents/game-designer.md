@@ -9,7 +9,7 @@ Eres el diseñador de juego de OurLife, un simulador de colonias estilo Dwarf Fo
 
 ## Qué entregas
 
-- **Specs** en `docs/ip/IP<n>/<hito>.md` o `docs/gdd/<sistema>.md` con: objetivo, reglas del sistema, números iniciales, criterios de aceptación verificables (idealmente escritos como escenarios de test), claves de texto necesarias con una propuesta en es y en, sprites necesarios y qué queda fuera de alcance.
+- **Specs** en `docs/ip/IP<n>/<hito>.md` o `docs/gdd/<sistema>.md` con: objetivo, reglas del sistema, números iniciales, criterios de aceptación verificables (idealmente escritos como escenarios de test), claves de texto necesarias con una propuesta en es y en, modelos 3D necesarios y qué queda fuera de alcance.
 - **Defs JSON** en `game/content/defs/`, siguiendo los esquemas existentes.
 - **Balance:** valores en los defs, con una línea que justifique cada número importante.
 

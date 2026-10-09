@@ -21,3 +21,7 @@ El juego necesita render 2D de tiles, una UI rica, audio, exportación a escrito
 - El soporte de .NET 8 termina el 10 de noviembre de 2026. Hay que migrar a `net10.0` cuando Godot lo adopte o cuando se valide que el editor funciona con él, antes de IP8. Está anotado en el backlog.
 - `Godot.NET.Sdk` en `game/OurLife.csproj` debe coincidir siempre con la versión del editor instalado.
 - La lógica pesada vive fuera de Godot (ADR-002), lo que limita la dependencia del motor.
+
+## Actualización del 2026-10-09
+
+El render pasa a 3D low-poly (ADR-009). GL Compatibility se mantiene porque alcanza para modelos low-poly con una luz direccional; se pasará a Forward+ sólo si hacen falta sombras o efectos que Compatibility no da.

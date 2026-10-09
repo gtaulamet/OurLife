@@ -51,7 +51,7 @@ Todo def de contenido puede declarar:
 
 Otras piezas por época:
 
-- **Sprites:** variantes con sufijo `@<era>`, por ejemplo `house@modern`; si no existe, se usa `house`.
+- **Modelos 3D:** variantes con sufijo `@<era>` en el catálogo de visuales, por ejemplo `house@modern`; si no existe, se usa `house`.
 - **UI y música:** tema y lista de música por época.
 - **Textos:** los términos que cambian usan `select` sobre `era`, por ejemplo aldea, villa o ciudad.
 - **Nombres de colonos:** listas por época.
@@ -60,7 +60,7 @@ Otras piezas por época:
 
 | IP | Gancho | Costo |
 |---|---|---|
-| IP1 | `EraDef` con sólo `medieval`, campos `era` y `requires`, `UnlockService`, calendario con año absoluto, variantes de sprite por época | Unas 4 h |
+| IP1 | `EraDef` con sólo `medieval`, campos `era` y `requires`, `UnlockService`, calendario con año absoluto, variantes de modelo por época | Unas 4 h |
 | IP2 | Época y conocimientos dentro del formato de guardado | Incluido |
 | IP3 | Árbol de conocimientos medieval que bloquea recetas y edificios | Unas 10 h |
 | IP5 | Armas a distancia genéricas por datos: arco y ballesta, luego mosquete | Incluido |
@@ -72,4 +72,4 @@ Otras piezas por época:
 - ¿Puede la colonia retroceder de época tras un colapso?
 - ¿Qué pasa con los edificios obsoletos: se mantienen, se degradan o se pueden renovar?
 - ¿Qué población y tamaño de mapa necesita cada época, y cuánto se simplifica la simulación de los habitantes fuera de foco?
-- Arte de épocas modernas: ¿comprar packs o encargar sprites?
+- Arte de épocas modernas: ¿comprar packs o encargar modelos 3D?

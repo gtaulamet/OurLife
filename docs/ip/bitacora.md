@@ -21,14 +21,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **Adelantar `main` a H1.3**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-3-contenido-i18n:main`.
-2. **Empezar H1.4 Mapa y generación.**
+2. **Empezar H1.4 Mapa y generación.** El paso a 3D (ADR-009) no cambia este hito.
    - Rama sugerida: `ip1/h1-4-mapa-generacion`, creada con `git switch -c` desde la rama actual o desde `main` ya adelantado. Crear la rama no toca archivos.
    - Alcance, en `docs/ip/IP1.md`: mapa 3D con chunks y generación con ruido. El valle mide 96×96×32: pasto y tierra en superficie, colinas con roca expuesta, de 2 a 5 niveles de tierra y luego estratos de granito, caliza y arenisca. Lleva robles, pinos, arbustos de bayas y rampas en las pendientes.
    - Entregable: misma semilla ⇒ mismo mapa, superficie conectada y generación en menos de 2 s.
    - Flujo: Plan → spec (game-designer) → Core + tests (sim-engineer) → QA → `/code-review` → commit.
    - Los materiales se guardan en el mapa por índice de `DefDatabase`. Ese índice cambia si cambia el contenido, así que las partidas guardarán ids.
 
-El backlog (`docs/ip/backlog.md`) recibió en esta sesión dos temas que no son de H1.4: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
+3. **Al empezar H1.5, que ahora es 3D (ADR-009):**
+   - Pedirle al art-integrator que descargue el Nature Kit, confirme su contenido y su licencia, y arme la lista de modelos que faltan comparándola con los defs de IP1.
+   - Renombrar `sprite` a `visual` en los defs y en el Core.
+   - Al inicio del hito, revisar con capturas la legibilidad del corte por nivel, la proyección (perspectiva u ortográfica) y si la fuente Tiny5 combina con el 3D.
+
+El backlog (`docs/ip/backlog.md`) tiene dos temas que no son de H1.4: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
 
 ## Notas prácticas
 
@@ -39,6 +44,14 @@ El backlog (`docs/ip/backlog.md`) recibió en esta sesión dos temas que no son 
 - **Fuente nítida:** el smoke y `--screenshot` fallan si la caché de la fuente tiene suavizado. El mensaje indica cómo reimportar.
 
 ## Historial
+
+### 2026-10-09: paso a 3D low-poly
+
+- Analicé dos kits de Kenney. El Hexagon Kit se descartó porque obliga a usar una grilla hexagonal, y eso encarecía el Core y la construcción. El usuario eligió el Nature Kit, que es CC0 y está pensado para una grilla cuadrada.
+- Escribí ADR-009, que reemplaza a ADR-007. Define la escala de una celda por unidad de Godot, el catálogo `visuals.json`, el terreno por chunk con `MultiMesh` y tinte por material, el corte por nivel Z, la cámara 3D, la selección por rayo y que se mantiene GL Compatibility.
+- Actualicé `plan-maestro.md`, `IP1.md`, `art.md`, `overview.md`, `eras.md`, ADR-001, ADR-007, ADR-008, `CLAUDE.md` y los agentes art-integrator, godot-engineer y game-designer.
+- El guardado pasa de ADR-009 a ADR-010.
+- IP1 pasa de 100–135 h a 112–153 h, por los cambios en H1.5 y H1.7. La simulación no cambia.
 
 ### 2026-10-09: restauración de `.claude/`
 

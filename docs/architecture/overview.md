@@ -9,7 +9,7 @@ flowchart TB
   subgraph GAME["Juego: game/OurLife.csproj · Godot 4.7 .NET"]
     IN["Entrada y herramientas de órdenes"]
     UI["UI: menús, HUD, paneles"]
-    REN["Render: capas de mapa, entidades, overlays"]
+    REN["Render 3D: chunks del mapa, entidades, overlays"]
     LB["Puente de localización"]
   end
   subgraph CORE["OurLife.Core · .NET puro"]
@@ -19,7 +19,7 @@ flowchart TB
     DEF["DefDatabase + UnlockService"]
   end
   LOC["OurLife.Localization · catálogos + ICU"]
-  DATA[("content: defs, locales, atlas.json")]
+  DATA[("content: defs, locales · assets: visuals.json")]
   IN -->|Comandos| SIM
   SIM -->|Eventos| REN
   SIM -->|Eventos con claves i18n| UI
@@ -124,7 +124,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | ECS ligero, ticks, RNG, calendario, comandos, eventos, hash de estado | H1.2 | Hecho, en revisión |
 | Defs, épocas, localización con ICU, puente Godot, ajustes | H1.3 | Hecho, en revisión |
 | Mapa 3D, generación, conectividad | H1.4 | Pendiente |
-| Render, cámara, capturas | H1.5 | Pendiente |
+| Render 3D low-poly, cámara, capturas (ADR-009) | H1.5 | Pendiente |
 | Pathfinding, IA, trabajos, necesidades | H1.6 | Pendiente |
 | Entrada, HUD, menús | H1.7 | Pendiente |
 
@@ -136,5 +136,6 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 - [ADR-004: Simulación determinista](adr/ADR-004-simulacion-determinista.md)
 - [ADR-005: Contenido en JSON validado](adr/ADR-005-contenido-en-json.md)
 - [ADR-006: Localización con JSON e ICU](adr/ADR-006-localizacion-json-icu.md)
-- [ADR-007: Render por capas TileMapLayer](adr/ADR-007-render-tilemaplayer.md)
+- [ADR-007: Render por capas TileMapLayer](adr/ADR-007-render-tilemaplayer.md), reemplazada por ADR-009
 - [ADR-008: Épocas como datos](adr/ADR-008-epocas-como-datos.md)
+- [ADR-009: Render 3D low-poly con el Nature Kit de Kenney](adr/ADR-009-render-3d-low-poly.md)

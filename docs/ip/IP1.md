@@ -2,7 +2,14 @@
 
 **Objetivo.** Abrir el juego en español, generar un valle con niveles Z y mantener vivos a 5 colonos dándoles órdenes. Poder cambiar a inglés en vivo.
 
-**Estimación:** 100 a 135 h. **Versión al cerrar:** `v0.1.0`.
+**Estimación:** 112 a 153 h; eran 100 a 135 h antes del paso a 3D. **Versión al cerrar:** `v0.1.0`.
+
+## Cambios de alcance
+
+- **2026-10-09, antes de H1.4:** el render pasa de pixel art 16×16 con `TileMapLayer` a 3D low-poly con el Nature Kit de Kenney (ADR-009, que reemplaza a ADR-007). Lo decidió el usuario.
+  - Cambian el alcance y las horas de H1.5 (de 14–18 h a 24–32 h) y de H1.7 (de 14–18 h a 16–22 h).
+  - H1.4 y H1.6 no cambian.
+  - En los defs, el campo `sprite` pasa a llamarse `visual` en H1.5.
 
 ## Estado de los hitos
 
@@ -29,10 +36,10 @@
 - Órdenes: excavar muros, escalera hacia abajo, talar, recolectar bayas y cancelar.
 - Trabajos automáticos con reservas.
 - Necesidades: hambre y descanso. Muerte por inanición y fin de partida si mueren todos.
-- Cámara: desplazamiento, zoom entero, subir y bajar de nivel; niveles inferiores oscurecidos a través del aire.
+- Vista 3D low-poly con el Nature Kit de Kenney. Cámara con desplazamiento, zoom, rotación en pasos de 90° y cambio de nivel. La vista corta el mapa en el nivel actual y muestra los niveles inferiores oscurecidos.
 - HUD: fecha con año, hora, pausa, 1×, 2× y 4×, nivel Z y barra de órdenes.
 - Inspector de colono y de tile. Registro de eventos localizado.
-- Preparación de épocas: calendario desde el año 1200, defs con época y conocimientos requeridos, variantes de sprite por época.
+- Preparación de épocas: calendario desde el año 1200, defs con época y conocimientos requeridos, variantes de modelo por época.
 - Exportación Windows jugable.
 
 ## Hitos en detalle
@@ -43,9 +50,9 @@
 | H1.2 Núcleo | ECS ligero, bucle de ticks, scheduler, RNG, calendario con año absoluto, comandos, eventos, hash de estado | Plan, sim-engineer, qa-tester | 10–14 | Misma semilla ⇒ mismo hash tras 10 000 ticks |
 | H1.3 Contenido e i18n | `DefDatabase` y validación, `EraDef`, campos `era` y `requires`, `UnlockService`, defs iniciales, `Localization` con ICU, puente Godot, ajustes, fuente pixel | game-designer, sim-engineer, i18n-specialist, godot-engineer | 14–18 | Tests de defs, épocas e i18n en verde; una etiqueta cambia en vivo entre "Nueva partida" y "New game" |
 | H1.4 Mapa y generación | Mapa 3D, chunks, generación con ruido, estratos, vegetación, rampas, conectividad | sim-engineer, game-designer | 10–14 | Misma semilla ⇒ mismo mapa; superficie conectada; generación en menos de 2 s |
-| H1.5 Render y cámara | Sprites CC0, `atlas.json` con variantes por época, TileSet en código, capas de profundidad, entidades, cámara, nivel Z, modo `--screenshot` | art-integrator, godot-engineer | 14–18 | Captura del valle con colinas y niveles inferiores oscurecidos |
+| H1.5 Render y cámara | Modelos CC0 del Nature Kit de Kenney y faltantes; `visuals.json` con variantes por época; campo `visual` en los defs; terreno por chunks con `MultiMesh` y tinte por material; corte por nivel Z; vegetación, objetos y colonos; cámara 3D; luz | art-integrator, godot-engineer | 24–32 | Captura del valle en 3D con colinas y árboles, y otra con el corte en un nivel subterráneo y los inferiores oscurecidos |
 | H1.6 Colonos e IA | A* 3D, reservas, decisión priorizada, WorkGivers y JobDrivers, necesidades, muerte | Plan, sim-engineer, qa-tester | 20–26 | Escenarios "5 colonos 3 días con bayas ⇒ todos vivos" y "área designada ⇒ excavada" |
-| H1.7 Interacción y UI | Modos de entrada, designación por arrastre, HUD, inspector, registro, menú principal, pausa, opciones | godot-engineer, i18n-specialist | 14–18 | Partida completa jugable con ratón y teclado en es y en |
+| H1.7 Interacción y UI | Modos de entrada, selección de celdas con el rayo de la cámara, designación por arrastre, HUD, inspector, registro, menú principal, pausa, opciones | godot-engineer, i18n-specialist | 16–22 | Partida completa jugable con ratón y teclado en es y en |
 | H1.8 Integración | Playtest, balance, bugs, ms/tick, README, plantillas de exportación, export Windows | qa-tester, game-designer, `/code-review`, humano | 10–14 | `v0.1.0` exportada y checklist de playtest completo |
 
 ## Definición de hecho de IP1

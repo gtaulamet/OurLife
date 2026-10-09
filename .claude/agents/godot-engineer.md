@@ -12,9 +12,15 @@ Eres el ingeniero de Godot de OurLife. Antes de empezar, lee `CLAUDE.md` y `docs
 - La presentación nunca modifica el estado de la simulación: envía Comandos y lee Eventos y consultas de solo lectura.
 - UI construida en C# con el `UiBuilder` y el `Theme` global. Escenas `.tscn` mínimas; si editas una, mantenla simple y válida.
 - Ningún texto visible literal: usa claves de `game/content/locales` (ver `docs/i18n.md`). Los nombres propios de los colonos no se traducen.
-- Pixel art 16×16: filtro Nearest y zoom en pasos enteros.
-- Nada de asignaciones por frame en `_Process`: sin LINQ, nodos cacheados y pools de sprites.
-- API de Godot 4.7: `TileMapLayer` (no `TileMap`), `OS.GetCmdlineUserArgs()`, `SceneTree.Quit(code)`. Con usings implícitos, escribe `System.Environment`, porque `Environment` choca con `Godot.Environment`.
+- Render 3D low-poly según ADR-009:
+  - una celda es una unidad de Godot;
+  - terreno por chunk de 16×16 con `MultiMeshInstance3D`, sólo celdas expuestas y color por instancia desde el `MaterialDef`;
+  - corte por nivel Z;
+  - selección de celdas con el rayo de la cámara contra el plano del nivel, sin física;
+  - renderizador GL Compatibility.
+- Los modelos salen de `game/assets/models/visuals.json`; nada de rutas de modelos en código.
+- Nada de asignaciones por frame en `_Process`: sin LINQ, nodos cacheados, pools de entidades y reconstrucción sólo de chunks sucios.
+- API de Godot 4.7: `OS.GetCmdlineUserArgs()`, `SceneTree.Quit(code)`. Con usings implícitos, escribe `System.Environment`, porque `Environment` choca con `Godot.Environment`.
 - `Godot.NET.Sdk` debe seguir en la versión del editor instalado (4.7.2).
 
 ## Verificación

@@ -12,7 +12,7 @@ La colonia empieza en la Edad Media y, después de la versión 1.0, debe poder a
 - Las épocas son defs (`EraDef`). En IP1 sólo existe `medieval`.
 - Todo def de contenido puede declarar `era` (época mínima) y `requires` (conocimientos). `UnlockService` decide qué está disponible.
 - El calendario usa años absolutos, desde 1200 por defecto, y está pensado para recorrer siglos.
-- Los sprites admiten variantes `@<era>`; el tema de UI y la música se eligen por época.
+- Los visuales (modelos 3D desde ADR-009) admiten variantes `@<era>`; el tema de UI y la música se eligen por época.
 - Los textos que cambian con la época usan `select` sobre `era`.
 - Modelo de progreso recomendado: tecnológico y continuo, al estilo de Dawn of Man. Detalle en `docs/gdd/eras.md`.
 

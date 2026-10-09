@@ -3,6 +3,8 @@
 > Nombre provisional del proyecto: **OurLife** (por la carpeta `ourlife`).
 >
 > Copia del plan aprobado el 8-oct-2026. Ajustes aplicados en H1.1: Godot 4.7.2, `net8.0` en todos los proyectos y proyecto del juego `game/OurLife.csproj` (ver ADR-001).
+>
+> Ajuste del 9-oct-2026, antes de H1.4: el estilo visual pasa de pixel art 16×16 a 3D low-poly con el Nature Kit de Kenney (ADR-009, que reemplaza a ADR-007). La simulación no cambia. H1.5 y H1.7 suben de horas.
 
 ## 1. Contexto
 
@@ -13,7 +15,7 @@ Se quiere crear un juego de simulación de colonias al estilo de Dwarf Fortress,
 | Tema | Decisión |
 |---|---|
 | Motor | Godot 4.7.2 (edición .NET) con C# |
-| Estilo visual | Sprites pixel art 16×16 desde la IP1 |
+| Estilo visual | 3D low-poly sobre grilla cuadrada, con modelos CC0 del Nature Kit de Kenney desde la IP1 (ADR-009) |
 | Mapa | Niveles Z: mapa 3D por capas, se ve un nivel a la vez y se excava hacia abajo |
 | Temática | Humanos. Empieza en la Edad Media (aldea en un valle con colinas, bosques y roca) y en IPs futuras progresa a la Edad Moderna y la Contemporánea |
 | Idiomas | Español por defecto (siempre, aunque el sistema operativo esté en otro idioma) e inglés |
@@ -67,7 +69,7 @@ flowchart TB
   subgraph GAME["Juego: game/OurLife.csproj · Godot 4.7 .NET"]
     IN["Entrada y herramientas de órdenes"]
     UI["UI: menús, HUD, paneles"]
-    REN["Render: capas de mapa, entidades, overlays"]
+    REN["Render 3D: chunks del mapa, entidades, overlays"]
     LB["Puente de localización"]
   end
   subgraph CORE["OurLife.Core · .NET puro"]
@@ -77,7 +79,7 @@ flowchart TB
     DEF["DefDatabase + UnlockService"]
   end
   LOC["OurLife.Localization · catálogos + ICU"]
-  DATA[("content: defs, locales, atlas.json")]
+  DATA[("content: defs, locales · assets: visuals.json")]
   IN -->|Comandos| SIM
   SIM -->|Eventos| REN
   SIM -->|Eventos con claves i18n| UI
@@ -144,7 +146,7 @@ Reglas:
 - Textos por convención de clave: `def.<tipo>.<id>.name` y `def.<tipo>.<id>.desc`.
 
 ```json
-{ "type": "Plant", "id": "berry_bush", "sprite": "plant.berry_bush", "era": "medieval",
+{ "type": "Plant", "id": "berry_bush", "visual": "plant.berry_bush", "era": "medieval",
   "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4 }
 ```
 
@@ -154,17 +156,22 @@ Reglas:
 
 - Proyecto en `game/` usando la solución raíz (`dotnet/project/solution_directory="../"`). La versión de `Godot.NET.Sdk` del `.csproj` (4.7.2) debe coincidir con la del editor instalado. Todos los proyectos usan `net8.0`, el framework de GodotSharp 4.7.2 (ADR-001).
 - `GameRoot` (escena principal) monta los servicios: contenido, localización, ajustes en `user://settings.cfg` y navegación entre pantallas.
-- **Mapa**
-  - `TileSet` construido en código desde `assets/sprites/atlas.json` (id de sprite → hoja y coordenadas). Cambiar el arte es cambiar PNG y JSON, sin tocar código.
+- **Mapa en 3D low-poly** (ADR-009)
+  - Una celda mide una unidad de Godot de ancho y una de alto. La `x` del mapa va al eje X, la `y` al eje Z y el nivel `z` al eje Y.
+  - Catálogo `assets/models/visuals.json`, que asocia cada id visual con un modelo `.glb`, su escala y si se tiñe. Cambiar el arte es cambiar modelos y JSON, sin tocar código.
   - Variantes por época: `house@modern` cae a `house` si la variante no existe. El `Theme` de UI y la música también se eligen por época.
-  - Sprites base en gris, teñidos por material con "alternative tiles" (`TileData.Modulate`). Un mismo muro sirve para granito, caliza o tierra.
-  - Cuatro `TileMapLayer` de profundidad: el nivel actual y 3 inferiores vistos a través del aire, cada vez más oscuros. Así la superficie con colinas se lee bien desde cualquier nivel.
-  - Overlay de designaciones y rectángulo de selección.
-  - Sólo se redibujan los chunks sucios.
-- **Entidades:** `Sprite2D` en pool, sólo del nivel visible, con interpolación entre ticks para movimiento suave.
-- **Pixel art nítido:** filtro Nearest, zoom en pasos enteros y transformaciones ajustadas al píxel.
-- **Entrada:** acciones en `InputMap` (WASD/flechas para mover, rueda para zoom, RePág/AvPág para nivel Z, Espacio para pausa, 1/2/3 para velocidad, atajos de órdenes, Esc). Modos: seleccionar, designar área arrastrando, cancelar.
-- **UI:** Controls construidos en C# con un `UiBuilder` y un `Theme` global. Escenas `.tscn` mínimas, porque los agentes editan mal escenas complejas.
+  - Cada chunk de 16×16 por nivel tiene un `MultiMeshInstance3D` por tipo de pieza (bloque, suelo, rampa, escalera). Sólo se instancian las celdas expuestas.
+  - Los modelos base son grises y se tiñen por instancia con el color del `MaterialDef`. Un mismo bloque sirve para tierra, granito, caliza o arenisca.
+  - Corte por nivel: el nivel actual se ve cortado, con la roca sin excavar oscurecida por arriba. Se ven hasta 8 niveles inferiores, cada vez más oscuros, y los superiores se ocultan.
+  - Overlay de designaciones y selección con mallas simples semitransparentes.
+  - Sólo se reconstruyen los chunks sucios.
+- **Vegetación y objetos:** un `MultiMesh` por id visual y por chunk.
+- **Colonos:** nodos `Node3D` en pool, con interpolación entre ticks para un movimiento suave.
+- **Cámara:** `Camera3D` con inclinación fija, rotación en pasos de 90°, desplazamiento y zoom continuo con límites. Empieza en perspectiva; si cuesta leer el mapa, se pasa a ortográfica en H1.5.
+- **Selección de celdas:** el rayo de la cámara se interseca con el plano del nivel actual, sin física.
+- **Luz:** una luz direccional y luz ambiente, con el renderizador GL Compatibility.
+- **Entrada:** acciones en `InputMap` (WASD/flechas para mover, rueda para zoom, Q/E para rotar, RePág/AvPág para nivel Z, Espacio para pausa, 1/2/3 para velocidad, atajos de órdenes, Esc). Modos: seleccionar, designar área arrastrando, cancelar.
+- **UI:** 2D sobre el mapa, en un `CanvasLayer`, con Controls construidos en C# con un `UiBuilder` y un `Theme` global. Escenas `.tscn` mínimas, porque los agentes editan mal escenas complejas.
 - **Modos de línea de comandos** (`OS.GetCmdlineUserArgs()`): `--smoke`, `--screenshot <png>`, `--locale <es|en>`, `--seed <n>`, `--ticks <n>`. Permiten que agentes y CI verifiquen el juego sin intervención humana.
 
 ### 3.4 Localización (i18n)
@@ -218,9 +225,10 @@ Shouldly en lugar de FluentAssertions porque la versión 8 de esta última dejó
 4. ADR-004: Simulación determinista de paso fijo con RNG por sistema.
 5. ADR-005: Contenido en JSON validado (defs).
 6. ADR-006: i18n con catálogos JSON + ICU; español por defecto; la simulación emite claves.
-7. ADR-007: Render por capas `TileMapLayer` con `TileSet` generado desde `atlas.json`.
+7. ADR-007: Render por capas `TileMapLayer` con `TileSet` generado desde `atlas.json`. Reemplazada por ADR-009 antes de implementarse.
 8. ADR-008: Épocas como datos y progreso tecnológico continuo (el modelo se confirma en IP9).
-9. ADR-009 (IP2): Guardado JSON comprimido y versionado.
+9. ADR-009: Render 3D low-poly con el Nature Kit de Kenney, `MultiMesh` por chunk y catálogo de visuales.
+10. ADR-010 (IP2): Guardado JSON comprimido y versionado.
 
 ### 3.7 Preparación para el progreso de épocas
 
@@ -230,7 +238,7 @@ Shouldly en lugar de FluentAssertions porque la versión 8 de esta última dejó
 
 | IP | Gancho | Costo |
 |---|---|---|
-| IP1 | `EraDef` con sólo `medieval`, campos `era` y `requires` en los defs, `UnlockService`, calendario con año absoluto, variantes de sprite por época, regla 5 en `CLAUDE.md` | Unas 4 h, repartidas en H1.2, H1.3 y H1.5 |
+| IP1 | `EraDef` con sólo `medieval`, campos `era` y `requires` en los defs, `UnlockService`, calendario con año absoluto, variantes de modelo por época, regla 5 en `CLAUDE.md` | Unas 4 h, repartidas en H1.2, H1.3 y H1.5 |
 | IP2 | Época y conocimientos dentro del formato de guardado | Incluido |
 | IP3 | Árbol de conocimientos medieval que bloquea recetas y edificios | +10 h |
 | IP5 | Armas a distancia genéricas por datos: arco y ballesta, luego mosquete | Incluido |
@@ -255,7 +263,7 @@ ourlife/
 │   ├── gdd/                      visión, pilares, una página por sistema y eras.md
 │   ├── architecture/             visión general + adr/
 │   ├── i18n.md                   guía de localización y convención de claves
-│   ├── art.md                    guía de arte: 16×16, paleta, sprites necesarios, variantes por época
+│   ├── art.md                    guía de arte: estilo 3D low-poly, paleta, modelos necesarios, variantes por época
 │   └── ip/                       alcance, estado y criterios de cada IP + backlog.md
 ├── src/
 │   ├── OurLife.Core/             simulación pura, sin Godot
@@ -266,13 +274,13 @@ ourlife/
 │   ├── project.godot · OurLife.csproj
 │   ├── content/defs/*.json       épocas, materiales, plantas, objetos, criaturas, trabajos, nombres
 │   ├── content/locales/es|en/    ui.json, content.json, events.json
-│   ├── assets/sprites/           hojas PNG + atlas.json con variantes por época
-│   ├── assets/fonts|themes|audio/
+│   ├── assets/models/            modelos .glb por pack + visuals.json con variantes por época
+│   ├── assets/fonts|icons|themes|audio/
 │   ├── scenes/                   Main.tscn y prefabs mínimos
 │   └── src/
 │       ├── Bootstrap/            GameRoot, Services, Settings, CommandLine
-│       ├── Rendering/            SpriteAtlas, TileSetFactory, MapRenderer, EntityRenderer
-│       ├── Input/                CameraController, InputModes, DesignationTool
+│       ├── Rendering/            VisualCatalog, ChunkRenderer, MapRenderer, EntityRenderer
+│       ├── Input/                CameraRig, CellPicker, InputModes, DesignationTool
 │       ├── UI/                   UiBuilder, MainMenu, NewGame, Hud, Inspector, EventLog, Options
 │       └── Localization/         GodotLocalizationBridge, TextResolver
 ├── tests/
@@ -312,8 +320,8 @@ flowchart LR
 │ Día 3 de primavera de 1200 · 14:20   ⏸ 1× 2× 4×   Nivel 18 │
 ├──────────────────────────────────────────┬─────────────────┤
 │                                          │ Elvira          │
-│   MAPA                                   │ Hambre   ▓▓▓░░  │
-│   nivel actual + 3 niveles oscurecidos   │ Descanso ▓▓▓▓░  │
+│   MAPA 3D                                │ Hambre   ▓▓▓░░  │
+│   corte en el nivel actual + inferiores  │ Descanso ▓▓▓▓░  │
 │                                          │ Talando un roble│
 ├──────────────────────────────────────────┴─────────────────┤
 │ Rodrigo comió unas bayas. Sancho excavó granito.           │
@@ -361,9 +369,9 @@ En cada frame, Godot ejecuta los ticks que pida la velocidad, aplica los eventos
 
 ### 5.6 Agregar contenido sin tocar código
 1. game-designer define el def JSON con sus números, su época y sus conocimientos requeridos.
-2. art-integrator agrega el sprite al atlas y la licencia a `CREDITS.md`.
+2. art-integrator agrega el modelo al catálogo de visuales y la licencia a `CREDITS.md`.
 3. i18n-specialist agrega nombre y descripción en es y en.
-4. El test de validación de defs comprueba referencias, sprites, claves y desbloqueos.
+4. El test de validación de defs comprueba referencias, visuales, claves y desbloqueos.
 5. El contenido aparece en el juego cuando su época y sus conocimientos están disponibles.
 
 ### 5.7 Un hito con agentes
@@ -415,9 +423,9 @@ flowchart LR
 | sim-engineer | Sistemas de `OurLife.Core` con tests; determinismo | Todas | inherit | IP1 |
 | godot-engineer | Render, entrada, UI, modos smoke y captura | Todas | inherit | IP1 |
 | i18n-specialist | Claves, textos es/en, ICU, tono y concordancia | Read, Write, Edit, Glob, Grep, shell para tests | sonnet | IP1 |
-| art-integrator | Sprites CC0, `atlas.json`, variantes por época, tintes, `CREDITS.md`, faltantes | Read, Write, Edit, Glob, Grep, shell | sonnet | IP1 |
+| art-integrator | Modelos 3D CC0 (Nature Kit y otros kits de Kenney), `visuals.json`, variantes por época, tintes, `CREDITS.md`, faltantes | Read, Write, Edit, Glob, Grep, shell | sonnet | IP1 |
 | qa-tester | Escenarios, smoke, capturas es/en revisadas, reporte de bugs | Todas | sonnet | IP1 |
-| perf-engineer | Perfilado, benchmarks, HPA*, hilos, render por shader, simulación por nivel de detalle | Todas | inherit | IP5 |
+| perf-engineer | Perfilado, benchmarks, HPA*, hilos, mallas combinadas y niveles de detalle en el render, simulación por nivel de detalle | Todas | inherit | IP5 |
 
 `inherit` usa el modelo de la sesión principal para el razonamiento pesado. `sonnet` abarata tareas repetitivas.
 
@@ -459,7 +467,7 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 
 | IP | Nombre | Qué se puede jugar al terminar | Horas | Semanas a 10 / 20 / 40 h | Fin aprox. |
 |---|---|---|---|---|---|
-| IP1 | Primeros colonos | Valle 3D, 5 colonos, excavar, escaleras, talar, recolectar, hambre y sueño, es/en | 100–135 | 10–14 / 5–7 / 3 | nov 2026 |
+| IP1 | Primeros colonos | Valle 3D, 5 colonos, excavar, escaleras, talar, recolectar, hambre y sueño, es/en | 112–153 | 11–15 / 6–8 / 3–4 | nov 2026 |
 | IP2 | Asentamiento | Almacenes, acarreo, construcción y muebles, guardar y cargar, prioridades | 70–90 | 7–9 / 4–5 / 2 | dic 2026 |
 | IP3 | Oficios | Talleres, recetas, producción, habilidades, agricultura, metales, conocimientos | 90–110 | 9–11 / 5–6 / 2–3 | ene 2027 |
 | IP4 | Vida en la colonia | Habitaciones, ánimo, rasgos, relaciones, ocio, crisis | 70–90 | 7–9 / 4–5 / 2 | feb 2027 |
@@ -467,7 +475,7 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 | IP6 | Estaciones | Estaciones, clima, temperatura, día y noche, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | may 2027 |
 | IP7 | Mundo y leyendas | Mapa del mundo, facciones, historia generada, elección de sitio, crónicas | 90–130 | 9–13 / 5–7 / 2–3 | jun 2027 |
 | IP8 | Publicación 1.0 | Rendimiento, audio, tutorial, accesibilidad, mods, QA de idiomas, exportación | 80–120 | 8–12 / 4–6 / 2–3 | jul 2027 |
-| **Total 1.0** | | | **670–905** | **67–91 / 34–45 / 17–23** | **jul 2027; sep 2027 con margen** |
+| **Total 1.0** | | | **682–923** | **68–92 / 34–46 / 17–23** | **jul 2027; sep 2027 con margen** |
 
 **Fase 2: progreso de épocas (futuro, posterior a la 1.0)**
 
@@ -475,9 +483,11 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 |---|---|---|---|---|---|
 | IP9 | Edad Moderna | Cambio de época, generaciones, imprenta, pólvora, la aldea se vuelve villa | 120–160 | 12–16 / 6–8 / 3–4 | sep 2027 |
 | IP10 | Edad Contemporánea | Revolución Industrial: vapor, electricidad, fábricas, saneamiento | 140–190 | 14–19 / 7–10 / 4–5 | oct 2027 |
-| **Total con épocas** | | | **930–1 255** | **93–126 / 47–63 / 23–31** | **oct 2027; ene 2028 con margen** |
+| **Total con épocas** | | | **942–1 273** | **94–127 / 47–64 / 24–32** | **oct 2027; ene 2028 con margen** |
 
-El arte de las épocas Moderna y Contemporánea probablemente requiera encargar o comprar sprites. Ese costo no está incluido en las horas.
+IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). Las fechas siguen siendo aproximadas.
+
+El arte de las épocas Moderna y Contemporánea probablemente requiera encargar o comprar modelos 3D. Ese costo no está incluido en las horas.
 
 ### 7.2 IP1: Primeros colonos (detallada)
 
@@ -497,11 +507,11 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
   - Cancelar designaciones.
 - Trabajos automáticos con reservas.
 - Necesidades: hambre (comen provisiones o bayas) y descanso (duermen en el suelo). Muerte por inanición y fin de partida si mueren todos.
-- Cámara: desplazamiento, zoom entero, subir y bajar de nivel. Niveles inferiores visibles y oscurecidos a través del aire.
+- Vista 3D low-poly con el Nature Kit de Kenney. Cámara con desplazamiento, zoom, rotación en pasos de 90° y cambio de nivel. La vista corta el mapa en el nivel actual y muestra los niveles inferiores oscurecidos.
 - HUD: fecha con año, hora, pausa, 1×, 2× y 4×, nivel Z y barra de órdenes.
 - Inspector de colono (nombre, necesidades, trabajo actual) y de tile (material, forma).
 - Registro de eventos localizado.
-- Preparación de épocas: calendario desde el año 1200, defs con época y conocimientos requeridos, y variantes de sprite por época. Todo el contenido de IP1 es medieval.
+- Preparación de épocas: calendario desde el año 1200, defs con época y conocimientos requeridos, y variantes de modelo por época. Todo el contenido de IP1 es medieval.
 - Exportación Windows jugable `v0.1.0`.
 
 **Hitos**
@@ -512,9 +522,9 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 | H1.2 Núcleo | ECS ligero, bucle de ticks, scheduler, RNG, calendario con año absoluto, comandos, eventos, hash de estado | Plan, sim-engineer, qa-tester | 10–14 | Misma semilla ⇒ mismo hash tras 10 000 ticks |
 | H1.3 Contenido e i18n | `DefDatabase` y validación, `EraDef`, campos `era` y `requires`, `UnlockService`, defs iniciales, `Localization` con ICU, puente Godot, ajustes, fuente pixel | game-designer, sim-engineer, i18n-specialist, godot-engineer | 14–18 | Tests de defs, épocas e i18n en verde; una etiqueta cambia en vivo entre "Nueva partida" y "New game" |
 | H1.4 Mapa y generación | Mapa 3D, chunks, generación con ruido (FastNoiseLite C#), estratos, vegetación, rampas, conectividad | sim-engineer, game-designer | 10–14 | Misma semilla ⇒ mismo mapa; superficie conectada; generación < 2 s |
-| H1.5 Render y cámara | Sprites CC0 de Kenney (16×16), `atlas.json` con variantes por época, TileSet en código, capas de profundidad, entidades, cámara, nivel Z, modo `--screenshot` | art-integrator, godot-engineer | 14–18 | Captura del valle con colinas y niveles inferiores oscurecidos |
+| H1.5 Render y cámara | Modelos CC0 del Nature Kit de Kenney y faltantes; `visuals.json` con variantes por época; campo `visual` en los defs; terreno por chunks con `MultiMesh` y tinte por material; corte por nivel Z; vegetación, objetos y colonos; cámara 3D; luz; modo `--screenshot` | art-integrator, godot-engineer | 24–32 | Captura del valle en 3D con colinas y árboles, y otra con el corte en un nivel subterráneo y los inferiores oscurecidos |
 | H1.6 Colonos e IA | A* 3D, reservas, decisión priorizada, WorkGivers y JobDrivers (excavar, escalera, talar, recolectar, comer, dormir, deambular), necesidades, muerte | Plan, sim-engineer, qa-tester | 20–26 | Escenarios "5 colonos 3 días con bayas ⇒ todos vivos" y "área designada ⇒ excavada" |
-| H1.7 Interacción y UI | Modos de entrada, designación por arrastre, HUD, inspector, registro, menú principal, pausa, opciones | godot-engineer, i18n-specialist | 14–18 | Partida completa jugable con ratón y teclado en es y en |
+| H1.7 Interacción y UI | Modos de entrada, selección de celdas con el rayo de la cámara, designación por arrastre, HUD, inspector, registro, menú principal, pausa, opciones | godot-engineer, i18n-specialist | 16–22 | Partida completa jugable con ratón y teclado en es y en |
 | H1.8 Integración | Playtest, balance, bugs, ms/tick, README, plantillas de exportación, export Windows | qa-tester, game-designer, `/code-review`, humano | 10–14 | `v0.1.0` exportada y checklist de playtest completo |
 
 **Ruta crítica:** H1.1 → H1.2 → (H1.3 ∥ H1.4) → (H1.5 ∥ H1.6) → H1.7 → H1.8.
@@ -592,11 +602,11 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - **Jugable:** cada partida empieza en un mundo con historia propia.
 
 **IP8 · Publicación 1.0 (80–120 h).** Agentes: perf-engineer, godot-engineer, i18n-specialist, qa-tester.
-- Mapas de 192×192×64 con más de 100 agentes; render de chunks por shader si hace falta.
+- Mapas de 192×192×64 con más de 100 agentes; mallas combinadas por chunk y niveles de detalle si el render lo necesita.
 - Audio: efectos, música y ambiente con packs CC0.
 - Tutorial, tooltips y enciclopedia generada desde los defs.
 - Accesibilidad: escala de UI, reasignación de teclas y paletas para daltonismo.
-- Mods: carpeta con defs, textos y sprites; orden de carga y validación.
+- Mods: carpeta con defs, textos y modelos; orden de carga y validación.
 - QA de idiomas: pseudo-localización para detectar textos largos, flujo de exportación e importación para traductores y prueba con un tercer idioma.
 - Exportación Windows, Linux y macOS; página en itch.io o Steam; registro de errores.
 - **Jugable:** versión 1.0 o acceso anticipado, ambientada en la Edad Media.
@@ -632,12 +642,14 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 |---|---|
 | Alcance infinito, como el propio DF | IPs cerradas, `docs/ip/backlog.md`, nada nuevo entra a mitad de una IP |
 | Las épocas multiplican contenido, arte y sistemas | Ganchos en datos desde IP1, épocas como IPs posteriores a la 1.0, sistemas genéricos para armas, recetas y redes |
-| Arte de épocas modernas no cubierto por packs CC0 medievales | Guía de arte por época y presupuesto para encargar o comprar sprites, fuera de las horas estimadas |
+| Arte de épocas modernas no cubierto por packs CC0 medievales | Guía de arte por época y presupuesto para encargar o comprar modelos 3D, fuera de las horas estimadas |
+| Lo subterráneo se lee peor en 3D que en vista cenital | Corte por nivel, roca sin excavar oscurecida, niveles inferiores oscurecidos por distancia y capturas revisadas al inicio de H1.5 |
+| Render 3D lento con muchos bloques | Sólo celdas expuestas, `MultiMesh` por chunk, límite de niveles visibles; mallas combinadas y niveles de detalle en IP8 si hacen falta |
 | Pathfinding 3D lento | Conectividad desde IP1, caché y HPA* en IP5, ms/tick medido en cada smoke |
 | Agentes que rompen escenas `.tscn` | UI en código, escenas mínimas, smoke test y capturas |
 | Pérdida de determinismo | Test de hash en CI y reglas en `CLAUDE.md` |
 | Deuda de i18n | Tests desde H1.3 y revisión del i18n-specialist en cada hito |
-| Arte inconsistente de packs gratuitos | Guía de arte, tinte por material, reemplazo vía `atlas.json` |
+| Arte inconsistente de packs gratuitos | Guía de arte, kits del mismo estilo low-poly, tinte por material, reemplazo vía `visuals.json` |
 | Versiones de Godot y .NET desalineadas | `Godot.NET.Sdk` igual al editor, `global.json`, versión anotada en README |
 | Partidas guardadas incompatibles | Versión de formato y migraciones desde IP2, incluida la llegada de nuevas épocas |
 | Desgaste del proyecto | Cada IP termina jugable y demostrable |
