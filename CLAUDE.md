@@ -4,6 +4,7 @@ Simulador de colonias estilo Dwarf Fortress hecho con Godot 4.7 (.NET) y C#. La 
 
 - Plan maestro: `docs/plan-maestro.md`
 - IP actual y estado de los hitos: `docs/ip/IP1.md`
+- Bitácora entre sesiones, con el estado actual y los pendientes: `docs/ip/bitacora.md`. Leerla al retomar el trabajo y actualizarla al terminar.
 - Arquitectura y decisiones: `docs/architecture/overview.md` y `docs/architecture/adr/`
 
 ## Comandos
