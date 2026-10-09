@@ -1,11 +1,13 @@
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 
 namespace OurLife.Localization.Icu;
 
 /// <summary>
-/// A parsed message pattern. Formatting never throws: a missing argument is shown as
-/// <c>⟦name⟧</c> so the problem is visible on screen and caught by tests.
+/// A parsed message pattern. Formatting never throws: a missing argument, including the one a
+/// plural or select depends on, is shown as <c>⟦name⟧</c> so the problem is visible on screen
+/// and caught by tests.
 /// </summary>
 public sealed class IcuMessage
 {
@@ -36,7 +38,8 @@ public sealed class IcuMessage
 
     /// <summary>
     /// Formats the message. Integers are written without thousands separators (years read
-    /// "1203"), unless the pattern asks for <c>{n, number}</c>, which uses the culture.
+    /// "1203"), unless the pattern asks for <c>{n, number}</c> or <c>{n, number, integer}</c>,
+    /// which use the culture.
     /// </summary>
     public string Format(IReadOnlyDictionary<string, object?>? arguments, PluralRule pluralRule, CultureInfo culture)
     {
@@ -70,7 +73,7 @@ public sealed class IcuMessage
                 case ArgumentNode argument:
                     if (arguments.TryGetValue(argument.Name, out var value) && value is not null)
                     {
-                        builder.Append(FormatValue(value, argument.AsNumber, culture));
+                        builder.Append(FormatValue(value, argument.Style, culture));
                     }
                     else
                     {
@@ -93,21 +96,38 @@ public sealed class IcuMessage
                     break;
 
                 case SelectNode select:
-                    var key = arguments.TryGetValue(select.Name, out var selectValue) && selectValue is not null
-                        ? Convert.ToString(selectValue, CultureInfo.InvariantCulture)
-                        : null;
-                    Append(builder, ChooseSelectCase(select.Cases, key).Message, arguments, pluralRule, culture, poundValue);
+                    if (arguments.TryGetValue(select.Name, out var selectValue) && selectValue is not null)
+                    {
+                        var chosen = ChooseSelectCase(select.Cases, SelectKey(selectValue));
+                        Append(builder, chosen.Message, arguments, pluralRule, culture, poundValue);
+                    }
+                    else
+                    {
+                        AppendMissing(builder, select.Name);
+                    }
+
                     break;
             }
         }
     }
 
+    /// <summary>
+    /// The case name a value selects. Enums use their camelCase name, as in the content JSON
+    /// (<c>Female</c> selects <c>female</c>), and booleans select <c>true</c> or <c>false</c>.
+    /// </summary>
+    private static string SelectKey(object value) => value switch
+    {
+        string text => text,
+        bool flag => flag ? "true" : "false",
+        Enum => JsonNamingPolicy.CamelCase.ConvertName(value.ToString()!),
+        _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
+    };
+
     private static IcuCase ChoosePluralCase(IReadOnlyList<IcuCase> cases, decimal count, PluralRule pluralRule)
     {
         foreach (var candidate in cases)
         {
-            if (candidate.Selector[0] == '='
-                && decimal.Parse(candidate.Selector.AsSpan(1), NumberStyles.Integer, CultureInfo.InvariantCulture) == count)
+            if (candidate.Exact == count)
             {
                 return candidate;
             }
@@ -144,11 +164,16 @@ public sealed class IcuMessage
         return other ?? throw new InvalidOperationException("Parsed plural or select without an 'other' case.");
     }
 
-    private static string FormatValue(object value, bool asNumber, CultureInfo culture)
+    private static string FormatValue(object value, ArgumentStyle style, CultureInfo culture)
     {
-        if (TryGetNumber(value, out var number) && value is not string)
+        if (TryGetNumber(value, out var number))
         {
-            return FormatNumber(number, asNumber, culture);
+            return style switch
+            {
+                ArgumentStyle.Integer => FormatNumber(decimal.Round(number, MidpointRounding.ToEven), grouping: true, culture),
+                ArgumentStyle.Number => FormatNumber(number, grouping: true, culture),
+                _ => FormatNumber(number, grouping: false, culture),
+            };
         }
 
         return value switch
@@ -163,7 +188,9 @@ public sealed class IcuMessage
     {
         if (grouping)
         {
-            return number.ToString(number == decimal.Truncate(number) ? "#,0" : "#,0.##", culture);
+            // Rounded half to even before formatting, like ICU; the format alone rounds half away from zero.
+            var rounded = decimal.Round(number, 2, MidpointRounding.ToEven);
+            return rounded.ToString(rounded == decimal.Truncate(rounded) ? "#,0" : "#,0.##", culture);
         }
 
         return number == decimal.Truncate(number)

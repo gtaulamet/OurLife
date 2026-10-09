@@ -49,7 +49,7 @@ public class UnlockServiceTests
         var progress = new ProgressState("test_age");
 
         _unlocks.IsUnlocked(book, progress).ShouldBeFalse();
-        progress.Knowledge.Add("printing");
+        progress.Learn("printing");
         _unlocks.IsUnlocked(book, progress).ShouldBeTrue();
     }
 
@@ -58,7 +58,7 @@ public class UnlockServiceTests
     {
         var before = new Simulation(1, Content);
         var after = new Simulation(1, Content);
-        after.Progress.Knowledge.Add("printing");
+        after.Progress.Learn("printing");
 
         after.ComputeStateHash().ShouldNotBe(before.ComputeStateHash());
     }

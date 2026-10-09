@@ -51,6 +51,21 @@ public class IcuMessageTests
     }
 
     [Fact]
+    public void A_missing_select_argument_is_visible_instead_of_choosing_other()
+    {
+        Format("{colonist} está {colonist_gender, select, female {agotada} other {agotado}}.", ("colonist", "Elvira"))
+            .ShouldBe("Elvira está ⟦colonist_gender⟧.");
+    }
+
+    [Fact]
+    public void Enums_select_by_their_camel_case_name_and_booleans_by_true_or_false()
+    {
+        Format("{gender, select, female {agotada} other {agotado}}", ("gender", TestGender.Female)).ShouldBe("agotada");
+        Format("{gender, select, female {agotada} other {agotado}}", ("gender", TestGender.Male)).ShouldBe("agotado");
+        Format("{busy, select, true {ocupada} other {libre}}", ("busy", true)).ShouldBe("ocupada");
+    }
+
+    [Fact]
     public void Pound_inside_a_select_nested_in_a_plural_uses_the_plural_number()
     {
         const string pattern =
@@ -67,6 +82,28 @@ public class IcuMessageTests
         IcuMessage.Parse("{gold, number} coins")
             .Format(Args(("gold", 12345)), PluralRules.OneOther, English)
             .ShouldBe("12,345 coins");
+    }
+
+    [Theory]
+    [InlineData(12345.6, "12.346")]
+    [InlineData(2.5, "2")]
+    [InlineData(3.5, "4")]
+    public void The_integer_style_rounds_half_to_even_and_groups_thousands(double value, string expected)
+    {
+        Format("{n, number, integer}", ("n", value)).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void Decimals_with_the_number_style_round_half_to_even()
+    {
+        Format("{n, number}", ("n", 0.125m)).ShouldBe("0,12");
+        Format("{n, number}", ("n", 12345.5m)).ShouldBe("12.345,5");
+    }
+
+    [Fact]
+    public void A_plain_argument_keeps_decimals()
+    {
+        Format("{n}", ("n", 2.5)).ShouldBe("2,5");
     }
 
     [Fact]
@@ -99,6 +136,9 @@ public class IcuMessageTests
     [InlineData("{count, plural, one {a} one {b} other {c}}", "Duplicate case")]
     [InlineData("{count, plural, several {a} other {b}}", "Unknown plural category")]
     [InlineData("{ , select, other {x}}", "argument name")]
+    [InlineData("{n, plural, =99999999999999999999999999999999 {x} other {y}}", "too large")]
+    [InlineData("{n, plural, =1 {uno} =01 {otro} other {x}}", "Duplicate case '=1'")]
+    [InlineData("{n, number, percent}", "Unsupported number style")]
     public void Invalid_patterns_are_rejected_with_a_clear_message(string pattern, string expectedFragment)
     {
         var error = Should.Throw<IcuSyntaxException>(() => IcuMessage.Parse(pattern));
@@ -111,4 +151,10 @@ public class IcuMessageTests
 
     private static Dictionary<string, object?> Args(params (string Name, object Value)[] arguments) =>
         arguments.ToDictionary(a => a.Name, a => (object?)a.Value);
+
+    private enum TestGender
+    {
+        Male,
+        Female,
+    }
 }

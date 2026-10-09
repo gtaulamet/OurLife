@@ -37,14 +37,14 @@ internal static class TestContent
         Load(("defs/base.json", $"[{TimeConfigJson}, {FirstEraJson}]"), ("defs/extra.json", defsJsonArray));
 }
 
-/// <summary>Content files held in memory, keyed by relative path.</summary>
+/// <summary>Content files held in memory, keyed by relative path. Dot names are skipped, like on disk.</summary>
 internal sealed class InMemoryContentSource : IContentSource
 {
     private readonly SortedDictionary<string, string> _files = new(StringComparer.Ordinal);
 
     public InMemoryContentSource(IEnumerable<(string Path, string Json)> files)
     {
-        foreach (var (path, json) in files)
+        foreach (var (path, json) in files.Where(file => !IContentSource.IsIgnoredPath(file.Path)))
         {
             _files.Add(path, json);
         }

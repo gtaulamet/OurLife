@@ -33,7 +33,7 @@ public static class StateHasher
 
         AppendString(hash, simulation.Progress.CurrentEra);
         AppendInt32(hash, simulation.Progress.Knowledge.Count);
-        foreach (var knowledge in simulation.Progress.Knowledge)
+        foreach (var knowledge in simulation.Progress.Knowledge.Order(StringComparer.Ordinal))
         {
             AppendString(hash, knowledge);
         }

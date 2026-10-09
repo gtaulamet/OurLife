@@ -1,4 +1,4 @@
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using OurLife.Localization.Icu;
 
 namespace OurLife.Localization;
@@ -15,6 +15,8 @@ public sealed class Localizer
 
     private readonly Dictionary<string, LocaleCatalog> _catalogs;
     private readonly SortedSet<string> _missingKeys = new(StringComparer.Ordinal);
+    private readonly LocaleCatalog _fallback;
+    private LocaleCatalog _current;
 
     public Localizer(IEnumerable<LocaleCatalog> catalogs, string fallbackLocale = DefaultLocale)
     {
@@ -28,22 +30,22 @@ public sealed class Localizer
             }
         }
 
-        if (!_catalogs.ContainsKey(fallbackLocale))
+        if (!_catalogs.TryGetValue(fallbackLocale, out var fallback))
         {
             throw new ArgumentException($"There is no catalog for the fallback locale '{fallbackLocale}'.", nameof(fallbackLocale));
         }
 
-        FallbackLocale = fallbackLocale;
-        CurrentLocale = fallbackLocale;
+        _fallback = fallback;
+        _current = fallback;
         Locales = _catalogs.Keys.Order(StringComparer.Ordinal).ToArray();
     }
 
     /// <summary>Raised after the current language changes, with the new locale.</summary>
     public event Action<string>? LocaleChanged;
 
-    public string FallbackLocale { get; }
+    public string FallbackLocale => _fallback.Locale;
 
-    public string CurrentLocale { get; private set; }
+    public string CurrentLocale => _current.Locale;
 
     /// <summary>Available locales, sorted.</summary>
     public IReadOnlyList<string> Locales { get; }
@@ -60,18 +62,18 @@ public sealed class Localizer
 
     public void SetLocale(string locale)
     {
-        if (!_catalogs.ContainsKey(locale))
+        if (!_catalogs.TryGetValue(locale, out var catalog))
         {
             throw new ArgumentException(
                 $"Unknown locale '{locale}'. Available: {string.Join(", ", Locales)}.", nameof(locale));
         }
 
-        if (locale == CurrentLocale)
+        if (catalog == _current)
         {
             return;
         }
 
-        CurrentLocale = locale;
+        _current = catalog;
         LocaleChanged?.Invoke(locale);
     }
 
@@ -80,41 +82,31 @@ public sealed class Localizer
     /// <summary>Formats a message in the current language.</summary>
     public string Format(string key, IReadOnlyDictionary<string, object?>? arguments = null)
     {
-        if (!TryFind(key, out var message, out var locale))
+        if (!TryFind(key, out var message, out var catalog))
         {
             _missingKeys.Add(key);
             return $"⟦{key}⟧";
         }
 
-        return message.Format(arguments, PluralRules.For(locale), CultureFor(locale));
+        return catalog.Format(message, arguments);
     }
 
-    private static CultureInfo CultureFor(string locale)
+    /// <summary>Finds a key in the current language, then in the fallback one.</summary>
+    private bool TryFind(string key, [NotNullWhen(true)] out IcuMessage? message, [NotNullWhen(true)] out LocaleCatalog? catalog)
     {
-        try
+        catalog = _current;
+        if (catalog.Messages.TryGetValue(key, out message))
         {
-            return CultureInfo.GetCultureInfo(locale);
-        }
-        catch (CultureNotFoundException)
-        {
-            return CultureInfo.InvariantCulture;
-        }
-    }
-
-    private bool TryFind(string key, out IcuMessage message, out string locale)
-    {
-        foreach (var candidate in new[] { CurrentLocale, FallbackLocale })
-        {
-            if (_catalogs[candidate].Messages.TryGetValue(key, out var found))
-            {
-                message = found;
-                locale = candidate;
-                return true;
-            }
+            return true;
         }
 
-        message = null!;
-        locale = string.Empty;
+        catalog = _fallback;
+        if (catalog.Messages.TryGetValue(key, out message))
+        {
+            return true;
+        }
+
+        catalog = null;
         return false;
     }
 }

@@ -14,19 +14,15 @@ public class LocaleCatalogTests
         catalog.SourceOf("ui.a.first").ShouldBe("ui.json");
     }
 
-    [Fact]
-    public void Comments_and_trailing_commas_are_allowed()
+    [Theory]
+    [InlineData("""{ /* Menú principal */ "ui.mainmenu.new_game": "Nueva partida" }""")]
+    [InlineData("""{ "ui.mainmenu.new_game": "Nueva partida", }""")]
+    public void Comments_and_trailing_commas_are_rejected_because_godot_reads_the_files_too(string json)
     {
-        var catalog = LocaleCatalog.Parse("es", [
-            new CatalogFile("ui.json", """
-                {
-                  // Menú principal
-                  "ui.mainmenu.new_game": "Nueva partida",
-                }
-                """),
-        ]);
+        var error = Should.Throw<LocalizationException>(() =>
+            LocaleCatalog.Parse("es", [new CatalogFile("ui.json", json)]));
 
-        catalog.Messages.Count.ShouldBe(1);
+        error.Message.ShouldContain("invalid JSON");
     }
 
     [Fact]

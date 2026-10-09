@@ -13,17 +13,17 @@ dest_files=["res://.godot/imported/Tiny5.ttf-6eeb238c126097b7c3151c16f06fae11.fo
 [params]
 
 Rendering=null
-antialiasing=1
+antialiasing=0
 generate_mipmaps=false
 disable_embedded_bitmaps=true
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
 msdf_size=48
-allow_system_fallback=true
+allow_system_fallback=false
 force_autohinter=false
 modulate_color_glyphs=false
-hinting=3
-subpixel_positioning=4
+hinting=0
+subpixel_positioning=0
 keep_rounding_remainders=true
 oversampling=0.0
 Fallbacks=null

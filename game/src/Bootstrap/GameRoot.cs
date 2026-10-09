@@ -30,6 +30,24 @@ public partial class GameRoot : Node
 
     public override void _Ready()
     {
+        // Any failure must quit with an exit code: an exception escaping _Ready would leave
+        // --smoke and --screenshot running forever.
+        try
+        {
+            Start();
+        }
+        catch (Exception ex) when (ex is DefValidationException or LocalizationException)
+        {
+            Fail($"The game content has problems:{System.Environment.NewLine}{ex.Message}", ExitFailure);
+        }
+        catch (Exception ex)
+        {
+            Fail($"The game could not start: {ex}", ExitFailure);
+        }
+    }
+
+    private void Start()
+    {
         CommandLineOptions options;
         try
         {
@@ -47,14 +65,17 @@ public partial class GameRoot : Node
         }
 
         var automated = options.Smoke || options.ScreenshotPath is not null;
-        try
+        _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
+
+        if (UiTheme.FontImportProblem() is { } fontProblem)
         {
-            _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
-        }
-        catch (Exception ex) when (ex is DefValidationException or LocalizationException)
-        {
-            Fail($"The game content has problems:{System.Environment.NewLine}{ex.Message}", ExitFailure);
-            return;
+            if (automated)
+            {
+                Fail(fontProblem, ExitFailure);
+                return;
+            }
+
+            GD.PushWarning(fontProblem);
         }
 
         _bridge = new GodotLocalizationBridge(_services.Localizer, _services.Catalogs);

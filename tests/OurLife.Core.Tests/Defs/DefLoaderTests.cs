@@ -6,7 +6,6 @@ public class DefLoaderTests
 {
     private const string SampleDefs = """
         [
-          // Comments and trailing commas are allowed.
           { "type": "Item", "id": "stone", "kind": "raw", "sprite": "item.stone", "stackLimit": 20 },
           { "type": "Item", "id": "berries", "kind": "food", "sprite": "item.berries", "stackLimit": 50, "nutrition": 800 },
           { "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A",
@@ -18,7 +17,7 @@ public class DefLoaderTests
             "lowThreshold": 4000, "criticalThreshold": 1500, "deathAfterHoursAtZero": 72 },
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo"], "female": ["Elvira"] },
           { "type": "Creature", "id": "human", "sprite": "creature.human", "moveTicksPerTile": 2,
-            "needs": ["hunger"], "nameList": "test_names" },
+            "needs": ["hunger"], "nameList": "test_names" }
         ]
         """;
 
@@ -64,6 +63,12 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Item", "id": "log", "kind": "magic", "sprite": "item.log", "stackLimit": 10 }]""", "Item")]
     [InlineData("""{ "type": "Item" }""", "JSON array")]
     [InlineData("""[ { "type": "Item", ] """, "invalid JSON")]
+    [InlineData("""[ /* A comment */ { "type": "Knowledge", "id": "writing" } ]""", "invalid JSON")]
+    [InlineData("""[ { "type": "Knowledge", "id": "writing" }, ]""", "invalid JSON")]
+    [InlineData("""[{ "type": "Knowledge", "id": null }]""", "null in 'id'")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "requires": null }]""", "null in 'requires'")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "requires": [null] }]""", "null in 'requires[0]'")]
+    [InlineData("""[{ "type": "Plant", "id": "bush", "sprite": "plant.bush", "harvest": { "item": null, "count": 1, "workTicks": 1 } }]""", "null in 'harvest.item'")]
     public void Malformed_defs_are_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

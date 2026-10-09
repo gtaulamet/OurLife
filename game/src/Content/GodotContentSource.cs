@@ -32,7 +32,7 @@ public sealed class GodotContentSource : IContentSource
             return [];
         }
 
-        var names = access.GetDirectories().ToList();
+        var names = access.GetDirectories().Where(name => !IContentSource.IsIgnoredName(name)).ToList();
         names.Sort(StringComparer.Ordinal);
         return names;
     }
@@ -44,6 +44,7 @@ public sealed class GodotContentSource : IContentSource
         return file.GetAsText();
     }
 
+    /// <summary>DirAccess already skips hidden entries; dot names are skipped on every platform too.</summary>
     private void Collect(string directory, string extension, List<string> results)
     {
         using var access = DirAccess.Open($"{_root}/{directory}");
@@ -54,7 +55,7 @@ public sealed class GodotContentSource : IContentSource
 
         foreach (var file in access.GetFiles())
         {
-            if (file.EndsWith(extension, StringComparison.Ordinal))
+            if (file.EndsWith(extension, StringComparison.Ordinal) && !IContentSource.IsIgnoredName(file))
             {
                 results.Add($"{directory}/{file}");
             }
@@ -62,7 +63,10 @@ public sealed class GodotContentSource : IContentSource
 
         foreach (var subdirectory in access.GetDirectories())
         {
-            Collect($"{directory}/{subdirectory}", extension, results);
+            if (!IContentSource.IsIgnoredName(subdirectory))
+            {
+                Collect($"{directory}/{subdirectory}", extension, results);
+            }
         }
     }
 }

@@ -49,16 +49,16 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 | OurLife (juego) | `game/OurLife.csproj` | Core, Localization | `Godot.NET.Sdk/4.7.2`, namespace `OurLife.Game` |
 | OurLife.Core.Tests | `tests/OurLife.Core.Tests` | Core | Unidad, escenarios, determinismo, defs con contenido de prueba |
 | OurLife.Localization.Tests | `tests/OurLife.Localization.Tests` | Localization | ICU, catálogos, `Localizer` |
-| OurLife.Content.Tests | `tests/OurLife.Content.Tests` | Core, Localization | El contenido real de `game/content` y el código que lo usa |
+| OurLife.Content.Tests | `tests/OurLife.Content.Tests` | Core, Localization | El contenido real de `game/content` y el código que lo usa. Compila `game/src/Content/LocaleCatalogs.cs`, que no usa Godot, para cargar los catálogos como el juego |
 
 ## Contenido
 
 - Los defs viven en `game/content/defs/*.json`: cada archivo es un arreglo de defs y cada def declara su clase en `"type"`.
-- `DefLoader` reporta todos los problemas juntos: tipos desconocidos, campos mal escritos o faltantes, ids repetidos, referencias rotas y valores fuera de rango.
-- `DefDatabase` ordena los defs de cada tipo por id, lo que les da un índice estable.
+- `DefLoader` reporta todos los problemas juntos: JSON no estricto, tipos desconocidos, campos mal escritos, faltantes o en `null`, ids repetidos, referencias rotas y valores fuera de rango.
+- `DefDatabase` ordena los defs de cada tipo por id, lo que les da un índice compacto. El índice cambia al agregar o quitar defs: las partidas guardan ids.
 - La simulación se crea desde el contenido: `new Simulation(seed, defs)`. Sus valores de tiempo salen del def `TimeConfig`.
 - `UnlockService` decide si un def está disponible según la época y los conocimientos de la colonia (ADR-008).
-- Godot lee `res://content` con `GodotContentSource`; los tests leen la carpeta en disco con `FileSystemContentSource`.
+- Godot lee `res://content` con `GodotContentSource`; los tests leen la carpeta en disco con `FileSystemContentSource`. Las dos ignoran los archivos y carpetas ocultos o que empiezan con punto.
 
 ## Flujo de datos
 

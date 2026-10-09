@@ -1,14 +1,19 @@
 using OurLife.Core.Defs;
+using OurLife.Game.Content;
 using OurLife.Localization;
 
 namespace OurLife.Content.Tests;
 
-/// <summary>The real content of <c>game/content</c>, loaded once for every test.</summary>
+/// <summary>
+/// The real content of <c>game/content</c>, loaded once for every test with the same loaders
+/// the game uses (<see cref="LocaleCatalogs"/> is linked from the game project).
+/// </summary>
 internal static class GameContent
 {
     private static readonly Lazy<IContentSource> SourceLazy = new(() => new FileSystemContentSource(RepoPaths.Content));
     private static readonly Lazy<DefDatabase> DefsLazy = new(() => DefLoader.Load(Source));
-    private static readonly Lazy<IReadOnlyDictionary<string, LocaleCatalog>> CatalogsLazy = new(LoadCatalogs);
+    private static readonly Lazy<IReadOnlyDictionary<string, LocaleCatalog>> CatalogsLazy =
+        new(() => LocaleCatalogs.Load(Source).ToDictionary(catalog => catalog.Locale));
 
     public static IContentSource Source => SourceLazy.Value;
 
@@ -18,12 +23,4 @@ internal static class GameContent
     public static IReadOnlyDictionary<string, LocaleCatalog> Catalogs => CatalogsLazy.Value;
 
     public static LocaleCatalog Spanish => Catalogs[Localizer.DefaultLocale];
-
-    private static IReadOnlyDictionary<string, LocaleCatalog> LoadCatalogs() =>
-        Source.ListDirectories("locales").ToDictionary(
-            locale => locale,
-            locale => LocaleCatalog.Parse(
-                locale,
-                Source.ListFiles($"locales/{locale}", ".json")
-                    .Select(path => new CatalogFile(path, Source.ReadText(path)))));
 }

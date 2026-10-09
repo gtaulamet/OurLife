@@ -137,7 +137,7 @@ Reglas:
 - Se enriquece con pensamientos y ánimo en IP4 y con combate en IP5.
 
 **Contenido por datos (Defs)**
-- JSON con comentarios en `game/content/defs/`: `EraDef`, `MaterialDef`, `PlantDef`, `ItemDef`, `CreatureDef`, `NeedDef`, `WorkTypeDef`, `JobDef`, `NameListDef`. Más adelante `BuildingDef`, `RecipeDef`, `KnowledgeDef`, `ThoughtDef`…
+- JSON estricto en `game/content/defs/`: `EraDef`, `MaterialDef`, `PlantDef`, `ItemDef`, `CreatureDef`, `NeedDef`, `WorkTypeDef`, `JobDef`, `NameListDef`. Más adelante `BuildingDef`, `RecipeDef`, `KnowledgeDef`, `ThoughtDef`…
 - Todo def puede declarar `era` (época mínima) y `requires` (conocimientos necesarios). `UnlockService` responde qué está disponible; en IP1 sólo existe la época `medieval`.
 - `DefDatabase` carga, valida referencias cruzadas y asigna índices compactos.
 - Lectura mediante `IContentSource`: `FileAccess` de Godot en el juego y `System.IO` en tests, porque en el juego exportado `res://` no se puede leer con `System.IO`.

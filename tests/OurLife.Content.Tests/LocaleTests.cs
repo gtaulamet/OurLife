@@ -1,4 +1,5 @@
 using System.Text.Json;
+using OurLife.Core.Defs;
 using OurLife.Localization;
 
 namespace OurLife.Content.Tests;
@@ -58,16 +59,35 @@ public class LocaleTests
     }
 
     [Fact]
-    public void Content_files_are_strict_json_so_godot_can_open_them()
+    public void Every_language_has_the_name_of_every_language()
     {
-        // The game loaders accept comments, but the Godot editor parses .json files too and does not.
-        var files = GameContent.Source.ListFiles("locales", ".json").Concat(GameContent.Source.ListFiles("defs", ".json"));
-
-        foreach (var path in files)
+        // The language selector builds the key ui.language.<locale> at run time.
+        foreach (var catalog in GameContent.Catalogs.Values)
         {
+            foreach (var locale in GameContent.Catalogs.Keys)
+            {
+                catalog.Messages.ContainsKey($"ui.language.{locale}")
+                    .ShouldBeTrue($"{catalog.Locale}: missing ui.language.{locale}");
+            }
+        }
+    }
+
+    [Fact]
+    public void Every_json_file_in_the_content_folder_is_strict_json()
+    {
+        // The loaders already reject comments and trailing commas, but only in the files they
+        // load. The Godot editor parses every .json in the project, except hidden ones.
+        foreach (var path in Directory.EnumerateFiles(RepoPaths.Content, "*.json", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(RepoPaths.Content, path).Replace('\\', '/');
+            if (IContentSource.IsIgnoredPath(relative))
+            {
+                continue;
+            }
+
             Should.NotThrow(
-                () => JsonDocument.Parse(GameContent.Source.ReadText(path)).Dispose(),
-                $"{path} must be strict JSON: no comments and no trailing commas");
+                () => JsonDocument.Parse(File.ReadAllText(path)).Dispose(),
+                $"{relative} must be strict JSON: no comments and no trailing commas");
         }
     }
 

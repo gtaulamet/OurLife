@@ -6,7 +6,9 @@ namespace OurLife.Core.Defs;
 
 /// <summary>
 /// Every def of the game, validated and immutable. Defs of each type are sorted by id, which
-/// also gives each one a compact, stable index (used, for example, to store materials in the map).
+/// also gives each one a compact index (used, for example, to store materials in the map).
+/// Indexes hold only while the content does not change: adding or removing a def shifts them,
+/// so saves store ids, never indexes.
 /// </summary>
 public sealed partial class DefDatabase
 {
@@ -62,7 +64,7 @@ public sealed partial class DefDatabase
         return false;
     }
 
-    /// <summary>Position of a def among the defs of its type, sorted by id.</summary>
+    /// <summary>Position of a def among the defs of its type, sorted by id. Changes when the content changes.</summary>
     public int IndexOf<T>(string id)
         where T : Def =>
         _indexByType.TryGetValue(typeof(T), out var indexes) && indexes.TryGetValue(id, out var index)

@@ -1,11 +1,11 @@
 using System.Text.RegularExpressions;
-using OurLife.Localization;
 
 namespace OurLife.Content.Tests;
 
 /// <summary>
-/// Code and scenes only show text through catalog keys, and every key they use exists.
-/// Keys built at run time, like <c>time.season.{id}</c>, are checked by <see cref="DefTextTests"/>.
+/// Code and scenes only show text through catalog keys, and every key they use exists. Keys
+/// built at run time are checked elsewhere: <c>time.season.{id}</c> by <see cref="DefTextTests"/>
+/// and <c>ui.language.{locale}</c> by <see cref="LocaleTests"/>.
 /// </summary>
 public partial class CodeTextTests
 {
@@ -62,6 +62,9 @@ public partial class CodeTextTests
     [InlineData("label.Text = \"Nueva partida\";")]
     [InlineData("new Button { Text = \"Salir\" }")]
     [InlineData("control.TooltipText = $\"Hola {name}\";")]
+    [InlineData("label.Text = \"mainmenu.play\";")]
+    [InlineData("label.Text = \"v1.0\";")]
+    [InlineData("label.Text = \"ui.probe.current_language\";")]
     public void The_scanner_flags_hardcoded_text(string line)
     {
         FindHardcodedText(line).ShouldNotBeEmpty();
@@ -82,7 +85,13 @@ public partial class CodeTextTests
             .Select(match => match.Groups[1].Value)
             .Where(text => !IsAllowed(text));
 
-    private static bool IsAllowed(string text) => text.Length == 0 || LocaleCatalog.IsValidKey(text);
+    /// <summary>
+    /// Empty, or a catalog key without arguments: a string that only looks like a key would be
+    /// shown as is, and a key with arguments shows <c>⟦name⟧</c> (it goes through TextResolver).
+    /// </summary>
+    private static bool IsAllowed(string text) =>
+        text.Length == 0
+        || (GameContent.Spanish.Messages.TryGetValue(text, out var message) && message.ArgumentNames.Count == 0);
 
     private static IEnumerable<string> CodeFiles() => SourceFiles("src", "*.cs").Concat(GameCodeFiles());
 

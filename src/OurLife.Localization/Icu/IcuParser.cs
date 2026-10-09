@@ -133,7 +133,7 @@ internal sealed class IcuParser
         SkipWhitespace();
         if (TryConsume('}'))
         {
-            return new ArgumentNode(name, AsNumber: false);
+            return new ArgumentNode(name, ArgumentStyle.Plain);
         }
 
         Expect(',');
@@ -144,6 +144,7 @@ internal sealed class IcuParser
         switch (type)
         {
             case "number":
+                var argumentStyle = ArgumentStyle.Number;
                 if (TryConsume(','))
                 {
                     SkipWhitespace();
@@ -153,11 +154,12 @@ internal sealed class IcuParser
                         throw Error($"Unsupported number style '{style}'. Only 'integer' is supported.");
                     }
 
+                    argumentStyle = ArgumentStyle.Integer;
                     SkipWhitespace();
                 }
 
                 Expect('}');
-                return new ArgumentNode(name, AsNumber: true);
+                return new ArgumentNode(name, argumentStyle);
 
             case "plural":
             case "select":
@@ -206,6 +208,7 @@ internal sealed class IcuParser
         return cases;
     }
 
+    /// <summary>Reads a case name, or an exact plural selector like <c>=0</c>, written without leading zeros.</summary>
     private string ReadSelector(bool isPlural)
     {
         if (isPlural && Current == '=')
@@ -222,7 +225,9 @@ internal sealed class IcuParser
                 throw Error("Expected a number after '='.");
             }
 
-            return _source[start.._position];
+            return IcuCase.ParseExact(_source[start.._position]) is { } exact
+                ? IcuCase.ExactSelector(exact)
+                : throw Error("The number after '=' is too large.");
         }
 
         var word = ReadIdentifier("a case name");

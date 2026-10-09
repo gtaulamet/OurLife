@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using OurLife.Localization.Icu;
@@ -9,16 +10,11 @@ public readonly record struct CatalogFile(string Name, string Json);
 
 /// <summary>
 /// Every message of one language, parsed and validated. Built from flat JSON objects
-/// (key → ICU pattern); a key may appear in only one file of the language.
+/// (key → ICU pattern); a key may appear in only one file of the language. Files are strict
+/// JSON, without comments or trailing commas, because the Godot editor reads them too.
 /// </summary>
 public sealed partial class LocaleCatalog
 {
-    private static readonly JsonDocumentOptions DocumentOptions = new()
-    {
-        CommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-    };
-
     private readonly SortedDictionary<string, IcuMessage> _messages;
     private readonly Dictionary<string, string> _sourceFiles;
 
@@ -27,9 +23,17 @@ public sealed partial class LocaleCatalog
         Locale = locale;
         _messages = messages;
         _sourceFiles = sourceFiles;
+        PluralRule = PluralRules.For(locale);
+        Culture = CultureFor(locale);
     }
 
     public string Locale { get; }
+
+    /// <summary>Plural rule of the language, for formatting its messages.</summary>
+    public PluralRule PluralRule { get; }
+
+    /// <summary>Culture for numbers in this language; the invariant culture if .NET does not know it.</summary>
+    public CultureInfo Culture { get; }
 
     /// <summary>Messages sorted by key.</summary>
     public IReadOnlyDictionary<string, IcuMessage> Messages => _messages;
@@ -65,6 +69,22 @@ public sealed partial class LocaleCatalog
     /// <summary>File that defines a key, for error messages.</summary>
     public string SourceOf(string key) => _sourceFiles.TryGetValue(key, out var file) ? file : "?";
 
+    /// <summary>Formats one of this language's messages.</summary>
+    public string Format(IcuMessage message, IReadOnlyDictionary<string, object?>? arguments = null) =>
+        message.Format(arguments, PluralRule, Culture);
+
+    private static CultureInfo CultureFor(string locale)
+    {
+        try
+        {
+            return CultureInfo.GetCultureInfo(locale);
+        }
+        catch (CultureNotFoundException)
+        {
+            return CultureInfo.InvariantCulture;
+        }
+    }
+
     private static void ParseFile(
         CatalogFile file,
         SortedDictionary<string, IcuMessage> messages,
@@ -74,7 +94,7 @@ public sealed partial class LocaleCatalog
         JsonDocument document;
         try
         {
-            document = JsonDocument.Parse(file.Json, DocumentOptions);
+            document = JsonDocument.Parse(file.Json);
         }
         catch (JsonException ex)
         {

@@ -2,19 +2,36 @@ namespace OurLife.Core.Sim;
 
 /// <summary>
 /// How far the colony has come in history: its current era and the knowledge it has gained.
-/// Part of the simulation state, so it is included in the state fingerprint.
+/// Part of the simulation state, so it is included in the state fingerprint. Only Core changes
+/// it (architecture rule 2): the presentation reads it and sends Commands.
 /// </summary>
 public sealed class ProgressState
 {
+    private readonly SortedSet<string> _knowledge = new(StringComparer.Ordinal);
+    private string _currentEra = string.Empty;
+
     public ProgressState(string currentEra)
     {
-        ArgumentException.ThrowIfNullOrEmpty(currentEra);
         CurrentEra = currentEra;
     }
 
     /// <summary>Id of the current era def.</summary>
-    public string CurrentEra { get; set; }
+    public string CurrentEra
+    {
+        get => _currentEra;
+        internal set
+        {
+            ArgumentException.ThrowIfNullOrEmpty(value);
+            _currentEra = value;
+        }
+    }
 
     /// <summary>Ids of the knowledge defs the colony has, sorted.</summary>
-    public SortedSet<string> Knowledge { get; } = new(StringComparer.Ordinal);
+    public IReadOnlySet<string> Knowledge => _knowledge;
+
+    internal void Learn(string knowledge)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(knowledge);
+        _knowledge.Add(knowledge);
+    }
 }

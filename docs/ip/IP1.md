@@ -10,7 +10,7 @@
 |---|---|---|---|
 | H1.1 Fundaciones | Hecho | `ip1/h1-1-fundaciones` | Validado con Godot 4.7.2: importación y smoke test con código 0 |
 | H1.2 Núcleo | Hecho | `ip1/h1-2-nucleo` | Misma semilla ⇒ misma huella tras 10 000 ticks; el smoke corre la simulación |
-| H1.3 Contenido e i18n | En revisión | `ip1/h1-3-contenido-i18n` | Contenido en JSON validado, español e inglés con cambio en vivo, fuente Tiny5 |
+| H1.3 Contenido e i18n | Hecho | `ip1/h1-3-contenido-i18n` | Contenido en JSON validado, español e inglés con cambio en vivo, fuente Tiny5 |
 | H1.4 Mapa y generación | Pendiente | | |
 | H1.5 Render y cámara | Pendiente | | |
 | H1.6 Colonos e IA | Pendiente | | |
@@ -126,7 +126,7 @@
 **Entregado**
 
 - Defs en JSON validados en `game/content/defs`: configuración de tiempo, época medieval, materiales, plantas, objetos, necesidades, humano y nombres medievales. La spec con el balance está en `docs/gdd/contenido-ip1.md`.
-- `OurLife.Core.Defs`: carga con errores agrupados y claros, `DefDatabase` con índices estables, referencias cruzadas verificadas y `UnlockService` para épocas y conocimientos. La simulación se crea desde el contenido y su progreso entra en la huella del estado.
+- `OurLife.Core.Defs`: carga con errores agrupados y claros, `DefDatabase` con índices compactos, referencias cruzadas verificadas y `UnlockService` para épocas y conocimientos. La simulación se crea desde el contenido y su progreso entra en la huella del estado.
 - `OurLife.Localization`: catálogos por idioma, subconjunto propio de ICU MessageFormat, reglas de plural, `Localizer` con español por defecto y respaldo.
 - Textos en español e inglés para la interfaz, el calendario y cada def, con nombre, descripción y género gramatical.
 - Godot: lectura de `res://content`, ajustes en `user://settings.cfg`, puente con `TranslationServer`, `TextResolver`, tema con la fuente Tiny5 y una pantalla temporal de prueba de idioma, que el menú principal de H1.7 reemplazará.
@@ -137,8 +137,10 @@
 
 - ICU propio en lugar de MessageFormat.NET, para poder comparar argumentos entre idiomas en los tests (ADR-006).
 - Fuente Tiny5 en lugar de Pixelify Sans, que confunde 5 y S, 2 y Z, 0 y O (`docs/art.md`).
-- Los JSON de contenido son JSON estricto, porque el editor de Godot también los lee.
+- Los JSON de contenido son JSON estricto, porque el editor de Godot también los lee. Los cargadores lo exigen, y un `null` en un def es un error.
 - Los valores de tiempo salen del def `TimeConfig`; ya no hay valores de balance en el código.
+- La fuente se importa sin suavizado, sin hinting, sin posicionamiento subpíxel y sin respaldo del sistema desde `Tiny5.ttf.import`, no desde el código. El smoke y las capturas fallan si la caché de importación quedó vieja.
+- El progreso de la colonia sólo cambia desde Core: `ProgressState` no tiene setters públicos.
 
 **Validación**
 
@@ -146,7 +148,38 @@
 - Smoke en Godot: el contenido y los idiomas cargan, el texto de `ui.mainmenu.new_game` cambia en vivo de "Nueva partida" a "New Game" y la fecha se muestra traducida.
 - Capturas en español e inglés revisadas: todos los textos cambian de idioma y se ven todos los caracteres del español.
 - Con `--screenshot`, una ruta relativa se guarda dentro de `game/`, porque Godot arranca en esa carpeta.
+- `/code-review` encontró 15 hallazgos, todos corregidos:
+  - Un error inesperado al cargar el contenido dejaba colgado el smoke.
+  - Un `null` en un def rompía la validación.
+  - Godot recibía el patrón ICU sin formatear.
+  - El test de texto visible aceptaba cualquier texto con forma de clave.
+  - Un `select` sin argumento elegía `other` en silencio.
+  - Los casos `=N` se analizaban en cada formateo y podían desbordar.
+  - Se ignoraba el estilo `integer`.
+  - Faltaba un test de `ui.language.<idioma>`.
+  - La caché vieja de la fuente no se detectaba.
+  - `ProgressState` se podía modificar desde fuera de Core.
+  - Los tests leían archivos ocultos que el juego ignora.
+  - Los cargadores aceptaban comentarios.
+  - Los tests duplicaban el cargador de catálogos.
+  - `Localizer` asignaba memoria en cada formateo.
+  - La documentación llamaba "estables" a los índices de defs.
+- Una segunda ronda de `/code-review` sobre esas correcciones encontró 13 hallazgos más:
+  - Todo el arranque queda protegido para que el smoke nunca se cuelgue.
+  - Una fuente sin importar ya no rompe el arranque, y una importación vieja avisa también en el juego normal.
+  - El test de texto visible rechaza claves con argumentos.
+  - `=1` y `=01` cuentan como el mismo caso, y el valor exacto de un caso se deriva de su selector.
+  - `{n, number}` redondea mitades al par.
+  - La regla de nombres con punto vive en `IContentSource` y la cumplen las tres fuentes.
+  - Una carpeta ilegible falla en lugar de omitirse.
+  - Volvió el test de JSON estricto sobre toda la carpeta de contenido.
+  - `CurrentEra` valida su valor y `overview.md` ya no habla de índices estables.
+- Todos se corrigieron salvo una parte del de `ProgressState`: con un cast, `Knowledge` todavía se puede convertir en un conjunto modificable. No vale la pena un envoltorio para impedir un cast deliberado.
+- Una tercera ronda encontró 10 detalles menores:
+  - Seis se corrigieron. El test de JSON estricto ignora los archivos con punto, las fuentes de disco y de Godot omiten los mismos archivos, y `IcuCase` es inmutable y normaliza `=N`. La huella del estado ordena los conocimientos por su cuenta. La regla de rutas ignoradas y las opciones de enumeración ya no están duplicadas.
+  - Dos quedan en el backlog: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
+  - Dos no se cambian. Un `select` con un valor sin caso usa `other`, como en ICU. Y la fuente se sigue configurando sólo en la importación: una caché vieja hace fallar el smoke y las capturas, y en el juego normal deja un aviso.
 
 **Pendiente**
 
-- Actualizar la skill `godot-run` cuando se restaure `.claude/`: `--locale` y `--screenshot` ya están disponibles y las rutas relativas parten de `game/`.
+- Actualizar la skill `godot-run` cuando se restaure `.claude/`: `--locale` y `--screenshot` ya están disponibles, las rutas relativas parten de `game/`, y después de cambiar un `.import` hay que correr `--import`.

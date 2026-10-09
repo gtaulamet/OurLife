@@ -50,7 +50,7 @@ Borrador; el formato definitivo se fija en H1.5.
 
 ## Fuente tipográfica
 
-**Tiny5**, de Stefan Schmidt, con licencia SIL OFL 1.1, en `game/assets/fonts/tiny5`. Se carga sin suavizado desde `UiTheme`.
+**Tiny5**, de Stefan Schmidt, con licencia SIL OFL 1.1, en `game/assets/fonts/tiny5`. Se importa sin suavizado, sin hinting, sin posicionamiento subpíxel y sin fuentes de respaldo del sistema (`Tiny5.ttf.import`), y `UiTheme` la usa como fuente por defecto.
 
 Se eligió en H1.3 tras comparar siete fuentes pixel con licencia OFL. El criterio fue cubrir todos los caracteres del español y distinguir a simple vista los caracteres que se confunden, porque el juego muestra muchas cantidades:
 

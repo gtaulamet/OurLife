@@ -9,9 +9,9 @@ Materiales, plantas, objetos, criaturas, trabajos, recetas, conocimientos y épo
 
 ## Decisión
 
-- Defs en JSON con comentarios, en `game/content/defs/`.
-- `DefDatabase` carga los defs, valida las referencias cruzadas y asigna índices compactos para el mapa.
-- `IContentSource` abstrae la lectura: `FileAccess` de Godot en el juego y `System.IO` en los tests, porque en el juego exportado `res://` no se puede leer con `System.IO`.
+- Defs en JSON estricto, sin comentarios ni comas finales, en `game/content/defs/`: el editor de Godot también lee los `.json`. Un campo sin valor se omite; `null` es un error.
+- `DefDatabase` carga los defs, valida las referencias cruzadas y asigna índices compactos para el mapa. Los índices cambian al agregar o quitar defs, así que las partidas guardan ids.
+- `IContentSource` abstrae la lectura: `FileAccess` de Godot en el juego y `System.IO` en los tests, porque en el juego exportado `res://` no se puede leer con `System.IO`. Las dos ignoran los archivos y carpetas ocultos o que empiezan con punto, para ver los mismos archivos.
 - Los textos de cada def salen de claves por convención: `def.<tipo>.<id>.name` y `.desc`.
 - Todo def puede declarar `era` y `requires` (ADR-008).
 
