@@ -6,7 +6,8 @@
     "decayPerHour": 200,
     "lowThreshold": 4000,
     "criticalThreshold": 1500,
-    "deathAfterHoursAtZero": 72
+    "deathAfterHoursAtZero": 72,
+    "satisfiedBy": "eating"
   },
   {
     "type": "Need",
@@ -14,6 +15,8 @@
     "max": 10000,
     "decayPerHour": 600,
     "lowThreshold": 3000,
-    "criticalThreshold": 1000
+    "criticalThreshold": 1000,
+    "satisfiedBy": "sleeping",
+    "recoveryPerHour": 900
   }
 ]

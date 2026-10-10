@@ -69,8 +69,8 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 ## Tick de simulación
 
 1. Aplicar los comandos encolados en orden de llegada.
-2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento, plantas y limpieza.
-3. Recalcular la conectividad si el mapa cambió.
+2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento y crecimiento de las plantas (`ColonySystems.AddTo`).
+3. La conectividad se pone al día al consultarla después de un cambio: se unen regiones en el lugar si el cambio sólo abrió caminos, y se calcula de nuevo si no (ADR-011).
 4. Publicar los eventos y avanzar el contador.
 
 ## Núcleo: cómo escribir un sistema
@@ -125,7 +125,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | Defs, épocas, localización con ICU, puente Godot, ajustes | H1.3 | Hecho |
 | Mapa 3D, generación, conectividad (`docs/gdd/mapa-y-generacion.md`) | H1.4 | Hecho |
 | Render 3D low-poly, cámara, capturas (ADR-009) | H1.5 | Hecho |
-| Pathfinding, IA, trabajos, necesidades | H1.6 | Pendiente |
+| Pathfinding, IA, trabajos, necesidades (`docs/gdd/colonos-e-ia.md`) | H1.6 | Hecho |
 | Entrada, HUD, menús | H1.7 | Pendiente |
 
 ## Decisiones
@@ -139,3 +139,4 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 - [ADR-007: Render por capas TileMapLayer](adr/ADR-007-render-tilemaplayer.md), reemplazada por ADR-009
 - [ADR-008: Épocas como datos](adr/ADR-008-epocas-como-datos.md)
 - [ADR-009: Render 3D low-poly con el Nature Kit de Kenney](adr/ADR-009-render-3d-low-poly.md)
+- [ADR-011: Datos derivados de la colonia fuera de la huella](adr/ADR-011-datos-derivados-de-la-colonia.md)

@@ -48,5 +48,15 @@
 
   "def.creature.human.name": "{count, plural, one {humano} other {humanos}}",
   "def.creature.human.desc": "Los colonos de la aldea.",
-  "def.creature.human.gender": "male"
+  "def.creature.human.gender": "male",
+
+  "def.work_type.mining.name": "minería",
+  "def.work_type.mining.desc": "Excavar muros y abrir escaleras hacia abajo.",
+  "def.work_type.mining.gender": "female",
+  "def.work_type.woodcutting.name": "tala",
+  "def.work_type.woodcutting.desc": "Talar árboles para obtener troncos.",
+  "def.work_type.woodcutting.gender": "female",
+  "def.work_type.gathering.name": "recolección",
+  "def.work_type.gathering.desc": "Recolectar bayas y otros frutos silvestres.",
+  "def.work_type.gathering.gender": "female"
 }

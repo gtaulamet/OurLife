@@ -11,7 +11,7 @@ Spec del mapa 3D, la generación del valle de la IP1 y la conectividad. Los núm
 |---|---|
 | Forma | Vacía (aire), suelo, muro, rampa, escalera hacia arriba, escalera hacia abajo, escalera en ambos sentidos |
 | Material | Índice del `MaterialDef`, o ninguno en el aire |
-| Banderas | Por ahora sólo `pasto`; luego llegan las designaciones y la niebla |
+| Banderas | `pasto`, `bloqueada` (una planta impide el paso) y las órdenes de excavar y de escalera; la niebla llega en IP3 |
 
 - Un **muro** es roca o tierra maciza. Un **suelo** es una celda abierta con piso: el material del suelo es el del piso. Una **rampa** es un suelo inclinado que sube al nivel de arriba.
 - Árboles, arbustos, objetos y criaturas no son celdas: son entidades con `Position`.
@@ -29,7 +29,7 @@ Una celda es **transitable** si es suelo, rampa o escalera. Desde una celda tran
 | Una rampa de las 4 vecinas del nivel de abajo | La inversa de la anterior |
 | La celda de arriba o de abajo | Escaleras compatibles: hacia arriba o en ambos sentidos abajo, y hacia abajo o en ambos sentidos arriba |
 
-Las **regiones de conectividad** agrupan las celdas que se alcanzan entre sí. Sirven para descartar al instante objetivos inalcanzables antes del A* de H1.6. En H1.4 se calculan sobre el terreno; los árboles que bloquean el paso se tienen en cuenta en H1.6.
+Las **regiones de conectividad** agrupan las celdas que se alcanzan entre sí. Sirven para descartar al instante objetivos inalcanzables antes del A* de H1.6. Desde H1.6, una celda con una planta que bloquea el paso, como un árbol, tiene la bandera `bloqueada` y no es transitable. La conectividad y las rutas la rodean, y la simulación la mantiene al día mientras los colonos excavan y talan (`docs/gdd/colonos-e-ia.md`).
 
 ## Generación del valle
 
@@ -80,5 +80,5 @@ Todo sale del RNG de la simulación, con un flujo por capa (`worldgen.terrain`, 
 
 - Ríos, lagos y agua (IP6). Vetas de mineral y niebla subterránea (IP3).
 - Elección de sitio y mapa del mundo (IP7).
-- Zona de aparición de los colonos y provisiones iniciales: llegan en H1.6.
-- Árboles en la conectividad, caché de rutas y HPA*: H1.6 e IP5.
+- Caché de rutas y HPA*: IP5.
+- La llegada de los colonos y las provisiones iniciales están en `docs/gdd/colonos-e-ia.md`.

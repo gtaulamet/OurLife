@@ -48,5 +48,15 @@
 
   "def.creature.human.name": "{count, plural, one {human} other {humans}}",
   "def.creature.human.desc": "The settlers of the village.",
-  "def.creature.human.gender": "other"
+  "def.creature.human.gender": "other",
+
+  "def.work_type.mining.name": "mining",
+  "def.work_type.mining.desc": "Digging out walls and opening stairs down.",
+  "def.work_type.mining.gender": "other",
+  "def.work_type.woodcutting.name": "woodcutting",
+  "def.work_type.woodcutting.desc": "Chopping trees for logs.",
+  "def.work_type.woodcutting.gender": "other",
+  "def.work_type.gathering.name": "gathering",
+  "def.work_type.gathering.desc": "Gathering berries and other wild fruit.",
+  "def.work_type.gathering.gender": "other"
 }

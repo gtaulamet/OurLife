@@ -18,5 +18,13 @@
   "time.season.autumn": "autumn",
   "time.season.winter": "winter",
   "time.date": "Day {day} of {season}, {year}",
-  "time.clock": "{hour}:{minute}"
+  "time.clock": "{hour}:{minute}",
+
+  "job.mine.report": "Mining",
+  "job.dig_stairs.report": "Digging stairs",
+  "job.chop.report": "Chopping a tree",
+  "job.harvest.report": "Gathering",
+  "job.eat.report": "Eating",
+  "job.sleep.report": "Sleeping",
+  "job.wander.report": "Wandering"
 }

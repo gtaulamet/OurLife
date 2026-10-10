@@ -126,8 +126,10 @@ public class ConnectivityTests
         Connectivity.Compute(map).AreConnected(new TileCoord(0, 0, 0), new TileCoord(0, 0, 1)).ShouldBe(connected);
     }
 
-    [Fact]
-    public void Every_movement_rule_is_symmetric()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Every_movement_rule_is_symmetric(bool blockRampsAndStairs)
     {
         var map = AsciiMap.Parse(
             """
@@ -140,6 +142,18 @@ public class ConnectivityTests
             _X_>.
             ._.#_
             """);
+        if (blockRampsAndStairs)
+        {
+            // A blocked ramp or stair is no one's neighbour, from any side.
+            map.SetFlags(2, 0, 0, TileFlags.Blocked);
+            map.SetFlags(3, 1, 0, TileFlags.Blocked);
+            map.SetFlags(1, 1, 1, TileFlags.Blocked);
+            var connectivity = Connectivity.Compute(map);
+            connectivity.RegionAt(2, 0, 0).ShouldBe(Connectivity.NoRegion);
+            connectivity.RegionAt(3, 1, 0).ShouldBe(Connectivity.NoRegion);
+            connectivity.RegionAt(1, 1, 1).ShouldBe(Connectivity.NoRegion);
+        }
+
         Span<TileCoord> neighbours = stackalloc TileCoord[MapNavigation.MaxNeighbours];
         Span<TileCoord> back = stackalloc TileCoord[MapNavigation.MaxNeighbours];
 

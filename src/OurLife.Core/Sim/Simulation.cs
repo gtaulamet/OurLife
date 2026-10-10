@@ -14,6 +14,9 @@ public sealed class Simulation
 {
     private readonly List<ScheduledSystem> _systems = [];
     private GameMap? _map;
+    private readonly List<int> _navigationChanges = [];
+    private Connectivity? _connectivity;
+    private int _connectivityVersion;
 
     public Simulation(ulong seed, DefDatabase content)
     {
@@ -43,6 +46,37 @@ public sealed class Simulation
 
     /// <summary>The terrain, once <see cref="WorldGen.WorldGenerator"/> has generated it.</summary>
     public GameMap Map => _map ?? throw new InvalidOperationException("The map has not been generated yet.");
+
+    /// <summary>
+    /// Connectivity regions of the map, brought up to date on first use after a change to where
+    /// creatures can walk (<see cref="GameMap.NavigationVersion"/>): merged in place when the
+    /// changes only opened ways, computed again otherwise. Derived data: not part of the state.
+    /// </summary>
+    public Connectivity Connectivity
+    {
+        get
+        {
+            var map = Map;
+            if (_connectivity is not null && _connectivityVersion == map.NavigationVersion)
+            {
+                return _connectivity;
+            }
+
+            _navigationChanges.Clear();
+            var onlyOpened = map.DrainNavigationChanges(_navigationChanges);
+            if (_connectivity is not null && onlyOpened)
+            {
+                _connectivity.OpenWays(map, _navigationChanges);
+            }
+            else
+            {
+                _connectivity = Connectivity.Compute(map);
+            }
+
+            _connectivityVersion = map.NavigationVersion;
+            return _connectivity;
+        }
+    }
 
     public RngStreams Random { get; }
 
@@ -94,7 +128,8 @@ public sealed class Simulation
         }
     }
 
-    internal void AttachMap(GameMap map)
+    /// <summary>Gives the simulation its map, and optionally the connectivity already computed for it.</summary>
+    internal void AttachMap(GameMap map, Connectivity? connectivity = null)
     {
         ArgumentNullException.ThrowIfNull(map);
         if (_map is not null)
@@ -103,6 +138,13 @@ public sealed class Simulation
         }
 
         _map = map;
+        if (connectivity is not null)
+        {
+            _navigationChanges.Clear();
+            map.DrainNavigationChanges(_navigationChanges);
+            _connectivity = connectivity;
+            _connectivityVersion = map.NavigationVersion;
+        }
     }
 
     /// <summary>64-bit fingerprint of the current state. Costly: meant for tests and debugging.</summary>

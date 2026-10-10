@@ -20,7 +20,7 @@ public enum TileShape : byte
     StairUpDown,
 }
 
-/// <summary>Extra facts about a cell. Designations and fog arrive in later milestones.</summary>
+/// <summary>Extra facts about a cell. Fog arrives in a later milestone.</summary>
 [Flags]
 public enum TileFlags : byte
 {
@@ -28,6 +28,15 @@ public enum TileFlags : byte
 
     /// <summary>The floor is covered with grass.</summary>
     Grass = 1,
+
+    /// <summary>Something on the cell, like a tree trunk, keeps creatures out: the cell is not standable.</summary>
+    Blocked = 2,
+
+    /// <summary>The player ordered to dig out this wall.</summary>
+    MineDesignation = 4,
+
+    /// <summary>The player ordered to dig stairs down from this cell.</summary>
+    StairsDesignation = 8,
 }
 
 /// <summary>A cell of the map. <c>Z</c> grows upwards: 0 is the deepest level.</summary>

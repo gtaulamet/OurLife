@@ -1,4 +1,5 @@
 using OurLife.Core.Defs;
+using OurLife.Core.Entities;
 
 namespace OurLife.Core.Tests.Defs;
 
@@ -14,10 +15,17 @@ public class DefLoaderTests
           { "type": "Plant", "id": "berry_bush", "visual": "plant.berry_bush",
             "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4 },
           { "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 400,
-            "lowThreshold": 4000, "criticalThreshold": 1500, "deathAfterHoursAtZero": 72 },
+            "lowThreshold": 4000, "criticalThreshold": 1500, "deathAfterHoursAtZero": 72, "satisfiedBy": "eating" },
+          { "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600,
+            "lowThreshold": 3000, "criticalThreshold": 1000, "satisfiedBy": "sleeping", "recoveryPerHour": 900 },
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo"], "female": ["Elvira"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
-            "needs": ["hunger"], "nameList": "test_names" }
+            "needs": ["hunger", "rest"], "nameList": "test_names" },
+          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
+          { "type": "Scenario", "id": "start", "creature": "human", "colonists": 3, "startNeedsMin": 7000,
+            "items": [{ "item": "berries", "count": 10 }] },
+          { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
+            "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30 }
         ]
         """;
 
@@ -32,7 +40,13 @@ public class DefLoaderTests
         defs.Get<MaterialDef>("soil").Kind.ShouldBe(MaterialKind.Soil);
         defs.Get<PlantDef>("berry_bush").Harvest!.Count.ShouldBe(5);
         defs.Get<NeedDef>("hunger").DeathAfterHoursAtZero.ShouldBe(72);
-        defs.Get<CreatureDef>("human").Needs.ShouldBe(new[] { "hunger" });
+        defs.Get<NeedDef>("rest").SatisfiedBy.ShouldBe(NeedSatisfaction.Sleeping);
+        defs.Get<NeedDef>("rest").RecoveryPerHour.ShouldBe(900);
+        defs.Get<CreatureDef>("human").Needs.ShouldBe(new[] { "hunger", "rest" });
+        defs.Get<WorkTypeDef>("gathering").JobKindsOf().ShouldBe(new[] { JobKind.Harvest });
+        defs.Get<ScenarioDef>("start").Items.Single().Count.ShouldBe(10);
+        defs.Get<AiConfigDef>("default").WanderWaitMax.ShouldBe(300);
+        defs.Get<WorkTypeDef>("gathering").NameKey.ShouldBe("def.work_type.gathering.name");
         defs.Get<NameListDef>("test_names").Female.ShouldBe(new[] { "Elvira" });
         defs.Get<MaterialDef>("granite").SourceFile.ShouldBe("defs/extra.json");
     }
@@ -82,7 +96,13 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 10, "requires": ["sawmills"] }]""", "requires points to 'sawmills'")]
     [InlineData("""[{ "type": "Material", "id": "granite", "kind": "stone", "color": "grey", "mineWorkTicks": 120 }]""", "#RRGGBB")]
     [InlineData("""[{ "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A\n", "mineWorkTicks": 120 }]""", "#RRGGBB")]
-    [InlineData("""[{ "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600, "lowThreshold": 1000, "criticalThreshold": 3000 }]""", "thresholds")]
+    [InlineData("""[{ "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600, "lowThreshold": 1000, "criticalThreshold": 3000, "satisfiedBy": "eating" }]""", "thresholds")]
+    [InlineData("""[{ "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600, "lowThreshold": 3000, "criticalThreshold": 1000, "satisfiedBy": "sleeping" }]""", "recoveryPerHour")]
+    [InlineData("""[{ "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 200, "lowThreshold": 3000, "criticalThreshold": 1000, "satisfiedBy": "eating", "recoveryPerHour": 5 }]""", "only needs satisfied by sleeping")]
+    [InlineData("""[{ "type": "WorkType", "id": "cooking", "order": 0, "jobs": ["cook"] }]""", "'cook' is not a job")]
+    [InlineData("""[{ "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "mine"] }]""", "jobs cannot repeat")]
+    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "dwarf", "colonists": 5, "startNeedsMin": 0 }]""", "creature points to 'dwarf'")]
+    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 300, "wanderWaitMax": 60, "unreachableCooldownTicks": 600, "recheckTicks": 30 }]""", "wander waits")]
     [InlineData("""[{ "type": "Item", "id": "Log", "kind": "raw", "visual": "item.log", "stackLimit": 10 }]""", "invalid id")]
     [InlineData("""[{ "type": "Era", "id": "second_age", "order": 0 }]""", "share order 0")]
     [InlineData("""[{ "type": "TimeConfig", "id": "other_time", "ticksPerSecond": 10, "minutesPerTick": 1, "daysPerSeason": 15, "seasons": ["spring"], "startYear": 1200, "startHour": 6 }]""", "exactly one TimeConfig")]

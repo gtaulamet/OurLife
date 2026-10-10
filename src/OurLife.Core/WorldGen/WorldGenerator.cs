@@ -1,4 +1,5 @@
 using OurLife.Core.Defs;
+using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
@@ -42,8 +43,180 @@ public static class WorldGenerator
         var surface = BuildSurface(simulation.Random, settings);
         FillColumns(map, surface, simulation.Random, settings, content);
         PlantVegetation(simulation, map, surface, settings, content);
-        simulation.AttachMap(map);
+        var connectivity = FreeEnclosedSurface(simulation, map);
+        simulation.AttachMap(map, connectivity);
         return map;
+    }
+
+    /// <summary>
+    /// Trees block their cell, so a ring of them could close off part of the surface. While the
+    /// surface is split, the trees on the way from the first closed-off cell (by index) to the main
+    /// region that crosses the fewest trees are removed. Trees inside the pocket or elsewhere are
+    /// kept. The relief alone always leaves the surface connected, so such a way exists. Each pass
+    /// joins at least one pocket, and the loop checks again, so it ends. Connectivity is computed
+    /// once and merged in place after each pass (freeing cells only opens ways); it is returned,
+    /// so the simulation does not compute it again.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">A pocket cannot reach the main region even through trees.</exception>
+    internal static Connectivity FreeEnclosedSurface(Simulation simulation, GameMap map)
+    {
+        var world = simulation.World;
+        var connectivity = Connectivity.Compute(map);
+        if (connectivity.SurfaceRegions(map).Count <= 1)
+        {
+            return connectivity;
+        }
+
+        // Blocking plants by cell, built once; the trees a pass removes are taken out of it.
+        var plants = new List<EntityId>();
+        world.Query<Plant, Position>(plants);
+        var blockers = new Dictionary<int, EntityId>();
+        foreach (var plant in plants)
+        {
+            var cell = world.Get<Position>(plant).Cell;
+            if ((map.FlagsAt(cell) & TileFlags.Blocked) != 0)
+            {
+                blockers.TryAdd(map.Size.IndexOf(cell.X, cell.Y, cell.Z), plant);
+            }
+        }
+
+        var search = new TreeSearch(map.Size.CellCount);
+        do
+        {
+            var main = connectivity.MainSurfaceRegion(map);
+            var enclosed = FirstSurfaceCellOutside(map, connectivity, main);
+            var trees = search.FewestTreesToRegion(map, connectivity, enclosed, main, blockers)
+                ?? throw new InvalidOperationException(
+                    $"The surface around ({enclosed.X}, {enclosed.Y}, {enclosed.Z}) is closed off by something other than trees.");
+
+            foreach (var index in trees)
+            {
+                var freed = map.Size.CoordOf(index);
+                map.SetTileQuietly(freed.X, freed.Y, freed.Z, map.ShapeAt(freed), map.MaterialIndexAt(freed.X, freed.Y, freed.Z), map.FlagsAt(freed) & ~TileFlags.Blocked);
+                world.DestroyEntity(blockers[index]);
+                blockers.Remove(index);
+            }
+
+            connectivity.OpenWays(map, trees);
+        }
+        while (connectivity.SurfaceRegions(map).Count > 1);
+
+        return connectivity;
+    }
+
+    /// <summary>
+    /// Finds the way through trees that crosses the fewest of them: a 0-1 breadth-first search over
+    /// the movement rules as if no tree blocked (<see cref="MapNavigation"/>), where walking costs
+    /// nothing and entering a tree cell costs one. Cells are processed one cost at a time, so the
+    /// first cell of the target region reached is behind the fewest trees. The arrays are reused
+    /// between passes.
+    /// </summary>
+    private sealed class TreeSearch(int cellCount)
+    {
+        private readonly int[] _cost = new int[cellCount];
+        private readonly int[] _cameFrom = new int[cellCount];
+        private readonly List<int> _touched = [];
+        private List<int> _current = [];
+        private List<int> _next = [];
+
+        /// <summary>The tree cells on that way, sorted, or null if no way reaches the region.</summary>
+        public List<int>? FewestTreesToRegion(
+            GameMap map, Connectivity connectivity, TileCoord start, int target, Dictionary<int, EntityId> blockers)
+        {
+            var size = map.Size;
+            foreach (var index in _touched)
+            {
+                _cost[index] = 0;
+            }
+
+            _touched.Clear();
+            _current.Clear();
+            _next.Clear();
+            Span<TileCoord> neighbours = stackalloc TileCoord[MapNavigation.MaxNeighbours];
+
+            // Costs are stored plus one, so zero means "not reached yet".
+            var startIndex = size.IndexOf(start.X, start.Y, start.Z);
+            Reach(startIndex, cost: 0, from: -1);
+            _current.Add(startIndex);
+            for (var cost = 0; _current.Count > 0; cost++)
+            {
+                for (var head = 0; head < _current.Count; head++)
+                {
+                    var index = _current[head];
+                    if (_cost[index] != cost + 1)
+                    {
+                        continue;
+                    }
+
+                    var cell = size.CoordOf(index);
+                    if (connectivity.RegionAt(cell) == target)
+                    {
+                        return TreesBehind(index, blockers);
+                    }
+
+                    var count = MapNavigation.GetNeighbours(map, cell.X, cell.Y, cell.Z, neighbours, throughBlocked: true);
+                    for (var i = 0; i < count; i++)
+                    {
+                        var next = size.IndexOf(neighbours[i].X, neighbours[i].Y, neighbours[i].Z);
+                        var nextCost = blockers.ContainsKey(next) ? cost + 1 : cost;
+                        if (_cost[next] != 0 && _cost[next] <= nextCost + 1)
+                        {
+                            continue;
+                        }
+
+                        Reach(next, nextCost, index);
+                        (nextCost == cost ? _current : _next).Add(next);
+                    }
+                }
+
+                (_current, _next) = (_next, _current);
+                _next.Clear();
+            }
+
+            return null;
+        }
+
+        private void Reach(int index, int cost, int from)
+        {
+            if (_cost[index] == 0)
+            {
+                _touched.Add(index);
+            }
+
+            _cost[index] = cost + 1;
+            _cameFrom[index] = from;
+        }
+
+        private List<int> TreesBehind(int index, Dictionary<int, EntityId> blockers)
+        {
+            var trees = new List<int>();
+            for (var step = index; step >= 0; step = _cameFrom[step])
+            {
+                if (blockers.ContainsKey(step))
+                {
+                    trees.Add(step);
+                }
+            }
+
+            trees.Sort();
+            return trees;
+        }
+    }
+    private static TileCoord FirstSurfaceCellOutside(GameMap map, Connectivity connectivity, int region)
+    {
+        for (var y = 0; y < map.Size.Height; y++)
+        {
+            for (var x = 0; x < map.Size.Width; x++)
+            {
+                var cell = new TileCoord(x, y, map.SurfaceZ(x, y));
+                if (cell.Z >= 0 && (map.FlagsAt(cell) & TileFlags.Blocked) == 0 && connectivity.RegionAt(cell) != region)
+                {
+                    return cell;
+                }
+            }
+        }
+
+        throw new InvalidOperationException("A split surface must have a cell outside the main region.");
     }
 
     /// <summary>Surface level of every column, indexed <c>x + y·Width</c>.</summary>
@@ -228,6 +401,11 @@ public static class WorldGenerator
                         var plant = simulation.World.CreateEntity();
                         simulation.World.Add(plant, new Position { X = x, Y = y, Z = z });
                         simulation.World.Add(plant, new Plant { Def = rule.Plant });
+                        if (content.Get<PlantDef>(rule.Plant).BlocksMovement)
+                        {
+                            map.SetTileQuietly(x, y, z, TileShape.Floor, map.MaterialIndexAt(x, y, z), map.FlagsAt(x, y, z) | TileFlags.Blocked);
+                        }
+
                         break;
                     }
                 }

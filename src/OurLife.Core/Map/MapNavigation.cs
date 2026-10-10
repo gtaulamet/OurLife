@@ -2,8 +2,8 @@ namespace OurLife.Core.Map;
 
 /// <summary>
 /// The movement rules of the map (see <c>docs/gdd/mapa-y-generacion.md</c>), shared by the
-/// connectivity regions and the pathfinding. The rules are symmetric: if B is a neighbour of A,
-/// A is a neighbour of B.
+/// connectivity regions and the pathfinding. Blocked cells are not standable. The rules are
+/// symmetric: if B is a neighbour of A, A is a neighbour of B.
 /// </summary>
 public static class MapNavigation
 {
@@ -17,10 +17,18 @@ public static class MapNavigation
     ];
 
     /// <summary>
+    /// The 8 directions on a level, in the order every neighbour search uses: north, east, south,
+    /// west, then the diagonals. North is towards lower <c>y</c>.
+    /// </summary>
+    public static IReadOnlyList<(int Dx, int Dy)> Directions => Horizontal;
+
+    /// <summary>
     /// Writes into <paramref name="neighbours"/> the cells reachable in one step from a standable
     /// cell, and returns how many there are. The buffer needs room for <see cref="MaxNeighbours"/>.
+    /// With <paramref name="throughBlocked"/>, blocked cells count as standable: the ways there
+    /// would be if every tree were gone, for the generator to find which trees close off the surface.
     /// </summary>
-    public static int GetNeighbours(GameMap map, int x, int y, int z, Span<TileCoord> neighbours)
+    public static int GetNeighbours(GameMap map, int x, int y, int z, Span<TileCoord> neighbours, bool throughBlocked = false)
     {
         ArgumentNullException.ThrowIfNull(map);
         if (neighbours.Length < MaxNeighbours)
@@ -28,18 +36,22 @@ public static class MapNavigation
             throw new ArgumentException($"The buffer needs room for {MaxNeighbours} cells.", nameof(neighbours));
         }
 
-        var shape = map.ShapeOrEmpty(x, y, z);
-        if (!shape.IsStandable())
+        bool Standable(int cx, int cy, int cz) =>
+            throughBlocked ? map.ShapeOrEmpty(cx, cy, cz).IsStandable() : map.IsStandable(cx, cy, cz);
+
+        if (!Standable(x, y, z))
         {
             return 0;
         }
+
+        var shape = map.ShapeAt(x, y, z);
 
         var count = 0;
         for (var i = 0; i < Horizontal.Length; i++)
         {
             var (dx, dy) = Horizontal[i];
             int nx = x + dx, ny = y + dy;
-            if (!map.IsStandable(nx, ny, z))
+            if (!Standable(nx, ny, z))
             {
                 continue;
             }
@@ -59,23 +71,26 @@ public static class MapNavigation
         {
             var (dx, dy) = Horizontal[i];
             int nx = x + dx, ny = y + dy;
-            if (shape == TileShape.Ramp && openAbove && map.IsStandable(nx, ny, z + 1))
+            if (shape == TileShape.Ramp && openAbove && Standable(nx, ny, z + 1))
             {
                 neighbours[count++] = new TileCoord(nx, ny, z + 1);
             }
 
-            if (map.ShapeOrEmpty(nx, ny, z - 1) == TileShape.Ramp && map.ShapeOrEmpty(nx, ny, z) != TileShape.Wall)
+            // Every target is checked as standable, so a blocked ramp or stair is never a
+            // neighbour: the rules stay symmetric.
+            if (map.ShapeOrEmpty(nx, ny, z - 1) == TileShape.Ramp && Standable(nx, ny, z - 1)
+                && map.ShapeOrEmpty(nx, ny, z) != TileShape.Wall)
             {
                 neighbours[count++] = new TileCoord(nx, ny, z - 1);
             }
         }
 
-        if (shape.GoesUp() && map.ShapeOrEmpty(x, y, z + 1).GoesDown())
+        if (shape.GoesUp() && map.ShapeOrEmpty(x, y, z + 1).GoesDown() && Standable(x, y, z + 1))
         {
             neighbours[count++] = new TileCoord(x, y, z + 1);
         }
 
-        if (shape.GoesDown() && map.ShapeOrEmpty(x, y, z - 1).GoesUp())
+        if (shape.GoesDown() && map.ShapeOrEmpty(x, y, z - 1).GoesUp() && Standable(x, y, z - 1))
         {
             neighbours[count++] = new TileCoord(x, y, z - 1);
         }

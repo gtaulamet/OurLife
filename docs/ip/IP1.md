@@ -20,7 +20,7 @@
 | H1.3 Contenido e i18n | Hecho | `ip1/h1-3-contenido-i18n` | Contenido en JSON validado, español e inglés con cambio en vivo, fuente Tiny5 |
 | H1.4 Mapa y generación | Hecho | `ip1/h1-4-mapa-generacion` | Valle de 96×96×32 generado en unos 20 ms, superficie conectada, regiones de conectividad |
 | H1.5 Render y cámara | Hecho | `ip1/h1-5-render-camara` | Valle en 3D con terreno por chunks, corte por nivel, plantas y cámara; colonos y objetos pasan a H1.7 |
-| H1.6 Colonos e IA | Pendiente | | |
+| H1.6 Colonos e IA | Hecho | `ip1/h1-6-colonos-ia` | 5 colonos que llegan, comen, duermen, excavan, cavan escaleras, talan y recolectan; A* 3D y conectividad incremental; 0,01 ms por tick |
 | H1.7 Interacción y UI | Pendiente | | |
 | H1.8 Integración | Pendiente | | |
 
@@ -309,3 +309,60 @@
     - La escalera en ambos sentidos no muestra el hueco; llega en H1.7.
     - La tapa del corte recorre el nivel entero y se pasará a una por chunk cuando se excave.
     - Construir los chunks recién al mostrarlos se descartó para evitar tirones al cambiar de nivel.
+
+## Registro de H1.6: Colonos e IA
+
+**Entregado**
+
+- Spec en `docs/gdd/colonos-e-ia.md`: llegada, necesidades, órdenes, trabajos, decisión, movimiento, contrato con la presentación y criterios de aceptación.
+- Defs nuevos:
+  - `Scenario` (`scenario.json`): 5 humanos y 30 provisiones.
+  - `AiConfig` (`ai.json`): tiempos de comer, deambular, revisar y olvidar objetivos inalcanzables.
+  - `WorkType` (`work_types.json`): minería, tala y recolección, con su orden.
+  - `NeedDef` suma `satisfiedBy` y `recoveryPerHour`, así el código no conoce los ids `hunger` ni `rest`.
+- `OurLife.Core.Colony`:
+  - `ColonyStart` trae a los colonos al centro del valle.
+  - `DesignateCommand` registra las órdenes del jugador.
+  - `NeedsSystem`, `DecisionSystem`, `JobSystem`, `MovementSystem` y `PlantGrowthSystem` hacen el trabajo.
+  - `ColonyEvents` y `ItemPiles` completan el módulo.
+- `OurLife.Core.Pathfinding.PathFinder`: A* 3D con heurística admisible y varios destinos.
+- Mapa:
+  - Banderas `Blocked`, `MineDesignation` y `StairsDesignation`.
+  - `OrderedCells` y los contadores `NavigationVersion` y `OrdersVersion`.
+  - Conectividad mantenida en el lugar cuando un cambio sólo abre caminos (ADR-011).
+- El generador quita los árboles que cierran parte de la superficie, siguiendo el camino que atraviesa menos árboles.
+- Textos `job.<trabajo>.report`, `event.need.<necesidad>.death` y `event.colony.lost` en es y en.
+- El smoke trae la colonia y le da órdenes de cada tipo cerca de la llegada: talar, recolectar, excavar y una escalera en la celda válida más cercana. Simula 5000 ticks e informa colonos, objetos, órdenes y la escalera cavada.
+- Tests:
+  - Escenarios con mapas ASCII para los ocho criterios de aceptación.
+  - Tests del A*, de la conectividad incremental contra la calculada de nuevo, de la superficie encerrada y de los sitios de trabajo.
+  - Tests del escenario real en `OurLife.Content.Tests`.
+
+**Decisiones**
+
+- ADR-011: conectividad, reservas y celdas con órdenes son datos derivados, fuera de la huella y reconstruibles desde el estado.
+- La bandera `Blocked` duplica a propósito un dato de las plantas, para que la navegación sólo consulte el mapa.
+- Un trabajo se hace en diagonal sólo si un colono podría pasar por esa diagonal.
+- Lo que se cosecha de una planta que bloquea su celda cae en la celda del colono.
+- El render de colonos y objetos y el seguimiento de las plantas que cambian pasan a H1.7 (ver H1.5).
+
+**Validación**
+
+- `dotnet build` sin advertencias y 356 tests en verde.
+- Smoke con `--seed 42` y `--seed 1`, `--ticks 5000`:
+  - Código 0 y la misma huella en dos corridas.
+  - Los 5 colonos vivos y todas las órdenes cumplidas, con la escalera cavada.
+  - Unos 0,01 ms por tick, muy por debajo de los 2 ms del presupuesto.
+- Captura con ventana con la colonia: cierra con código 0.
+- `/code-review` en dos rondas, con 10 y 7 hallazgos, todos corregidos:
+  - El generador ya no borra árboles del interior de un área encerrada, busca la salida también por rampas y falla con un mensaje claro si el relieve encerrara algo.
+  - La región principal de la superficie se desempata sin depender de los números de región.
+  - No se excava ni se tala en una diagonal cerrada por muros.
+  - La lista de órdenes trabajables sólo se recalcula cuando cambian las órdenes o los caminos.
+  - Una necesidad crítica sin solución se busca una vez por decisión, no dos.
+  - Las plantas que dan comida se conocen de antemano.
+  - Generar el mundo ya no recorre el conjunto de órdenes en cada celda.
+  - La cuenta de regiones vivas es constante.
+  - La regla "escalera sin planta" vive en un solo lugar.
+  - El smoke cuenta órdenes con `OrderedCells`.
+  - Se arregló una tabla rota en `i18n.md` y el orden del tick en `overview.md`.

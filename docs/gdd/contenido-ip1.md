@@ -52,7 +52,18 @@ Escala de 0 a 10 000.
 
 - **Hambre:** un colono gasta 4800 puntos por día, unas dos raciones de provisiones. Las 30 raciones iniciales alimentan a 5 colonos durante unos 3 días; después hay que recolectar.
 - **Bayas:** un arbusto da 3200 puntos cada 4 días, unos 800 por día. Hacen falta unos 6 arbustos por colono para vivir sólo de bayas, así que el valle debe tener decenas.
-- **Descanso:** se agota en unas 16 horas de vigilia y se recupera durmiendo, lo que se define con los trabajos en H1.6.
+- **Descanso:** se agota en unas 16 horas de vigilia y se recupera durmiendo, 900 puntos por hora (`recoveryPerHour`). Un colono que se acuesta en el umbral bajo vuelve a llenarse en unas 8 horas.
+- Cada necesidad dice cómo se satisface: el hambre comiendo y el descanso durmiendo (`satisfiedBy`).
+
+## Colonia
+
+Definidos en H1.6; el detalle está en `docs/gdd/colonos-e-ia.md`.
+
+| Def | Valores |
+|---|---|
+| `Scenario` `valley_start` | 5 colonos `human`, necesidades al azar entre 7000 y 10 000, 30 provisiones |
+| `WorkType` | `mining` (excavar y escaleras), `woodcutting` (talar) y `gathering` (recolectar), en ese orden |
+| `AiConfig` | 20 ticks por unidad comida, deambular hasta 6 celdas y esperar de 60 a 300 ticks, 600 ticks ignorando un objetivo sin ruta, revisión cada 30 ticks |
 
 ## Criatura
 

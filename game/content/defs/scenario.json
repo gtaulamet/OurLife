@@ -1,0 +1,10 @@
+[
+  {
+    "type": "Scenario",
+    "id": "valley_start",
+    "creature": "human",
+    "colonists": 5,
+    "startNeedsMin": 7000,
+    "items": [{ "item": "provisions", "count": 30 }]
+  }
+]

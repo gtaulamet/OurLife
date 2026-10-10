@@ -229,6 +229,7 @@ Shouldly en lugar de FluentAssertions porque la versión 8 de esta última dejó
 8. ADR-008: Épocas como datos y progreso tecnológico continuo (el modelo se confirma en IP9).
 9. ADR-009: Render 3D low-poly con el Nature Kit de Kenney, `MultiMesh` por chunk y catálogo de visuales.
 10. ADR-010 (IP2): Guardado JSON comprimido y versionado.
+11. ADR-011: Datos derivados de la colonia (conectividad incremental, reservas, celdas con órdenes) fuera de la huella.
 
 ### 3.7 Preparación para el progreso de épocas
 
@@ -267,7 +268,7 @@ ourlife/
 │   └── ip/                       alcance, estado y criterios de cada IP + backlog.md
 ├── src/
 │   ├── OurLife.Core/             simulación pura, sin Godot
-│   │   ├── Ecs/ Sim/ Map/ WorldGen/ Defs/ Pathfinding/ AI/ Entities/ Text/
+│   │   ├── Ecs/ Sim/ Map/ WorldGen/ Defs/ Pathfinding/ Colony/ Entities/ Text/
 │   │   └── Persistence/          (IP2)
 │   └── OurLife.Localization/     catálogos + formateo ICU, sin Godot
 ├── game/                         proyecto Godot
@@ -354,8 +355,8 @@ sequenceDiagram
 
 ### 5.4 Un tick de simulación
 1. Aplicar los comandos encolados en orden de llegada.
-2. Ejecutar sistemas en orden fijo: necesidades → decisión (asignar trabajos) → ejecución de trabajos → movimiento → plantas (cada 250 ticks) → limpieza.
-3. Recalcular conectividad si el mapa cambió.
+2. Ejecutar sistemas en orden fijo: necesidades → decisión (asignar trabajos) → ejecución de trabajos → movimiento → plantas.
+3. La conectividad se pone al día cuando se consulta después de un cambio del mapa (ADR-011).
 4. Publicar los eventos acumulados y avanzar el contador de ticks.
 
 En cada frame, Godot ejecuta los ticks que pida la velocidad, aplica los eventos al render e interpola el movimiento.

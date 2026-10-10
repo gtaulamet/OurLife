@@ -8,25 +8,24 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-5-render-camara`, creada desde H1.4 |
-| Último commit de código | `feat(render)` de H1.5 en `ip1/h1-5-render-camara` (ver `git log`) |
-| `main` | En `5f04e42`, el cierre de H1.4; todavía no incluye H1.5 |
-| Hitos hechos | H1.1, H1.2, H1.3, H1.4 y H1.5 |
-| Próximo hito | H1.6 Colonos e IA |
-| Validación | `dotnet build` sin advertencias, 297 tests en verde, smoke con código 0 |
-| Huella del smoke | `46B73E675739EF3B` con `--seed 1 --ticks 5000`; `EA32F590F3ABE005` con `--seed 42 --ticks 5000` (sin cambios desde H1.4) |
+| Rama de trabajo | `ip1/h1-6-colonos-ia`, creada desde H1.5 |
+| Último commit de código | `feat(core)` de H1.6 en `ip1/h1-6-colonos-ia` (ver `git log`) |
+| `main` | En `e9e2407`, el cierre de H1.5; todavía no incluye H1.6 |
+| Hitos hechos | H1.1 a H1.6 |
+| Próximo hito | H1.7 Interacción y UI |
+| Validación | `dotnet build` sin advertencias, 356 tests en verde, smoke con código 0 |
+| Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (cambia desde H1.6 porque el smoke trae la colonia) |
 
 ## Pendientes
 
 En orden:
 
-1. **Adelantar `main` a H1.5**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-5-render-camara:main`.
-2. **H1.6 Colonos e IA:**
-   - El A* usa `MapNavigation.GetNeighbours`; `Connectivity` descarta objetivos inalcanzables.
-   - Falta sumar los árboles que bloquean el paso a la conectividad.
-   - Definir la zona de aparición de los colonos y las 30 raciones iniciales.
-   - `AsciiMap`, en `tests/OurLife.Core.Tests/Map`, ya arma mapas de escenario desde texto.
-   - La tala y el rebrote van a crear y destruir plantas. Conviene emitir eventos que el render de H1.7 pueda seguir.
+1. **Adelantar `main` a H1.6**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-6-colonos-ia:main`.
+2. **H1.7 Interacción y UI.** El contrato con la presentación está en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
+   - `DesignateCommand` para las órdenes.
+   - Eventos `EntitySpawnedEvent`, `EntityChangedEvent`, `EntityRemovedEvent`, `DesignationsChangedEvent`, `NotificationEvent` y `ColonyLostEvent`.
+   - Componentes `Colonist`, `Needs`, `Job`, `Movement`, `ItemStack`, `Plant` y `Harvested` para el inspector y el HUD.
+   - El smoke todavía vacía los eventos sin mostrarlos.
 3. **Pasan de H1.5 a H1.7:**
    - El render de colonos (pool de nodos con interpolación entre ticks) y de objetos.
    - Que `PlantRenderer` siga a las plantas que se crean, se destruyen o cambian de época.
@@ -51,6 +50,17 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-10: H1.6 Colonos e IA
+
+- Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:
+  - Spec `colonos-e-ia.md` y ADR-011.
+  - Defs `Scenario`, `AiConfig` y `WorkType`.
+  - Sistemas de la colonia, A*, conectividad incremental y árboles que bloquean.
+  - Tests de escenario y el smoke con la colonia.
+- El smoke no llegaba a cavar la escalera: la caja de la orden era fija y caía en rampas o plantas. Ahora busca la celda válida más cercana a la llegada.
+- `/code-review` en dos rondas, con 10 y 7 hallazgos, todos corregidos. El detalle está en el registro de H1.6 de `IP1.md`. Lo más importante: la búsqueda de árboles que cierran la superficie podía hacer fallar la generación del mundo, y ahora sigue las mismas reglas de movimiento que los colonos.
+- `main` ya estaba en H1.5 (`e9e2407`); la bitácora decía H1.4.
 
 ### 2026-10-10: H1.5 Render y cámara
 

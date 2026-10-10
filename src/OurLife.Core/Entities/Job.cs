@@ -1,0 +1,70 @@
+using OurLife.Core.Ecs;
+using OurLife.Core.Map;
+
+namespace OurLife.Core.Entities;
+
+/// <summary>What a colonist can do. Each kind has its text in <c>job.&lt;id&gt;.report</c> (see <see cref="JobKinds"/>).</summary>
+public enum JobKind
+{
+    Mine,
+    DigStairs,
+    Chop,
+    Harvest,
+    Eat,
+    Sleep,
+    Wander,
+}
+
+public enum JobStage
+{
+    /// <summary>Walking to where the work is done.</summary>
+    Moving,
+
+    /// <summary>Doing the work where it is done.</summary>
+    Working,
+}
+
+/// <summary>
+/// The job a colonist is doing. The target is an entity (a plant, a pile of food) or a cell (a
+/// wall to dig, the place to wander to). A colonist without this component is idle.
+/// </summary>
+public sealed class Job
+{
+    public JobKind Kind { get; set; }
+
+    public JobStage Stage { get; set; }
+
+    /// <summary>The plant or item worked on, or none.</summary>
+    public EntityId Target { get; set; }
+
+    /// <summary>The cell worked on, or walked to.</summary>
+    public TileCoord Cell { get; set; }
+
+    /// <summary>Work ticks done in the current stage.</summary>
+    public int Progress { get; set; }
+
+    /// <summary>Tick at which waiting ends, for jobs that wait.</summary>
+    public long UntilTick { get; set; }
+
+    /// <summary>True when the colonist gathers to eat, not because the player ordered it.</summary>
+    public bool ForFood { get; set; }
+}
+
+public static class JobKinds
+{
+    /// <summary>The id of a kind in texts, like <c>dig_stairs</c>.</summary>
+    public static string Id(JobKind kind) => kind switch
+    {
+        JobKind.Mine => "mine",
+        JobKind.DigStairs => "dig_stairs",
+        JobKind.Chop => "chop",
+        JobKind.Harvest => "harvest",
+        JobKind.Eat => "eat",
+        JobKind.Sleep => "sleep",
+        JobKind.Wander => "wander",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+    };
+
+    /// <summary>Key of the text that says what a colonist is doing, like <c>job.chop.report</c>.</summary>
+    public static string ReportKey(JobKind kind) => $"job.{Id(kind)}.report";
+}

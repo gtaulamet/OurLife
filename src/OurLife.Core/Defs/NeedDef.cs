@@ -1,5 +1,15 @@
 namespace OurLife.Core.Defs;
 
+/// <summary>How a creature satisfies a need; the colony systems know each way.</summary>
+public enum NeedSatisfaction
+{
+    /// <summary>Eating food, which restores the item's nutrition.</summary>
+    Eating,
+
+    /// <summary>Sleeping where it stands, which restores <see cref="NeedDef.RecoveryPerHour"/>.</summary>
+    Sleeping,
+}
+
 /// <summary>
 /// Something a creature has to keep up, like hunger or rest. Values go from 0 (empty) to
 /// <see cref="Max"/> (fully satisfied) and drop over time.
@@ -18,6 +28,11 @@ public sealed class NeedDef : Def
 
     /// <summary>Hours at zero before the creature dies. Null means the need never kills.</summary>
     public int? DeathAfterHoursAtZero { get; init; }
+
+    public required NeedSatisfaction SatisfiedBy { get; init; }
+
+    /// <summary>Points restored per hour while sleeping. Only for needs satisfied by sleeping.</summary>
+    public int RecoveryPerHour { get; init; }
 
     internal override IEnumerable<string> Validate()
     {
@@ -39,6 +54,16 @@ public sealed class NeedDef : Def
         if (DeathAfterHoursAtZero is <= 0)
         {
             yield return "deathAfterHoursAtZero must be positive when set.";
+        }
+
+        if (SatisfiedBy == NeedSatisfaction.Sleeping && RecoveryPerHour <= 0)
+        {
+            yield return "a need satisfied by sleeping needs a positive recoveryPerHour.";
+        }
+
+        if (SatisfiedBy != NeedSatisfaction.Sleeping && RecoveryPerHour != 0)
+        {
+            yield return "only needs satisfied by sleeping have recoveryPerHour.";
         }
     }
 }

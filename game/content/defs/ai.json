@@ -1,0 +1,12 @@
+[
+  {
+    "type": "AiConfig",
+    "id": "default",
+    "eatTicksPerUnit": 20,
+    "wanderRadius": 6,
+    "wanderWaitMin": 60,
+    "wanderWaitMax": 300,
+    "unreachableCooldownTicks": 600,
+    "recheckTicks": 30
+  }
+]

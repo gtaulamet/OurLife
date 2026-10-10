@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using Godot;
+using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
@@ -30,6 +31,9 @@ public partial class GameRoot : Node
     private const ulong DefaultSeed = 1;
     private const int DefaultSmokeTicks = 1_000;
     private const int FramesBeforeScreenshot = 3;
+
+    // Cells around the arrival where the smoke gives orders.
+    private const int SmokeOrderRadius = 8;
 
     private GameServices? _services;
     private GodotLocalizationBridge? _bridge;
@@ -113,6 +117,7 @@ public partial class GameRoot : Node
             // Until the main menu of H1.7, the game opens straight onto a generated valley.
             var simulation = new Simulation(options.Seed ?? DefaultSeed, _services.Defs);
             GenerateTheOnlyWorld(simulation);
+            StartColony(simulation);
             AddChild(WorldView.Create(simulation, LoadVisualCatalog(), options.Level));
         }
 
@@ -163,9 +168,18 @@ public partial class GameRoot : Node
                 return;
             }
 
+            var colonists = StartColony(simulation);
+            var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
+            GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
+            var stairSite = OrderWorkAround(simulation, arrival);
+
             var stopwatch = Stopwatch.StartNew();
             simulation.Run(ticks);
             stopwatch.Stop();
+
+            // Nobody shows the events in smoke mode.
+            simulation.Events.Clear();
+            ReportColony(simulation, colonists, stairSite);
 
             var totalMs = stopwatch.Elapsed.TotalMilliseconds;
             var msPerTick = ticks == 0 ? 0 : totalMs / ticks;
@@ -261,6 +275,104 @@ public partial class GameRoot : Node
         return worlds[0];
     }
 
+    /// <summary>Brings the colonists of the only scenario and adds the colony systems.</summary>
+    private static IReadOnlyList<EntityId> StartColony(Simulation simulation)
+    {
+        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content));
+        ColonySystems.AddTo(simulation);
+        return colonists;
+    }
+
+    /// <summary>
+    /// Gives the colonists every kind of order around their arrival, so the smoke exercises every
+    /// job and measures the ticks with work going on: chop and gather nearby, dig the hills, and
+    /// stairs down where the ground allows them.
+    /// </summary>
+    private static TileCoord? OrderWorkAround(Simulation simulation, TileCoord arrival)
+    {
+        TileCoord Offset(int dx, int dy, int dz) => new(arrival.X + dx, arrival.Y + dy, arrival.Z + dz);
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Chop, Offset(-SmokeOrderRadius, -SmokeOrderRadius, -3), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Harvest, Offset(-SmokeOrderRadius, -SmokeOrderRadius, -3), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Mine, Offset(-SmokeOrderRadius, -SmokeOrderRadius, 0), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
+        var site = FindStairSite(simulation, arrival);
+        if (site is { } stairs)
+        {
+            simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Stairs, stairs, stairs));
+        }
+        else
+        {
+            GD.PushWarning("[smoke] No cell near the arrival can take stairs; the smoke does not dig any.");
+        }
+
+        return site;
+    }
+
+    /// <summary>
+    /// The cell nearest the arrival, on its level and outside its pile of provisions, where stairs
+    /// down can be dug: a floor without a plant over rock or soil. Ties go to the lower cell index.
+    /// </summary>
+    private static TileCoord? FindStairSite(Simulation simulation, TileCoord arrival)
+    {
+        var plantCells = Designations.PlantCells(simulation);
+        TileCoord? best = null;
+        var bestDistance = int.MaxValue;
+        for (var dy = -SmokeOrderRadius; dy <= SmokeOrderRadius; dy++)
+        {
+            for (var dx = -SmokeOrderRadius; dx <= SmokeOrderRadius; dx++)
+            {
+                var cell = new TileCoord(arrival.X + dx, arrival.Y + dy, arrival.Z);
+                var distance = Math.Max(Math.Abs(dx), Math.Abs(dy));
+                if (distance == 0 || distance >= bestDistance || !simulation.Map.Size.Contains(cell.X, cell.Y, cell.Z)
+                    || !Designations.CanOrderStairs(simulation.Map, cell, plantCells))
+                {
+                    continue;
+                }
+
+                best = cell;
+                bestDistance = distance;
+            }
+        }
+
+        return best;
+    }
+
+    /// <summary>How many colonists live, what each one is doing and how hungry and rested they are.</summary>
+    private static void ReportColony(Simulation simulation, IReadOnlyList<EntityId> colonists, TileCoord? stairSite)
+    {
+        var world = simulation.World;
+        var alive = colonists.Where(world.IsAlive).ToList();
+        GD.Print($"[smoke] colony: {alive.Count} of {colonists.Count} colonists alive");
+
+        var piles = new List<EntityId>();
+        world.Query<ItemStack>(piles);
+        var items = piles
+            .Select(world.Get<ItemStack>)
+            .GroupBy(stack => stack.Def)
+            .OrderBy(group => group.Key, StringComparer.Ordinal)
+            .Select(group => $"{group.Key} {group.Sum(stack => stack.Count)}");
+        GD.Print($"[smoke] colony: items on the ground: {string.Join(", ", items)}");
+
+        var map = simulation.Map;
+        int mineOrders = 0, stairOrders = 0;
+        foreach (var index in map.OrderedCells)
+        {
+            var flags = map.FlagsAt(map.Size.CoordOf(index));
+            mineOrders += (flags & TileFlags.MineDesignation) != 0 ? 1 : 0;
+            stairOrders += (flags & TileFlags.StairsDesignation) != 0 ? 1 : 0;
+        }
+
+        var stairs = stairSite is { } site
+            ? $"stairs at ({site.X}, {site.Y}, {site.Z}): {map.ShapeAt(site)} over {map.ShapeAt(site.X, site.Y, site.Z - 1)}"
+            : "no stairs ordered";
+        GD.Print($"[smoke] colony: orders left: mine {mineOrders}, stairs {stairOrders} | {stairs}");
+        foreach (var colonist in alive)
+        {
+            var job = world.TryGet<Job>(colonist, out var current) ? JobKinds.Id(current.Kind) : "idle";
+            var needs = string.Join(", ", world.Get<Needs>(colonist).Values.Select(need => $"{need.Need} {need.Value}"));
+            GD.Print($"[smoke]   {world.Get<Colonist>(colonist).Name}: {job} | {needs}");
+        }
+    }
+
     /// <summary>
     /// Generates the world and reports its size, the time it took, its plants and whether its
     /// whole surface is one region.
@@ -279,12 +391,19 @@ public partial class GameRoot : Node
             .OrderBy(group => group.Key, StringComparer.Ordinal)
             .Select(group => $"{group.Key} {group.Count()}");
 
+        // What a full computation costs. The generator pays it once; later changes that only open
+        // ways, like digging or chopping, merge regions in place, and only one that closes a way
+        // computes everything again.
+        var connectivityTime = Stopwatch.StartNew();
         var surfaceRegions = Connectivity.Compute(map).SurfaceRegions(map);
+        connectivityTime.Stop();
 
         GD.Print(string.Create(
             CultureInfo.InvariantCulture,
             $"[smoke] world '{world.Id}' {map.Size.Width}x{map.Size.Height}x{map.Size.Depth} generated in {stopwatch.Elapsed.TotalMilliseconds:F0} ms"));
-        GD.Print($"[smoke] plants: {string.Join(", ", plantCounts)} | surface regions: {surfaceRegions.Count}");
+        GD.Print(string.Create(
+            CultureInfo.InvariantCulture,
+            $"[smoke] plants: {string.Join(", ", plantCounts)} | surface regions: {surfaceRegions.Count} in {connectivityTime.Elapsed.TotalMilliseconds:F1} ms"));
         if (surfaceRegions.Count != 1 || surfaceRegions[0] == Connectivity.NoRegion)
         {
             GD.PushError("[smoke] The surface of the world is not one connected region.");
