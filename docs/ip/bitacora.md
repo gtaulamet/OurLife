@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-6-colonos-ia`, creada desde H1.5 |
-| Último commit de código | `feat(core)` de H1.6 en `ip1/h1-6-colonos-ia` (ver `git log`) |
-| `main` | En `e9e2407`, el cierre de H1.5; todavía no incluye H1.6 |
+| Rama de trabajo | `ip1/h1-7-interaccion-ui`, creada desde H1.6 y subida a `origin` |
+| Último commit de código | `48dac75 feat(core)` de H1.6; H1.7 está en curso (ver Pendientes) |
+| `main` | En `48dac75`, el cierre de H1.6, también en `origin` |
 | Hitos hechos | H1.1 a H1.6 |
-| Próximo hito | H1.7 Interacción y UI |
+| Hito en curso | H1.7 Interacción y UI, spec en `docs/gdd/interfaz-ip1.md` |
 | Validación | `dotnet build` sin advertencias, 356 tests en verde, smoke con código 0 |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (cambia desde H1.6 porque el smoke trae la colonia) |
 
@@ -20,8 +20,15 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Adelantar `main` a H1.6**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-6-colonos-ia:main`.
-2. **H1.7 Interacción y UI.** El contrato con la presentación está en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
+1. **H1.7 Interacción y UI, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-7-interaccion-ui` y `git push`:
+   1. Spec `docs/gdd/interfaz-ip1.md`. **Hecho.**
+   2. Core: rayo sobre la grilla para apuntar celdas, con tests; ajuste de pantalla completa en `Settings`.
+   3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos.
+   4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda.
+   5. HUD: barra superior, barra de órdenes y registro; textos es y en.
+   6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`.
+   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre.
+2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
    - `DesignateCommand` para las órdenes.
    - Eventos `EntitySpawnedEvent`, `EntityChangedEvent`, `EntityRemovedEvent`, `DesignationsChangedEvent`, `NotificationEvent` y `ColonyLostEvent`.
    - Componentes `Colonist`, `Needs`, `Job`, `Movement`, `ItemStack`, `Plant` y `Harvested` para el inspector y el HUD.
@@ -50,6 +57,12 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-10: H1.7 Interacción y UI (en curso)
+
+- Adelanté `main` a H1.6 y creé la rama `ip1/h1-7-interaccion-ui`.
+- El usuario pidió guardar cada avance en la bitácora y subirlo a GitHub para seguir desde otra PC. Subí `main` (estaba en H1.2 en `origin`) y la rama, y lo anoté en `CLAUDE.md`.
+- Avance 1: spec `docs/gdd/interfaz-ip1.md`, con pantallas, controles, HUD, inspector, selección de celdas, textos nuevos y criterios de aceptación.
 
 ### 2026-10-10: H1.6 Colonos e IA
 
