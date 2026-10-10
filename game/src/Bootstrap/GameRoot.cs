@@ -21,7 +21,8 @@ namespace OurLife.Game.Bootstrap;
 /// Root node of the game. Loads content, texts and preferences, connects the localizer to
 /// Godot and starts one of three modes: the normal game window, <c>--smoke</c> (headless checks
 /// for agents and CI) or <c>--screenshot</c> (saves an image of the first screen and quits).
-/// The first screen is the 3D view of a valley, or the language test screen with <c>--probe</c>.
+/// The first screen is the main menu; <c>--play</c> starts a game at once, <c>--options</c> opens
+/// the options and <c>--probe</c> shows the language test screen.
 /// </summary>
 public partial class GameRoot : Node
 {
@@ -38,6 +39,8 @@ public partial class GameRoot : Node
 
     private GameServices? _services;
     private GodotLocalizationBridge? _bridge;
+    private VisualCatalog? _catalog;
+    private Node? _screen;
 
     public override void _Ready()
     {
@@ -109,30 +112,27 @@ public partial class GameRoot : Node
             return;
         }
 
+        if (!automated)
+        {
+            _services.Settings.ApplyWindowMode();
+        }
+
         if (options.Probe)
         {
-            AddChild(LanguageProbeScreen.Create(_services));
+            ShowScreen(LanguageProbeScreen.Create(_services));
+        }
+        else if (options.Play)
+        {
+            PlayFromCommandLine(options);
+        }
+        else if (options.Options)
+        {
+            ShowOptions();
         }
         else
         {
-            // Until the main menu, later in H1.7, the game opens straight onto a generated valley.
-            var screen = GameScreen.Create(_services, LoadVisualCatalog(), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
-            AddChild(screen);
-            var simulation = screen.Session.Simulation;
-            var colonists = new List<EntityId>();
-            simulation.World.Query<Colonist>(colonists);
-            if (options.Orders && colonists.Count > 0)
-            {
-                OrderWorkAround(simulation, simulation.World.Get<Position>(colonists[0]).Cell);
-            }
-
-            screen.Advance(options.Ticks ?? 0);
-            if (options.Inspect && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
-            {
-                screen.Input.SelectColonist(colonists[0]);
-            }
+            ShowMainMenu();
         }
-
         if (options.ScreenshotPath is { } screenshotPath)
         {
             _ = SaveScreenshotAndQuitAsync(screenshotPath);
@@ -143,6 +143,75 @@ public partial class GameRoot : Node
     {
         _bridge?.Dispose();
         _bridge = null;
+    }
+
+    /// <summary>Replaces the screen on show: menus, the game, or the language test.</summary>
+    private void ShowScreen(Node screen)
+    {
+        _screen?.QueueFree();
+        _screen = screen;
+        AddChild(screen);
+    }
+
+    private void ShowMainMenu()
+    {
+        var menu = MainMenu.Create();
+        menu.NewGameRequested += ShowNewGame;
+        menu.OptionsRequested += ShowOptions;
+        menu.QuitRequested += () => GetTree().Quit(ExitOk);
+        ShowScreen(menu);
+    }
+
+    private void ShowNewGame()
+    {
+        var screen = NewGameScreen.Create(_services!);
+        screen.StartRequested += (name, seed) => StartGame(name, seed, level: null, distance: null);
+        screen.BackRequested += ShowMainMenu;
+        ShowScreen(screen);
+    }
+
+    private void ShowOptions()
+    {
+        var options = OptionsScreen.Create(_services!, dimmed: false);
+        options.Closed += ShowMainMenu;
+        ShowScreen(options);
+    }
+
+    private GameScreen StartGame(string colonyName, ulong seed, int? level, int? distance)
+    {
+        _catalog ??= LoadVisualCatalog();
+        var screen = GameScreen.Create(_services!, _catalog, colonyName, seed, level, distance);
+        screen.MainMenuRequested += ShowMainMenu;
+        ShowScreen(screen);
+        return screen;
+    }
+
+    /// <summary>
+    /// <c>--play</c>: a game straight away, for screenshots and tests. <c>--orders</c> gives the
+    /// smoke's orders, <c>--ticks</c> runs time at once, <c>--inspect</c> selects the first
+    /// colonist and <c>--options</c> opens the options over the game.
+    /// </summary>
+    private void PlayFromCommandLine(CommandLineOptions options)
+    {
+        var screen = StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
+        var simulation = screen.Session.Simulation;
+        var colonists = new List<EntityId>();
+        simulation.World.Query<Colonist>(colonists);
+        if (options.Orders && colonists.Count > 0)
+        {
+            OrderWorkAround(simulation, simulation.World.Get<Position>(colonists[0]).Cell);
+        }
+
+        screen.Advance(options.Ticks ?? 0);
+        if (options.Inspect && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+        {
+            screen.Input.SelectColonist(colonists[0]);
+        }
+
+        if (options.Options)
+        {
+            screen.OpenOptions();
+        }
     }
 
     /// <summary>
@@ -201,7 +270,7 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] date {simulation.CurrentDate} | state {simulation.ComputeStateHash():X16}");
             GD.Print($"[smoke] date shown to the player: {services.Text.Date(simulation.CurrentDate)}, {services.Text.Clock(simulation.CurrentDate)}");
 
-            BuildWorldView(simulation, catalog, options.Level);
+            BuildScreens(options);
 
             if (services.Localizer.MissingKeys.Count > 0)
             {
@@ -219,22 +288,34 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// Builds the 3D view of the simulated world at the level of <c>--level</c>, or the highest
-    /// surface, and frees it: terrain, plants and camera are created with every model the world
-    /// uses, in its current era.
+    /// Builds every screen without a window and frees them: the game screen (3D view, input and HUD,
+    /// with the first colonist in the inspector) for <c>--seed</c>, the menus over it, and the
+    /// main, new game and options screens. Texts formatted in code that do not exist are then in
+    /// the localizer's missing keys, and the smoke fails.
     /// </summary>
-    private void BuildWorldView(Simulation simulation, VisualCatalog catalog, int? level)
+    private void BuildScreens(CommandLineOptions options)
     {
         var stopwatch = Stopwatch.StartNew();
-        var view = WorldView.Create(simulation, catalog, level);
-        AddChild(view);
+        var screen = StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, distance: null);
         stopwatch.Stop();
         GD.Print(string.Create(
             CultureInfo.InvariantCulture,
-            $"[smoke] world view built in {stopwatch.Elapsed.TotalMilliseconds:F0} ms at level {view.ViewLevel}"));
-        view.QueueFree();
-    }
+            $"[smoke] game screen built in {stopwatch.Elapsed.TotalMilliseconds:F0} ms at level {screen.View.ViewLevel}"));
 
+        var colonists = new List<EntityId>();
+        screen.Session.Simulation.World.Query<Colonist>(colonists);
+        screen.Input.SelectColonist(colonists[0]);
+        screen.Advance(10);
+        screen.OpenPauseMenu();
+        screen.OpenOptions();
+
+        ShowNewGame();
+        ShowOptions();
+        ShowMainMenu();
+        GD.Print("[smoke] menus built: main, new game, options, pause");
+        _screen?.QueueFree();
+        _screen = null;
+    }
     private static VisualCatalog LoadVisualCatalog() =>
         VisualCatalog.Parse(Godot.FileAccess.GetFileAsString(VisualCatalog.ResourcePath));
 

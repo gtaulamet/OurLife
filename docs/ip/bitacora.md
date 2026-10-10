@@ -26,7 +26,7 @@ En orden:
    3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos. **Hecho.**
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
    5. HUD: barra superior, barra de órdenes y registro; textos es y en. **Hecho.**
-   6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`.
+   6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`. **Hecho.**
    7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre.
 2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
    - `DesignateCommand` para las órdenes.
@@ -91,6 +91,14 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - `ColonyStart` emite `event.colony.arrived` ("Llegan 5 colonos al valle"), que es el primer mensaje del registro.
   - Clave `ui.hud.date` en lugar de armar la fecha en el código.
   - Revisado en capturas es y en. Tiny5 a 16 px se lee sobre el 3D, aunque es chica: decidir en QA si se agranda.
+- Avance 6:
+  - `UiBuilder` y un archivo por pantalla: `MainMenu` (Cargar deshabilitado con aviso), `NewGameScreen` (nombre de la aldea y semilla, con "Al azar"), `OptionsScreen` (idioma en vivo y pantalla completa, guardados), `PauseMenu` y `GameOverScreen`.
+  - `GameScreen` abre los menús en una capa encima del HUD y detiene el tiempo y la entrada mientras están abiertos; la partida termina con `ColonyLostEvent`.
+  - `GameRoot` arranca en el menú principal y aplica la pantalla completa guardada.
+  - Opciones `--play` (partida directa) y `--options` (opciones, sobre la partida con `--play`).
+  - El nombre de la aldea se ve en la barra superior. Todavía no se guarda en la simulación: hará falta para el guardado de IP2.
+  - El smoke arma la pantalla de partida con el inspector, la pausa, las opciones y los tres menús, y falla si falta un texto.
+  - Revisadas las capturas del menú principal y de las opciones en es y en. La casilla de pantalla completa tiene poco contraste sobre el fondo oscurecido: revisar en QA.
 ### 2026-10-10: H1.6 Colonos e IA
 
 - Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:

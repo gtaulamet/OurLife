@@ -34,6 +34,12 @@ public sealed record CommandLineOptions
     /// <summary>Distance from the camera to what it looks at, to look closer in screenshots (milestone H1.7).</summary>
     public int? Zoom { get; init; }
 
+    /// <summary>Start a game at once instead of showing the main menu (milestone H1.7).</summary>
+    public bool Play { get; init; }
+
+    /// <summary>Open the options: over the game with <c>--play</c>, else instead of the main menu (milestone H1.7).</summary>
+    public bool Options { get; init; }
+
     /// <summary>Select the first colonist at the start, to see the inspector in screenshots (milestone H1.7).</summary>
     public bool Inspect { get; init; }
 
@@ -86,6 +92,12 @@ public sealed record CommandLineOptions
                 case "--probe":
                     options = options with { Probe = true };
                     break;
+                case "--play":
+                    options = options with { Play = true };
+                    break;
+                case "--options":
+                    options = options with { Options = true };
+                    break;
                 case "--inspect":
                     options = options with { Inspect = true };
                     break;
@@ -116,7 +128,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}";
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}, play={Play}, options={Options}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

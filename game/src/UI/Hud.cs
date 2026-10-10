@@ -45,7 +45,7 @@ public partial class Hud : CanvasLayer
 
     public EventLog Log { get; private set; } = null!;
 
-    public static Hud Create(GameServices services, GameSession session, GameInput input, WorldView view)
+    public static Hud Create(GameServices services, GameSession session, GameInput input, WorldView view, string colonyName)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(session);
@@ -58,7 +58,7 @@ public partial class Hud : CanvasLayer
         root.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         hud.AddChild(root);
 
-        root.AddChild(hud.BuildTopBar());
+        root.AddChild(hud.BuildTopBar(colonyName));
         root.AddChild(hud.BuildBottom());
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation);
@@ -93,7 +93,7 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    private Control BuildTopBar()
+    private Control BuildTopBar(string colonyName)
     {
         var panel = new PanelContainer { Name = "TopBar" };
         panel.SetAnchorsPreset(Control.LayoutPreset.TopWide);
@@ -105,6 +105,8 @@ public partial class Hud : CanvasLayer
         row.AddThemeConstantOverride("separation", Gap * 2);
         panel.AddChild(row);
 
+        // The village's name is a proper name: it is never translated.
+        row.AddChild(new Label { Text = colonyName, AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled });
         _date = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         row.AddChild(_date);
 

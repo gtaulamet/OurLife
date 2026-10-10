@@ -13,10 +13,20 @@ namespace OurLife.Game.Session;
 /// <summary>
 /// The screen of a game being played: the <see cref="GameSession"/> that runs the simulation and
 /// the <see cref="WorldView"/> that draws it, joined by the events of each frame, the player's
-/// <see cref="GameInput"/> and the <see cref="Hud"/> (see <c>docs/gdd/interfaz-ip1.md</c>).
+/// <see cref="GameInput"/>, the <see cref="Hud"/>, and the menus over them: pause, options and the
+/// end of the game (see <c>docs/gdd/interfaz-ip1.md</c>). While a menu is open, time stops and the
+/// game's input sleeps.
 /// </summary>
 public partial class GameScreen : Node
 {
+    // Above the HUD.
+    private const int OverlayLayer = 10;
+
+    private GameServices _services = null!;
+    private CanvasLayer _overlays = null!;
+    private Control? _overlay;
+    private bool _over;
+
     public GameSession Session { get; private set; } = null!;
 
     public WorldView View { get; private set; } = null!;
@@ -25,17 +35,20 @@ public partial class GameScreen : Node
 
     public Hud Hud { get; private set; } = null!;
 
+    /// <summary>Raised when the player leaves the game for the main menu.</summary>
+    public event Action? MainMenuRequested;
+
     /// <summary>
     /// Generates the only world of the content with the seed, brings the colony of the only
     /// scenario and builds the screen. <paramref name="level"/> is where the view starts, or the
     /// highest surface; <paramref name="distance"/>, how far the camera starts from it.
     /// </summary>
-    public static GameScreen Create(GameServices services, VisualCatalog catalog, ulong seed, int? level, int? distance = null)
+    public static GameScreen Create(GameServices services, VisualCatalog catalog, string colonyName, ulong seed, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(catalog);
         var simulation = NewGame(services.Defs, seed);
-        var screen = new GameScreen { Name = nameof(GameScreen) };
+        var screen = new GameScreen { Name = nameof(GameScreen), _services = services };
         try
         {
             screen.Session = GameSession.Create(simulation);
@@ -45,9 +58,14 @@ public partial class GameScreen : Node
             screen.Session.EventsRead += screen.View.Apply;
             screen.Input = GameInput.Create(screen.Session, screen.View);
             screen.AddChild(screen.Input);
-            screen.Hud = Hud.Create(services, screen.Session, screen.Input, screen.View);
+            screen.Hud = Hud.Create(services, screen.Session, screen.Input, screen.View, colonyName);
             screen.AddChild(screen.Hud);
             screen.Session.EventsRead += screen.Hud.Apply;
+            screen.Session.EventsRead += screen.WatchForTheEnd;
+            screen.Input.PauseMenuRequested += screen.OpenPauseMenu;
+
+            screen._overlays = new CanvasLayer { Name = "Overlays", Layer = OverlayLayer };
+            screen.AddChild(screen._overlays);
 
             // The arrival emitted events before anyone listened: the view already drew what they
             // announce and ignores them, and the log shows the welcome message.
@@ -79,5 +97,60 @@ public partial class GameScreen : Node
         ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(content));
         ColonySystems.AddTo(simulation);
         return simulation;
+    }
+
+    /// <summary>Opens the options over the game, as the pause menu's button does; for screenshots.</summary>
+    public void OpenOptions()
+    {
+        var options = OptionsScreen.Create(_services, dimmed: true);
+        options.Closed += OpenPauseMenu;
+        ShowOverlay(options);
+    }
+
+    public void OpenPauseMenu()
+    {
+        if (_over)
+        {
+            return;
+        }
+
+        var menu = PauseMenu.Create();
+        menu.ResumeRequested += CloseOverlay;
+        menu.OptionsRequested += OpenOptions;
+        menu.MainMenuRequested += () => MainMenuRequested?.Invoke();
+        ShowOverlay(menu);
+    }
+
+    private void WatchForTheEnd(IReadOnlyList<ISimEvent> events)
+    {
+        if (_over || !events.Any(simEvent => simEvent is ColonyLostEvent))
+        {
+            return;
+        }
+
+        _over = true;
+        var end = GameOverScreen.Create();
+        end.MainMenuRequested += () => MainMenuRequested?.Invoke();
+        ShowOverlay(end);
+    }
+
+    /// <summary>Replaces the open menu, if any, and stops time and the game's input under it.</summary>
+    private void ShowOverlay(Control overlay)
+    {
+        _overlay?.QueueFree();
+        _overlay = overlay;
+        _overlays.AddChild(overlay);
+        Session.SetHeld(true);
+        Input.ProcessMode = ProcessModeEnum.Disabled;
+        View.Camera.ProcessMode = ProcessModeEnum.Disabled;
+    }
+
+    private void CloseOverlay()
+    {
+        _overlay?.QueueFree();
+        _overlay = null;
+        Session.SetHeld(false);
+        Input.ProcessMode = ProcessModeEnum.Inherit;
+        View.Camera.ProcessMode = ProcessModeEnum.Inherit;
     }
 }
