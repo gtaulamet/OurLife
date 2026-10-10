@@ -22,7 +22,7 @@ En orden:
 
 1. **H1.7 Interacción y UI, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-7-interaccion-ui` y `git push`:
    1. Spec `docs/gdd/interfaz-ip1.md`. **Hecho.**
-   2. Core: rayo sobre la grilla para apuntar celdas, con tests; ajuste de pantalla completa en `Settings`.
+   2. Core: rayo sobre la grilla para apuntar celdas (`MapRaycast`, con tests); ajuste de pantalla completa en `Settings`. **Hecho.**
    3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos.
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda.
    5. HUD: barra superior, barra de órdenes y registro; textos es y en.
@@ -63,6 +63,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - Adelanté `main` a H1.6 y creé la rama `ip1/h1-7-interaccion-ui`.
 - El usuario pidió guardar cada avance en la bitácora y subirlo a GitHub para seguir desde otra PC. Subí `main` (estaba en H1.2 en `origin`) y la rama, y lo anoté en `CLAUDE.md`.
 - Avance 1: spec `docs/gdd/interfaz-ip1.md`, con pantallas, controles, HUD, inspector, selección de celdas, textos nuevos y criterios de aceptación.
+- Avance 2: `MapRaycast` en `OurLife.Core.Map` (recorrido de grilla de Amanatides y Woo que salta los niveles ocultos), con 8 tests; `Settings` guarda la pantalla completa. 364 tests en verde.
 
 ### 2026-10-10: H1.6 Colonos e IA
 
