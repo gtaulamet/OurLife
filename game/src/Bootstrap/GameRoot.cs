@@ -11,6 +11,7 @@ using OurLife.Core.WorldGen;
 using OurLife.Game.Content;
 using OurLife.Game.Localization;
 using OurLife.Game.Rendering;
+using OurLife.Game.Session;
 using OurLife.Game.UI;
 using OurLife.Localization;
 
@@ -114,11 +115,10 @@ public partial class GameRoot : Node
         }
         else
         {
-            // Until the main menu of H1.7, the game opens straight onto a generated valley.
-            var simulation = new Simulation(options.Seed ?? DefaultSeed, _services.Defs);
-            GenerateTheOnlyWorld(simulation);
-            StartColony(simulation);
-            AddChild(WorldView.Create(simulation, LoadVisualCatalog(), options.Level));
+            // Until the main menu, later in H1.7, the game opens straight onto a generated valley.
+            var screen = GameScreen.Create(_services.Defs, LoadVisualCatalog(), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
+            AddChild(screen);
+            screen.Advance(options.Ticks ?? 0);
         }
 
         if (options.ScreenshotPath is { } screenshotPath)

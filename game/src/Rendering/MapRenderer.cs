@@ -252,8 +252,14 @@ public partial class MapRenderer : Node3D
             case TileShape.Ramp:
                 Add(TerrainPiece.Ramp, new Transform3D(new Basis(Vector3.Up, RampYaw(x, y, z)), origin), SurfaceColor(x, y, z));
                 break;
-            case TileShape.StairUp or TileShape.StairUpDown:
+            case TileShape.StairUp:
                 Add(TerrainPiece.Steps, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z));
+                break;
+            case TileShape.StairUpDown:
+                // Steps up on one half of the cell, the opening of the way down on the other.
+                var half = Basis.Identity.Scaled(new Vector3(0.5f, 1f, 1f));
+                Add(TerrainPiece.Steps, new Transform3D(half, origin + new Vector3(0.25f, 0, 0)), MaterialColor(x, y, z));
+                Add(TerrainPiece.Hole, new Transform3D(half, origin - new Vector3(0.25f, 0, 0)), _cutColor);
                 break;
             case TileShape.StairDown:
                 Add(TerrainPiece.Hole, new Transform3D(Basis.Identity, origin), _cutColor);

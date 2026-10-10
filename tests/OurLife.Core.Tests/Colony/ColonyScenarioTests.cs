@@ -318,6 +318,30 @@ public class ColonyScenarioTests
     }
 
     [Fact]
+    public void Orders_applied_while_paused_give_the_same_state_as_on_the_next_tick()
+    {
+        static ColonyTestBed Prepare()
+        {
+            var bed = ColonyTestBed.Flat(12, 3);
+            bed.AddPlant("tree", 8, 8, 1);
+            bed.AddColonist(2, 2, 1);
+            bed.Simulation.Run(50);
+            bed.Designate(DesignationKind.Chop, new TileCoord(0, 0, 1), new TileCoord(11, 11, 1));
+            return bed;
+        }
+
+        var paused = Prepare();
+        paused.Simulation.ApplyCommandsNow();
+        paused.Simulation.Commands.Count.ShouldBe(0);
+        paused.Simulation.Run(500);
+
+        var running = Prepare();
+        running.Simulation.Run(500);
+
+        paused.Simulation.ComputeStateHash().ShouldBe(running.Simulation.ComputeStateHash());
+    }
+
+    [Fact]
     public void Colonists_without_anything_to_do_wander_on_their_level()
     {
         var bed = ColonyTestBed.Flat(30);

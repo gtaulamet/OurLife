@@ -34,6 +34,12 @@ public class VisualCatalogTests
     {
         var used = VisualDefs().Select(def => def.Visual).ToHashSet(StringComparer.Ordinal);
 
+        // A plant that can be gathered may have a "<visual>.harvested" model for while it has no fruit.
+        foreach (var plant in GameContent.Defs.All<PlantDef>().Where(plant => plant.Harvest is not null))
+        {
+            used.Add($"{plant.Visual}.harvested");
+        }
+
         var unused = Catalog.Models.Select(model => BaseId(model.Id)).Where(id => !used.Contains(id)).ToList();
 
         unused.ShouldBeEmpty(string.Join(Environment.NewLine, unused));

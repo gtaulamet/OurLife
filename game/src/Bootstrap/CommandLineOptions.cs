@@ -31,6 +31,9 @@ public sealed record CommandLineOptions
     /// <summary>Show the language test screen of H1.3 instead of the world (milestone H1.5).</summary>
     public bool Probe { get; init; }
 
+    /// <summary>Distance from the camera to what it looks at, to look closer in screenshots (milestone H1.7).</summary>
+    public int? Zoom { get; init; }
+
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];
 
@@ -77,6 +80,15 @@ public sealed record CommandLineOptions
                 case "--probe":
                     options = options with { Probe = true };
                     break;
+                case "--zoom":
+                    var zoom = NumberAfter<int>(args, ref i);
+                    if (zoom <= 0)
+                    {
+                        throw new ArgumentException("--zoom must be positive.");
+                    }
+
+                    options = options with { Zoom = zoom };
+                    break;
                 default:
                     unknown.Add(args[i]);
                     break;
@@ -91,7 +103,8 @@ public sealed record CommandLineOptions
         $"smoke={Smoke}, screenshot={ScreenshotPath ?? "-"}, locale={Locale ?? "-"}, " +
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
-        $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}";
+        $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

@@ -23,7 +23,7 @@ En orden:
 1. **H1.7 Interacción y UI, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-7-interaccion-ui` y `git push`:
    1. Spec `docs/gdd/interfaz-ip1.md`. **Hecho.**
    2. Core: rayo sobre la grilla para apuntar celdas (`MapRaycast`, con tests); ajuste de pantalla completa en `Settings`. **Hecho.**
-   3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos.
+   3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos. **Hecho.**
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda.
    5. HUD: barra superior, barra de órdenes y registro; textos es y en.
    6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`.
@@ -65,6 +65,16 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - Avance 1: spec `docs/gdd/interfaz-ip1.md`, con pantallas, controles, HUD, inspector, selección de celdas, textos nuevos y criterios de aceptación.
 - Avance 2: `MapRaycast` en `OurLife.Core.Map` (recorrido de grilla de Amanatides y Woo que salta los niveles ocultos), con 8 tests; `Settings` guarda la pantalla completa. 364 tests en verde.
 
+- Avance 3:
+  - `GameSession` corre la simulación en tiempo real con `TickPacer`, con pausa, velocidades y espera de menú, y aplica en el acto las órdenes dadas en pausa (`Simulation.ApplyCommandsNow`, con test de que da la misma huella).
+  - `GameScreen` une la sesión y la vista.
+  - `EntityRenderer` reemplaza a `PlantRenderer`: plantas, pilas y colonos que siguen los eventos, con colonos que avanzan entre celdas y miran hacia donde caminan.
+  - `OrderMarkers` marca las órdenes con colores.
+  - Escalera en ambos sentidos con hueco.
+  - Arbusto sin frutos (`plant.berry_bush.harvested`, `plant_bush.glb`).
+  - Colonos a escala 2.
+  - Opciones `--zoom` y `--ticks` fuera del smoke, para capturas.
+  - Revisado en captura con `--seed 42 --level 14 --zoom 12 --ticks 300`. Los colonos están en pose de T porque el modelo no trae animación; queda para H1.8 o el backlog.
 ### 2026-10-10: H1.6 Colonos e IA
 
 - Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:

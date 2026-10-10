@@ -119,6 +119,13 @@ public sealed class Simulation
         CurrentTick++;
     }
 
+    /// <summary>
+    /// Applies the pending commands without advancing time, for orders the player gives while the
+    /// game is paused. The state is the same as when the next <see cref="Tick"/> applies them,
+    /// because nothing else happens in between.
+    /// </summary>
+    public void ApplyCommandsNow() => Commands.ApplyPending(this);
+
     public void Run(int ticks)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(ticks);
