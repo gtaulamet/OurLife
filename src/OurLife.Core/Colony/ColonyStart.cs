@@ -3,6 +3,7 @@ using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
+using OurLife.Core.Text;
 
 namespace OurLife.Core.Colony;
 
@@ -64,6 +65,10 @@ public static class ColonyStart
             ItemPiles.Drop(simulation, item.Item, item.Count, arrival);
         }
 
+        simulation.Events.Emit(new NotificationEvent(
+            simulation.CurrentTick,
+            LocalizedText.Of("event.colony.arrived").With("count", colonists.Count),
+            NotificationSeverity.Info));
         return colonists;
     }
 

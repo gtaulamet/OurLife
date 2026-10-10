@@ -25,7 +25,7 @@ En orden:
    2. Core: rayo sobre la grilla para apuntar celdas (`MapRaycast`, con tests); ajuste de pantalla completa en `Settings`. **Hecho.**
    3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos. **Hecho.**
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
-   5. HUD: barra superior, barra de órdenes y registro; textos es y en.
+   5. HUD: barra superior, barra de órdenes y registro; textos es y en. **Hecho.**
    6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`.
    7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre.
 2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
@@ -85,6 +85,12 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - Opciones `--inspect` (selecciona al primer colono) y `--orders` (las órdenes del smoke) para capturas.
   - Las marcas de órdenes y de selección no proyectan sombra: rayaban el terreno.
   - Revisado en capturas es y en con `--seed 42 --level 14 --zoom 22 --ticks 200 --orders --inspect`.
+- Avance 5:
+  - `Hud` completo: fecha y hora, pausa y velocidades (resaltan la activa), nivel Z, inspector, registro, ayuda de la orden activa y barra de órdenes.
+  - `EventLog` guarda `LocalizedText` y retraduce el historial al cambiar de idioma.
+  - `ColonyStart` emite `event.colony.arrived` ("Llegan 5 colonos al valle"), que es el primer mensaje del registro.
+  - Clave `ui.hud.date` en lugar de armar la fecha en el código.
+  - Revisado en capturas es y en. Tiny5 a 16 px se lee sobre el 3D, aunque es chica: decidir en QA si se agranda.
 ### 2026-10-10: H1.6 Colonos e IA
 
 - Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:

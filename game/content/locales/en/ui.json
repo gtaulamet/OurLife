@@ -29,6 +29,7 @@
   "ui.pause.resume": "Resume",
   "ui.gameover.title": "The colony has fallen",
 
+  "ui.hud.date": "{date}, {clock}",
   "ui.hud.level": "Level {level}",
   "ui.hud.pause": "Pause",
   "ui.hud.speed": "{speed}×",

@@ -45,11 +45,13 @@ public partial class GameScreen : Node
             screen.Session.EventsRead += screen.View.Apply;
             screen.Input = GameInput.Create(screen.Session, screen.View);
             screen.AddChild(screen.Input);
-            screen.Hud = Hud.Create(services, screen.Session, screen.Input);
+            screen.Hud = Hud.Create(services, screen.Session, screen.Input, screen.View);
             screen.AddChild(screen.Hud);
+            screen.Session.EventsRead += screen.Hud.Apply;
 
-            // The arrival emitted events before anyone listened; the view already drew what they announce.
-            simulation.Events.Clear();
+            // The arrival emitted events before anyone listened: the view already drew what they
+            // announce and ignores them, and the log shows the welcome message.
+            screen.Session.Advance(0);
             return screen;
         }
         catch
