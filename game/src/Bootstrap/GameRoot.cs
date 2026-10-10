@@ -9,6 +9,7 @@ using OurLife.Core.Sim;
 using OurLife.Core.WorldGen;
 using OurLife.Game.Content;
 using OurLife.Game.Localization;
+using OurLife.Game.Rendering;
 using OurLife.Game.UI;
 using OurLife.Localization;
 
@@ -18,6 +19,7 @@ namespace OurLife.Game.Bootstrap;
 /// Root node of the game. Loads content, texts and preferences, connects the localizer to
 /// Godot and starts one of three modes: the normal game window, <c>--smoke</c> (headless checks
 /// for agents and CI) or <c>--screenshot</c> (saves an image of the first screen and quits).
+/// The first screen is the 3D view of a valley, or the language test screen with <c>--probe</c>.
 /// </summary>
 public partial class GameRoot : Node
 {
@@ -25,7 +27,7 @@ public partial class GameRoot : Node
     private const int ExitFailure = 1;
     private const int ExitBadArguments = 2;
 
-    private const ulong DefaultSmokeSeed = 1;
+    private const ulong DefaultSeed = 1;
     private const int DefaultSmokeTicks = 1_000;
     private const int FramesBeforeScreenshot = 3;
 
@@ -102,7 +104,17 @@ public partial class GameRoot : Node
             return;
         }
 
-        AddChild(LanguageProbeScreen.Create(_services));
+        if (options.Probe)
+        {
+            AddChild(LanguageProbeScreen.Create(_services));
+        }
+        else
+        {
+            // Until the main menu of H1.7, the game opens straight onto a generated valley.
+            var simulation = new Simulation(options.Seed ?? DefaultSeed, _services.Defs);
+            GenerateTheOnlyWorld(simulation);
+            AddChild(WorldView.Create(simulation, LoadVisualCatalog(), options.Level));
+        }
 
         if (options.ScreenshotPath is { } screenshotPath)
         {
@@ -136,8 +148,15 @@ public partial class GameRoot : Node
                 return;
             }
 
+            var catalog = LoadVisualCatalog();
+            if (!CheckVisuals(services.Defs, catalog))
+            {
+                GetTree().Quit(ExitFailure);
+                return;
+            }
+
             var ticks = options.Ticks ?? DefaultSmokeTicks;
-            var simulation = new Simulation(options.Seed ?? DefaultSmokeSeed, services.Defs);
+            var simulation = new Simulation(options.Seed ?? DefaultSeed, services.Defs);
             if (!GenerateWorld(simulation))
             {
                 GetTree().Quit(ExitFailure);
@@ -156,6 +175,8 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] date {simulation.CurrentDate} | state {simulation.ComputeStateHash():X16}");
             GD.Print($"[smoke] date shown to the player: {services.Text.Date(simulation.CurrentDate)}, {services.Text.Clock(simulation.CurrentDate)}");
 
+            BuildWorldView(simulation, catalog, options.Level);
+
             if (services.Localizer.MissingKeys.Count > 0)
             {
                 Fail($"[smoke] missing texts: {string.Join(", ", services.Localizer.MissingKeys)}", ExitFailure);
@@ -172,21 +193,84 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
+    /// Builds the 3D view of the simulated world at the level of <c>--level</c>, or the highest
+    /// surface, and frees it: terrain, plants and camera are created with every model the world
+    /// uses, in its current era.
+    /// </summary>
+    private void BuildWorldView(Simulation simulation, VisualCatalog catalog, int? level)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var view = WorldView.Create(simulation, catalog, level);
+        AddChild(view);
+        stopwatch.Stop();
+        GD.Print(string.Create(
+            CultureInfo.InvariantCulture,
+            $"[smoke] world view built in {stopwatch.Elapsed.TotalMilliseconds:F0} ms at level {view.ViewLevel}"));
+        view.QueueFree();
+    }
+
+    private static VisualCatalog LoadVisualCatalog() =>
+        VisualCatalog.Parse(Godot.FileAccess.GetFileAsString(VisualCatalog.ResourcePath));
+
+    /// <summary>
+    /// The visual catalog loads, every def with a visual has a model, and every model of the
+    /// catalog, era variants included, loads. A model that does not load usually means the
+    /// project needs <c>--import</c>.
+    /// </summary>
+    private static bool CheckVisuals(DefDatabase defs, VisualCatalog catalog)
+    {
+        using var models = new ModelLibrary(catalog);
+        var problems = new List<string>();
+        foreach (var def in defs.AllDefs())
+        {
+            // The plain id must exist: it is the fallback of every era variant.
+            if (def is IHasVisual { Visual: var visual } && !models.Catalog.TryResolve(visual, era: null, out _))
+            {
+                problems.Add($"'{visual}' is not in the visual catalog");
+            }
+        }
+
+        foreach (var model in models.Catalog.Models)
+        {
+            if (models.Load(model) is null)
+            {
+                problems.Add($"{model.ModelPath} does not load; run godot --headless --path game --import");
+            }
+        }
+
+        GD.Print($"[smoke] visuals: {models.Catalog.Models.Count()} models in the catalog");
+        foreach (var problem in problems)
+        {
+            GD.PushError($"[smoke] {problem}");
+        }
+
+        return problems.Count == 0;
+    }
+
+    /// <summary>Generates the only WorldGen def of the content, until IP7 brings the choice of site.</summary>
+    /// <exception cref="InvalidOperationException">The content has no WorldGen def, or more than one.</exception>
+    private static WorldGenDef GenerateTheOnlyWorld(Simulation simulation)
+    {
+        var worlds = simulation.Content.All<WorldGenDef>();
+        if (worlds.Count != 1)
+        {
+            throw new InvalidOperationException($"The content must have exactly one WorldGen def until IP7, found {worlds.Count}.");
+        }
+
+        WorldGenerator.Generate(simulation, worlds[0]);
+        return worlds[0];
+    }
+
+    /// <summary>
     /// Generates the world and reports its size, the time it took, its plants and whether its
     /// whole surface is one region.
     /// </summary>
     private static bool GenerateWorld(Simulation simulation)
     {
-        var worlds = simulation.Content.All<WorldGenDef>();
-        if (worlds.Count != 1)
-        {
-            GD.PushError($"[smoke] The content must have exactly one WorldGen def until IP7, found {worlds.Count}.");
-            return false;
-        }
-
         var stopwatch = Stopwatch.StartNew();
-        var map = WorldGenerator.Generate(simulation, worlds[0]);
+        var world = GenerateTheOnlyWorld(simulation);
         stopwatch.Stop();
+        var map = simulation.Map;
 
         var plants = new List<EntityId>();
         simulation.World.Query<Plant>(plants);
@@ -199,7 +283,7 @@ public partial class GameRoot : Node
 
         GD.Print(string.Create(
             CultureInfo.InvariantCulture,
-            $"[smoke] world '{worlds[0].Id}' {map.Size.Width}x{map.Size.Height}x{map.Size.Depth} generated in {stopwatch.Elapsed.TotalMilliseconds:F0} ms"));
+            $"[smoke] world '{world.Id}' {map.Size.Width}x{map.Size.Height}x{map.Size.Depth} generated in {stopwatch.Elapsed.TotalMilliseconds:F0} ms"));
         GD.Print($"[smoke] plants: {string.Join(", ", plantCounts)} | surface regions: {surfaceRegions.Count}");
         if (surfaceRegions.Count != 1 || surfaceRegions[0] == Connectivity.NoRegion)
         {

@@ -7,7 +7,7 @@ public class WorldGenDefTests
     private const string Materials = """
         { "type": "Material", "id": "soil", "kind": "soil", "color": "#7A5A3A", "mineWorkTicks": 30 },
         { "type": "Material", "id": "granite", "kind": "stone", "color": "#8C7F7D", "mineWorkTicks": 180 },
-        { "type": "Plant", "id": "bush", "sprite": "plant.bush" }
+        { "type": "Plant", "id": "bush", "visual": "plant.bush" }
         """;
 
     [Fact]

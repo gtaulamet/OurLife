@@ -6,17 +6,17 @@ public class DefLoaderTests
 {
     private const string SampleDefs = """
         [
-          { "type": "Item", "id": "stone", "kind": "raw", "sprite": "item.stone", "stackLimit": 20 },
-          { "type": "Item", "id": "berries", "kind": "food", "sprite": "item.berries", "stackLimit": 50, "nutrition": 800 },
+          { "type": "Item", "id": "stone", "kind": "raw", "visual": "item.stone", "stackLimit": 20 },
+          { "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 },
           { "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A",
             "mineWorkTicks": 120, "minedItem": "stone", "minedItemChance": 2500 },
           { "type": "Material", "id": "soil", "kind": "soil", "color": "#6B4F2A", "mineWorkTicks": 40 },
-          { "type": "Plant", "id": "berry_bush", "sprite": "plant.berry_bush",
+          { "type": "Plant", "id": "berry_bush", "visual": "plant.berry_bush",
             "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4 },
           { "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 400,
             "lowThreshold": 4000, "criticalThreshold": 1500, "deathAfterHoursAtZero": 72 },
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo"], "female": ["Elvira"] },
-          { "type": "Creature", "id": "human", "sprite": "creature.human", "moveTicksPerTile": 2,
+          { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger"], "nameList": "test_names" }
         ]
         """;
@@ -58,17 +58,17 @@ public class DefLoaderTests
     [Theory]
     [InlineData("""[{ "type": "Dragon", "id": "smaug" }]""", "unknown def type 'Dragon'")]
     [InlineData("""[{ "id": "no_type" }]""", "needs a \"type\"")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "stacklimit": 3 }]""", "stacklimit")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log" }]""", "stackLimit")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "magic", "sprite": "item.log", "stackLimit": 10 }]""", "Item")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 10, "stacklimit": 3 }]""", "stacklimit")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log" }]""", "stackLimit")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "magic", "visual": "item.log", "stackLimit": 10 }]""", "Item")]
     [InlineData("""{ "type": "Item" }""", "JSON array")]
     [InlineData("""[ { "type": "Item", ] """, "invalid JSON")]
     [InlineData("""[ /* A comment */ { "type": "Knowledge", "id": "writing" } ]""", "invalid JSON")]
     [InlineData("""[ { "type": "Knowledge", "id": "writing" }, ]""", "invalid JSON")]
     [InlineData("""[{ "type": "Knowledge", "id": null }]""", "null in 'id'")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "requires": null }]""", "null in 'requires'")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "requires": [null] }]""", "null in 'requires[0]'")]
-    [InlineData("""[{ "type": "Plant", "id": "bush", "sprite": "plant.bush", "harvest": { "item": null, "count": 1, "workTicks": 1 } }]""", "null in 'harvest.item'")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 10, "requires": null }]""", "null in 'requires'")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 10, "requires": [null] }]""", "null in 'requires[0]'")]
+    [InlineData("""[{ "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": null, "count": 1, "workTicks": 1 } }]""", "null in 'harvest.item'")]
     public void Malformed_defs_are_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));
@@ -78,11 +78,12 @@ public class DefLoaderTests
 
     [Theory]
     [InlineData("""[{ "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A", "mineWorkTicks": 120, "minedItem": "boulder", "minedItemChance": 100 }]""", "minedItem points to 'boulder'")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "era": "space_age" }]""", "era points to 'space_age'")]
-    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 10, "requires": ["sawmills"] }]""", "requires points to 'sawmills'")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 10, "era": "space_age" }]""", "era points to 'space_age'")]
+    [InlineData("""[{ "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 10, "requires": ["sawmills"] }]""", "requires points to 'sawmills'")]
     [InlineData("""[{ "type": "Material", "id": "granite", "kind": "stone", "color": "grey", "mineWorkTicks": 120 }]""", "#RRGGBB")]
+    [InlineData("""[{ "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A\n", "mineWorkTicks": 120 }]""", "#RRGGBB")]
     [InlineData("""[{ "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600, "lowThreshold": 1000, "criticalThreshold": 3000 }]""", "thresholds")]
-    [InlineData("""[{ "type": "Item", "id": "Log", "kind": "raw", "sprite": "item.log", "stackLimit": 10 }]""", "invalid id")]
+    [InlineData("""[{ "type": "Item", "id": "Log", "kind": "raw", "visual": "item.log", "stackLimit": 10 }]""", "invalid id")]
     [InlineData("""[{ "type": "Era", "id": "second_age", "order": 0 }]""", "share order 0")]
     [InlineData("""[{ "type": "TimeConfig", "id": "other_time", "ticksPerSecond": 10, "minutesPerTick": 1, "daysPerSeason": 15, "seasons": ["spring"], "startYear": 1200, "startHour": 6 }]""", "exactly one TimeConfig")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
@@ -108,8 +109,8 @@ public class DefLoaderTests
     {
         var defs = TestContent.WithDefs("""
             [
-              { "type": "Item", "id": "oak", "kind": "raw", "sprite": "item.oak", "stackLimit": 10 },
-              { "type": "Plant", "id": "oak", "sprite": "plant.oak", "blocksMovement": true }
+              { "type": "Item", "id": "oak", "kind": "raw", "visual": "item.oak", "stackLimit": 10 },
+              { "type": "Plant", "id": "oak", "visual": "plant.oak", "blocksMovement": true }
             ]
             """);
 
@@ -122,7 +123,7 @@ public class DefLoaderTests
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs("""
             [
-              { "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 0 },
+              { "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 0 },
               { "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A", "mineWorkTicks": 0, "minedItem": "boulder", "minedItemChance": 100 }
             ]
             """));

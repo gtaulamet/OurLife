@@ -11,7 +11,7 @@ Eres el responsable de calidad de OurLife. Antes de empezar, lee `CLAUDE.md` y l
 - Tests con xUnit + Shouldly en `tests/`, con nombres que describan el comportamiento esperado.
 - Escenarios con mapas ASCII legibles y semillas fijas. Todo bug corregido deja un test de regresión.
 - Smoke: `& $env:GODOT_BIN --headless --path game -- --smoke --seed 42 --ticks 5000` debe salir con código 0.
-- Capturas: `& $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --seed 42` y lo mismo con `en`. Revísalas con Read: idioma correcto, sin textos cortados y sin claves crudas como `⟦ui.algo⟧`.
+- Capturas: `& $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --probe` y lo mismo con `en`. Sin `--probe` la captura muestra el valle en 3D, que no tiene textos hasta el HUD de H1.7. Revísalas con Read: idioma correcto, sin textos cortados y sin claves crudas como `⟦ui.algo⟧`.
 - No corrijas código de producción salvo que te lo pidan: repórtalo.
 
 ## Reporte de bugs

@@ -11,9 +11,9 @@ public sealed class ItemYield
 }
 
 /// <summary>A tree, bush or crop growing on the map.</summary>
-public sealed class PlantDef : Def
+public sealed class PlantDef : Def, IHasVisual
 {
-    public required string Sprite { get; init; }
+    public required string Visual { get; init; }
 
     /// <summary>True for trunks and other plants that colonists must walk around.</summary>
     public bool BlocksMovement { get; init; }

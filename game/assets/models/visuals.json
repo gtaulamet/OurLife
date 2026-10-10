@@ -1,0 +1,31 @@
+{
+  "terrain": {
+    "grassColor": "#6A9A3C",
+    "cutColor": "#3A332D"
+  },
+  "srgbAsLinearKits": [
+    "res://assets/models/kenney_nature-kit/",
+    "res://assets/models/kenney_mini-characters/"
+  ],
+  "palette": {
+    "grass": "#3E6A2A",
+    "leafsGreen": "#4C7A2B",
+    "leafsDark": "#2F5B36",
+    "woodBark": "#7A5233",
+    "woodBarkDark": "#5C4030",
+    "woodInner": "#C9AE84",
+    "wood": "#9A6B40",
+    "dirt": "#7A5A3E",
+    "colorRed": "#B03A36"
+  },
+  "models": {
+    "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },
+    "plant.pine": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 1.4 },
+    "plant.berry_bush": { "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb", "scale": 1.6 },
+    "item.log": { "model": "res://assets/models/kenney_nature-kit/log.glb", "scale": 1.0 },
+    "item.stone": { "model": "res://assets/models/kenney_nature-kit/rock_smallA.glb", "scale": 1.0 },
+    "item.berries": { "model": "res://assets/models/kenney_nature-kit/flower_redA.glb", "scale": 1.0 },
+    "item.provisions": { "model": "res://assets/models/kenney_nature-kit/pot_small.glb", "scale": 1.0 },
+    "creature.human": { "model": "res://assets/models/kenney_mini-characters/character-male-a.glb", "scale": 1.0 }
+  }
+}

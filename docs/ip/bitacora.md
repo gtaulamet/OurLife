@@ -4,35 +4,39 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-09.*
+*Actualizado el 2026-10-10.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-4-mapa-generacion`, que incluye todo H1.3 |
-| Último commit de código | `feat(core)` de H1.4 en `ip1/h1-4-mapa-generacion` (ver `git log`) |
-| `main` | En `e11e307`, el cierre de H1.2; todavía no incluye H1.3 ni H1.4 |
-| Hitos hechos | H1.1, H1.2, H1.3 y H1.4 |
-| Próximos hitos | H1.5 Render y cámara, y H1.6 Colonos e IA, que pueden ir en paralelo |
-| Validación | `dotnet build` sin advertencias, 271 tests en verde, smoke con código 0 |
-| Huella del smoke | `46B73E675739EF3B` con `--seed 1 --ticks 5000`; `EA32F590F3ABE005` con `--seed 42 --ticks 5000` |
+| Rama de trabajo | `ip1/h1-5-render-camara`, creada desde H1.4 |
+| Último commit de código | `feat(render)` de H1.5 en `ip1/h1-5-render-camara` (ver `git log`) |
+| `main` | En `5f04e42`, el cierre de H1.4; todavía no incluye H1.5 |
+| Hitos hechos | H1.1, H1.2, H1.3, H1.4 y H1.5 |
+| Próximo hito | H1.6 Colonos e IA |
+| Validación | `dotnet build` sin advertencias, 297 tests en verde, smoke con código 0 |
+| Huella del smoke | `46B73E675739EF3B` con `--seed 1 --ticks 5000`; `EA32F590F3ABE005` con `--seed 42 --ticks 5000` (sin cambios desde H1.4) |
 
 ## Pendientes
 
 En orden:
 
-1. **Adelantar `main` a H1.4**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-4-mapa-generacion:main`.
-2. **Elegir el próximo hito con el usuario:** H1.5 (render 3D) o H1.6 (colonos e IA). La ruta crítica permite hacerlos en paralelo.
-3. **H1.5 Render y cámara, ahora en 3D (ADR-009):**
-   - Pedirle al art-integrator que descargue el Nature Kit, confirme su contenido y su licencia, y arme la lista de modelos que faltan comparándola con los defs de IP1.
-   - Renombrar `sprite` a `visual` en los defs y en el Core.
-   - Al inicio del hito, revisar con capturas la legibilidad del corte por nivel, la proyección (perspectiva u ortográfica) y si la fuente Tiny5 combina con el 3D.
-   - El render lee `GameMap` y reconstruye los chunks que devuelve `DrainDirtyChunks`; un mapa nuevo los informa todos. Las plantas son entidades con `Position` y `Plant`.
-4. **H1.6 Colonos e IA:**
+1. **Adelantar `main` a H1.5**, pendiente de que el usuario lo confirme: `git fetch . ip1/h1-5-render-camara:main`.
+2. **H1.6 Colonos e IA:**
    - El A* usa `MapNavigation.GetNeighbours`; `Connectivity` descarta objetivos inalcanzables.
    - Falta sumar los árboles que bloquean el paso a la conectividad.
    - Definir la zona de aparición de los colonos y las 30 raciones iniciales.
    - `AsciiMap`, en `tests/OurLife.Core.Tests/Map`, ya arma mapas de escenario desde texto.
-5. **Para el balance de H1.8:** el fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
+   - La tala y el rebrote van a crear y destruir plantas. Conviene emitir eventos que el render de H1.7 pueda seguir.
+3. **Pasan de H1.5 a H1.7:**
+   - El render de colonos (pool de nodos con interpolación entre ticks) y de objetos.
+   - Que `PlantRenderer` siga a las plantas que se crean, se destruyen o cambian de época.
+   - La pieza de escalera en ambos sentidos, con hueco.
+   - La revisión de Tiny5 sobre el 3D, con el HUD.
+   - Las variantes de aldeanos y el arbusto con y sin bayas. La lista de modelos que faltan está en `docs/art.md`.
+4. **Para el balance de H1.8:**
+   - El fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
+   - En la vista 3D se ven como un serrucho.
+   - La luz deja el nivel actual un 40 % más claro que el color del catálogo, y eso ayuda a distinguirlo.
 
 El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
 
@@ -47,6 +51,22 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-10: H1.5 Render y cámara
+
+- Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:
+  - Modelos de Kenney, `visuals.json` y el cambio de `sprite` a `visual`.
+  - Terreno por chunks, corte por nivel, plantas, cámara y los modos `--level` y `--probe`.
+- Agregué `VisualCatalogTests`, que pedía ADR-009.
+- Revisé las capturas y encontré tres problemas, que corregí:
+  - Los árboles se veían celestes, porque Kenney guarda sRGB en el campo lineal de glTF. Ahora se corrige por kit.
+  - El turquesa del kit chocaba con la paleta terrosa. Se reemplaza con la `palette` del catálogo.
+  - La tapa del corte era de un solo color. Ahora toma el color del material oscurecido, así se leen los estratos.
+- Ajusté la escala de los pinos y de los arbustos.
+- `/code-review` en tres rondas, con 10, 10 y 9 hallazgos. El detalle está en el registro de H1.5 de `IP1.md`, y lo que quedó para después está en Pendientes.
+- Actualicé ADR-009 ("Ajustes al implementar H1.5"), `art.md` (formato del catálogo y modelos que faltan), `plan-maestro.md`, `overview.md`, la skill `godot-run` y los agentes qa-tester y godot-engineer, que ahora sacan las capturas de idioma con `--probe`.
+- Para mirar el valle de cerca, cambié a mano `StartDistance` de `WorldView` a 22 y lo volví a 85. Si hace falta seguido, conviene una opción `--zoom`.
+
 
 ### 2026-10-09: H1.4 Mapa y generación
 

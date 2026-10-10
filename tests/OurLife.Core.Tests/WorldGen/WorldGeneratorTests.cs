@@ -15,17 +15,17 @@ public class WorldGeneratorTests
 {
     private static readonly DefDatabase Content = TestContent.WithDefs("""
         [
-          { "type": "Item", "id": "log", "kind": "raw", "sprite": "item.log", "stackLimit": 25 },
-          { "type": "Item", "id": "berries", "kind": "food", "sprite": "item.berries", "stackLimit": 75, "nutrition": 400 },
+          { "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
+          { "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },
           { "type": "Material", "id": "soil", "kind": "soil", "color": "#7A5A3A", "mineWorkTicks": 30 },
           { "type": "Material", "id": "granite", "kind": "stone", "color": "#8C7F7D", "mineWorkTicks": 180 },
           { "type": "Material", "id": "limestone", "kind": "stone", "color": "#C8BFA8", "mineWorkTicks": 120 },
           { "type": "Material", "id": "sandstone", "kind": "stone", "color": "#C9A26B", "mineWorkTicks": 100 },
-          { "type": "Plant", "id": "oak", "sprite": "plant.oak", "blocksMovement": true,
+          { "type": "Plant", "id": "oak", "visual": "plant.oak", "blocksMovement": true,
             "chop": { "item": "log", "count": 4, "workTicks": 240 } },
-          { "type": "Plant", "id": "pine", "sprite": "plant.pine", "blocksMovement": true,
+          { "type": "Plant", "id": "pine", "visual": "plant.pine", "blocksMovement": true,
             "chop": { "item": "log", "count": 3, "workTicks": 180 } },
-          { "type": "Plant", "id": "berry_bush", "sprite": "plant.berry_bush",
+          { "type": "Plant", "id": "berry_bush", "visual": "plant.berry_bush",
             "harvest": { "item": "berries", "count": 8, "workTicks": 60 }, "regrowDays": 4 },
           {
             "type": "WorldGen", "id": "test_valley",
@@ -93,7 +93,7 @@ public class WorldGeneratorTests
             [
               { "type": "Material", "id": "clay", "kind": "soil", "color": "#7A5A3A", "mineWorkTicks": 30 },
               { "type": "Material", "id": "granite", "kind": "stone", "color": "#8C7F7D", "mineWorkTicks": 180 },
-              { "type": "Plant", "id": "bush", "sprite": "plant.bush" },
+              { "type": "Plant", "id": "bush", "visual": "plant.bush" },
             """ + Defs.WorldGenDefTests.WorldGen("\"soilMaterial\": \"clay\"") + "]");
         var simulation = new Simulation(7, Content);
         var before = simulation.ComputeStateHash();

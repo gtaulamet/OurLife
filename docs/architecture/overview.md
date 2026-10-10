@@ -124,7 +124,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | ECS ligero, ticks, RNG, calendario, comandos, eventos, hash de estado | H1.2 | Hecho |
 | Defs, épocas, localización con ICU, puente Godot, ajustes | H1.3 | Hecho |
 | Mapa 3D, generación, conectividad (`docs/gdd/mapa-y-generacion.md`) | H1.4 | Hecho |
-| Render 3D low-poly, cámara, capturas (ADR-009) | H1.5 | Pendiente |
+| Render 3D low-poly, cámara, capturas (ADR-009) | H1.5 | Hecho |
 | Pathfinding, IA, trabajos, necesidades | H1.6 | Pendiente |
 | Entrada, HUD, menús | H1.7 | Pendiente |
 

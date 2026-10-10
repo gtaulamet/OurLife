@@ -13,7 +13,7 @@ public sealed partial class MaterialDef : Def
 {
     public required MaterialKind Kind { get; init; }
 
-    /// <summary>Tint applied to grayscale sprites, as #RRGGBB.</summary>
+    /// <summary>Tint of the terrain made of this material, as #RRGGBB.</summary>
     public required string Color { get; init; }
 
     /// <summary>Work ticks needed to dig out one tile.</summary>
@@ -32,7 +32,7 @@ public sealed partial class MaterialDef : Def
 
     internal override IEnumerable<string> Validate()
     {
-        if (!ColorPattern().IsMatch(Color))
+        if (!IsHexColor(Color))
         {
             yield return $"color '{Color}' must look like #RRGGBB.";
         }
@@ -53,6 +53,10 @@ public sealed partial class MaterialDef : Def
         }
     }
 
-    [GeneratedRegex("^#[0-9a-fA-F]{6}$")]
+    /// <summary>True for a colour written as #RRGGBB, the format of every colour in the content.</summary>
+    public static bool IsHexColor(string value) => ColorPattern().IsMatch(value);
+
+    // \z, not $: $ would also accept a line break at the end.
+    [GeneratedRegex(@"^#[0-9a-fA-F]{6}\z")]
     private static partial Regex ColorPattern();
 }

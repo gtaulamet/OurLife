@@ -25,6 +25,12 @@ public sealed record CommandLineOptions
     /// <summary>Number of simulation ticks to run in smoke mode (milestone H1.2).</summary>
     public int? Ticks { get; init; }
 
+    /// <summary>Level Z the world view starts at, instead of the highest surface (milestone H1.5).</summary>
+    public int? Level { get; init; }
+
+    /// <summary>Show the language test screen of H1.3 instead of the world (milestone H1.5).</summary>
+    public bool Probe { get; init; }
+
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];
 
@@ -59,6 +65,18 @@ public sealed record CommandLineOptions
 
                     options = options with { Ticks = ticks };
                     break;
+                case "--level":
+                    var level = NumberAfter<int>(args, ref i);
+                    if (level < 0)
+                    {
+                        throw new ArgumentException("--level must be zero or positive.");
+                    }
+
+                    options = options with { Level = level };
+                    break;
+                case "--probe":
+                    options = options with { Probe = true };
+                    break;
                 default:
                     unknown.Add(args[i]);
                     break;
@@ -72,7 +90,8 @@ public sealed record CommandLineOptions
     public string Describe() =>
         $"smoke={Smoke}, screenshot={ScreenshotPath ?? "-"}, locale={Locale ?? "-"}, " +
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
-        $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
+        $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
+        $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

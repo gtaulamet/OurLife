@@ -2,7 +2,7 @@
   {
     "type": "Creature",
     "id": "human",
-    "sprite": "creature.human",
+    "visual": "creature.human",
     "moveTicksPerTile": 2,
     "needs": ["hunger", "rest"],
     "nameList": "medieval_names"

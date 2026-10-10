@@ -7,11 +7,11 @@ public enum ItemKind
 }
 
 /// <summary>Something that can lie on the ground, be carried, stored or used.</summary>
-public sealed class ItemDef : Def
+public sealed class ItemDef : Def, IHasVisual
 {
     public required ItemKind Kind { get; init; }
 
-    public required string Sprite { get; init; }
+    public required string Visual { get; init; }
 
     /// <summary>Most units of this item that fit in one stack.</summary>
     public required int StackLimit { get; init; }

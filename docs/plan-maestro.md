@@ -162,17 +162,17 @@ Reglas:
   - Variantes por época: `house@modern` cae a `house` si la variante no existe. El `Theme` de UI y la música también se eligen por época.
   - Cada chunk de 16×16 por nivel tiene un `MultiMeshInstance3D` por tipo de pieza (bloque, suelo, rampa, escalera). Sólo se instancian las celdas expuestas.
   - Los modelos base son grises y se tiñen por instancia con el color del `MaterialDef`. Un mismo bloque sirve para tierra, granito, caliza o arenisca.
-  - Corte por nivel: el nivel actual se ve cortado, con la roca sin excavar oscurecida por arriba. Se ven hasta 8 niveles inferiores, cada vez más oscuros, y los superiores se ocultan.
+  - Corte por nivel: el nivel actual se ve cortado, con la roca sin excavar oscurecida por arriba. Se ven hasta 24 niveles inferiores, cada vez más oscuros, y los superiores se ocultan.
   - Overlay de designaciones y selección con mallas simples semitransparentes.
   - Sólo se reconstruyen los chunks sucios.
-- **Vegetación y objetos:** un `MultiMesh` por id visual y por chunk.
+- **Vegetación y objetos:** un nodo por planta u objeto con su modelo. Se pasará a un `MultiMesh` por id visual y por chunk si el rendimiento lo pide, a más tardar en IP8 (ADR-009).
 - **Colonos:** nodos `Node3D` en pool, con interpolación entre ticks para un movimiento suave.
 - **Cámara:** `Camera3D` con inclinación fija, rotación en pasos de 90°, desplazamiento y zoom continuo con límites. Empieza en perspectiva; si cuesta leer el mapa, se pasa a ortográfica en H1.5.
 - **Selección de celdas:** el rayo de la cámara se interseca con el plano del nivel actual, sin física.
 - **Luz:** una luz direccional y luz ambiente, con el renderizador GL Compatibility.
 - **Entrada:** acciones en `InputMap` (WASD/flechas para mover, rueda para zoom, Q/E para rotar, RePág/AvPág para nivel Z, Espacio para pausa, 1/2/3 para velocidad, atajos de órdenes, Esc). Modos: seleccionar, designar área arrastrando, cancelar.
 - **UI:** 2D sobre el mapa, en un `CanvasLayer`, con Controls construidos en C# con un `UiBuilder` y un `Theme` global. Escenas `.tscn` mínimas, porque los agentes editan mal escenas complejas.
-- **Modos de línea de comandos** (`OS.GetCmdlineUserArgs()`): `--smoke`, `--screenshot <png>`, `--locale <es|en>`, `--seed <n>`, `--ticks <n>`. Permiten que agentes y CI verifiquen el juego sin intervención humana.
+- **Modos de línea de comandos** (`OS.GetCmdlineUserArgs()`): `--smoke`, `--screenshot <png>`, `--locale <es|en>`, `--seed <n>`, `--ticks <n>`, `--level <z>` y `--probe`. Permiten que agentes y CI verifiquen el juego sin intervención humana.
 
 ### 3.4 Localización (i18n)
 
@@ -664,8 +664,8 @@ dotnet build OurLife.sln
 dotnet test OurLife.sln
 # primera vez o tras agregar assets: abrir el editor una vez o usar --import para importar
 & $env:GODOT_BIN --headless --path game -- --smoke --seed 42 --ticks 5000
-& $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --seed 42
-& $env:GODOT_BIN --path game -- --screenshot out/en.png --locale en --seed 42
+& $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --probe
+& $env:GODOT_BIN --path game -- --screenshot out/en.png --locale en --probe
 ```
 
 **Definición de hecho de cada hito**

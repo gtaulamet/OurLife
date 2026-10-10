@@ -63,6 +63,22 @@ Se descartó el Hexagon Kit: obligaba a pasar a una grilla hexagonal, y eso enca
 - El bloque de estrato y las escaleras pueden ser modelos simples propios.
 - Sólo se copian al repositorio los modelos usados, con sus `.import` versionados y su licencia en `CREDITS.md`.
 
+## Ajustes al implementar H1.5
+
+Del 10 de octubre de 2026, tras revisar las capturas:
+
+- **Niveles inferiores:** se dibujan hasta 24, no 8. La vista arranca en la superficie más alta, y el fondo del valle queda de 10 a 15 niveles más abajo; con 8, el valle desaparecía. El oscurecido baja 2,5 % por nivel hasta un mínimo del 55 %. Los valores están en `LevelShading`, porque son de presentación y no de balance.
+- **Tapa del corte:** la cara superior de la roca cortada usa el color del material al 45 %, no un color fijo. Así se leen los estratos en el nivel actual. El `cutColor` del catálogo queda para los huecos de escalera y las celdas sin material.
+- **Piezas del terreno:** el bloque, el suelo, la rampa, la escalera, el hueco y la tapa se generan en código con `SurfaceTool`. No hacen falta `.glb` propios para el terreno.
+- **Plantas:** cada planta es un nodo con el modelo instanciado, no un `MultiMesh` por id visual y por chunk. Los modelos de Kenney tienen varias mallas y materiales, y el valle de IP1 tiene unas 250 plantas. Se pasará a `MultiMesh` si el rendimiento lo pide, a más tardar con los mapas grandes de IP8.
+- **Colores de los kits:** Kenney guarda su paleta sRGB en el campo de color lineal de glTF, y el importador la aclara otra vez. Cada material se copia mate. El color se corrige sólo en los modelos de las carpetas que el catálogo nombra en `srgbAsLinearKits`, para que un modelo bien exportado no se oscurezca. Además, el catálogo tiene una `palette` que reemplaza colores por nombre de material, porque el verde turquesa del kit choca con la paleta terrosa de la Edad Media.
+- **Rampas:** una rampa sube hacia la vecina que está exactamente un nivel más arriba. Un acantilado de varios niveles también es un bloque en el nivel de la rampa, así que se usa sólo si no hay otra vecina.
+- **Escalera en ambos sentidos:** por ahora se dibuja como la escalera hacia arriba, sin hueco. Una pieza propia llega en H1.7, cuando se puedan excavar escaleras.
+- **Rendimiento:** cada chunk se carga en su `MultiMesh` con un solo `Buffer`. Sólo tienen nodo las piezas que el chunk usa, y todos los niveles se construyen al arrancar, en unos 90 ms con el valle de IP1, para que cambiar de nivel no dé tirones. La tapa del corte recorre el nivel entero cuando cambia; pasará a ser por chunk cuando excavar lo vuelva frecuente, a más tardar en IP8.
+- **Proyección:** se mantiene la perspectiva; las capturas se leen bien.
+- **Colonos y objetos:** su render pasa a H1.7, porque sus entidades llegan con H1.6. El catálogo ya tiene sus modelos.
+- **Fuente:** la combinación de Tiny5 con el 3D se revisa en H1.7, cuando haya HUD sobre el mapa.
+
 ## Consecuencias
 
 - La simulación, el pathfinding, la generación y la i18n no cambian.

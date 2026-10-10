@@ -1,9 +1,9 @@
 namespace OurLife.Core.Defs;
 
 /// <summary>A kind of living being: humans now, animals later.</summary>
-public sealed class CreatureDef : Def
+public sealed class CreatureDef : Def, IHasVisual
 {
-    public required string Sprite { get; init; }
+    public required string Visual { get; init; }
 
     /// <summary>Ticks needed to walk to a neighbouring tile.</summary>
     public required int MoveTicksPerTile { get; init; }

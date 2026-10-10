@@ -25,6 +25,8 @@
     <Compile Include="..\Shared\RepoPaths.cs" Link="Shared\RepoPaths.cs" />
     <!-- The game's catalog loader has no Godot dependency: the tests run the real one. -->
     <Compile Include="..\..\game\src\Content\LocaleCatalogs.cs" Link="Game\LocaleCatalogs.cs" />
+    <!-- So is the visual catalog (ADR-009). -->
+    <Compile Include="..\..\game\src\Rendering\VisualCatalog.cs" Link="Game\VisualCatalog.cs" />
   </ItemGroup>
 
   <ItemGroup>

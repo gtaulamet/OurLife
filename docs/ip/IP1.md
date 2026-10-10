@@ -19,7 +19,7 @@
 | H1.2 Núcleo | Hecho | `ip1/h1-2-nucleo` | Misma semilla ⇒ misma huella tras 10 000 ticks; el smoke corre la simulación |
 | H1.3 Contenido e i18n | Hecho | `ip1/h1-3-contenido-i18n` | Contenido en JSON validado, español e inglés con cambio en vivo, fuente Tiny5 |
 | H1.4 Mapa y generación | Hecho | `ip1/h1-4-mapa-generacion` | Valle de 96×96×32 generado en unos 20 ms, superficie conectada, regiones de conectividad |
-| H1.5 Render y cámara | Pendiente | | |
+| H1.5 Render y cámara | Hecho | `ip1/h1-5-render-camara` | Valle en 3D con terreno por chunks, corte por nivel, plantas y cámara; colonos y objetos pasan a H1.7 |
 | H1.6 Colonos e IA | Pendiente | | |
 | H1.7 Interacción y UI | Pendiente | | |
 | H1.8 Integración | Pendiente | | |
@@ -229,3 +229,83 @@
   - La huella usa little-endian en cualquier máquina.
   - La cola del relleno de regiones crece según la región.
 - No pasan al def las octavas del ruido, su factor de estiramiento ni el desplazamiento entre estratos. Son la calibración del algoritmo, no balance de juego.
+
+## Registro de H1.5: Render y cámara
+
+**Entregado**
+
+- Rama `ip1/h1-5-render-camara`, creada desde H1.4.
+- Modelos CC0 de Kenney en `game/assets/models`: 7 del Nature Kit 2.1 y 1 de Mini Characters, con sus `.import` y su licencia en `CREDITS.md`.
+- Catálogo `visuals.json` con colores del terreno, kits a corregir, paleta y modelos con variantes por época. Formato en `docs/art.md`.
+- En los defs, `sprite` pasa a ser `visual`, con la interfaz `IHasVisual` en Core.
+- `game/src/Rendering`:
+  - `VisualCatalog` y `ModelLibrary`, que copia los materiales mate, aplica la paleta y oscurece por profundidad.
+  - `MapRenderer`: terreno por chunk de 16×16 por nivel, con un `MultiMeshInstance3D` por pieza y tinte por material. Sólo dibuja los bloques expuestos y reconstruye los chunks sucios.
+  - `TerrainMeshes`: piezas del terreno generadas en código, que son bloque, suelo, rampa, escalera, hueco y tapa del corte.
+  - `LevelShading`: corte por nivel y oscurecido por profundidad.
+  - `PlantRenderer` y `WorldView`, con luz direccional, sombras y luz ambiente.
+- `game/src/Input`: `CameraRig` e `InputActions`.
+  - WASD o flechas para desplazar.
+  - Q y E para girar en pasos de 90°.
+  - Rueda para el zoom.
+  - Re Pág y Av Pág para cambiar de nivel.
+- El juego abre directamente el valle generado. `--level <z>` elige el nivel del corte, y `--probe` muestra la pantalla de prueba de idiomas.
+- El smoke verifica que carguen el catálogo y todos sus modelos, y arma la vista 3D del mundo simulado.
+- Tests en `OurLife.Content.Tests` (`VisualCatalogTests`), que comprueban:
+  - Cada visual tiene modelo, y cada modelo lo usa un def.
+  - Las variantes nombran épocas existentes.
+  - Los archivos existen con su `.import`, y no hay modelos fuera del catálogo.
+  - La paleta reemplaza materiales que existen, y los kits están declarados.
+  - El formato estricto del catálogo.
+
+**Decisiones**
+
+- Se dibujan hasta 24 niveles inferiores, no 8, para que el valle se vea desde la superficie más alta.
+- La tapa del corte usa el color del material oscurecido, así se leen los estratos.
+- Los colores de Kenney se corrigen por carpeta de kit. La `palette` reemplaza el verde turquesa del kit por verdes y marrones terrosos, como pide `docs/art.md`.
+- Una planta es un nodo con su modelo y no un `MultiMesh`, porque los modelos tienen varias mallas y el valle tiene unas 250 plantas.
+- Se mantiene la perspectiva.
+- El render de colonos y objetos pasa a H1.7, porque sus entidades llegan con H1.6. El catálogo ya tiene sus modelos provisionales.
+- La revisión de Tiny5 sobre el 3D también pasa a H1.7, con el HUD.
+- La liberación de los recursos de Godot va en `NotificationPredelete` y no en `_ExitTree`, así funciona aunque el nodo nunca entre al árbol.
+- El detalle está en ADR-009, en "Ajustes al implementar H1.5".
+
+**Validación**
+
+- `dotnet build` sin advertencias y todos los tests en verde.
+- Smoke con `--seed 1` y `--seed 42`, también con `--level 12`: código 0, la misma huella que en H1.4 y la vista armada en unos 90 ms.
+- Capturas revisadas con `--seed 1`:
+  - El valle desde la superficie más alta, con colinas de arenisca, robles, pinos y arbustos.
+  - El corte en el nivel 12, con la tierra y el granito distinguibles y las zonas abiertas visibles.
+  - Un primer plano para revisar la paleta y la escala de los modelos.
+  - La pantalla de idiomas en es y en, con `--probe`.
+- `/code-review` en tres rondas, con 10, 10 y 9 hallazgos.
+  - Primera ronda:
+    - Liberar los recursos de Godot que retenía el C#: teclas, `SurfaceTool`, mallas y texturas.
+    - Liberar la vista si falla al armarse.
+    - El smoke verifica todos los modelos del catálogo y arma la vista.
+    - El catálogo rechaza `null` y colores con espacios.
+    - Sólo tienen nodo las piezas que el chunk usa.
+    - La tapa del corte se reconstruye sólo si cambia su nivel.
+    - Un solo lugar genera el mundo.
+    - Un solo `ApplyLevel`.
+    - El flag `VertexColorIsSrgb` se mantiene para Forward+. Medí que con GL Compatibility no cambia el color.
+  - Segunda ronda:
+    - La limpieza pasa a `Predelete`.
+    - La primera construcción arma todos los chunks sin depender de la cola de sucios.
+    - El catálogo rechaza campos desconocidos.
+    - El smoke respeta `--level`.
+    - El color se valida con `MaterialDef.IsHexColor`, que ahora usa `\z` y rechaza un salto de línea final.
+    - Las plantas guardan sus mallas y se sombrean sólo si cambia su profundidad.
+  - Tercera ronda:
+    - Las rampas miran a la vecina un nivel más alta.
+    - La corrección de color es por kit.
+    - Ya no se retienen las mallas de las plantas ocultas.
+    - El `MultiMesh` se carga con un solo `Buffer`.
+    - El smoke carga el catálogo una vez.
+    - Los agentes y el plan sacan las capturas de idioma con `--probe`.
+  - Quedan anotados, y no se corrigen ahora:
+    - Las plantas son una foto del momento en que se arma la vista, porque todavía nada las crea ni las destruye. Seguir la tala y el rebrote es de H1.6 y H1.7.
+    - La escalera en ambos sentidos no muestra el hueco; llega en H1.7.
+    - La tapa del corte recorre el nivel entero y se pasará a una por chunk cuando se excave.
+    - Construir los chunks recién al mostrarlos se descartó para evitar tirones al cambiar de nivel.

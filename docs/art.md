@@ -23,20 +23,36 @@
 
 ## Formato de visuals.json
 
-Es un borrador: el formato definitivo se fija en H1.5, y los nombres de archivo son ilustrativos.
+Formato fijado en H1.5 (`game/assets/models/visuals.json`):
 
 ```json
 {
-  "visuals": {
-    "terrain.wall": { "model": "res://assets/models/own/block.glb", "tint": true },
-    "terrain.grass": { "model": "res://assets/models/kenney_nature-kit/ground_grass.glb" },
-    "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.0 },
-    "plant.pine": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 1.0, "rotationY": 0 }
+  "terrain": { "grassColor": "#6A9A3C", "cutColor": "#3A332D" },
+  "srgbAsLinearKits": ["res://assets/models/kenney_nature-kit/"],
+  "palette": { "leafsGreen": "#4C7A2B", "woodBark": "#7A5233" },
+  "models": {
+    "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },
+    "house@modern": { "model": "res://assets/models/…/house_modern.glb" }
   }
 }
 ```
 
-Los defs nombran su visual con el campo `visual`, que hasta H1.5 se llama `sprite`. Un test de contenido verifica que cada id exista en el catálogo.
+- `terrain`: colores del terreno que no salen de un `MaterialDef`. `grassColor` es el suelo con pasto, y `cutColor` es el hueco de una escalera hacia abajo y la celda sin material.
+- `srgbAsLinearKits`: carpetas de kits que guardan sus colores sRGB en el campo de color lineal de glTF, como los de Kenney. El importador los aclara una segunda vez, y el juego deshace esa conversión sólo en los modelos de esas carpetas.
+- `palette`: reemplaza el color de un material de los modelos, por su nombre dentro del `.glb` (`leafsGreen`, `woodBark`, `grass`). Mantiene la paleta terrosa de la época. Sin entrada, se usa el color del kit corregido.
+- `models`: el modelo de cada id visual y su escala (1 si falta). La escala hace que el modelo ocupe una celda.
+- El terreno no tiene modelos: sus piezas se generan en código y se tiñen con el `color` del `MaterialDef` (ADR-009).
+
+Los defs nombran su visual con el campo `visual`. Los tests de contenido (`VisualCatalogTests`) verifican que:
+
+- Cada id exista sin sufijo de época.
+- Cada modelo del catálogo lo use algún def.
+- Las variantes nombren una época existente.
+- Cada `.glb` exista con su `.import`.
+- No haya `.glb` fuera del catálogo.
+- Cada modelo de un kit de Kenney tenga su carpeta en `srgbAsLinearKits`.
+- No haya campos desconocidos: un nombre mal escrito es un error, como en los defs.
+- Cada color de la paleta reemplace un material de algún modelo.
 
 ## Modelos necesarios en IP1
 
@@ -49,7 +65,21 @@ Los defs nombran su visual con el campo `visual`, que hasta H1.5 se llama `sprit
 | Overlays | Marcadores de excavar, escalera, talar y recolectar; cursor de celda y selección | Mallas simples propias, semitransparentes |
 | UI | Iconos de pausa y velocidad | Iconos 2D CC0 |
 
-El art-integrator mantiene la lista de modelos que faltan y la revisa al empezar H1.5.
+El art-integrator mantiene la lista de modelos que faltan.
+
+### Modelos que faltan
+
+Revisado en H1.5, el 10 de octubre de 2026:
+
+| Modelo | Estado | Plan |
+|---|---|---|
+| Terreno | Resuelto con piezas generadas en código | — |
+| Arbusto de bayas con bayas y sin bayas | Provisional: `plant_bushDetailed` del Nature Kit, más oscuro por la paleta, igual con o sin bayas | El kit no trae bayas. Hace falta un modelo propio o una variante con bayas rojas, como mucho en H1.7, cuando se recolecte |
+| Bayas | Provisional: `flower_redA` | Buscar en otro kit de Kenney o hacer uno propio |
+| Provisiones | Provisional: `pot_small` | Un saco o una canasta de otro kit de Kenney |
+| Aldeanos | Provisional: un solo `character-male-a` de Mini Characters | Entre 4 y 6 variantes del mismo kit en H1.7, cuando se dibujen los colonos |
+| Overlays de órdenes, cursor y selección | Pendiente | Mallas propias en H1.7 |
+| Iconos de UI | Pendiente | H1.7 |
 
 ## Fuente tipográfica
 

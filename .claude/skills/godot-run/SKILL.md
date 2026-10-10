@@ -47,8 +47,12 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 ## Captura, con ventana
 
 ```powershell
-& $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --seed 42
-& $env:GODOT_BIN --path game -- --screenshot out/en.png --locale en --seed 42
+# El valle en 3D desde la superficie más alta, y un corte en el nivel 12
+& $env:GODOT_BIN --path game -- --screenshot out/valle.png --seed 1
+& $env:GODOT_BIN --path game -- --screenshot out/corte.png --seed 1 --level 12
+# La pantalla de prueba de idiomas
+& $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --probe
+& $env:GODOT_BIN --path game -- --screenshot out/en.png --locale en --probe
 ```
 
 Las capturas necesitan ventana, así que se corren sin `--headless`. Una ruta relativa parte de `game/`, porque Godot arranca en esa carpeta: los ejemplos guardan en `game/out/`. Revisa las imágenes con Read. La carpeta `out/` no se versiona.
@@ -71,3 +75,5 @@ Van después de `--`:
 | `--locale <es\|en>` | Fuerza el idioma | H1.3 |
 | `--seed <n>` | Semilla de la partida | H1.2 |
 | `--screenshot <png>` | Guarda una captura y sale | H1.3 |
+| `--level <z>` | Nivel en el que arranca la vista 3D; sin él, la superficie más alta | H1.5 |
+| `--probe` | Muestra la pantalla de prueba de idiomas de H1.3 en lugar del valle | H1.5 |
