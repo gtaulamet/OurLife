@@ -34,6 +34,12 @@ public sealed record CommandLineOptions
     /// <summary>Distance from the camera to what it looks at, to look closer in screenshots (milestone H1.7).</summary>
     public int? Zoom { get; init; }
 
+    /// <summary>Select the first colonist at the start, to see the inspector in screenshots (milestone H1.7).</summary>
+    public bool Inspect { get; init; }
+
+    /// <summary>Give the smoke's orders around the arrival at the start, to see them in screenshots (milestone H1.7).</summary>
+    public bool Orders { get; init; }
+
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];
 
@@ -80,6 +86,12 @@ public sealed record CommandLineOptions
                 case "--probe":
                     options = options with { Probe = true };
                     break;
+                case "--inspect":
+                    options = options with { Inspect = true };
+                    break;
+                case "--orders":
+                    options = options with { Orders = true };
+                    break;
                 case "--zoom":
                     var zoom = NumberAfter<int>(args, ref i);
                     if (zoom <= 0)
@@ -104,7 +116,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

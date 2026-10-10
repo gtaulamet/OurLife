@@ -39,7 +39,7 @@ flowchart LR
 ├──────────────────────────────────────────┴─────────────────┤
 │ Registro de eventos (últimos mensajes)                     │
 ├────────────────────────────────────────────────────────────┤
-│ [Excavar E] [Escalera B] [Talar T] [Recolectar R] [Cancelar X] │
+│ [Excavar M] [Escalera B] [Talar T] [Recolectar R] [Cancelar X] │
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -58,13 +58,13 @@ flowchart LR
 | Subir o bajar de nivel | RePág / AvPág | |
 | Pausa | Espacio | Botón de pausa |
 | Velocidad 1×, 2×, 4× | 1, 2, 3 | Botones de velocidad |
-| Elegir orden | E, B, T, R, X | Botones de órdenes |
+| Elegir orden | M, B, T, R, X | Botones de órdenes |
 | Marcar un área | | Arrastrar con el botón izquierdo |
 | Seleccionar | | Clic izquierdo sin orden activa |
 | Salir de la orden o de la selección | Esc | Clic derecho |
 | Menú de pausa | Esc sin orden ni selección | |
 
-Las teclas de las órdenes son las mismas en los dos idiomas.
+Las teclas de las órdenes son las mismas en los dos idiomas. Excavar usa la M ("minar", *mine*) porque la E ya rota la cámara.
 
 ## Selección de celdas
 
@@ -119,7 +119,7 @@ Todos van en `ui.json` de `es` y `en`, con estas claves (propuesta de texto en e
 | `ui.hud.level` | Nivel {level} |
 | `ui.hud.pause` | Pausa |
 | `ui.hud.speed` | {speed}× |
-| `ui.orders.mine`, `stairs`, `chop`, `harvest`, `cancel` | Excavar (E), Escalera (B), Talar (T), Recolectar (R), Cancelar (X) |
+| `ui.orders.mine`, `stairs`, `chop`, `harvest`, `cancel` | Excavar (M), Escalera (B), Talar (T), Recolectar (R), Cancelar (X) |
 | `ui.orders.hint` | {order}: arrastra sobre el mapa. Clic derecho para terminar |
 | `ui.inspector.idle` | Sin tarea |
 | `ui.inspector.need` | {need}: {percent} % |

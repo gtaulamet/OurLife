@@ -327,7 +327,7 @@ flowchart LR
 ├──────────────────────────────────────────┴─────────────────┤
 │ Rodrigo comió unas bayas. Sancho excavó granito.           │
 ├────────────────────────────────────────────────────────────┤
-│ Excavar E  Escalera B  Talar T  Recolectar R  Cancelar X   │
+│ Excavar M  Escalera B  Talar T  Recolectar R  Cancelar X   │
 └────────────────────────────────────────────────────────────┘
 ```
 

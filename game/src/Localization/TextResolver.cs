@@ -32,6 +32,22 @@ public sealed class TextResolver
     public string Format(string key, params (string Name, object? Value)[] arguments) =>
         _localizer.Format(key, arguments.ToDictionary(argument => argument.Name, argument => argument.Value, StringComparer.Ordinal));
 
+    /// <summary>
+    /// The text with its first letter in upper case, by the rules of the current language. Names of
+    /// materials and items are written in lower case; the interface decides when one starts a line.
+    /// </summary>
+    public string Capitalized(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (text.Length == 0)
+        {
+            return text;
+        }
+
+        var culture = CultureInfo.GetCultureInfo(_localizer.CurrentLocale);
+        return culture.TextInfo.ToUpper(text[0]) + text[1..];
+    }
+
     /// <summary>Calendar date, like "Día 3 de primavera de 1200".</summary>
     public string Date(GameDate date) =>
         Format("time.date", ("day", date.Day), ("season", _localizer.Format($"time.season.{date.SeasonId}")), ("year", date.Year));

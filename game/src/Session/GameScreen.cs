@@ -3,14 +3,17 @@ using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Sim;
 using OurLife.Core.WorldGen;
+using OurLife.Game.Bootstrap;
+using OurLife.Game.Input;
 using OurLife.Game.Rendering;
+using OurLife.Game.UI;
 
 namespace OurLife.Game.Session;
 
 /// <summary>
 /// The screen of a game being played: the <see cref="GameSession"/> that runs the simulation and
-/// the <see cref="WorldView"/> that draws it, joined by the events of each frame. Input and HUD
-/// join it in later steps of H1.7 (see <c>docs/gdd/interfaz-ip1.md</c>).
+/// the <see cref="WorldView"/> that draws it, joined by the events of each frame, the player's
+/// <see cref="GameInput"/> and the <see cref="Hud"/> (see <c>docs/gdd/interfaz-ip1.md</c>).
 /// </summary>
 public partial class GameScreen : Node
 {
@@ -18,16 +21,20 @@ public partial class GameScreen : Node
 
     public WorldView View { get; private set; } = null!;
 
+    public GameInput Input { get; private set; } = null!;
+
+    public Hud Hud { get; private set; } = null!;
+
     /// <summary>
     /// Generates the only world of the content with the seed, brings the colony of the only
     /// scenario and builds the screen. <paramref name="level"/> is where the view starts, or the
     /// highest surface; <paramref name="distance"/>, how far the camera starts from it.
     /// </summary>
-    public static GameScreen Create(DefDatabase content, VisualCatalog catalog, ulong seed, int? level, int? distance = null)
+    public static GameScreen Create(GameServices services, VisualCatalog catalog, ulong seed, int? level, int? distance = null)
     {
-        ArgumentNullException.ThrowIfNull(content);
+        ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(catalog);
-        var simulation = NewGame(content, seed);
+        var simulation = NewGame(services.Defs, seed);
         var screen = new GameScreen { Name = nameof(GameScreen) };
         try
         {
@@ -36,6 +43,10 @@ public partial class GameScreen : Node
             screen.View = WorldView.Create(simulation, catalog, level, distance);
             screen.AddChild(screen.View);
             screen.Session.EventsRead += screen.View.Apply;
+            screen.Input = GameInput.Create(screen.Session, screen.View);
+            screen.AddChild(screen.Input);
+            screen.Hud = Hud.Create(services, screen.Session, screen.Input);
+            screen.AddChild(screen.Hud);
 
             // The arrival emitted events before anyone listened; the view already drew what they announce.
             simulation.Events.Clear();

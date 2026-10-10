@@ -24,7 +24,7 @@ En orden:
    1. Spec `docs/gdd/interfaz-ip1.md`. **Hecho.**
    2. Core: rayo sobre la grilla para apuntar celdas (`MapRaycast`, con tests); ajuste de pantalla completa en `Settings`. **Hecho.**
    3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos. **Hecho.**
-   4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda.
+   4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
    5. HUD: barra superior, barra de órdenes y registro; textos es y en.
    6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`.
    7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre.
@@ -75,6 +75,16 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - Colonos a escala 2.
   - Opciones `--zoom` y `--ticks` fuera del smoke, para capturas.
   - Revisado en captura con `--seed 42 --level 14 --zoom 12 --ticks 300`. Los colonos están en pose de T porque el modelo no trae animación; queda para H1.8 o el backlog.
+- Avance 4:
+  - Excavar pasa a la tecla M, porque la E ya rotaba la cámara (spec y plan actualizados).
+  - Textos de todo H1.7 en es y en: menús, HUD, órdenes, inspector y registro.
+  - `CellPicker` usa el rayo de la cámara con `MapRaycast`.
+  - `GameInput`: marco bajo el ratón, arrastre con orden que envía `DesignateCommand`, clic que selecciona colono o celda, teclas de órdenes y de tiempo, y Esc o clic derecho para salir.
+  - `InspectorPanel` dentro de `Hud` (una `CanvasLayer`); `TextResolver.Capitalized`.
+  - `UiTextTests` comprueba las claves que se arman en ejecución.
+  - Opciones `--inspect` (selecciona al primer colono) y `--orders` (las órdenes del smoke) para capturas.
+  - Las marcas de órdenes y de selección no proyectan sombra: rayaban el terreno.
+  - Revisado en capturas es y en con `--seed 42 --level 14 --zoom 22 --ticks 200 --orders --inspect`.
 ### 2026-10-10: H1.6 Colonos e IA
 
 - Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:

@@ -116,9 +116,21 @@ public partial class GameRoot : Node
         else
         {
             // Until the main menu, later in H1.7, the game opens straight onto a generated valley.
-            var screen = GameScreen.Create(_services.Defs, LoadVisualCatalog(), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
+            var screen = GameScreen.Create(_services, LoadVisualCatalog(), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
             AddChild(screen);
+            var simulation = screen.Session.Simulation;
+            var colonists = new List<EntityId>();
+            simulation.World.Query<Colonist>(colonists);
+            if (options.Orders && colonists.Count > 0)
+            {
+                OrderWorkAround(simulation, simulation.World.Get<Position>(colonists[0]).Cell);
+            }
+
             screen.Advance(options.Ticks ?? 0);
+            if (options.Inspect && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+            {
+                screen.Input.SelectColonist(colonists[0]);
+            }
         }
 
         if (options.ScreenshotPath is { } screenshotPath)

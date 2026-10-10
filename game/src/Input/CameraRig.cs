@@ -23,6 +23,9 @@ public partial class CameraRig : Node3D
     private int _level;
     private int _maxLevel;
 
+    /// <summary>The camera itself, for turning screen points into rays.</summary>
+    public Camera3D Camera => _camera;
+
     /// <summary>Raised with the new level when the player moves the view up or down.</summary>
     public event Action<int>? LevelChanged;
 

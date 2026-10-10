@@ -40,7 +40,8 @@ public partial class OrderMarkers : Node3D
         };
 
         // The node keeps its own reference to the material; the C# one is released (see MapRenderer).
-        markers._instance = new MultiMeshInstance3D { Name = "Marks", MaterialOverride = material };
+        // Marks cast no shadow: so close to the terrain, their shadows striped it.
+        markers._instance = new MultiMeshInstance3D { Name = "Marks", MaterialOverride = material, CastShadow = GeometryInstance3D.ShadowCastingSetting.Off };
         markers.AddChild(markers._instance);
         markers.Rebuild();
         return markers;
@@ -80,8 +81,9 @@ public partial class OrderMarkers : Node3D
             var centre = new Vector3(cell.X + 0.5f, cell.Z, cell.Y + 0.5f);
             if ((flags & TileFlags.MineDesignation) != 0)
             {
-                // A box a little larger than the wall, so it shows over every face.
-                _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(1.04f, 1.04f, 1.04f)), centre + new Vector3(0, 0.5f, 0)), MineColor));
+                // A slab on the wall's top, just above the cap of the cut: boxes around the whole
+                // wall overlapped the terrain and striped.
+                _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.94f, 0.05f, 0.94f)), centre + new Vector3(0, 1.06f, 0)), MineColor));
             }
 
             if ((flags & TileFlags.StairsDesignation) != 0)
