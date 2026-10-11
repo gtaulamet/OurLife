@@ -470,14 +470,14 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 | IP | Nombre | Qué se puede jugar al terminar | Horas | Semanas a 10 / 20 / 40 h | Fin aprox. |
 |---|---|---|---|---|---|
 | IP1 | Primeros colonos | Valle 3D, 5 colonos, excavar, escaleras, talar, recolectar, hambre y sueño, es/en | 112–153 | 11–15 / 6–8 / 3–4 | nov 2026 |
-| IP2 | Asentamiento | Almacenes, acarreo, construcción y muebles, guardar y cargar, prioridades | 70–90 | 7–9 / 4–5 / 2 | dic 2026 |
+| IP2 | Asentamiento | Almacenes, acarreo, construcción y muebles, guardar y cargar, prioridades, día y noche | 77–101 | 8–10 / 4–5 / 2–3 | dic 2026 |
 | IP3 | Oficios | Talleres, recetas, producción, habilidades, agricultura, metales, conocimientos | 90–110 | 9–11 / 5–6 / 2–3 | ene 2027 |
 | IP4 | Vida en la colonia | Habitaciones, ánimo, rasgos, relaciones, ocio, crisis | 70–90 | 7–9 / 4–5 / 2 | feb 2027 |
 | IP5 | Peligros | Salud, combate, fauna y caza, bandidos, milicia, medicina | 90–120 | 9–12 / 5–6 / 2–3 | mar 2027 |
-| IP6 | Estaciones | Estaciones, clima, temperatura, día y noche, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | may 2027 |
+| IP6 | Estaciones | Estaciones, clima, temperatura, antorchas, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | may 2027 |
 | IP7 | Mundo y leyendas | Mapa del mundo, facciones, historia generada, elección de sitio, crónicas | 90–130 | 9–13 / 5–7 / 2–3 | jun 2027 |
 | IP8 | Publicación 1.0 | Rendimiento, audio, tutorial, accesibilidad, mods, QA de idiomas, exportación | 80–120 | 8–12 / 4–6 / 2–3 | jul 2027 |
-| **Total 1.0** | | | **682–923** | **68–92 / 34–46 / 17–23** | **jul 2027; sep 2027 con margen** |
+| **Total 1.0** | | | **689–934** | **69–93 / 34–47 / 17–23** | **jul 2027; sep 2027 con margen** |
 
 **Fase 2: progreso de épocas (futuro, posterior a la 1.0)**
 
@@ -485,9 +485,9 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 |---|---|---|---|---|---|
 | IP9 | Edad Moderna | Cambio de época, generaciones, imprenta, pólvora, la aldea se vuelve villa | 120–160 | 12–16 / 6–8 / 3–4 | sep 2027 |
 | IP10 | Edad Contemporánea | Revolución Industrial: vapor, electricidad, fábricas, saneamiento | 140–190 | 14–19 / 7–10 / 4–5 | oct 2027 |
-| **Total con épocas** | | | **942–1 273** | **94–127 / 47–64 / 24–32** | **oct 2027; ene 2028 con margen** |
+| **Total con épocas** | | | **949–1 284** | **95–128 / 47–64 / 24–32** | **oct 2027; ene 2028 con margen** |
 
-IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). Las fechas siguen siendo aproximadas.
+IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. Las fechas siguen siendo aproximadas.
 
 El arte de las épocas Moderna y Contemporánea probablemente requiera encargar o comprar modelos 3D. Ese costo no está incluido en las horas.
 
@@ -542,7 +542,7 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 
 ### 7.3 IP2 a IP8: versión 1.0 medieval
 
-**IP2 · Asentamiento (70–90 h).** Agentes: sim-engineer, godot-engineer, i18n-specialist, qa-tester.
+**IP2 · Asentamiento (77–101 h).** Agentes: sim-engineer, godot-engineer, i18n-specialist, qa-tester.
 - Zonas de almacén con filtros por categoría; acarreo y apilado de objetos.
 - Construcción por planos: muros, suelos, puertas, escaleras y rampas. Muebles: cama, mesa, silla, cofre. Entrega de materiales, trabajo de construcción y desmontaje.
 - Canalizar para abrir huecos hacia el nivel inferior.
@@ -550,7 +550,16 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - Guardar y cargar con ranuras y autoguardado diario, incluyendo época y conocimientos; test "guardar a mitad y seguir = partida continua".
 - Panel de prioridades de trabajo (colono × tipo de trabajo) y lista de colonos.
 - Alertas: colono ocioso, hambre crítica.
-- **Jugable:** construir una casa con camas, ordenar el almacén y retomar la partida otro día.
+- Ciclo de día y noche visual, adelantado de IP6:
+  - El sol cruza el cielo según la hora del juego, y la luz, el ambiente y el cielo cambian del amanecer al día, al atardecer y a la noche.
+  - La noche nunca queda a oscuras del todo, y el ciclo se puede apagar en Opciones.
+  - Es de presentación: no cambia la simulación ni las huellas.
+  - Estimación: 4 a 6 h.
+- Sueño nocturno:
+  - Los colonos prefieren dormir de noche. El horario es un dato de los defs, no código.
+  - Un colono agotado duerme igual a cualquier hora, y el balance del hambre y del invierno de IP1 se revisa con el nuevo horario.
+  - Estimación: 3 a 5 h.
+- **Jugable:** construir una casa con camas, ordenar el almacén, ver a la aldea dormir de noche y retomar la partida otro día.
 
 **IP3 · Oficios (90–110 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist.
 - Habilidades con experiencia que afectan velocidad y calidad.
@@ -586,7 +595,7 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 **IP6 · Estaciones (80–110 h).** Agentes: sim-engineer, godot-engineer, art-integrator, perf-engineer.
 - Cuatro estaciones; temperatura exterior por estación e interior por habitación.
 - Clima: lluvia, nieve y niebla; cultivos según la estación.
-- Ciclo de día y noche con iluminación por antorchas.
+- Iluminación por antorchas de noche. El ciclo de día y noche llega antes, en IP2.
 - Ropa y sastrería; frío y calor como riesgos.
 - Agua estática: ríos y lagos generados, pozos y pesca.
 - Migrantes por estación; comerciantes con interfaz de comercio y valor de objetos.

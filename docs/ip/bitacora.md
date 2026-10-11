@@ -124,6 +124,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
     - El script de empaquetado pone comillas a la ruta de `LICENSES.txt` y sus comentarios pasan al inglés.
     - El cargador rechaza `dormantSeasons` con todas las estaciones.
     - Quedan como están: que la caja de Talar y Recolectar se dibuje en un nivel, porque coincide en x e y con lo que se marca; y el costo de `PlantGrowthSystem` en invierno, que son unos 57 arbustos por tick con el benchmark en 0,03 ms por tick.
+  - El usuario preguntó por un ciclo de día y noche. Decidió que vaya en IP2, junto con que los colonos prefieran dormir de noche, y no en `v0.1.0`. Quedó en `plan-maestro.md`: IP2 pasa a 77–101 h, el ciclo se adelanta de IP6 y a IP6 le quedan las antorchas.
   - El lanzador de consola (`OurLife.console.exe`) sólo se genera en las exportaciones debug: el ejecutable de release no devuelve su salida a la terminal, así que se espera con `Start-Process -Wait` y se lee `%APPDATA%\OurLife\logs\godot.log`.
 
 ### 2026-10-11: H1.7, avance 7 (QA y cierre)
