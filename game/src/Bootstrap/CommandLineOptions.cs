@@ -58,6 +58,25 @@ public sealed record CommandLineOptions
     /// </summary>
     public string? LicensesPath { get; init; }
 
+    /// <summary>
+    /// Folder of the saved games, instead of <c>user://saves</c> (milestone H2.1). Captures and
+    /// benchmarks only save, and autosave, when it is given, so they never touch the player's games.
+    /// </summary>
+    public string? SavesPath { get; init; }
+
+    /// <summary>Load the game of this slot instead of showing the main menu (milestone H2.1).</summary>
+    public string? LoadSlot { get; init; }
+
+    /// <summary>
+    /// Open a screen for captures (milestone H2.1): <c>load</c> instead of the main menu,
+    /// <c>save</c> over the game with <c>--play</c> or <c>--load</c>, or <c>error</c> with a damaged
+    /// saved game.
+    /// </summary>
+    public string? Show { get; init; }
+
+    /// <summary>The screens <c>--show</c> knows.</summary>
+    public static readonly IReadOnlyList<string> Screens = ["load", "save", "error"];
+
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];
 
@@ -137,6 +156,21 @@ public sealed record CommandLineOptions
                 case "--licenses":
                     options = options with { LicensesPath = ValueAfter(args, ref i) };
                     break;
+                case "--saves":
+                    options = options with { SavesPath = ValueAfter(args, ref i) };
+                    break;
+                case "--load":
+                    options = options with { LoadSlot = ValueAfter(args, ref i) };
+                    break;
+                case "--show":
+                    var screen = ValueAfter(args, ref i);
+                    if (!Screens.Contains(screen))
+                    {
+                        throw new ArgumentException($"--show must be one of: {string.Join(", ", Screens)}.");
+                    }
+
+                    options = options with { Show = screen };
+                    break;
                 default:
                     unknown.Add(args[i]);
                     break;
@@ -159,7 +193,8 @@ public sealed record CommandLineOptions
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
         $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}, play={Play}, options={Options}, " +
-        $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}";
+        $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
+        $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

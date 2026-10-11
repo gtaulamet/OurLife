@@ -22,9 +22,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H2.1 Guardado y carga** (`IP2.md`):
-   1. Ranuras y autoguardado diario en `game/`; pantalla de carga; guardar desde la pausa; "Cargar" habilitado.
-   2. Pantalla de error al arrancar y al cargar.
-   3. Textos es y en, capturas, smoke con guardar y cargar, revisión de código y cierre.
+   1. Capturas es y en de Cargar, Guardar y Error; probar en el editor guardar, cargar y el autoguardado.
+   2. Revisión de código, documentación (`overview.md`, skill `godot-run`, `IP2.md`) y cierre.
 2. Después: H2.2 a H2.7, en el orden de la ruta crítica de `IP2.md`.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
@@ -55,6 +54,14 @@ En orden:
   - Ganchos internos para restaurar: ranuras de entidades, flujos del RNG y tick.
   - Las entradas del ZIP llevan una fecha fija (1980): el ZIP no admite fechas fuera de 1980–2107 y así el archivo no depende del reloj.
   - Tests: 16 en Core (continuidad con una colonia que excava, tala, recolecta y tiene una orden inalcanzable y un comando pendiente; versiones; archivos dañados; contenido faltante) y 4 con el contenido real (continuidad en las semillas 1, 7 y 42 cortando a los 20 000 ticks; un valle guardado pesa menos de 1 MB).
+- H2.1, avance 3 (Godot):
+  - `SaveSlots`: un archivo `.olsave` por ranura en `user://saves`, escrito en un temporal que después reemplaza al anterior; ranuras dañadas listadas al final para poder borrarlas.
+  - `GameScreen` tiene un identificador de partida y autoguarda en `auto-<id>` al empezar cada día del juego. Sin ranuras (capturas y smoke sin `--saves`) no guarda ni autoguarda.
+  - Pantallas `LoadGameScreen`, `SaveGameScreen` (desde la pausa, con "Partida guardada" al volver) y `ErrorScreen`; confirmación de Sí/No en `UiBuilder.Confirm`. "Cargar partida" del menú principal se habilita con alguna ranura.
+  - Error al arrancar: con un jugador mirando, el juego muestra la pantalla de error en lugar de cerrarse; si fallan los textos, muestra el detalle tal cual.
+  - Opciones `--saves <carpeta>`, `--load <ranura>` y `--show load|save|error`.
+  - El smoke guarda y carga en memoria (misma huella, y la misma 600 ticks después), escribe, lista y carga una ranura en `user://smoke-saves` y arma las pantallas nuevas. Un valle guardado pesa 33 KB y tarda unos 33 ms en guardarse y otro tanto en cargarse.
+  - 23 claves nuevas en es y en; se quitó `ui.mainmenu.load_later`.
 
 ### 2026-10-10: H1.7 Interacción y UI (en curso)
 

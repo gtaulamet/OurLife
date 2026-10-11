@@ -17,7 +17,8 @@ namespace OurLife.Game.Session;
 /// the <see cref="WorldView"/> that draws it, joined by the events of each frame, the player's
 /// <see cref="GameInput"/>, the <see cref="Hud"/>, and the menus over them: pause, options and the
 /// end of the game (see <c>docs/gdd/interfaz-ip1.md</c>). While a menu is open, time stops and the
-/// game's input sleeps.
+/// game's input sleeps. With slots, the game can be saved from the pause menu and autosaves when
+/// each day of the game starts (see <c>docs/gdd/guardado.md</c>).
 /// </summary>
 public partial class GameScreen : Node
 {
@@ -28,6 +29,8 @@ public partial class GameScreen : Node
     private CanvasLayer _overlays = null!;
     private Control? _overlay;
     private bool _over;
+    private SaveSlots? _slots;
+    private (int Year, int Season, int Day) _today;
 
     public GameSession Session { get; private set; } = null!;
 
@@ -37,6 +40,9 @@ public partial class GameScreen : Node
 
     public Hud Hud { get; private set; } = null!;
 
+    /// <summary>Identifies the game across its saves, so its autosave slot follows it.</summary>
+    public string GameId { get; private set; } = string.Empty;
+
     /// <summary>Raised when the player leaves the game for the main menu.</summary>
     public event Action? MainMenuRequested;
 
@@ -45,22 +51,27 @@ public partial class GameScreen : Node
     /// scenario, named <paramref name="colonyName"/>, and builds the screen. <paramref name="level"/> is where the view starts, or the
     /// highest surface; <paramref name="distance"/>, how far the camera starts from it.
     /// </summary>
-    public static GameScreen Create(GameServices services, VisualCatalog catalog, string colonyName, ulong seed, int? level, int? distance = null)
+    public static GameScreen Create(
+        GameServices services, VisualCatalog catalog, SaveSlots? slots, string colonyName, ulong seed, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
-        return Create(services, catalog, NewGame(services.Defs, seed, colonyName), level, distance);
+        return Create(services, catalog, slots, SaveSlots.NewGameId(), NewGame(services.Defs, seed, colonyName), level, distance);
     }
 
     /// <summary>
     /// Builds the screen for a simulation already started with <see cref="NewGame"/>, which may
-    /// have run, or loaded from a saved game with its systems added.
+    /// have run, or loaded from a saved game with its systems added. Without
+    /// <paramref name="slots"/> the game neither saves nor autosaves.
     /// </summary>
-    public static GameScreen Create(GameServices services, VisualCatalog catalog, Simulation simulation, int? level, int? distance = null)
+    public static GameScreen Create(
+        GameServices services, VisualCatalog catalog, SaveSlots? slots, string gameId, Simulation simulation, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(simulation);
-        var screen = new GameScreen { Name = nameof(GameScreen), _services = services };
+        ArgumentException.ThrowIfNullOrEmpty(gameId);
+        var screen = new GameScreen { Name = nameof(GameScreen), _services = services, _slots = slots, GameId = gameId };
+        screen._today = Today(simulation);
         try
         {
             screen.Session = GameSession.Create(simulation);
@@ -103,6 +114,48 @@ public partial class GameScreen : Node
 
     /// <summary>Runs ticks at once, for screenshots and tests, and shows what happened in them.</summary>
     public void Advance(int ticks) => Session.Advance(ticks);
+
+    /// <summary>Autosaves when a new day of the game has started since the last frame.</summary>
+    public override void _Process(double delta)
+    {
+        var today = Today(Session.Simulation);
+        if (today == _today)
+        {
+            return;
+        }
+
+        _today = today;
+        if (_slots is not null && !_over)
+        {
+            Save(SaveSlots.AutosaveId(GameId), autosave: true);
+        }
+    }
+
+    /// <summary>Writes the game in a slot; false if it could not be written, which is logged.</summary>
+    public bool Save(string slotId, bool autosave = false)
+    {
+        if (_slots is null)
+        {
+            throw new InvalidOperationException("This game has no slots to save in.");
+        }
+
+        try
+        {
+            _slots.Write(slotId, Session.Simulation, GameId, autosave);
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            GD.PushError($"The game could not be saved in slot '{slotId}': {ex.Message}");
+            return false;
+        }
+    }
+
+    private static (int Year, int Season, int Day) Today(Simulation simulation)
+    {
+        var date = simulation.CurrentDate;
+        return (date.Year, date.SeasonIndex, date.Day);
+    }
 
     /// <summary>A simulation with its world generated and its colonists arrived in the village <paramref name="colonyName"/>.</summary>
     public static Simulation NewGame(DefDatabase content, ulong seed, string colonyName)
@@ -155,15 +208,32 @@ public partial class GameScreen : Node
         ShowOverlay(options);
     }
 
-    public void OpenPauseMenu()
+    public void OpenPauseMenu() => OpenPauseMenu(statusKey: null);
+
+    /// <summary>Opens the save screen over the game, as the pause menu's button does; for screenshots.</summary>
+    public void OpenSaveScreen()
+    {
+        if (_over || _slots is null)
+        {
+            return;
+        }
+
+        var screen = SaveGameScreen.Create(_services, _slots);
+        screen.SaveRequested += slotId => OpenPauseMenu(Save(slotId) ? "ui.save.done" : "ui.save.failed");
+        screen.BackRequested += OpenPauseMenu;
+        ShowOverlay(screen);
+    }
+
+    private void OpenPauseMenu(string? statusKey)
     {
         if (_over)
         {
             return;
         }
 
-        var menu = PauseMenu.Create();
+        var menu = PauseMenu.Create(canSave: _slots is not null, statusKey);
         menu.ResumeRequested += CloseOverlay;
+        menu.SaveRequested += OpenSaveScreen;
         menu.OptionsRequested += OpenOptions;
         menu.MainMenuRequested += () => MainMenuRequested?.Invoke();
         ShowOverlay(menu);

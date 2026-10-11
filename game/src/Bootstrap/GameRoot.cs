@@ -6,6 +6,7 @@ using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
+using OurLife.Core.Save;
 using OurLife.Core.Sim;
 using OurLife.Game.Content;
 using OurLife.Game.Localization;
@@ -21,8 +22,9 @@ namespace OurLife.Game.Bootstrap;
 /// Godot and starts one of four modes: the normal game window, <c>--smoke</c> (headless checks
 /// for agents and CI), <c>--screenshot</c> (saves an image of the first screen and quits) or
 /// <c>--benchmark</c> (plays a while and checks frame and tick times).
-/// The first screen is the main menu; <c>--play</c> starts a game at once, <c>--options</c> opens
-/// the options and <c>--probe</c> shows the language test screen.
+/// The first screen is the main menu; <c>--play</c> starts a game at once, <c>--load</c> loads one,
+/// <c>--options</c> opens the options, <c>--show</c> opens a screen of saved games and <c>--probe</c>
+/// shows the language test screen. A game that cannot start shows why, instead of closing.
 /// </summary>
 public partial class GameRoot : Node
 {
@@ -37,10 +39,19 @@ public partial class GameRoot : Node
     // Cells around the arrival where the smoke gives orders.
     private const int SmokeOrderRadius = 8;
 
+    // Ticks the smoke runs after loading, to compare a loaded game with the one that never stopped.
+    private const int SmokeTicksAfterLoad = 600;
+    private const string SmokeSavesPath = "user://smoke-saves";
+    private const string SmokeSlot = "smoke";
+
     private GameServices? _services;
     private GodotLocalizationBridge? _bridge;
     private VisualCatalog? _catalog;
     private Node? _screen;
+    private SaveSlots? _slots;
+
+    // A player is watching: failures show on screen instead of quitting with an exit code.
+    private bool _interactive;
 
     public override void _Ready()
     {
@@ -52,11 +63,61 @@ public partial class GameRoot : Node
         }
         catch (Exception ex) when (ex is DefValidationException or LocalizationException)
         {
-            Fail($"The game content has problems:{System.Environment.NewLine}{ex.Message}", ExitFailure);
+            FailToStart($"The game content has problems:{System.Environment.NewLine}{ex.Message}", ex.Message);
         }
         catch (Exception ex)
         {
-            Fail($"The game could not start: {ex}", ExitFailure);
+            FailToStart($"The game could not start: {ex}", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Logs the failure, then quits with an exit code, or, with a player watching, shows the error
+    /// screen: in their language if the texts loaded, else as it is.
+    /// </summary>
+    private void FailToStart(string log, string detail)
+    {
+        if (!_interactive)
+        {
+            Fail(log, ExitFailure);
+            return;
+        }
+
+        GD.PushError(log);
+        ErrorScreen screen;
+        if (_services is not null)
+        {
+            screen = ErrorScreen.Create(_services.Text.Format("ui.error.startup", ("detail", detail)), "ui.mainmenu.quit");
+        }
+        else
+        {
+            screen = TryStartupErrorInLanguage(detail) ?? ErrorScreen.CreateUntranslated(detail);
+        }
+
+        screen.Closed += () => GetTree().Quit(ExitFailure);
+        ShowScreen(screen);
+    }
+
+    /// <summary>When only the defs failed, the texts may still load to say so in the player's language.</summary>
+    private ErrorScreen? TryStartupErrorInLanguage(string detail)
+    {
+        try
+        {
+            var catalogs = LocaleCatalogs.Load(new GodotContentSource());
+            var localizer = new Localizer(catalogs);
+            var settings = Settings.Load();
+            if (localizer.IsAvailable(settings.Locale))
+            {
+                localizer.SetLocale(settings.Locale);
+            }
+
+            _bridge = new GodotLocalizationBridge(localizer, catalogs);
+            return ErrorScreen.Create(new TextResolver(localizer).Format("ui.error.startup", ("detail", detail)), "ui.mainmenu.quit");
+        }
+        catch (Exception ex) when (ex is LocalizationException or IOException)
+        {
+            GD.PushError($"The texts could not load either: {ex.Message}");
+            return null;
         }
     }
 
@@ -95,7 +156,13 @@ public partial class GameRoot : Node
         }
 
         var automated = options.Smoke || options.ScreenshotPath is not null || options.BenchmarkSeconds is not null;
+        _interactive = !automated;
         _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
+
+        // Automated runs never touch the player's saved games, unless told where to save.
+        _slots = options.SavesPath is { } savesPath
+            ? new SaveSlots(Path.GetFullPath(savesPath))
+            : automated ? null : SaveSlots.ForPlayer();
 
         if (UiTheme.FontImportProblem() is { } fontProblem)
         {
@@ -137,9 +204,17 @@ public partial class GameRoot : Node
         {
             ShowScreen(LanguageProbeScreen.Create(_services));
         }
-        else if (options.Play || options.BenchmarkSeconds is not null)
+        else if (options.Play || options.LoadSlot is not null || options.BenchmarkSeconds is not null)
         {
             PlayFromCommandLine(options);
+        }
+        else if (options.Show == "load")
+        {
+            ShowLoadGame();
+        }
+        else if (options.Show == "error")
+        {
+            ShowLoadError(new SaveLoadException(SaveLoadError.Corrupt, "--show error"));
         }
         else if (options.Options)
         {
@@ -171,8 +246,9 @@ public partial class GameRoot : Node
 
     private void ShowMainMenu()
     {
-        var menu = MainMenu.Create();
+        var menu = MainMenu.Create(canLoad: _slots?.Any() ?? false);
         menu.NewGameRequested += ShowNewGame;
+        menu.LoadGameRequested += ShowLoadGame;
         menu.OptionsRequested += ShowOptions;
         menu.QuitRequested += () => GetTree().Quit(ExitOk);
         ShowScreen(menu);
@@ -186,6 +262,60 @@ public partial class GameRoot : Node
         ShowScreen(screen);
     }
 
+    private void ShowLoadGame()
+    {
+        if (_slots is null)
+        {
+            Fail("--show load needs --saves in automated runs.", ExitBadArguments);
+            return;
+        }
+
+        var screen = LoadGameScreen.Create(_services!, _slots);
+        screen.LoadRequested += slotId => LoadGame(slotId);
+        screen.BackRequested += ShowMainMenu;
+        ShowScreen(screen);
+    }
+
+    /// <summary>Loads the game of a slot and shows it; if it cannot be loaded, shows why and returns null.</summary>
+    private GameScreen? LoadGame(string slotId, int? level = null, int? distance = null)
+    {
+        SaveHeader header;
+        Simulation simulation;
+        try
+        {
+            (simulation, header) = _slots!.Load(slotId, _services!.Defs);
+        }
+        catch (SaveLoadException ex)
+        {
+            GD.PushWarning($"The saved game '{slotId}' cannot be loaded: {ex.Message}");
+            ShowLoadError(ex);
+            return null;
+        }
+
+        _catalog ??= LoadVisualCatalog();
+        var gameId = header.GameId.Length > 0 ? header.GameId : SaveSlots.NewGameId();
+        var screen = GameScreen.Create(_services, _catalog, _slots, gameId, simulation, level, distance);
+        ShowGame(screen);
+        return screen;
+    }
+
+    private void ShowLoadError(SaveLoadException problem)
+    {
+        var screen = ErrorScreen.Create(SlotTexts.Problem(_services!, problem), "ui.common.back");
+        screen.Closed += () =>
+        {
+            if (_slots is not null)
+            {
+                ShowLoadGame();
+            }
+            else
+            {
+                ShowMainMenu();
+            }
+        };
+        ShowScreen(screen);
+    }
+
     private void ShowOptions()
     {
         var options = OptionsScreen.Create(_services!, dimmed: false);
@@ -196,7 +326,7 @@ public partial class GameRoot : Node
     private GameScreen StartGame(string colonyName, ulong seed, int? level, int? distance)
     {
         _catalog ??= LoadVisualCatalog();
-        var screen = GameScreen.Create(_services!, _catalog, colonyName, seed, level, distance);
+        var screen = GameScreen.Create(_services!, _catalog, _slots, colonyName, seed, level, distance);
         ShowGame(screen);
         return screen;
     }
@@ -208,14 +338,28 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// <c>--play</c>: a game straight away, for screenshots and tests. <c>--orders</c> gives the
-    /// smoke's orders, <c>--ticks</c> runs time at once, <c>--inspect</c> selects the first
-    /// colonist and <c>--options</c> opens the options over the game. <c>--benchmark</c> plays the
-    /// game with the orders and measures it.
+    /// <c>--play</c>: a game straight away, for screenshots and tests, or <c>--load</c>: the game
+    /// of a slot. <c>--orders</c> gives the smoke's orders, <c>--ticks</c> runs time at once,
+    /// <c>--inspect</c> selects the first colonist, <c>--options</c> opens the options over the
+    /// game and <c>--show save</c> the save screen. <c>--benchmark</c> plays the game with the
+    /// orders and measures it.
     /// </summary>
     private void PlayFromCommandLine(CommandLineOptions options)
     {
-        var screen = StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
+        if (options.LoadSlot is not null && _slots is null)
+        {
+            Fail("--load needs --saves in automated runs.", ExitBadArguments);
+            return;
+        }
+
+        var screen = options.LoadSlot is { } slotId
+            ? LoadGame(slotId, options.Level, options.Zoom)
+            : StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
+        if (screen is null)
+        {
+            return;
+        }
+
         var simulation = screen.Session.Simulation;
 
         // A capture shows the same thing wherever the real mouse happens to be.
@@ -243,6 +387,10 @@ public partial class GameRoot : Node
         if (options.Options)
         {
             screen.OpenOptions();
+        }
+        else if (options.Show == "save")
+        {
+            screen.OpenSaveScreen();
         }
 
         if (options.BenchmarkSeconds is { } seconds)
@@ -313,7 +461,25 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] date {simulation.CurrentDate} | state {simulation.ComputeStateHash():X16}");
             GD.Print($"[smoke] date shown to the player: {services.Text.Date(simulation.CurrentDate)}, {services.Text.Clock(simulation.CurrentDate)}");
 
-            BuildScreens(simulation, options);
+            // Saved games go to a scratch folder, removed at the end.
+            var slots = new SaveSlots(ProjectSettings.GlobalizePath(SmokeSavesPath));
+            try
+            {
+                DeleteFolder(slots.Directory);
+                _slots = slots;
+                if (!CheckSaveAndLoad(services, simulation, slots))
+                {
+                    GetTree().Quit(ExitFailure);
+                    return;
+                }
+
+                BuildScreens(simulation, options, slots);
+            }
+            finally
+            {
+                _slots = null;
+                DeleteFolder(slots.Directory);
+            }
 
             if (services.Localizer.MissingKeys.Count > 0)
             {
@@ -347,10 +513,70 @@ public partial class GameRoot : Node
         return catalog.Format(catalog.Messages["ui.newgame.default_name"]);
     }
 
-    private void BuildScreens(Simulation simulation, CommandLineOptions options)
+    /// <summary>
+    /// The game that ran is saved and loaded with the same fingerprint, and both go on alike for a
+    /// while (<c>docs/gdd/guardado.md</c>). Then a slot is written, listed and loaded.
+    /// </summary>
+    private static bool CheckSaveAndLoad(GameServices services, Simulation simulation, SaveSlots slots)
     {
         var stopwatch = Stopwatch.StartNew();
-        var screen = GameScreen.Create(_services!, _catalog!, simulation, options.Level);
+        var buffer = new MemoryStream();
+        SaveGame.Write(buffer, simulation, new SaveInfo(SmokeSlot, IsAutosave: false, SaveSlots.GameVersion, DateTimeOffset.Now));
+        var saved = stopwatch.Elapsed;
+        var loaded = SaveGame.Load(new MemoryStream(buffer.ToArray()), services.Defs);
+        ColonySystems.AddTo(loaded);
+        stopwatch.Stop();
+        GD.Print(string.Create(
+            CultureInfo.InvariantCulture,
+            $"[smoke] save: {buffer.Length / 1024} KB, saved in {saved.TotalMilliseconds:F0} ms, loaded in {(stopwatch.Elapsed - saved).TotalMilliseconds:F0} ms"));
+
+        var before = simulation.ComputeStateHash();
+        if (loaded.ComputeStateHash() != before)
+        {
+            GD.PushError($"[smoke] the loaded game differs from the saved one: {loaded.ComputeStateHash():X16} instead of {before:X16}");
+            return false;
+        }
+
+        simulation.Run(SmokeTicksAfterLoad);
+        loaded.Run(SmokeTicksAfterLoad);
+        simulation.Events.Clear();
+        loaded.Events.Clear();
+        if (loaded.ComputeStateHash() != simulation.ComputeStateHash())
+        {
+            GD.PushError($"[smoke] {SmokeTicksAfterLoad} ticks after loading, the game differs from the one that never stopped");
+            return false;
+        }
+
+        slots.Write(SmokeSlot, simulation, SmokeSlot, isAutosave: false);
+        var listed = slots.List();
+        if (listed is not [{ Id: SmokeSlot, Header: { } header }] || header.ColonyName != simulation.ColonyName || header.Tick != simulation.CurrentTick)
+        {
+            GD.PushError($"[smoke] the slot written is not listed as it was saved: {string.Join(", ", listed.Select(slot => slot.Id))}");
+            return false;
+        }
+
+        if (slots.Load(SmokeSlot, services.Defs).Simulation.ComputeStateHash() != simulation.ComputeStateHash())
+        {
+            GD.PushError("[smoke] the slot written loads a different game");
+            return false;
+        }
+
+        GD.Print($"[smoke] save and load: same state, and the same after {SmokeTicksAfterLoad} more ticks; slot written, listed and loaded");
+        return true;
+    }
+
+    private static void DeleteFolder(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, recursive: true);
+        }
+    }
+
+    private void BuildScreens(Simulation simulation, CommandLineOptions options, SaveSlots slots)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        var screen = GameScreen.Create(_services!, _catalog!, slots, SmokeSlot, simulation, options.Level);
         ShowGame(screen);
         stopwatch.Stop();
         GD.Print(string.Create(
@@ -385,11 +611,14 @@ public partial class GameRoot : Node
         screen.Advance(10);
         screen.OpenPauseMenu();
         screen.OpenOptions();
+        screen.OpenSaveScreen();
 
         ShowNewGame();
         ShowOptions();
+        ShowLoadGame();
+        ShowLoadError(new SaveLoadException(SaveLoadError.MissingContent, "smoke_def"));
         ShowMainMenu();
-        GD.Print("[smoke] menus built: main, new game, options, pause");
+        GD.Print("[smoke] menus built: main, new game, options, pause, save, load, error");
         _screen?.QueueFree();
         _screen = null;
     }

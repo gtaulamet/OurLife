@@ -51,6 +51,38 @@ public static class UiBuilder
         return label;
     }
 
+    /// <summary>
+    /// A label with text already formatted, which Godot must not translate. Whoever builds it
+    /// formats it again if the language can change while it shows.
+    /// </summary>
+    public static Label Text(string text, int size = MenuSize)
+    {
+        var label = new Label { Text = text, AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled };
+        label.AddThemeFontSizeOverride("font_size", size);
+        return label;
+    }
+
+    /// <summary>
+    /// A question over <paramref name="parent"/> with Yes and No: Yes runs <paramref name="yes"/>,
+    /// both close it. <paramref name="question"/> is already formatted.
+    /// </summary>
+    public static Control Confirm(Node parent, string question, Action yes)
+    {
+        var (root, column) = Screen("Confirm", dimmed: true);
+        column.AddChild(Text(question));
+        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
+        buttons.AddThemeConstantOverride("separation", Gap);
+        buttons.AddChild(MenuButton("ui.common.yes", () =>
+        {
+            root.QueueFree();
+            yes();
+        }));
+        buttons.AddChild(MenuButton("ui.common.no", root.QueueFree));
+        column.AddChild(buttons);
+        parent.AddChild(root);
+        return root;
+    }
+
     /// <summary>A menu button whose text is a key.</summary>
     public static Button MenuButton(string key, Action pressed)
     {

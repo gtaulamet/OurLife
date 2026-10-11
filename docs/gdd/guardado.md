@@ -76,6 +76,7 @@ Si el juego no puede arrancar porque el contenido no carga, muestra la pantalla 
 | `ui.load.empty` | No hay partidas guardadas | There are no saved games |
 | `ui.save.title` | Guardar partida | Save game |
 | `ui.save.new_slot` | Nueva ranura | New slot |
+| `ui.save.overwrite` | Reemplazar | Replace |
 | `ui.save.confirm_overwrite` | ¿Reemplazar la partida «{name}»? | Replace the saved game "{name}"? |
 | `ui.save.done` | Partida guardada | Game saved |
 | `ui.save.failed` | No se pudo guardar la partida | The game could not be saved |

@@ -2,16 +2,21 @@ using Godot;
 
 namespace OurLife.Game.UI;
 
-/// <summary>The main menu (see "Pantallas" in <c>docs/gdd/interfaz-ip1.md</c>).</summary>
+/// <summary>
+/// The main menu (see "Pantallas" in <c>docs/gdd/interfaz-ip1.md</c> and <c>docs/gdd/guardado.md</c>).
+/// Load is disabled while there are no saved games.
+/// </summary>
 public partial class MainMenu : Control
 {
     public event Action? NewGameRequested;
+
+    public event Action? LoadGameRequested;
 
     public event Action? OptionsRequested;
 
     public event Action? QuitRequested;
 
-    public static MainMenu Create()
+    public static MainMenu Create(bool canLoad)
     {
         var menu = new MainMenu { Name = nameof(MainMenu) };
         menu.SetAnchorsPreset(LayoutPreset.FullRect);
@@ -21,10 +26,8 @@ public partial class MainMenu : Control
         column.AddChild(UiBuilder.Title("ui.game.title", 72));
         column.AddChild(UiBuilder.MenuButton("ui.mainmenu.new_game", () => menu.NewGameRequested?.Invoke()));
 
-        // Saving and loading arrive in IP2: the button is there, but disabled.
-        var load = UiBuilder.MenuButton("ui.mainmenu.load_game", () => { });
-        load.Disabled = true;
-        load.TooltipText = "ui.mainmenu.load_later";
+        var load = UiBuilder.MenuButton("ui.mainmenu.load_game", () => menu.LoadGameRequested?.Invoke());
+        load.Disabled = !canLoad;
         column.AddChild(load);
 
         column.AddChild(UiBuilder.MenuButton("ui.mainmenu.options", () => menu.OptionsRequested?.Invoke()));
