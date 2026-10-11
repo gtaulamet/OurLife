@@ -87,6 +87,13 @@ public partial class GameRoot : Node
             return;
         }
 
+        // Without a window nothing is drawn, and the frame rate would mean nothing.
+        if (options.BenchmarkSeconds is not null && DisplayServer.GetName() == "headless")
+        {
+            Fail("--benchmark needs a window: run it without --headless.", ExitBadArguments);
+            return;
+        }
+
         var automated = options.Smoke || options.ScreenshotPath is not null || options.BenchmarkSeconds is not null;
         _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
 

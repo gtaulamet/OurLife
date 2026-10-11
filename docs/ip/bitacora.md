@@ -13,7 +13,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | En el cierre de H1.7 (`f2905a5`), también en `origin` |
 | Hitos hechos | H1.1 a H1.7 |
 | Hito en curso | H1.8 Integración: playtest, balance, bugs, ms/tick, README y export de Windows (`v0.1.0`) |
-| Validación | `dotnet build` sin advertencias, 378 tests en verde, smoke con código 0; `--benchmark 20` con 447 FPS de media y 0,033 ms por tick |
+| Validación | `dotnet build` sin advertencias, 379 tests en verde, smoke con código 0; `--benchmark 20` con 447 FPS de media y 0,033 ms por tick |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `05BB6F15EEBBEDC9` con `--seed 42 --ticks 5000` (cambia en H1.8 por el balance de las bayas) |
 
 ## Pendientes
@@ -117,6 +117,13 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - `tools/package-windows.ps1`: exporta, corre el smoke sobre el exportado, agrega `LICENSES.txt` y `CREDITS.md`, y arma el zip (75 MB).
   - README con cómo se juega, cómo exportar y cómo medir; CREDITS con el motor y el runtime.
   - Checklist del playtest humano en `docs/ip/playtest-ip1.md`, con atajos `--ticks` para empezar en otoño (43 200), en invierno (64 800) o en el día 8 del invierno (74 880). El tick 0 es el día 1 a las 06:00.
+  - Revisión de código de H1.8: 10 hallazgos, 8 corregidos.
+    - Cancelar vuelve a un solo nivel, para no borrar órdenes enterradas que no se ven.
+    - Talar y Recolectar siempre incluyen el nivel de la celda inicial.
+    - El benchmark falla sin ventana, si no corrió ningún tick, o combinado con `--smoke` o `--screenshot`.
+    - El script de empaquetado pone comillas a la ruta de `LICENSES.txt` y sus comentarios pasan al inglés.
+    - El cargador rechaza `dormantSeasons` con todas las estaciones.
+    - Quedan como están: que la caja de Talar y Recolectar se dibuje en un nivel, porque coincide en x e y con lo que se marca; y el costo de `PlantGrowthSystem` en invierno, que son unos 57 arbustos por tick con el benchmark en 0,03 ms por tick.
   - El lanzador de consola (`OurLife.console.exe`) sólo se genera en las exportaciones debug: el ejecutable de release no devuelve su salida a la terminal, así que se espera con `Start-Process -Wait` y se lee `%APPDATA%\OurLife\logs\godot.log`.
 
 ### 2026-10-11: H1.7, avance 7 (QA y cierre)

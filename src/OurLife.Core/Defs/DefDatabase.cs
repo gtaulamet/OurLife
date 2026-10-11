@@ -143,6 +143,11 @@ public sealed partial class DefDatabase
                 {
                     errors.Add($"{Describe(plant)}: dormantSeasons names '{season}', but the TimeConfig has no such season.");
                 }
+
+                if (plant.DormantSeasons.Count > 0 && seasons.All(plant.DormantSeasons.Contains))
+                {
+                    errors.Add($"{Describe(plant)}: dormantSeasons lists every season, so once gathered it would never bear fruit again.");
+                }
             }
         }
 

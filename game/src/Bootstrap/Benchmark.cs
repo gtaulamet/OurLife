@@ -66,7 +66,7 @@ public partial class Benchmark : Node
         var slowest = sorted[(int)Math.Min(sorted.Count - 1, Math.Floor(sorted.Count * 0.99))];
         var ticks = _screen.Session.Simulation.CurrentTick - _startTick;
         var tickMs = (_screen.Session.TickTime - _startTickTime).TotalMilliseconds;
-        var msPerTick = ticks == 0 ? 0 : tickMs / ticks;
+        var msPerTick = ticks == 0 ? double.NaN : tickMs / ticks;
         var size = DisplayServer.WindowGetSize();
 
         GD.Print(string.Create(
@@ -78,6 +78,13 @@ public partial class Benchmark : Node
         GD.Print(string.Create(
             CultureInfo.InvariantCulture,
             $"[benchmark] {ticks} ticks at {GameSession.Speeds[GameSession.Speeds.Count - 1]}x, {msPerTick:F4} ms per tick"));
+
+        // Time held by a menu or the end screen runs no ticks: then nothing was measured.
+        if (ticks == 0)
+        {
+            GD.PushError("[benchmark] no tick ran while measuring: the game was held");
+            return 1;
+        }
 
         if (averageFps < MinFramesPerSecond || msPerTick >= MaxMsPerTick)
         {

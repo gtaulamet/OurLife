@@ -1,14 +1,14 @@
 <#
 .SYNOPSIS
-Exporta OurLife para Windows y arma el zip de la versión.
+Exports OurLife for Windows and builds the release zip.
 
 .DESCRIPTION
-Exporta el preset "Windows Desktop" a builds/windows, corre el smoke sobre el ejecutable
-exportado, le pide los avisos de licencia del motor y del runtime (LICENSES.txt), copia
-CREDITS.md y comprime todo en builds/OurLife-v<versión>-windows-x86_64.zip. La versión sale de
-config/version en game/project.godot.
+Exports the "Windows Desktop" preset to builds/windows, runs the smoke test on the exported
+executable, asks it for the license notices of the engine and the runtime (LICENSES.txt), copies
+CREDITS.md and zips everything into builds/OurLife-v<version>-windows-x86_64.zip. The version
+comes from config/version in game/project.godot.
 
-Necesita Godot 4.7.2 .NET (variable GODOT_BIN) y sus plantillas de exportación de Windows.
+Needs Godot 4.7.2 .NET (GODOT_BIN) and its Windows export templates.
 #>
 param(
     [string]$Godot = $(if ($env:GODOT_BIN) { $env:GODOT_BIN } else { [System.Environment]::GetEnvironmentVariable('GODOT_BIN', 'User') })
@@ -16,32 +16,34 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if (-not $Godot -or -not (Test-Path $Godot)) {
-    throw "No se encontró Godot. Define GODOT_BIN con la ruta del ejecutable de consola de Godot 4.7.2 .NET."
+    throw "Godot was not found. Set GODOT_BIN to the console executable of Godot 4.7.2 .NET."
 }
 
 $root = Split-Path $PSScriptRoot -Parent
 $version = (Select-String -Path (Join-Path $root 'game/project.godot') -Pattern '^config/version="(.+)"').Matches[0].Groups[1].Value
 $out = Join-Path $root 'builds/windows'
 $exe = Join-Path $out 'OurLife.exe'
+$licenses = Join-Path $out 'LICENSES.txt'
 $zip = Join-Path $root "builds/OurLife-v$version-windows-x86_64.zip"
 
-# Una carpeta limpia, para que el zip no arrastre restos de otra exportación.
+# A clean folder, so the zip carries nothing left from another export.
 if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 New-Item -ItemType Directory -Force $out | Out-Null
 
-Write-Host "Exportando OurLife $version..."
+Write-Host "Exporting OurLife $version..."
 & $Godot --headless --path (Join-Path $root 'game') --export-release 'Windows Desktop' $exe
-if ($LASTEXITCODE -ne 0) { throw "La exportación falló con el código $LASTEXITCODE." }
+if ($LASTEXITCODE -ne 0) { throw "The export failed with code $LASTEXITCODE." }
 
-# El ejecutable exportado es una aplicación de ventana: se espera al proceso para leer su código.
-Write-Host 'Smoke sobre el ejecutable exportado...'
+# The exported executable is a window application: wait for the process to read its exit code.
+Write-Host 'Smoke test on the exported executable...'
 $smoke = Start-Process -FilePath $exe -ArgumentList '--headless', '--', '--smoke' -Wait -PassThru
-if ($smoke.ExitCode -ne 0) { throw "El smoke del ejecutable exportado falló con el código $($smoke.ExitCode)." }
+if ($smoke.ExitCode -ne 0) { throw "The smoke test of the exported executable failed with code $($smoke.ExitCode)." }
 
-$licenses = Start-Process -FilePath $exe -ArgumentList '--headless', '--', '--licenses', (Join-Path $out 'LICENSES.txt') -Wait -PassThru
-if ($licenses.ExitCode -ne 0) { throw "No se pudieron escribir las licencias: código $($licenses.ExitCode)." }
+# Start-Process does not quote arguments: a path with spaces needs its own quotes.
+$notices = Start-Process -FilePath $exe -ArgumentList '--headless', '--', '--licenses', "`"$licenses`"" -Wait -PassThru
+if ($notices.ExitCode -ne 0 -or -not (Test-Path $licenses)) { throw "The license notices could not be written: code $($notices.ExitCode)." }
 Copy-Item (Join-Path $root 'CREDITS.md') $out
 
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Compress-Archive -Path (Join-Path $out '*') -DestinationPath $zip
-Write-Host "Listo: $zip"
+Write-Host "Done: $zip"

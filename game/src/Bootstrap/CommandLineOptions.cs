@@ -143,6 +143,12 @@ public sealed record CommandLineOptions
             }
         }
 
+        // Each of these modes quits on its own: together, one would end before the other measured anything.
+        if (options.BenchmarkSeconds is not null && (options.Smoke || options.ScreenshotPath is not null))
+        {
+            throw new ArgumentException("--benchmark cannot be combined with --smoke or --screenshot.");
+        }
+
         return options with { UnknownArguments = unknown };
     }
 

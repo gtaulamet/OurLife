@@ -239,14 +239,15 @@ public partial class GameInput : Node3D
         }
     }
 
-    private static bool IsCellOrder(DesignationKind order) => order is DesignationKind.Mine or DesignationKind.Stairs;
+    /// <summary>Orders whose box stays on one level: Cancel too, so it never clears orders the view does not show.</summary>
+    private static bool IsCellOrder(DesignationKind order) => order is not (DesignationKind.Chop or DesignationKind.Harvest);
 
     /// <summary>
-    /// The box of cells a drag gives. Digging and stairs stay on the level of the first cell, so a
-    /// drag across a slope does not take every buried cell between the two heights; changing the
-    /// view level while dragging reaches other levels. Chopping, gathering and cancelling take
-    /// everything the view shows in the rectangle, from the deepest level drawn up to the view
-    /// level, because plants grow at every height of a slope.
+    /// The box of cells a drag gives. Digging, stairs and cancelling stay on the level of the first
+    /// cell, so a drag across a slope does not take every buried cell between the two heights;
+    /// changing the view level while dragging reaches other levels. Chopping and gathering take
+    /// every plant the view shows in the rectangle, from the deepest level drawn up to the view
+    /// level, because plants grow at every height of a slope; the first cell's level is always in.
     /// </summary>
     private (TileCoord From, TileCoord To) Box(DesignationKind order, TileCoord start, TileCoord end)
     {
@@ -255,8 +256,9 @@ public partial class GameInput : Node3D
             return (start, _view.ViewLevel == _dragLevel ? new TileCoord(end.X, end.Y, start.Z) : end);
         }
 
-        var bottom = Math.Max(0, _view.ViewLevel - LevelShading.MaxDepth);
-        return (new TileCoord(start.X, start.Y, bottom), new TileCoord(end.X, end.Y, _view.ViewLevel));
+        var bottom = Math.Min(start.Z, Math.Max(0, _view.ViewLevel - LevelShading.MaxDepth));
+        var top = Math.Max(start.Z, _view.ViewLevel);
+        return (new TileCoord(start.X, start.Y, bottom), new TileCoord(end.X, end.Y, top));
     }
 
     /// <summary>

@@ -109,6 +109,7 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["monsoon"] }]""", "no such season")]
     [InlineData("""[{ "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["winter", "winter"] }]""", "repeats a season")]
     [InlineData("""[{ "type": "Plant", "id": "oak", "visual": "plant.oak", "dormantSeasons": ["winter"] }]""", "only makes sense for a plant that can be gathered")]
+    [InlineData("""[{ "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["spring", "summer", "autumn", "winter"] }]""", "lists every season")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));
