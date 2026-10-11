@@ -1,3 +1,5 @@
+using OurLife.Core.Defs;
+
 namespace OurLife.Core.Entities;
 
 /// <summary>The needs of a creature, in the order its <see cref="Defs.CreatureDef"/> lists them.</summary>
@@ -24,6 +26,7 @@ public sealed class Needs
 public sealed class NeedState
 {
     /// <summary>Id of its <see cref="Defs.NeedDef"/>.</summary>
+    [DefRef(typeof(NeedDef))]
     public string Need { get; set; } = string.Empty;
 
     public int Value { get; set; }

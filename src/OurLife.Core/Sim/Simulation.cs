@@ -30,6 +30,12 @@ public sealed class Simulation
 
     public ulong Seed { get; }
 
+    /// <summary>
+    /// The name the player gave the village, set when the colony arrives. It is the player's own
+    /// text, never translated. Empty until then.
+    /// </summary>
+    public string ColonyName { get; internal set; } = string.Empty;
+
     /// <summary>Validated game content: materials, plants, items, eras, time settings…</summary>
     public DefDatabase Content { get; }
 
@@ -85,7 +91,7 @@ public sealed class Simulation
     public EventBuffer Events { get; } = new();
 
     /// <summary>Ticks already simulated, which is also the number of the next tick to run.</summary>
-    public long CurrentTick { get; private set; }
+    public long CurrentTick { get; internal set; }
 
     public GameDate CurrentDate => Calendar.DateAt(CurrentTick);
 

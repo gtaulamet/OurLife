@@ -1,3 +1,4 @@
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Map;
 
@@ -18,6 +19,7 @@ public sealed class Colonist
     public Gender Gender { get; set; }
 
     /// <summary>Id of its <see cref="Defs.CreatureDef"/>.</summary>
+    [DefRef(typeof(CreatureDef))]
     public string Creature { get; set; } = string.Empty;
 
     /// <summary>Targets it found no path to, ignored until their tick passes, in the order they were added.</summary>

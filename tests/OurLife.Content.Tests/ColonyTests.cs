@@ -51,7 +51,7 @@ public class ColonyTests
     {
         var simulation = new Simulation(seed, GameContent.Defs);
         WorldGenerator.Generate(simulation, GameContent.Defs.All<WorldGenDef>()[0]);
-        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(GameContent.Defs));
+        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(GameContent.Defs), "Valdeolmos");
         ColonySystems.AddTo(simulation);
 
         simulation.Run(3 * TicksPerDay);
@@ -107,7 +107,7 @@ public class ColonyTests
     {
         var simulation = new Simulation(seed, GameContent.Defs);
         WorldGenerator.Generate(simulation, GameContent.Defs.All<WorldGenDef>()[0]);
-        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(GameContent.Defs));
+        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(GameContent.Defs), "Valdeolmos");
         ColonySystems.AddTo(simulation);
         return (simulation, colonists);
     }

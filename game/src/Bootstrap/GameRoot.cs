@@ -292,7 +292,7 @@ public partial class GameRoot : Node
             }
 
             // The same two steps as GameScreen.NewGame, apart so the smoke can report each one.
-            var colonists = GameScreen.StartColony(simulation);
+            var colonists = GameScreen.StartColony(simulation, SmokeColonyName(services));
             var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
             GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
             var stairSite = OrderWorkAround(simulation, arrival);
@@ -337,10 +337,20 @@ public partial class GameRoot : Node
     /// Texts formatted in code that do not exist are then in the localizer's missing keys, and the
     /// smoke fails.
     /// </summary>
+    /// <summary>
+    /// The default village name in the default language: the name is part of the state, so the
+    /// smoke's fingerprint must not depend on <c>--lang</c>.
+    /// </summary>
+    private static string SmokeColonyName(GameServices services)
+    {
+        var catalog = services.Localizer.Catalog(Localizer.DefaultLocale);
+        return catalog.Format(catalog.Messages["ui.newgame.default_name"]);
+    }
+
     private void BuildScreens(Simulation simulation, CommandLineOptions options)
     {
         var stopwatch = Stopwatch.StartNew();
-        var screen = GameScreen.Create(_services!, _catalog!,_services!.Text.Format("ui.newgame.default_name"), simulation, options.Level);
+        var screen = GameScreen.Create(_services!, _catalog!, simulation, options.Level);
         ShowGame(screen);
         stopwatch.Stop();
         GD.Print(string.Create(

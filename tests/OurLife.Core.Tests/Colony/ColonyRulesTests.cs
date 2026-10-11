@@ -13,7 +13,7 @@ public class ColonyRulesTests
     {
         var bed = ColonyTestBed.Flat(15);
 
-        var colonists = ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content));
+        var colonists = ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content), "Valdeolmos");
 
         colonists.Count.ShouldBe(5);
         bed.World.Get<Position>(colonists[0]).Cell.ShouldBe(new TileCoord(7, 7, 1));
@@ -37,7 +37,7 @@ public class ColonyRulesTests
         {
             var bed = ColonyTestBed.Flat(15, seed);
             bed.AddPlant("bush", 7, 7, 1);
-            var colonists = ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content));
+            var colonists = ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content), "Valdeolmos");
             return (bed.World.Get<Colonist>(colonists[0]).Name, bed.World.Get<Position>(colonists[0]).Cell);
         }
 
@@ -52,9 +52,9 @@ public class ColonyRulesTests
     {
         var bed = ColonyTestBed.Flat(10);
         var scenario = ColonyStart.TheOnlyScenario(bed.Simulation.Content);
-        ColonyStart.Settle(bed.Simulation, scenario);
+        ColonyStart.Settle(bed.Simulation, scenario, "Valdeolmos");
 
-        Should.Throw<InvalidOperationException>(() => ColonyStart.Settle(bed.Simulation, scenario));
+        Should.Throw<InvalidOperationException>(() => ColonyStart.Settle(bed.Simulation, scenario, "Valdeolmos"));
     }
 
     [Fact]

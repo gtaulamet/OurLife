@@ -24,18 +24,23 @@ public static class ColonyStart
             : throw new InvalidOperationException($"The content must have exactly one Scenario def until IP7, found {scenarios.Count}.");
     }
 
-    /// <summary>Creates the colonists and their items; returns the colonists by ascending id.</summary>
+    /// <summary>
+    /// Creates the colonists and their items and names the village with the player's
+    /// <paramref name="colonyName"/>; returns the colonists by ascending id.
+    /// </summary>
     /// <exception cref="InvalidOperationException">The map is missing, the colony already arrived, or there is nowhere to stand.</exception>
-    public static IReadOnlyList<EntityId> Settle(Simulation simulation, ScenarioDef scenario)
+    public static IReadOnlyList<EntityId> Settle(Simulation simulation, ScenarioDef scenario, string colonyName)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(scenario);
+        ArgumentException.ThrowIfNullOrWhiteSpace(colonyName);
         if (simulation.World.Store<Colonist>().Count > 0)
         {
             throw new InvalidOperationException("The colonists already arrived.");
         }
 
         var arrival = FindArrival(simulation);
+        simulation.ColonyName = colonyName;
         var creature = simulation.Content.Get<CreatureDef>(scenario.Creature);
         var random = simulation.Random.Get("colony.start");
         var spots = SpotsAround(simulation.Map, arrival);

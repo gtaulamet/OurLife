@@ -42,17 +42,20 @@ public partial class GameScreen : Node
 
     /// <summary>
     /// Generates the only world of the content with the seed, brings the colony of the only
-    /// scenario and builds the screen. <paramref name="level"/> is where the view starts, or the
+    /// scenario, named <paramref name="colonyName"/>, and builds the screen. <paramref name="level"/> is where the view starts, or the
     /// highest surface; <paramref name="distance"/>, how far the camera starts from it.
     /// </summary>
     public static GameScreen Create(GameServices services, VisualCatalog catalog, string colonyName, ulong seed, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
-        return Create(services, catalog, colonyName, NewGame(services.Defs, seed), level, distance);
+        return Create(services, catalog, NewGame(services.Defs, seed, colonyName), level, distance);
     }
 
-    /// <summary>Builds the screen for a simulation already started with <see cref="NewGame"/>, which may have run.</summary>
-    public static GameScreen Create(GameServices services, VisualCatalog catalog, string colonyName, Simulation simulation, int? level, int? distance = null)
+    /// <summary>
+    /// Builds the screen for a simulation already started with <see cref="NewGame"/>, which may
+    /// have run, or loaded from a saved game with its systems added.
+    /// </summary>
+    public static GameScreen Create(GameServices services, VisualCatalog catalog, Simulation simulation, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -67,7 +70,7 @@ public partial class GameScreen : Node
             screen.Session.EventsRead += screen.View.Apply;
             screen.Input = GameInput.Create(screen.Session, screen.View);
             screen.AddChild(screen.Input);
-            screen.Hud = Hud.Create(services, screen.Session, screen.Input, screen.View, colonyName);
+            screen.Hud = Hud.Create(services, screen.Session, screen.Input, screen.View, simulation.ColonyName);
             screen.AddChild(screen.Hud);
             screen.Session.EventsRead += screen.Hud.Apply;
             screen.Session.EventsRead += screen.WatchForTheEnd;
@@ -101,13 +104,13 @@ public partial class GameScreen : Node
     /// <summary>Runs ticks at once, for screenshots and tests, and shows what happened in them.</summary>
     public void Advance(int ticks) => Session.Advance(ticks);
 
-    /// <summary>A simulation with its world generated and its colonists arrived.</summary>
-    public static Simulation NewGame(DefDatabase content, ulong seed)
+    /// <summary>A simulation with its world generated and its colonists arrived in the village <paramref name="colonyName"/>.</summary>
+    public static Simulation NewGame(DefDatabase content, ulong seed, string colonyName)
     {
         ArgumentNullException.ThrowIfNull(content);
         var simulation = new Simulation(seed, content);
         GenerateTheOnlyWorld(simulation);
-        StartColony(simulation);
+        StartColony(simulation, colonyName);
         return simulation;
     }
 
@@ -130,10 +133,10 @@ public partial class GameScreen : Node
     }
 
     /// <summary>The second half of <see cref="NewGame"/>: brings the colonists of the only scenario and adds the colony systems.</summary>
-    public static IReadOnlyList<EntityId> StartColony(Simulation simulation)
+    public static IReadOnlyList<EntityId> StartColony(Simulation simulation, string colonyName)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content));
+        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content), colonyName);
         ColonySystems.AddTo(simulation);
         return colonists;
     }

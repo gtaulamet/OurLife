@@ -13,8 +13,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Siguiente | H2.1 Guardado y carga |
-| Validación | `dotnet build` sin advertencias, 379 tests en verde, smoke con código 0 en el editor y en el exportado; `--benchmark 20` del exportado con 431 FPS de media y 0,039 ms por tick |
-| Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `05BB6F15EEBBEDC9` con `--seed 42 --ticks 5000` (cambió en H1.8 por el balance de las bayas) |
+| Validación | `dotnet build` sin advertencias, 398 tests en verde, smoke con código 0 (H2.1, avance 2) |
+| Huella del smoke | `580DB895C5F5B361` con `--seed 1 --ticks 5000`; `25578FB766A30761` con `--seed 42 --ticks 5000`. Cambiaron en H2.1 porque el nombre de la aldea entra en el estado |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -22,10 +22,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H2.1 Guardado y carga** (`IP2.md`):
-   1. Nombre de la aldea en la simulación; `SaveGame` en Core que escribe y lee todo el estado, con los derivados recalculados al cargar; test de continuidad en varias semillas.
-   2. Ranuras y autoguardado diario en `game/`; pantalla de carga; guardar desde la pausa; "Cargar" habilitado.
-   3. Pantalla de error al arrancar y al cargar.
-   4. Textos es y en, capturas, smoke con guardar y cargar, revisión de código y cierre.
+   1. Ranuras y autoguardado diario en `game/`; pantalla de carga; guardar desde la pausa; "Cargar" habilitado.
+   2. Pantalla de error al arrancar y al cargar.
+   3. Textos es y en, capturas, smoke con guardar y cargar, revisión de código y cierre.
 2. Después: H2.2 a H2.7, en el orden de la ruta crítica de `IP2.md`.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
@@ -50,6 +49,12 @@ En orden:
 - Pendientes de IP1 repartidos: el nombre de la aldea y la pantalla de error en H2.1, el día en el registro y el balance del invierno en H2.2, `terrainAmplitude` se evalúa en H2.4 y los argumentos de entidad en `TextResolver` en H2.6. Lo de arte que no entra quedó en el backlog.
 - Rama `ip2/h2-1-guardado` creada desde `main`.
 - H2.1, avance 1: spec `docs/gdd/guardado.md` (qué se guarda, ranuras, autoguardado a las 00:00, pantallas, errores, textos y criterios) y ADR-010 (ZIP con `header.json` y `state.json`, tipos con nombre estable en `SaveTypes`, materiales por id, versión de formato y errores tipados).
+- H2.1, avance 2 (Core):
+  - `Simulation.ColonyName`, que fija `ColonyStart.Settle` y entra en la huella. El smoke usa el nombre por defecto del español, para que la huella no dependa de `--lang`.
+  - `SaveGame` (`OurLife.Core.Save`): `Write`, `ReadHeader` y `Load` sobre un `Stream`. `SaveTypes` registra los nombres estables de componentes y comandos. `[DefRef]` marca las propiedades con ids de defs, que se validan al cargar.
+  - Ganchos internos para restaurar: ranuras de entidades, flujos del RNG y tick.
+  - Las entradas del ZIP llevan una fecha fija (1980): el ZIP no admite fechas fuera de 1980–2107 y así el archivo no depende del reloj.
+  - Tests: 16 en Core (continuidad con una colonia que excava, tala, recolecta y tiene una orden inalcanzable y un comando pendiente; versiones; archivos dañados; contenido faltante) y 4 con el contenido real (continuidad en las semillas 1, 7 y 42 cortando a los 20 000 ticks; un valle guardado pesa menos de 1 MB).
 
 ### 2026-10-10: H1.7 Interacción y UI (en curso)
 

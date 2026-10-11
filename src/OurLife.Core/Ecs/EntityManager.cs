@@ -30,6 +30,45 @@ public sealed class EntityManager
 
     internal int FreeSlotCount => _freeSlots.Count;
 
+    /// <summary>
+    /// Puts back the slots of a saved game: the generation of every slot (negated while free) and
+    /// the free slots in reuse order. Only for an empty manager.
+    /// </summary>
+    internal void Restore(IReadOnlyList<int> generations, IReadOnlyList<int> freeSlots)
+    {
+        if (_generations.Count > 0)
+        {
+            throw new InvalidOperationException("Slots can only be restored into an empty manager.");
+        }
+
+        var free = new bool[generations.Count];
+        foreach (var slot in freeSlots)
+        {
+            if ((uint)slot >= (uint)generations.Count || generations[slot] >= 0 || free[slot])
+            {
+                throw new ArgumentException($"Free slot {slot} is not a free slot, or appears twice.", nameof(freeSlots));
+            }
+
+            free[slot] = true;
+        }
+
+        for (var slot = 0; slot < generations.Count; slot++)
+        {
+            if (generations[slot] == 0 || (generations[slot] < 0) != free[slot])
+            {
+                throw new ArgumentException($"Slot {slot} has generation {generations[slot]}, which does not match the free slots.", nameof(generations));
+            }
+        }
+
+        _generations.AddRange(generations);
+        foreach (var slot in freeSlots)
+        {
+            _freeSlots.Enqueue(slot);
+        }
+
+        AliveCount = generations.Count - freeSlots.Count;
+    }
+
     internal EntityId Create()
     {
         EntityId id;

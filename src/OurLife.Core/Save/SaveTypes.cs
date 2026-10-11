@@ -1,0 +1,58 @@
+using OurLife.Core.Colony;
+using OurLife.Core.Ecs;
+using OurLife.Core.Entities;
+using OurLife.Core.Sim;
+
+namespace OurLife.Core.Save;
+
+/// <summary>
+/// The stable names under which components and commands are saved (ADR-010), so renaming or
+/// moving a class does not break saved games. Every component and command must be registered
+/// here: saving a game with an unregistered one fails, and a test checks the commands.
+/// </summary>
+public static class SaveTypes
+{
+    private static readonly List<SaveType> ComponentList = [];
+    private static readonly List<SaveType> CommandList = [];
+
+    static SaveTypes()
+    {
+        Component<Colonist>("colonist");
+        Component<Needs>("needs");
+        Component<Position>("position");
+        Component<Movement>("movement");
+        Component<Job>("job");
+        Component<ItemStack>("item_stack");
+        Component<Plant>("plant");
+        Component<ChopOrder>("chop_order");
+        Component<HarvestOrder>("harvest_order");
+        Component<Harvested>("harvested");
+
+        Command<DesignateCommand>("designate");
+    }
+
+    /// <summary>The registered component types, in registration order.</summary>
+    public static IEnumerable<Type> ComponentTypes => ComponentList.Select(entry => entry.Type);
+
+    /// <summary>The registered command types, in registration order.</summary>
+    public static IEnumerable<Type> CommandTypes => CommandList.Select(entry => entry.Type);
+
+    internal static SaveType? ComponentByType(Type type) => ComponentList.Find(entry => entry.Type == type);
+
+    internal static SaveType? ComponentByName(string name) => ComponentList.Find(entry => entry.Name == name);
+
+    internal static SaveType? CommandByType(Type type) => CommandList.Find(entry => entry.Type == type);
+
+    internal static SaveType? CommandByName(string name) => CommandList.Find(entry => entry.Name == name);
+
+    private static void Component<T>(string name)
+        where T : class =>
+        ComponentList.Add(new SaveType(name, typeof(T), (world, entity, component) => world.Add(entity, (T)component)));
+
+    private static void Command<T>(string name)
+        where T : class, ISimCommand =>
+        CommandList.Add(new SaveType(name, typeof(T), null));
+
+    /// <summary>A saved type: its stable name, its class and, for components, how to add one to an entity.</summary>
+    internal sealed record SaveType(string Name, Type Type, Action<World, EntityId, object>? AddTo);
+}

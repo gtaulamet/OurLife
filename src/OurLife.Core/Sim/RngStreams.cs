@@ -43,6 +43,18 @@ public sealed partial class RngStreams
         return stream;
     }
 
+    /// <summary>Puts back a stream as it was saved, replacing the one with that name if it exists.</summary>
+    internal void Restore(string name, Pcg32 stream)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        if (!StreamNamePattern().IsMatch(name))
+        {
+            throw new ArgumentException($"Invalid random stream name '{name}'.", nameof(name));
+        }
+
+        _streams[name] = stream;
+    }
+
     /// <summary>64-bit FNV-1a over the UTF-8 bytes: stable across runs, machines and .NET versions.</summary>
     private static ulong StableHash(string name)
     {

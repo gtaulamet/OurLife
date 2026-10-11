@@ -1,9 +1,12 @@
+using OurLife.Core.Defs;
+
 namespace OurLife.Core.Entities;
 
 /// <summary>A pile of one kind of item lying on a cell.</summary>
 public sealed class ItemStack
 {
     /// <summary>Id of its <see cref="Defs.ItemDef"/>.</summary>
+    [DefRef(typeof(ItemDef))]
     public string Def { get; set; } = string.Empty;
 
     public int Count { get; set; }
