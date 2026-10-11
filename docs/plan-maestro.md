@@ -280,9 +280,10 @@ ourlife/
 │   ├── scenes/                   Main.tscn y prefabs mínimos
 │   └── src/
 │       ├── Bootstrap/            GameRoot, Services, Settings, CommandLine
-│       ├── Rendering/            VisualCatalog, ChunkRenderer, MapRenderer, EntityRenderer
-│       ├── Input/                CameraRig, CellPicker, InputModes, DesignationTool
-│       ├── UI/                   UiBuilder, MainMenu, NewGame, Hud, Inspector, EventLog, Options
+│       ├── Session/              GameSession (tiempo real), GameScreen (une vista, entrada, HUD y menús)
+│       ├── Rendering/            VisualCatalog, MapRenderer, EntityRenderer, OrderMarkers, WorldView
+│       ├── Input/                CameraRig, CellPicker, GameInput, InputActions
+│       ├── UI/                   UiTheme, UiBuilder, MainMenu, NewGameScreen, OptionsScreen, PauseMenu, GameOverScreen, Hud, InspectorPanel, EventLog
 │       └── Localization/         GodotLocalizationBridge, TextResolver
 ├── tests/
 │   ├── OurLife.Core.Tests/       unidad, escenarios ASCII, determinismo, arquitectura, épocas

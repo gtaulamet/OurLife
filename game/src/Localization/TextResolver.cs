@@ -7,7 +7,8 @@ namespace OurLife.Game.Localization;
 
 /// <summary>
 /// Turns what the simulation says into text in the current language. Nested
-/// <see cref="LocalizedText"/> arguments are resolved first. Entity arguments arrive in H1.6.
+/// <see cref="LocalizedText"/> arguments are resolved first. Entity and def arguments arrive with
+/// the first text that needs them (see "Argumentos con referencias" in <c>docs/i18n.md</c>).
 /// </summary>
 public sealed class TextResolver
 {

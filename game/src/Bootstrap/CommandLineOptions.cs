@@ -22,7 +22,7 @@ public sealed record CommandLineOptions
     /// <summary>World seed (milestone H1.4).</summary>
     public ulong? Seed { get; init; }
 
-    /// <summary>Number of simulation ticks to run in smoke mode (milestone H1.2).</summary>
+    /// <summary>Number of simulation ticks to run in smoke mode (milestone H1.2), or at once at the start with <c>--play</c> (milestone H1.7).</summary>
     public int? Ticks { get; init; }
 
     /// <summary>Level Z the world view starts at, instead of the highest surface (milestone H1.5).</summary>

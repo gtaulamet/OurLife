@@ -21,7 +21,7 @@
 | H1.4 Mapa y generación | Hecho | `ip1/h1-4-mapa-generacion` | Valle de 96×96×32 generado en unos 20 ms, superficie conectada, regiones de conectividad |
 | H1.5 Render y cámara | Hecho | `ip1/h1-5-render-camara` | Valle en 3D con terreno por chunks, corte por nivel, plantas y cámara; colonos y objetos pasan a H1.7 |
 | H1.6 Colonos e IA | Hecho | `ip1/h1-6-colonos-ia` | 5 colonos que llegan, comen, duermen, excavan, cavan escaleras, talan y recolectan; A* 3D y conectividad incremental; 0,01 ms por tick |
-| H1.7 Interacción y UI | En curso | `ip1/h1-7-interaccion-ui` | Partida en tiempo real con órdenes por arrastre, inspector, HUD, registro y menús en es y en; falta cerrar la revisión de código |
+| H1.7 Interacción y UI | Hecho | `ip1/h1-7-interaccion-ui` | Partida en tiempo real con órdenes por arrastre, inspector, HUD, registro y menús en es y en |
 | H1.8 Integración | Pendiente | | |
 
 **Ruta crítica:** H1.1 → H1.2 → (H1.3 ∥ H1.4) → (H1.5 ∥ H1.6) → H1.7 → H1.8.

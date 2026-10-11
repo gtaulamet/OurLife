@@ -9,36 +9,25 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Dato | Valor |
 |---|---|
 | Rama de trabajo | `ip1/h1-7-interaccion-ui`, creada desde H1.6 y subida a `origin` |
-| Último commit de código | El avance 7 de H1.7, en `ip1/h1-7-interaccion-ui` (ver Pendientes) |
-| `main` | En `48dac75`, el cierre de H1.6, también en `origin` |
-| Hitos hechos | H1.1 a H1.6 |
-| Hito en curso | H1.7 Interacción y UI, spec en `docs/gdd/interfaz-ip1.md` |
+| Último commit de código | El cierre de H1.7, en `ip1/h1-7-interaccion-ui` |
+| `main` | En `48dac75`, el cierre de H1.6, también en `origin`. Falta adelantarlo a H1.7 |
+| Hitos hechos | H1.1 a H1.7 |
+| Hito siguiente | H1.8 Integración: playtest, balance, bugs, ms/tick, README y export de Windows (`v0.1.0`) |
 | Validación | `dotnet build` sin advertencias, 370 tests en verde, smoke con código 0 |
-| Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (cambia desde H1.6 porque el smoke trae la colonia) |
+| Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (sin cambios en H1.7) |
 
 ## Pendientes
 
 En orden:
 
-1. **H1.7 Interacción y UI, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-7-interaccion-ui` y `git push`:
-   1. Spec `docs/gdd/interfaz-ip1.md`. **Hecho.**
-   2. Core: rayo sobre la grilla para apuntar celdas (`MapRaycast`, con tests); ajuste de pantalla completa en `Settings`. **Hecho.**
-   3. Sesión de juego: bucle de ticks con `TickPacer` y velocidades; dibujo de colonos con interpolación, de pilas de objetos y de plantas que cambian; marcas de órdenes; escalera en ambos sentidos. **Hecho.**
-   4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
-   5. HUD: barra superior, barra de órdenes y registro; textos es y en. **Hecho.**
-   6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`. **Hecho.**
-   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre. **Capturas, smoke y tres rondas de revisión hechos** (10, 10 y 10 hallazgos, registro de H1.7 en `IP1.md`). Falta el cierre: `IP1.md` en "Hecho", `plan-maestro.md`, la skill `godot-run` con las opciones nuevas, y adelantar `main`.
-2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
-   - `DesignateCommand` para las órdenes.
-   - Eventos `EntitySpawnedEvent`, `EntityChangedEvent`, `EntityRemovedEvent`, `DesignationsChangedEvent`, `NotificationEvent` y `ColonyLostEvent`.
-   - Componentes `Colonist`, `Needs`, `Job`, `Movement`, `ItemStack`, `Plant` y `Harvested` para el inspector y el HUD.
-   - El smoke todavía vacía los eventos sin mostrarlos.
-3. **Pasan de H1.5 a H1.7:**
-   - El render de colonos (pool de nodos con interpolación entre ticks) y de objetos.
-   - Que `PlantRenderer` siga a las plantas que se crean, se destruyen o cambian de época.
-   - La pieza de escalera en ambos sentidos, con hueco.
-   - La revisión de Tiny5 sobre el 3D, con el HUD.
-   - Las variantes de aldeanos y el arbusto con y sin bayas. La lista de modelos que faltan está en `docs/art.md`.
+1. **Cerrar H1.7:** una última ronda de revisión de código sobre el cierre, adelantar `main` con `git fetch . ip1/h1-7-interaccion-ui:main` y subirlo.
+2. **H1.8 Integración:** crear la rama `ip1/h1-8-integracion` desde `main`, escribir el plan del hito y hacer un playtest con la partida completa.
+3. **Quedan de H1.7 para H1.8 o el backlog** (detalle en `docs/art.md` y el registro de H1.7 de `IP1.md`):
+   - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
+   - Un arbusto que muestre las bayas; hoy con y sin frutos se distinguen sólo por la forma.
+   - Guardar el nombre de la aldea en la simulación, para el guardado de IP2.
+   - Que `EntityRenderer` cambie los modelos cuando cambie la época (llega con la segunda época).
+   - Los argumentos de entidad y de def en `TextResolver`, con el primer texto que los use (`docs/i18n.md`).
 4. **Para el balance de H1.8:**
    - El fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
    - En la vista 3D se ven como un serrucho.
@@ -101,7 +90,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - El smoke arma la pantalla de partida con el inspector, la pausa, las opciones y los tres menús, y falla si falta un texto.
   - Revisadas las capturas del menú principal y de las opciones en es y en. La casilla de pantalla completa tiene poco contraste sobre el fondo oscurecido: revisar en QA.
 
-### 2026-10-11: H1.7, avance 7 (QA)
+### 2026-10-11: H1.7, avance 7 (QA y cierre)
 
 - El botón presionado del tema por defecto era apenas más oscuro que el normal: no se veía qué idioma, velocidad u orden estaba activa. `UiTheme` le da un fondo ocre (`PressedColor`) con texto blanco, y copia los márgenes por defecto para que los botones no cambien de tamaño.
 - La casilla de pantalla completa pasa a una fila "Pantalla: Ventana | Pantalla completa", igual que la del idioma. Claves nuevas `ui.options.display` y `ui.options.windowed` en es y en, y en la spec.
@@ -111,6 +100,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - Primera ronda de revisión de código sobre toda la rama: 10 hallazgos, todos corregidos. El detalle está en el registro de H1.7 de `IP1.md`. Lo más importante: el rayo elegía la celda de adelante al apuntar un suelo con la cámara inclinada, y arrastrar una orden sobre una ladera marcaba todos los niveles enterrados. El smoke ahora dibuja la partida que trabajó, y `GameScreen` es el único lugar que arma una partida. 368 tests.
 - Segunda ronda: 10 hallazgos más, todos corregidos (detalle en `IP1.md`). Lo más importante: un clic en el cuerpo de un colono elegía la celda de atrás; ahora se elige por la caja del modelo dibujado, y el smoke lo comprueba. La lista de órdenes sale del enum (`DesignationKinds.Id`). 369 tests y las mismas huellas.
 - Tercera ronda: 10 hallazgos, 9 corregidos y uno descartado con su motivo (detalle en `IP1.md`). Lo más importante: un colono detrás de una loma ganaba el clic; `MapRaycast` ahora informa la distancia del impacto. También faltaban los `.uid` de 11 scripts: `--import` los genera sin abrir el editor. 370 tests.
+- Documentación de cierre: `IP1.md` (H1.7 hecho), `plan-maestro.md` (árbol de `game/src`), `overview.md`, ADR-009 ("Resuelto en H1.7"), `art.md` (modelos que faltan), `i18n.md`, la skill `godot-run` y los agentes godot-engineer y qa-tester, con las opciones nuevas de captura. Los ejemplos de captura del valle necesitan `--play`, porque sin él el juego abre el menú.
 
 ### 2026-10-10: H1.6 Colonos e IA
 

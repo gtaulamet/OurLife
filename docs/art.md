@@ -69,17 +69,17 @@ El art-integrator mantiene la lista de modelos que faltan.
 
 ### Modelos que faltan
 
-Revisado en H1.5, el 10 de octubre de 2026:
+Revisado en H1.7, el 11 de octubre de 2026:
 
 | Modelo | Estado | Plan |
 |---|---|---|
 | Terreno | Resuelto con piezas generadas en código | — |
-| Arbusto de bayas con bayas y sin bayas | Provisional: `plant_bushDetailed` del Nature Kit, más oscuro por la paleta, igual con o sin bayas | El kit no trae bayas. Hace falta un modelo propio o una variante con bayas rojas, como mucho en H1.7, cuando se recolecte |
+| Arbusto de bayas con bayas y sin bayas | Provisional: `plant_bushDetailed` con frutos y `plant_bush` sin frutos (`plant.berry_bush.harvested`), ambos del Nature Kit. Se distinguen por la forma; ninguno muestra bayas | Un modelo propio o una variante con bayas rojas, en H1.8 o en el backlog |
 | Bayas | Provisional: `flower_redA` | Buscar en otro kit de Kenney o hacer uno propio |
 | Provisiones | Provisional: `pot_small` | Un saco o una canasta de otro kit de Kenney |
-| Aldeanos | Provisional: un solo `character-male-a` de Mini Characters | Entre 4 y 6 variantes del mismo kit en H1.7, cuando se dibujen los colonos |
-| Overlays de órdenes, cursor y selección | Pendiente | Mallas propias en H1.7 |
-| Iconos de UI | Pendiente | H1.7 |
+| Aldeanos | Provisional: un solo `character-male-a` de Mini Characters, a escala 2 y sin animación (pose de T) | Entre 4 y 6 variantes del mismo kit y una animación de caminar, en H1.8 o en el backlog |
+| Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
+| Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
 
 ## Fuente tipográfica
 

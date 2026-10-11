@@ -126,7 +126,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | Mapa 3D, generación, conectividad (`docs/gdd/mapa-y-generacion.md`) | H1.4 | Hecho |
 | Render 3D low-poly, cámara, capturas (ADR-009) | H1.5 | Hecho |
 | Pathfinding, IA, trabajos, necesidades (`docs/gdd/colonos-e-ia.md`) | H1.6 | Hecho |
-| Entrada, HUD, menús | H1.7 | Pendiente |
+| Partida en tiempo real, entrada, HUD, inspector, menús (`docs/gdd/interfaz-ip1.md`) | H1.7 | Hecho |
 
 ## Decisiones
 

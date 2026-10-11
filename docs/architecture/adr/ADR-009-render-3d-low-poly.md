@@ -79,6 +79,15 @@ Del 10 de octubre de 2026, tras revisar las capturas:
 - **Colonos y objetos:** su render pasa a H1.7, porque sus entidades llegan con H1.6. El catálogo ya tiene sus modelos.
 - **Fuente:** la combinación de Tiny5 con el 3D se revisa en H1.7, cuando haya HUD sobre el mapa.
 
+### Resuelto en H1.7
+
+Del 11 de octubre de 2026:
+
+- **Escalera en ambos sentidos:** media celda con escalones y media con el hueco de bajada.
+- **Colonos y objetos:** `EntityRenderer` dibuja plantas, pilas y colonos y sigue los eventos de la simulación. Los colonos van a escala 2, avanzan entre celdas según el progreso de su movimiento y miran hacia donde caminan.
+- **Fuente:** Tiny5 a 16 px se lee bien sobre el 3D, con los paneles del HUD semitransparentes. No se agranda.
+- **Selección por rayo:** `MapRaycast` recorre la grilla en Core. Un suelo cuenta donde el rayo llega a él, no al entrar por arriba de su celda, porque se dibuja como una losa en la base. Los colonos se eligen por la caja de su modelo dibujado, delante del terreno.
+
 ## Consecuencias
 
 - La simulación, el pathfinding, la generación y la i18n no cambian.

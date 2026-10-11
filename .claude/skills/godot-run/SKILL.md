@@ -47,12 +47,18 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 ## Captura, con ventana
 
 ```powershell
-# El valle en 3D desde la superficie más alta, y un corte en el nivel 12
-& $env:GODOT_BIN --path game -- --screenshot out/valle.png --seed 1
-& $env:GODOT_BIN --path game -- --screenshot out/corte.png --seed 1 --level 12
+# El valle en 3D desde la superficie más alta, y un corte en el nivel 12 (sin --play se ve el menú)
+& $env:GODOT_BIN --path game -- --screenshot out/valle.png --seed 1 --play
+& $env:GODOT_BIN --path game -- --screenshot out/corte.png --seed 1 --play --level 12
 # La pantalla de prueba de idiomas
 & $env:GODOT_BIN --path game -- --screenshot out/es.png --locale es --probe
 & $env:GODOT_BIN --path game -- --screenshot out/en.png --locale en --probe
+# El menú principal y las opciones, desde H1.7
+& $env:GODOT_BIN --path game -- --screenshot out/menu.png --locale es
+& $env:GODOT_BIN --path game -- --screenshot out/opciones.png --locale es --options
+# La partida de cerca, con órdenes, el inspector y el registro; y las opciones sobre ella
+& $env:GODOT_BIN --path game -- --screenshot out/partida.png --locale es --seed 42 --play --level 14 --zoom 22 --ticks 200 --orders --inspect
+& $env:GODOT_BIN --path game -- --screenshot out/pausa.png --locale en --seed 42 --play --options
 ```
 
 Las capturas necesitan ventana, así que se corren sin `--headless`. Una ruta relativa parte de `game/`, porque Godot arranca en esa carpeta: los ejemplos guardan en `game/out/`. Revisa las imágenes con Read. La carpeta `out/` no se versiona.
@@ -71,9 +77,20 @@ Van después de `--`:
 | Argumento | Efecto | Disponible desde |
 |---|---|---|
 | `--smoke` | Arranca, valida y sale con código 0 o distinto de 0 | H1.1 |
-| `--ticks <n>` | Ticks a simular en `--smoke` | H1.2 |
+| `--ticks <n>` | Ticks a simular en `--smoke`; con `--play`, ticks que corren de una vez al empezar | H1.2, H1.7 |
 | `--locale <es\|en>` | Fuerza el idioma | H1.3 |
 | `--seed <n>` | Semilla de la partida | H1.2 |
 | `--screenshot <png>` | Guarda una captura y sale | H1.3 |
 | `--level <z>` | Nivel en el que arranca la vista 3D; sin él, la superficie más alta | H1.5 |
-| `--probe` | Muestra la pantalla de prueba de idiomas de H1.3 en lugar del valle | H1.5 |
+| `--probe` | Muestra la pantalla de prueba de idiomas de H1.3 en lugar del menú principal | H1.5 |
+| `--play` | Empieza una partida en lugar de mostrar el menú principal, con `--seed` o la semilla 1 | H1.7 |
+| `--options` | Abre las opciones: sobre la partida con `--play`, si no en lugar del menú | H1.7 |
+| `--orders` | Con `--play`, da las órdenes del smoke alrededor de la llegada | H1.7 |
+| `--inspect` | Con `--play`, selecciona al primer colono para ver el inspector | H1.7 |
+| `--zoom <n>` | Distancia de la cámara a lo que mira; menos es más cerca (por defecto 85) | H1.7 |
+
+Sin argumentos, el juego abre el menú principal. El smoke, además de simular, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones y los menús; falla si falta un texto.
+
+## Archivos `.uid`
+
+Un script nuevo no tiene `.uid` hasta que el editor abre el proyecto. `& $env:GODOT_BIN --headless --path game --import` los genera sin abrir el editor; se versionan.
