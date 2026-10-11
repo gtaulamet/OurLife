@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Godot;
 using OurLife.Core.Sim;
 
@@ -27,6 +28,9 @@ public partial class GameSession : Node
 
     /// <summary>True while a menu or the end screen holds the game: time stops and the player cannot pause it off.</summary>
     public bool Held { get; private set; }
+
+    /// <summary>Real time spent running ticks in real time, for <c>--benchmark</c>. Measuring belongs here, outside the deterministic core.</summary>
+    public TimeSpan TickTime { get; private set; }
 
     /// <summary>Raised once per frame with the events of the frame, in emission order. The list is reused.</summary>
     public event Action<IReadOnlyList<ISimEvent>>? EventsRead;
@@ -101,10 +105,13 @@ public partial class GameSession : Node
         }
 
         var ticks = _pacer.TicksFor(delta);
+        var started = Stopwatch.GetTimestamp();
         for (var i = 0; i < ticks; i++)
         {
             Simulation.Tick();
         }
+
+        TickTime += Stopwatch.GetElapsedTime(started);
 
         Publish();
     }

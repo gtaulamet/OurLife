@@ -18,8 +18,9 @@ namespace OurLife.Game.Bootstrap;
 
 /// <summary>
 /// Root node of the game. Loads content, texts and preferences, connects the localizer to
-/// Godot and starts one of three modes: the normal game window, <c>--smoke</c> (headless checks
-/// for agents and CI) or <c>--screenshot</c> (saves an image of the first screen and quits).
+/// Godot and starts one of four modes: the normal game window, <c>--smoke</c> (headless checks
+/// for agents and CI), <c>--screenshot</c> (saves an image of the first screen and quits) or
+/// <c>--benchmark</c> (plays a while and checks frame and tick times).
 /// The first screen is the main menu; <c>--play</c> starts a game at once, <c>--options</c> opens
 /// the options and <c>--probe</c> shows the language test screen.
 /// </summary>
@@ -77,7 +78,7 @@ public partial class GameRoot : Node
             GD.PushWarning($"Unknown command line argument ignored: {argument}");
         }
 
-        var automated = options.Smoke || options.ScreenshotPath is not null;
+        var automated = options.Smoke || options.ScreenshotPath is not null || options.BenchmarkSeconds is not null;
         _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
 
         if (UiTheme.FontImportProblem() is { } fontProblem)
@@ -120,7 +121,7 @@ public partial class GameRoot : Node
         {
             ShowScreen(LanguageProbeScreen.Create(_services));
         }
-        else if (options.Play)
+        else if (options.Play || options.BenchmarkSeconds is not null)
         {
             PlayFromCommandLine(options);
         }
@@ -193,7 +194,8 @@ public partial class GameRoot : Node
     /// <summary>
     /// <c>--play</c>: a game straight away, for screenshots and tests. <c>--orders</c> gives the
     /// smoke's orders, <c>--ticks</c> runs time at once, <c>--inspect</c> selects the first
-    /// colonist and <c>--options</c> opens the options over the game.
+    /// colonist and <c>--options</c> opens the options over the game. <c>--benchmark</c> plays the
+    /// game with the orders and measures it.
     /// </summary>
     private void PlayFromCommandLine(CommandLineOptions options)
     {
@@ -207,7 +209,8 @@ public partial class GameRoot : Node
         }
         var colonists = new List<EntityId>();
         simulation.World.Query<Colonist>(colonists);
-        if (options.Orders && colonists.Count > 0)
+        // The benchmark measures a colony at work.
+        if ((options.Orders || options.BenchmarkSeconds is not null) && colonists.Count > 0)
         {
             // Applied at once, like orders given while time is stopped, so their marks show even
             // with no --ticks or under --options.
@@ -224,6 +227,13 @@ public partial class GameRoot : Node
         if (options.Options)
         {
             screen.OpenOptions();
+        }
+
+        if (options.BenchmarkSeconds is { } seconds)
+        {
+            var benchmark = Benchmark.Create(screen, seconds);
+            benchmark.Finished += code => GetTree().Quit(code);
+            screen.AddChild(benchmark);
         }
     }
 

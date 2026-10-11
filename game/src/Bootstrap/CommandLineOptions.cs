@@ -46,6 +46,12 @@ public sealed record CommandLineOptions
     /// <summary>Give the smoke's orders around the arrival at the start, to see them in screenshots (milestone H1.7).</summary>
     public bool Orders { get; init; }
 
+    /// <summary>
+    /// Play a game for this many seconds at the fastest speed, with the smoke's orders, then report
+    /// frame times and ticks and quit (milestone H1.8). It needs a window.
+    /// </summary>
+    public int? BenchmarkSeconds { get; init; }
+
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];
 
@@ -113,6 +119,15 @@ public sealed record CommandLineOptions
 
                     options = options with { Zoom = zoom };
                     break;
+                case "--benchmark":
+                    var seconds = NumberAfter<int>(args, ref i);
+                    if (seconds <= 0)
+                    {
+                        throw new ArgumentException("--benchmark must be positive.");
+                    }
+
+                    options = options with { BenchmarkSeconds = seconds };
+                    break;
                 default:
                     unknown.Add(args[i]);
                     break;
@@ -128,7 +143,8 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}, play={Play}, options={Options}";
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}, play={Play}, options={Options}, " +
+        $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

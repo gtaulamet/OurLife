@@ -88,6 +88,7 @@ Van después de `--`:
 | `--orders` | Con `--play`, da las órdenes del smoke alrededor de la llegada | H1.7 |
 | `--inspect` | Con `--play`, selecciona al primer colono para ver el inspector | H1.7 |
 | `--zoom <n>` | Distancia de la cámara a lo que mira; menos es más cerca (por defecto 85) | H1.7 |
+| `--benchmark <s>` | Juega `<s>` segundos a 4× con las órdenes del smoke, sin vsync, y mide FPS y ms por tick. Sale con 1 si no llega a 60 FPS de media o pasa de 2 ms por tick. Necesita ventana | H1.8 |
 
 Sin argumentos, el juego abre el menú principal. El smoke, además de simular, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones y los menús; falla si falta un texto.
 

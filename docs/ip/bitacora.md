@@ -8,19 +8,25 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-7-interaccion-ui`, creada desde H1.6 y subida a `origin` |
-| Último commit de código | El cierre de H1.7, en `ip1/h1-7-interaccion-ui` |
-| `main` | En el cierre de H1.7, también en `origin` |
+| Rama de trabajo | `ip1/h1-8-integracion`, creada desde `main` (cierre de H1.7) y subida a `origin` |
+| Último commit de código | El avance 1 de H1.8, en `ip1/h1-8-integracion` |
+| `main` | En el cierre de H1.7 (`f2905a5`), también en `origin` |
 | Hitos hechos | H1.1 a H1.7 |
-| Hito siguiente | H1.8 Integración: playtest, balance, bugs, ms/tick, README y export de Windows (`v0.1.0`) |
-| Validación | `dotnet build` sin advertencias, 370 tests en verde, smoke con código 0 |
+| Hito en curso | H1.8 Integración: playtest, balance, bugs, ms/tick, README y export de Windows (`v0.1.0`) |
+| Validación | `dotnet build` sin advertencias, 370 tests en verde, smoke con código 0; `--benchmark 20` con 447 FPS de media y 0,033 ms por tick |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (sin cambios en H1.7) |
 
 ## Pendientes
 
 En orden:
 
-1. **H1.8 Integración:** crear la rama `ip1/h1-8-integracion` desde `main`, escribir el plan del hito y hacer un playtest con la partida completa.
+1. **H1.8 Integración, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-8-integracion` y `git push`:
+   1. Playtest automático largo y medida del presupuesto (`--benchmark`). **Hecho.**
+   2. Checklist del playtest humano en `docs/ip/playtest-ip1.md`, a partir de la definición de hecho de IP1 y de los criterios de las specs.
+   3. README y CREDITS al día para `v0.1.0`.
+   4. Exportación de Windows: preset en `game/export_presets.cfg`, contenido JSON incluido, plantillas de exportación de Godot 4.7.2 .NET (hoy **no están instaladas**: la carpeta `%APPDATA%\Godot\export_templates` está vacía) y verificación del ejecutable exportado.
+   5. Balance según el playtest (ver punto 3).
+   6. Playtest humano con el checklist, revisión de código, cierre de IP1 y tag `v0.1.0`.
 2. **Quedan de H1.7 para H1.8 o el backlog** (detalle en `docs/art.md` y el registro de H1.7 de `IP1.md`):
    - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
    - Un arbusto que muestre las bayas; hoy con y sin frutos se distinguen sólo por la forma.
@@ -31,6 +37,7 @@ En orden:
    - El fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
    - En la vista 3D se ven como un serrucho.
    - La luz deja el nivel actual un 40 % más claro que el color del catálogo, y eso ayuda a distinguirlo.
+   - **Playtest automático de H1.8:** la colonia sobrevive un año entero, invierno incluido, en las semillas 1 y 42 (y 30 días en la 7), con las órdenes del smoke. Las bayas rebrotan todo el año y no hay amenazas: hoy no se puede perder. Decidir con el usuario si las bayas dejan de rebrotar en invierno o si eso queda para IP2.
 
 El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
 
@@ -88,6 +95,15 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - El nombre de la aldea se ve en la barra superior. Todavía no se guarda en la simulación: hará falta para el guardado de IP2.
   - El smoke arma la pantalla de partida con el inspector, la pausa, las opciones y los tres menús, y falla si falta un texto.
   - Revisadas las capturas del menú principal y de las opciones en es y en. La casilla de pantalla completa tiene poco contraste sobre el fondo oscurecido: revisar en QA.
+
+### 2026-10-11: H1.8 Integración (en curso)
+
+- Creé la rama `ip1/h1-8-integracion` desde `main` y dividí el hito en seis avances (ver Pendientes).
+- Avance 1:
+  - Playtest automático con el smoke: 30 días (43 200 ticks) en las semillas 1, 42 y 7, y un año y medio (150 000 ticks) en la 1 y la 42. Los 5 colonos sobreviven siempre; unos 0,006 ms por tick.
+  - Modo `--benchmark <s>`: juega a 4× con las órdenes, sin vsync, descarta 2 s y mide FPS y ms por tick; sale con 1 si no cumple 60 FPS y 2 ms por tick. `GameSession.TickTime` mide el tiempo de los ticks fuera del Core.
+  - Resultado en esta PC (RTX 4090 de portátil, ventana de 1280×720): 447 FPS de media, 360 en el 1 % más lento, 0,033 ms por tick.
+  - El def de otra época bloqueado ya lo cubre `UnlockServiceTests`.
 
 ### 2026-10-11: H1.7, avance 7 (QA y cierre)
 
