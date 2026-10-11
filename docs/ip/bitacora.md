@@ -26,7 +26,7 @@ En orden:
    3. README y CREDITS al día para `v0.1.0`. **Hecho.**
    4. Exportación de Windows. **Hecho:** `tools/package-windows.ps1` arma `builds/OurLife-v0.1.0-windows-x86_64.zip`. Las plantillas de Windows x86_64 de Godot 4.7.2 .NET están instaladas en esta PC, en `%APPDATA%\Godot\export_templates\4.7.2.stable.mono`; en la otra PC habría que instalarlas (README, "Exportar para Windows").
    5. Balance: invierno sin bayas. **Hecho** (ver Historial).
-   6. Playtest humano con el checklist, revisión de código, cierre de IP1 y tag `v0.1.0`. **Esperando el playtest del usuario** con `docs/ip/playtest-ip1.md`. La revisión de código de H1.8 ya se hizo. Después: corregir los hallazgos, registro de H1.8 en `IP1.md`, adelantar `main` y, con el visto bueno del usuario, el tag `v0.1.0`.
+   6. Playtest humano con el checklist, revisión de código, cierre de IP1 y tag `v0.1.0`. **Esperando el playtest del usuario** con `docs/ip/playtest-ip1.md`. La pasada automática con el exportado ya está hecha y anotada en ese archivo (un hallazgo menor: el registro no muestra el día). La revisión de código de H1.8 ya se hizo. Después: corregir los hallazgos, registro de H1.8 en `IP1.md`, adelantar `main` y, con el visto bueno del usuario, el tag `v0.1.0`.
 2. **Quedan de H1.7 para H1.8 o el backlog** (detalle en `docs/art.md` y el registro de H1.7 de `IP1.md`):
    - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
    - Un arbusto que muestre las bayas; hoy con y sin frutos se distinguen sólo por la forma.
