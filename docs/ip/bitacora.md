@@ -8,10 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-8-integracion`, ya en `main` |
+| Rama de trabajo | `ip2/h2-1-guardado`, creada desde `main` |
 | `main` | En el cierre de IP1, con el tag `v0.1.0`, también en `origin` |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
-| Siguiente | IP2 "Asentamiento" (`plan-maestro.md`, sección 7.3) |
+| IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
+| Siguiente | H2.1 Guardado y carga |
 | Validación | `dotnet build` sin advertencias, 379 tests en verde, smoke con código 0 en el editor y en el exportado; `--benchmark 20` del exportado con 431 FPS de media y 0,039 ms por tick |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `05BB6F15EEBBEDC9` con `--seed 42 --ticks 5000` (cambió en H1.8 por el balance de las bayas) |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
@@ -20,16 +21,13 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Planificar IP2:** escribir `docs/ip/IP2.md` a partir de la sección 7.3 de `plan-maestro.md`, con sus hitos, horas y definición de hecho, y crear la rama del primer hito desde `main`. Incluye el ciclo de día y noche y el sueño nocturno, que el usuario sumó el 2026-10-11.
-2. **Para revisar al planificar IP2** (algunos pueden entrar ahí):
-   - Del backlog: el día en el registro de eventos (hallazgo del playtest), la pantalla de error al arrancar y la agrupación de miles del español según CLDR.
-   - Guardar el nombre de la aldea en la simulación, que el guardado de IP2 necesita.
-   - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
-   - Un arbusto que muestre las bayas; hoy con y sin frutos se distinguen sólo por la forma.
-   - Que `EntityRenderer` cambie los modelos cuando cambie la época (llega con la segunda época).
-   - Los argumentos de entidad y de def en `TextResolver`, con el primer texto que los use (`docs/i18n.md`).
-   - El fondo del valle tiene muchas rampas, que en 3D se ven como un serrucho. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
-   - El sueño nocturno de IP2 cambia el ritmo de las comidas: volver a correr los tests del invierno (`ColonyTests`).
+1. **H2.1 Guardado y carga** (`IP2.md`):
+   1. Spec `docs/gdd/guardado.md` y ADR del formato de guardado.
+   2. Nombre de la aldea en la simulación; `SaveGame` en Core que escribe y lee todo el estado, con los derivados recalculados al cargar; test de continuidad en varias semillas.
+   3. Ranuras y autoguardado diario en `game/`; pantalla de carga; guardar desde la pausa; "Cargar" habilitado.
+   4. Pantalla de error al arrancar y al cargar.
+   5. Textos es y en, capturas, smoke con guardar y cargar, revisión de código y cierre.
+2. Después: H2.2 a H2.7, en el orden de la ruta crítica de `IP2.md`.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -45,6 +43,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-11: planificación de IP2
+
+- `docs/ip/IP2.md`: siete hitos (guardado, día y noche con sueño, almacenes, construcción, muebles y camas, gestión, integración), con horas, entregables y definición de hecho.
+- El guardado va primero para que el test de continuidad cubra todo lo que se agregue después.
+- Pendientes de IP1 repartidos: el nombre de la aldea y la pantalla de error en H2.1, el día en el registro y el balance del invierno en H2.2, `terrainAmplitude` se evalúa en H2.4 y los argumentos de entidad en `TextResolver` en H2.6. Lo de arte que no entra quedó en el backlog.
+- Rama `ip2/h2-1-guardado` creada desde `main`.
 
 ### 2026-10-10: H1.7 Interacción y UI (en curso)
 
