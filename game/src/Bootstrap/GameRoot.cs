@@ -78,6 +78,15 @@ public partial class GameRoot : Node
             GD.PushWarning($"Unknown command line argument ignored: {argument}");
         }
 
+        if (options.LicensesPath is { } licensesPath)
+        {
+            var fullPath = Path.GetFullPath(licensesPath);
+            File.WriteAllText(fullPath, LicenseNotices.Build());
+            GD.Print($"[licenses] {fullPath}");
+            GetTree().Quit(ExitOk);
+            return;
+        }
+
         var automated = options.Smoke || options.ScreenshotPath is not null || options.BenchmarkSeconds is not null;
         _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
 

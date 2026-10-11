@@ -16,6 +16,13 @@ Todo asset o código de terceros se registra aquí **antes** de entrar al reposi
 |---|---|---|---|---|
 | Algoritmo PCG32 (XSH-RR) | Melissa O'Neill | Algoritmo publicado; implementación propia en `src/OurLife.Core/Sim/Pcg32.cs`, verificada contra la salida de la implementación de referencia (Apache 2.0) | pcg-random.org | Generador aleatorio de la simulación |
 
+## Motor y runtime que viajan con el juego exportado
+
+| Componente | Licencia | Cómo se cumple |
+|---|---|---|
+| Godot Engine 4.7.2 y sus componentes de terceros (FreeType, ENet, mbedTLS y otros) | MIT (Expat) y las licencias de cada componente | `tools/package-windows.ps1` pide al ejecutable exportado sus avisos (`--licenses`) y los deja en `LICENSES.txt`, junto al juego |
+| Runtime .NET 8 | MIT | Su aviso también va en `LICENSES.txt` |
+
 ## Paquetes NuGet
 
 Las dependencias NuGet se declaran en los archivos `.csproj` y conservan sus propias licencias.

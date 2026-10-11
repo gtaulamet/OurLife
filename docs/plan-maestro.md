@@ -293,7 +293,7 @@ ourlife/
 
 - Dependencias: `Game → Core` y `Game → Localization`. `Core` y `Localization` no dependen entre sí ni de Godot.
 - Los tests leen `game/content/` directamente.
-- Verificar en el export que `content/*.json` quede incluido; si no, agregarlo al filtro de archivos no-recurso.
+- El preset de exportación incluye `content/*.json` y `assets/models/visuals.json` en el filtro de archivos no-recurso. Verificado en H1.8: el ejecutable exportado pasa el smoke con la misma huella que el editor.
 
 ---
 

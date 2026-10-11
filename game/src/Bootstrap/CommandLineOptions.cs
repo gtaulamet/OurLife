@@ -52,6 +52,12 @@ public sealed record CommandLineOptions
     /// </summary>
     public int? BenchmarkSeconds { get; init; }
 
+    /// <summary>
+    /// Write the licenses of the engine and the runtime that ship with an exported game to this
+    /// path and quit (milestone H1.8). The packaging script puts the file next to the game.
+    /// </summary>
+    public string? LicensesPath { get; init; }
+
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];
 
@@ -128,6 +134,9 @@ public sealed record CommandLineOptions
 
                     options = options with { BenchmarkSeconds = seconds };
                     break;
+                case "--licenses":
+                    options = options with { LicensesPath = ValueAfter(args, ref i) };
+                    break;
                 default:
                     unknown.Add(args[i]);
                     break;
@@ -144,7 +153,7 @@ public sealed record CommandLineOptions
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
         $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}, play={Play}, options={Options}, " +
-        $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
+        $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {
