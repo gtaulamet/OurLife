@@ -22,11 +22,10 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H2.1 Guardado y carga** (`IP2.md`):
-   1. Spec `docs/gdd/guardado.md` y ADR del formato de guardado.
-   2. Nombre de la aldea en la simulación; `SaveGame` en Core que escribe y lee todo el estado, con los derivados recalculados al cargar; test de continuidad en varias semillas.
-   3. Ranuras y autoguardado diario en `game/`; pantalla de carga; guardar desde la pausa; "Cargar" habilitado.
-   4. Pantalla de error al arrancar y al cargar.
-   5. Textos es y en, capturas, smoke con guardar y cargar, revisión de código y cierre.
+   1. Nombre de la aldea en la simulación; `SaveGame` en Core que escribe y lee todo el estado, con los derivados recalculados al cargar; test de continuidad en varias semillas.
+   2. Ranuras y autoguardado diario en `game/`; pantalla de carga; guardar desde la pausa; "Cargar" habilitado.
+   3. Pantalla de error al arrancar y al cargar.
+   4. Textos es y en, capturas, smoke con guardar y cargar, revisión de código y cierre.
 2. Después: H2.2 a H2.7, en el orden de la ruta crítica de `IP2.md`.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
@@ -50,6 +49,7 @@ En orden:
 - El guardado va primero para que el test de continuidad cubra todo lo que se agregue después.
 - Pendientes de IP1 repartidos: el nombre de la aldea y la pantalla de error en H2.1, el día en el registro y el balance del invierno en H2.2, `terrainAmplitude` se evalúa en H2.4 y los argumentos de entidad en `TextResolver` en H2.6. Lo de arte que no entra quedó en el backlog.
 - Rama `ip2/h2-1-guardado` creada desde `main`.
+- H2.1, avance 1: spec `docs/gdd/guardado.md` (qué se guarda, ranuras, autoguardado a las 00:00, pantallas, errores, textos y criterios) y ADR-010 (ZIP con `header.json` y `state.json`, tipos con nombre estable en `SaveTypes`, materiales por id, versión de formato y errores tipados).
 
 ### 2026-10-10: H1.7 Interacción y UI (en curso)
 
