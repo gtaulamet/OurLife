@@ -22,8 +22,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H2.1 Guardado y carga** (`IP2.md`):
-   1. Capturas es y en de Cargar, Guardar y Error; probar en el editor guardar, cargar y el autoguardado.
-   2. Revisión de código, documentación (`overview.md`, skill `godot-run`, `IP2.md`) y cierre.
+   1. Revisión de código, documentación (`overview.md`, skill `godot-run`, `IP2.md`) y cierre.
 2. Después: H2.2 a H2.7, en el orden de la ruta crítica de `IP2.md`.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
@@ -62,6 +61,7 @@ En orden:
   - Opciones `--saves <carpeta>`, `--load <ranura>` y `--show load|save|error`.
   - El smoke guarda y carga en memoria (misma huella, y la misma 600 ticks después), escribe, lista y carga una ranura en `user://smoke-saves` y arma las pantallas nuevas. Un valle guardado pesa 33 KB y tarda unos 33 ms en guardarse y otro tanto en cargarse.
   - 23 claves nuevas en es y en; se quitó `ui.mainmenu.load_later`.
+- H2.1, avance 4 (capturas): menú principal, Cargar, Guardar y Error revisadas en es y en (en `game/out/h21-*.png`, con `--saves out/saves`; la carpeta es relativa a `game/`). El autoguardado apareció al pasar la medianoche con `--ticks 1500`. Los botones de menú se estiraban en las columnas anchas: ahora mantienen su ancho, centrados.
 
 ### 2026-10-10: H1.7 Interacción y UI (en curso)
 

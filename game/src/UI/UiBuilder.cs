@@ -83,10 +83,10 @@ public static class UiBuilder
         return root;
     }
 
-    /// <summary>A menu button whose text is a key.</summary>
+    /// <summary>A menu button whose text is a key. It keeps its width, centred, in a wider column.</summary>
     public static Button MenuButton(string key, Action pressed)
     {
-        var button = new Button { Text = key, CustomMinimumSize = new Vector2(360, 0) };
+        var button = new Button { Text = key, CustomMinimumSize = new Vector2(360, 0), SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter };
         button.AddThemeFontSizeOverride("font_size", MenuSize);
         button.Pressed += pressed;
         return button;
