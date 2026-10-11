@@ -10,7 +10,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 |---|---|
 | Rama de trabajo | `ip1/h1-7-interaccion-ui`, creada desde H1.6 y subida a `origin` |
 | Último commit de código | El cierre de H1.7, en `ip1/h1-7-interaccion-ui` |
-| `main` | En `48dac75`, el cierre de H1.6, también en `origin`. Falta adelantarlo a H1.7 |
+| `main` | En el cierre de H1.7, también en `origin` |
 | Hitos hechos | H1.1 a H1.7 |
 | Hito siguiente | H1.8 Integración: playtest, balance, bugs, ms/tick, README y export de Windows (`v0.1.0`) |
 | Validación | `dotnet build` sin advertencias, 370 tests en verde, smoke con código 0 |
@@ -20,15 +20,14 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Cerrar H1.7:** una última ronda de revisión de código sobre el cierre, adelantar `main` con `git fetch . ip1/h1-7-interaccion-ui:main` y subirlo.
-2. **H1.8 Integración:** crear la rama `ip1/h1-8-integracion` desde `main`, escribir el plan del hito y hacer un playtest con la partida completa.
-3. **Quedan de H1.7 para H1.8 o el backlog** (detalle en `docs/art.md` y el registro de H1.7 de `IP1.md`):
+1. **H1.8 Integración:** crear la rama `ip1/h1-8-integracion` desde `main`, escribir el plan del hito y hacer un playtest con la partida completa.
+2. **Quedan de H1.7 para H1.8 o el backlog** (detalle en `docs/art.md` y el registro de H1.7 de `IP1.md`):
    - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
    - Un arbusto que muestre las bayas; hoy con y sin frutos se distinguen sólo por la forma.
    - Guardar el nombre de la aldea en la simulación, para el guardado de IP2.
    - Que `EntityRenderer` cambie los modelos cuando cambie la época (llega con la segunda época).
    - Los argumentos de entidad y de def en `TextResolver`, con el primer texto que los use (`docs/i18n.md`).
-4. **Para el balance de H1.8:**
+3. **Para el balance de H1.8:**
    - El fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
    - En la vista 3D se ven como un serrucho.
    - La luz deja el nivel actual un 40 % más claro que el color del catálogo, y eso ayuda a distinguirlo.
@@ -101,6 +100,8 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - Segunda ronda: 10 hallazgos más, todos corregidos (detalle en `IP1.md`). Lo más importante: un clic en el cuerpo de un colono elegía la celda de atrás; ahora se elige por la caja del modelo dibujado, y el smoke lo comprueba. La lista de órdenes sale del enum (`DesignationKinds.Id`). 369 tests y las mismas huellas.
 - Tercera ronda: 10 hallazgos, 9 corregidos y uno descartado con su motivo (detalle en `IP1.md`). Lo más importante: un colono detrás de una loma ganaba el clic; `MapRaycast` ahora informa la distancia del impacto. También faltaban los `.uid` de 11 scripts: `--import` los genera sin abrir el editor. 370 tests.
 - Documentación de cierre: `IP1.md` (H1.7 hecho), `plan-maestro.md` (árbol de `game/src`), `overview.md`, ADR-009 ("Resuelto en H1.7"), `art.md` (modelos que faltan), `i18n.md`, la skill `godot-run` y los agentes godot-engineer y qa-tester, con las opciones nuevas de captura. Los ejemplos de captura del valle necesitan `--play`, porque sin él el juego abre el menú.
+- Cuarta ronda: 10 hallazgos, 7 corregidos y 3 descartados con su motivo (detalle en `IP1.md`). Lo principal: soltar una orden fuera del mapa o sobre el HUD marca la caja que se veía, un clic sobre un colono contra el cielo lo selecciona, y el primer cuadro ya no corre 40 ticks de golpe. Las capturas ignoran el ratón real.
+- Adelanté `main` al cierre de H1.7 y lo subí.
 
 ### 2026-10-10: H1.6 Colonos e IA
 

@@ -3,7 +3,6 @@ using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
-using OurLife.Core.Pathfinding;
 using OurLife.Core.Sim;
 
 namespace OurLife.Game.Rendering;
@@ -239,10 +238,8 @@ public partial class EntityRenderer : Node3D
         }
 
         var next = movement.Path[movement.Next];
-        var ticksPerTile = world.TryGet<Colonist>(entity, out var colonist)
-            ? _simulation.Content.Get<CreatureDef>(colonist.Creature).MoveTicksPerTile
-            : 1;
-        var cost = ticksPerTile * PathFinder.StepCost(position.Cell, next);
+        // The same cost the simulation walks by, so the drawn fraction matches its progress.
+        var cost = MovementSystem.StepCost(_simulation, entity, position.Cell, next);
         var fraction = Math.Clamp((float)movement.Progress / cost, 0f, 1f);
         var there = CellBase(next.X, next.Y, next.Z);
 

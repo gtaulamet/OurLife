@@ -2,6 +2,7 @@ using Godot;
 using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
+using OurLife.Core.Entities;
 using OurLife.Core.Sim;
 using OurLife.Core.WorldGen;
 using OurLife.Game.Bootstrap;
@@ -78,6 +79,16 @@ public partial class GameScreen : Node
             // The arrival emitted events before anyone listened: the view already drew what they
             // announce and ignores them, and the log shows the welcome message.
             screen.Session.Advance(0);
+
+            // A simulation already lost, like a long smoke, emitted its ColonyLostEvent before
+            // anyone listened: the end shows from the state.
+            var colonists = new List<EntityId>();
+            simulation.World.Query<Colonist>(colonists);
+            if (colonists.Count == 0)
+            {
+                screen.ShowTheEnd();
+            }
+
             return screen;
         }
         catch
@@ -157,7 +168,15 @@ public partial class GameScreen : Node
 
     private void WatchForTheEnd(IReadOnlyList<ISimEvent> events)
     {
-        if (_over || !events.Any(simEvent => simEvent is ColonyLostEvent))
+        if (events.Any(simEvent => simEvent is ColonyLostEvent))
+        {
+            ShowTheEnd();
+        }
+    }
+
+    private void ShowTheEnd()
+    {
+        if (_over)
         {
             return;
         }

@@ -199,6 +199,12 @@ public partial class GameRoot : Node
     {
         var screen = StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
         var simulation = screen.Session.Simulation;
+
+        // A capture shows the same thing wherever the real mouse happens to be.
+        if (options.ScreenshotPath is not null)
+        {
+            screen.Input.SetProcessUnhandledInput(false);
+        }
         var colonists = new List<EntityId>();
         simulation.World.Query<Colonist>(colonists);
         if (options.Orders && colonists.Count > 0)

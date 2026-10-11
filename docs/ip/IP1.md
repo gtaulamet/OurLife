@@ -433,3 +433,13 @@
   - El id de cada forma de celda estaba en el inspector y en un test; ahora está en Core (`TileShapes.Id`).
   - Faltaban los `.uid` de 11 scripts nuevos; los generó `--import`.
   - Queda como está: que el inspector recorra las entidades para hallar las de una celda. Son unas 300 en el valle, y desde la segunda ronda sólo se recorren si pasó un tick o llegaron eventos.
+- Cuarta ronda, con 10 hallazgos; 7 corregidos:
+  - Soltar una orden fuera del mapa o sobre el HUD no marcaba nada, aunque la caja se veía. Ahora se marca la caja hasta la última celda apuntada, y un botón soltado sobre el HUD también termina el arrastre.
+  - Un clic en un colono recortado contra el cielo no lo seleccionaba, porque el clic exigía terreno detrás. Un clic sobre nada quita la selección.
+  - Sobre el HUD o fuera de la ventana, el marco seguía en la última celda del mundo.
+  - Una partida que llegaba perdida a la pantalla no mostraba el fin: ahora también se detecta por el estado.
+  - `EntityRenderer` copiaba el costo de paso de `MovementSystem`; ahora lo consulta en Core (`MovementSystem.StepCost`).
+  - El primer cuadro de una partida corría 40 ticks de golpe, por el tiempo de generar el mundo.
+  - Los nombres de las acciones de órdenes se armaban en cada cuadro.
+  - Además, las capturas ignoran el ratón real, para que el marco no aparezca donde esté el cursor.
+  - Quedan como están: usar `Aabb.IntersectsRay` en lugar de la prueba propia (no existe en la API de C# de Godot 4.7); el recorrido del inspector (ver tercera ronda); y crear un `Theme` por pantalla, que sólo pasa al cambiar de menú.

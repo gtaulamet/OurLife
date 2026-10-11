@@ -70,8 +70,8 @@ Las teclas de las órdenes son las mismas en los dos idiomas. Excavar usa la M (
 
 - El rayo de la cámara recorre la grilla celda por celda e ignora las que están por encima del nivel de la vista. La primera celda que no es aire es la apuntada: un muro (por arriba o por el costado), o una celda de suelo, rampa o escalera.
 - Una celda apuntada se resalta con un marco.
-- **Marcar un área:** al soltar el botón, la caja entre la celda del primer clic y la del último se envía como `DesignateCommand` con la orden activa. Mientras se arrastra se dibuja la caja. La caja queda en el nivel de la primera celda, para que arrastrar sobre una ladera no marque todas las celdas enterradas entre las dos alturas. Para abarcar varios niveles, por ejemplo una escalera, se cambia el nivel de la vista (RePág, AvPág) mientras se arrastra. Si el botón se suelta fuera del mapa, no se marca nada.
-- **Seleccionar:** un clic elige al colono cuyo modelo está bajo el ratón, el más cercano a la cámara. Si no hay ninguno, elige al colono de la celda apuntada o de la de arriba (con varios, el de menor id), y si tampoco hay, la celda.
+- **Marcar un área:** al soltar el botón, la caja entre la celda del primer clic y la del último se envía como `DesignateCommand` con la orden activa. Mientras se arrastra se dibuja la caja. La caja queda en el nivel de la primera celda, para que arrastrar sobre una ladera no marque todas las celdas enterradas entre las dos alturas. Para abarcar varios niveles, por ejemplo una escalera, se cambia el nivel de la vista (RePág, AvPág) mientras se arrastra. Si el botón se suelta fuera del mapa o sobre el HUD, se marca la caja que se veía, hasta la última celda apuntada. Sobre el HUD no se enmarca ninguna celda.
+- **Seleccionar:** un clic elige al colono cuyo modelo está bajo el ratón, el más cercano a la cámara. Si no hay ninguno, elige al colono de la celda apuntada o de la de arriba (con varios, el de menor id), y si tampoco hay, la celda. Un clic donde no hay nada, como el cielo, quita la selección.
 
 ## Inspector
 

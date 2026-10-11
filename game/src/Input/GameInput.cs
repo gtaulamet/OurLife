@@ -30,14 +30,26 @@ public partial class GameInput : Node3D
     // Keys 1 to 3 choose the speeds of GameSession.Speeds, in order.
     private static readonly string[] SpeedActions = [InputActions.Speed1, InputActions.Speed2, InputActions.Speed3];
 
+    // Built once: the keys are checked every frame.
+    private static readonly (DesignationKind Kind, string Action)[] OrderActions =
+        Enum.GetValues<DesignationKind>().Select(kind => (kind, InputActions.Order(kind))).ToArray();
+
     private GameSession _session = null!;
     private WorldView _view = null!;
     private MeshInstance3D _hover = null!;
     private MeshInstance3D _selected = null!;
     private MeshInstance3D _box = null!;
+
+    // Where the mouse is over the world, or null since it left the window.
     private Vector2? _mouse;
     private TileCoord? _hoverCell;
+
+    // A left press over the world, until its release.
+    private bool _pressed;
     private TileCoord? _dragStart;
+
+    // The last cell the drag pointed at: the box keeps it if the mouse leaves the map or goes over the HUD.
+    private TileCoord? _dragEnd;
     private int _dragLevel;
     private Selection? _selection;
     private DesignationKind? _order;
@@ -64,8 +76,11 @@ public partial class GameInput : Node3D
                 return;
             }
 
+            // A change of order drops the drag under way.
             _order = value;
+            _pressed = false;
             _dragStart = null;
+            _dragEnd = null;
             _box.Visible = false;
             OrderChanged?.Invoke(value);
         }
@@ -94,10 +109,15 @@ public partial class GameInput : Node3D
     {
         HandleKeys();
 
-        // Every frame, as the camera and the view level also move without the mouse.
-        if (_mouse is { } mouse)
+        // Every frame, as the camera and the view level also move without the mouse. Over the
+        // HUD the mouse points at no cell.
+        var overHud = GetViewport().GuiGetHoveredControl() is not null;
+        Hover(overHud ? null : _mouse);
+
+        // A button released over the HUD never reaches _UnhandledInput: the drag ends here.
+        if (_pressed && !Godot.Input.IsMouseButtonPressed(MouseButton.Left))
         {
-            Hover(mouse);
+            Release(null);
         }
 
         // A selected colonist is followed as it walks; one that died is no longer selected.
@@ -133,7 +153,9 @@ public partial class GameInput : Node3D
                 _mouse = motion.Position;
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press:
+                _pressed = true;
                 _dragStart = PickAt(press.Position);
+                _dragEnd = _dragStart;
                 _dragLevel = _view.ViewLevel;
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } release:
@@ -156,11 +178,19 @@ public partial class GameInput : Node3D
         GetViewport().SetInputAsHandled();
     }
 
+    public override void _Notification(int what)
+    {
+        if (what == NotificationWMMouseExit)
+        {
+            _mouse = null;
+        }
+    }
+
     private void HandleKeys()
     {
-        foreach (var kind in Enum.GetValues<DesignationKind>())
+        foreach (var (kind, action) in OrderActions)
         {
-            if (Godot.Input.IsActionJustPressed(InputActions.Order(kind)))
+            if (Godot.Input.IsActionJustPressed(action))
             {
                 Order = Order == kind ? null : kind;
             }
@@ -183,19 +213,24 @@ public partial class GameInput : Node3D
     private TileCoord? PickAt(Vector2 screenPoint) =>
         CellPicker.Pick(_view.Camera.Camera, screenPoint, _session.Simulation.Map, _view.ViewLevel);
 
-    private void Hover(Vector2 screenPoint)
+    /// <summary>Frames the cell under the point, or nothing without one, and stretches the drag box to it.</summary>
+    private void Hover(Vector2? screenPoint)
     {
-        _hoverCell = PickAt(screenPoint);
+        _hoverCell = screenPoint is { } point ? PickAt(point) : null;
         _hover.Visible = _hoverCell is not null;
         if (_hoverCell is { } cell)
         {
             PlaceOn(_hover, cell, cell);
+            if (_dragStart is not null)
+            {
+                _dragEnd = cell;
+            }
         }
 
-        _box.Visible = _order is not null && _dragStart is not null && _hoverCell is not null;
+        _box.Visible = _order is not null && _dragStart is not null && _dragEnd is not null;
         if (_box.Visible)
         {
-            PlaceOn(_box, _dragStart!.Value, BoxCorner(_dragStart.Value, _hoverCell!.Value));
+            PlaceOn(_box, _dragStart!.Value, BoxCorner(_dragStart.Value, _dragEnd!.Value));
         }
     }
 
@@ -207,30 +242,41 @@ public partial class GameInput : Node3D
     private TileCoord BoxCorner(TileCoord start, TileCoord end) =>
         _view.ViewLevel == _dragLevel ? new TileCoord(end.X, end.Y, start.Z) : end;
 
-    private void Release(Vector2 screenPoint)
+    /// <summary>
+    /// Ends a left press: at a point of the world, or at none when the button was released over
+    /// the HUD. An order marks the box up to the cell released on, or else the last one the drag
+    /// pointed at, as drawn; without an order, the press was a click.
+    /// </summary>
+    private void Release(Vector2? screenPoint)
     {
-        var start = _dragStart;
-        _dragStart = null;
-        _box.Visible = false;
-        if (start is null)
+        if (!_pressed)
         {
             return;
         }
 
+        var start = _dragStart;
+        var end = (screenPoint is { } point ? PickAt(point) : null) ?? _dragEnd;
+        _pressed = false;
+        _dragStart = null;
+        _dragEnd = null;
+        _box.Visible = false;
         if (_order is { } order)
         {
-            if (PickAt(screenPoint) is { } corner)
+            if (start is { } first && end is { } last)
             {
-                _session.Enqueue(new DesignateCommand(order, start.Value, BoxCorner(start.Value, corner)));
+                _session.Enqueue(new DesignateCommand(order, first, BoxCorner(first, last)));
             }
         }
-        else
+        else if (screenPoint is { } clicked)
         {
-            ClickAt(screenPoint);
+            ClickAt(clicked);
         }
     }
 
-    /// <summary>Selects what a click at the point picks: the colonist drawn there, else the colonist or the cell under it.</summary>
+    /// <summary>
+    /// Selects what a click at the point picks: the colonist drawn there, else the colonist or the
+    /// cell under it. A click on nothing, like the sky, clears the selection.
+    /// </summary>
     public void ClickAt(Vector2 screenPoint)
     {
         var ground = CellPicker.PickWithDistance(_view.Camera.Camera, screenPoint, _session.Simulation.Map, _view.ViewLevel);
@@ -240,9 +286,9 @@ public partial class GameInput : Node3D
         {
             SelectColonist(colonist);
         }
-        else if (ground is { } hit)
+        else
         {
-            Select(SelectionAt(hit.Cell));
+            Select(ground is { } hit ? SelectionAt(hit.Cell) : null);
         }
     }
 

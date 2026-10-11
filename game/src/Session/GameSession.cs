@@ -16,6 +16,7 @@ public partial class GameSession : Node
 
     private readonly List<ISimEvent> _events = [];
     private TickPacer _pacer = null!;
+    private bool _started;
 
     public Simulation Simulation { get; private set; } = null!;
 
@@ -90,6 +91,15 @@ public partial class GameSession : Node
 
     public override void _Process(double delta)
     {
+        // The first frame's delta holds the time it took to build the game, world generation
+        // included: it would start with a burst of ticks before the player sees the map.
+        if (!_started)
+        {
+            _started = true;
+            Publish();
+            return;
+        }
+
         var ticks = _pacer.TicksFor(delta);
         for (var i = 0; i < ticks; i++)
         {

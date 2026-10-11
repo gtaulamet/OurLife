@@ -34,12 +34,11 @@ public sealed class MovementSystem : ISimSystem
             }
 
             var position = world.Get<Position>(walker);
-            var ticksPerTile = simulation.Content.Get<CreatureDef>(world.Get<Colonist>(walker).Creature).MoveTicksPerTile;
             movement.Progress += ProgressPerTick;
             while (movement.IsMoving)
             {
                 var next = movement.Path[movement.Next];
-                var cost = ticksPerTile * PathFinder.StepCost(position.Cell, next);
+                var cost = StepCost(simulation, walker, position.Cell, next);
                 if (movement.Progress < cost)
                 {
                     break;
@@ -62,6 +61,18 @@ public sealed class MovementSystem : ISimSystem
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// The progress a colonist needs for one step of its route, in the units of
+    /// <see cref="Movement.Progress"/>. A read-only query: the presentation uses it to draw the
+    /// walker between two cells.
+    /// </summary>
+    public static int StepCost(Simulation simulation, EntityId walker, TileCoord from, TileCoord to)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var creature = simulation.Content.Get<CreatureDef>(simulation.World.Get<Colonist>(walker).Creature);
+        return creature.MoveTicksPerTile * PathFinder.StepCost(from, to);
     }
 
     private static bool IsNeighbour(GameMap map, TileCoord from, TileCoord to, Span<TileCoord> neighbours)
