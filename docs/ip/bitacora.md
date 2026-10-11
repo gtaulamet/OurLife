@@ -22,7 +22,7 @@ En orden:
 
 1. **H1.8 Integración, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-8-integracion` y `git push`:
    1. Playtest automático largo y medida del presupuesto (`--benchmark`). **Hecho.**
-   2. Checklist del playtest humano en `docs/ip/playtest-ip1.md`, a partir de la definición de hecho de IP1 y de los criterios de las specs.
+   2. Checklist del playtest humano en `docs/ip/playtest-ip1.md`, a partir de la definición de hecho de IP1 y de los criterios de las specs. **Hecho.**
    3. README y CREDITS al día para `v0.1.0`. **Hecho.**
    4. Exportación de Windows. **Hecho:** `tools/package-windows.ps1` arma `builds/OurLife-v0.1.0-windows-x86_64.zip`. Las plantillas de Windows x86_64 de Godot 4.7.2 .NET están instaladas en esta PC, en `%APPDATA%\Godot\export_templates\4.7.2.stable.mono`; en la otra PC habría que instalarlas (README, "Exportar para Windows").
    5. Balance: invierno sin bayas. **Hecho** (ver Historial).
@@ -116,6 +116,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - Modo `--licenses <archivo>` (`LicenseNotices`): escribe la licencia de Godot, los avisos de sus componentes y el de .NET, leídos del propio motor. Godot exige distribuirlos con el juego.
   - `tools/package-windows.ps1`: exporta, corre el smoke sobre el exportado, agrega `LICENSES.txt` y `CREDITS.md`, y arma el zip (75 MB).
   - README con cómo se juega, cómo exportar y cómo medir; CREDITS con el motor y el runtime.
+  - Checklist del playtest humano en `docs/ip/playtest-ip1.md`, con atajos `--ticks` para empezar en otoño (43 200), en invierno (64 800) o en el día 8 del invierno (74 880). El tick 0 es el día 1 a las 06:00.
   - El lanzador de consola (`OurLife.console.exe`) sólo se genera en las exportaciones debug: el ejecutable de release no devuelve su salida a la terminal, así que se espera con `Start-Process -Wait` y se lee `%APPDATA%\OurLife\logs\godot.log`.
 
 ### 2026-10-11: H1.7, avance 7 (QA y cierre)
