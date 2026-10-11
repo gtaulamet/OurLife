@@ -4,13 +4,13 @@
 
 **Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
 
-**Estado:** planificada el 11 de octubre de 2026. En curso: H2.1.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 hecho; sigue H2.2 o H2.3, que pueden ir en paralelo.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| H2.1 Guardado y carga | En curso | `ip2/h2-1-guardado` | |
+| H2.1 Guardado y carga | Hecho | `ip2/h2-1-guardado` | Partidas en ZIP con JSON, ranuras, autoguardado diario y pantalla de error; continuidad probada en tres semillas |
 | H2.2 Día, noche y sueño | Pendiente | `ip2/h2-2-dia-noche` | |
 | H2.3 Almacenes y acarreo | Pendiente | `ip2/h2-3-almacenes` | |
 | H2.4 Construcción | Pendiente | `ip2/h2-4-construccion` | |
@@ -67,3 +67,35 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - Todo texto nuevo en es y en, con cambio de idioma en vivo.
 - `dotnet test`, smoke test y test de determinismo en verde. Capturas es/en revisadas.
 - Presupuesto: menos de 2 ms por tick de media y 60 FPS con la aldea construida en el mapa de IP1.
+
+## Registro de H2.1: Guardado y carga
+
+**Entregado**
+
+- Spec `docs/gdd/guardado.md` y ADR-010.
+- `Simulation.ColonyName`, fijado por `ColonyStart.Settle` y parte de la huella. Las huellas del smoke cambiaron: `580DB895C5F5B361` con la semilla 1 y `25578FB766A30761` con la 42 (5000 ticks).
+- `SaveGame` en Core: ZIP con `header.json` y `state.json`; materiales por id; nombres estables en `SaveTypes`; `[DefRef]` para validar ids de defs al cargar; `SaveLoadException` con motivo (`Corrupt`, `Newer`, `Older`, `MissingContent`).
+- `SaveSlots` en el juego: una ranura por archivo en `user://saves`, escritura atómica, ranuras dañadas listadas para poder borrarlas.
+- Autoguardado al empezar cada día del juego, en una ranura propia de la partida.
+- Pantallas Cargar partida, Guardar partida (desde la pausa) y Error, con confirmación para borrar y reemplazar. "Cargar partida" se habilita con alguna ranura.
+- Error al arrancar en pantalla, en el idioma del jugador si los textos cargan.
+- Opciones `--saves`, `--load` y `--show load|save|error`; el smoke guarda, carga y compara huellas.
+- 23 textos nuevos en es y en.
+
+**Verificación**
+
+- Continuidad: en Core, con una colonia que excava, tala, recolecta, tiene una orden inalcanzable y un comando pendiente; con el contenido real, en las semillas 1, 7 y 42, cortando a los 20 000 ticks y siguiendo otros 20 000. Misma huella al cargar y al final.
+- 402 tests en verde; smoke con código 0. Un valle guardado pesa 33 KB y se guarda o se carga en unos 30 ms.
+- Capturas revisadas en es y en: menú principal con Cargar habilitado, Cargar partida, Guardar partida y Error.
+
+**Revisión de código:** 10 hallazgos, 9 corregidos.
+
+- La cabecera se lee sin rechazar campos desconocidos: una partida de una versión más nueva se informa como tal y no como dañada.
+- Guardar no lanza desde el autoguardado si falta registrar un componente, y no deja el archivo temporal.
+- `--load` con una ranura que no carga sale con código 1 en las ejecuciones automáticas.
+- Listas `null` en el estado o en un componente, y entidades fuera del mapa, se rechazan como partida dañada.
+- Borrar una ranura bloqueada ya no lanza desde el botón.
+- El botón del error sin textos usa el ícono de cierre del motor, y la línea del autoguardado es un solo mensaje (`ui.slot.autosaved_at`).
+- Comentario de documentación de `BuildScreens` en su lugar.
+- Compresión: se probó `Fastest` por el tirón del autoguardado, pero ahorra poco tiempo (el costo está en el JSON) y duplica el tamaño. Queda `Optimal`, y la escritura en segundo plano pasa al backlog.
+- Descartado: convertir en error de carga una excepción de `ColonySystems.AddTo`. Si el contenido no cumple las reglas de la colonia, tampoco arranca una partida nueva, y eso ya lo cubren los tests del contenido.

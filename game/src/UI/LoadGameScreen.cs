@@ -66,7 +66,15 @@ public partial class LoadGameScreen : Control
                 _services.Text.Format("ui.load.confirm_delete", ("name", SlotTexts.Name(slot))),
                 () =>
                 {
-                    _slots.Delete(slot.Id);
+                    try
+                    {
+                        _slots.Delete(slot.Id);
+                    }
+                    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                    {
+                        GD.PushError($"The saved game '{slot.Id}' could not be deleted: {ex.Message}");
+                    }
+
                     Fill();
                 })));
         }

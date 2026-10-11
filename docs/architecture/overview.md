@@ -66,6 +66,15 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 - Al final de cada tick, la simulación publica Eventos; el render y la UI se actualizan con ellos.
 - Los paneles leen el estado con consultas de solo lectura.
 
+## Guardado
+
+- `SaveGame` (`OurLife.Core.Save`) escribe y lee una partida en un `Stream`: un ZIP con `header.json` (lo que muestra una ranura) y `state.json` (todo el estado de la huella). Formato y motivos en ADR-010; pantallas y ranuras en `docs/gdd/guardado.md`.
+- Cargar devuelve una simulación sin sistemas: quien la carga agrega los de siempre (`ColonySystems.AddTo`). Los derivados de ADR-011 se reconstruyen solos.
+- Un componente o comando nuevo se registra en `SaveTypes` con un nombre estable. Una propiedad con el id de un def lleva `[DefRef(typeof(...))]` para que la carga compruebe que existe.
+- Si un cambio deja las partidas viejas sin poder leerse, sube `SaveGame.FormatVersion`.
+- La presentación maneja los archivos con `SaveSlots` (`user://saves`, escritura en un temporal que después reemplaza la ranura) y autoguarda en `GameScreen` al empezar cada día del juego.
+- Test de continuidad: guardar a mitad, cargar y seguir da la misma huella que no cortar (`SaveGameTests` en Core y en Content). El smoke lo comprueba también.
+
 ## Tick de simulación
 
 1. Aplicar los comandos encolados en orden de llegada.
@@ -127,6 +136,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | Render 3D low-poly, cámara, capturas (ADR-009) | H1.5 | Hecho |
 | Pathfinding, IA, trabajos, necesidades (`docs/gdd/colonos-e-ia.md`) | H1.6 | Hecho |
 | Partida en tiempo real, entrada, HUD, inspector, menús (`docs/gdd/interfaz-ip1.md`) | H1.7 | Hecho |
+| Guardado y carga, ranuras, autoguardado, pantalla de error (`docs/gdd/guardado.md`, ADR-010) | H2.1 | Hecho |
 
 ## Decisiones
 
@@ -139,4 +149,5 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 - [ADR-007: Render por capas TileMapLayer](adr/ADR-007-render-tilemaplayer.md), reemplazada por ADR-009
 - [ADR-008: Épocas como datos](adr/ADR-008-epocas-como-datos.md)
 - [ADR-009: Render 3D low-poly con el Nature Kit de Kenney](adr/ADR-009-render-3d-low-poly.md)
+- [ADR-010: Guardado en JSON comprimido y versionado](adr/ADR-010-guardado-json-comprimido.md)
 - [ADR-011: Datos derivados de la colonia fuera de la huella](adr/ADR-011-datos-derivados-de-la-colonia.md)

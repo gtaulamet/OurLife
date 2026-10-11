@@ -43,7 +43,7 @@ dotnet test OurLife.sln
 - Prohibido: `System.Random`, `Random.Shared`, `DateTime.Now/UtcNow`, `Guid.NewGuid`, `Environment.TickCount`, `Stopwatch` y `Parallel`. Lo verifica un test sobre el código fuente.
 - Prohibido decidir iterando `HashSet` o `Dictionary`: iterar en orden estable, por `EntityId` ascendente.
 - Usar el RNG de la simulación, con un flujo por sistema (`simulation.Random.Get("<nombre>")`), y enteros para cantidades acumulativas.
-- Componentes y comandos son datos planos y serializables: la huella del estado (`ComputeStateHash`) los recorre en JSON.
+- Componentes y comandos son datos planos y serializables: la huella del estado (`ComputeStateHash`) y el guardado los recorren en JSON. Cada componente o comando nuevo se registra en `SaveTypes` con un nombre estable, y sus ids de defs llevan `[DefRef]` (ADR-010).
 - Cómo escribir un sistema: ejemplo en `docs/architecture/overview.md`.
 
 ## Localización

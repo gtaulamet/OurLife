@@ -38,8 +38,8 @@ public static class SlotTexts
         }
 
         var culture = services.Localizer.Catalog(services.Localizer.CurrentLocale).Culture;
-        var savedAt = services.Text.Format("ui.slot.saved_at", ("when", header.SavedAt.ToLocalTime().ToString("g", culture)));
-        return header.IsAutosave ? $"{services.Text.Format("ui.slot.autosave")} · {savedAt}" : savedAt;
+        var when = header.SavedAt.ToLocalTime().ToString("g", culture);
+        return services.Text.Format(header.IsAutosave ? "ui.slot.autosaved_at" : "ui.slot.saved_at", ("when", when));
     }
 
     /// <summary>The name of the village of a slot, for questions about it.</summary>

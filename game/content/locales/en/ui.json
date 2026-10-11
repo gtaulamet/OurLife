@@ -44,7 +44,7 @@
   "ui.save.failed": "The game could not be saved",
   "ui.slot.summary": "{name}: {date}, {clock} · {count, plural, one {# settler} other {# settlers}}",
   "ui.slot.saved_at": "Saved on {when}",
-  "ui.slot.autosave": "Autosave",
+  "ui.slot.autosaved_at": "Autosave · Saved on {when}",
   "ui.common.yes": "Yes",
   "ui.common.no": "No",
   "ui.error.title": "Something went wrong",

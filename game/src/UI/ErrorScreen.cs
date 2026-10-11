@@ -30,7 +30,7 @@ public partial class ErrorScreen : Control
 
     /// <summary>
     /// The error screen when not even the texts could load: the detail as it is, and a button
-    /// with no words, because there is nothing to translate them with.
+    /// with the engine's close icon and no words, because there is nothing to translate them with.
     /// </summary>
     public static ErrorScreen CreateUntranslated(string detail)
     {
@@ -40,8 +40,14 @@ public partial class ErrorScreen : Control
         screen.AddChild(root);
 
         column.AddChild(Message(detail));
-        var close = UiBuilder.MenuButton("X", () => screen.Closed?.Invoke());
-        close.AutoTranslateMode = AutoTranslateModeEnum.Disabled;
+        var close = new Button
+        {
+            Icon = ThemeDB.GetDefaultTheme().GetIcon("close", "Window"),
+            ExpandIcon = true,
+            CustomMinimumSize = new Vector2(64, 64),
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+        };
+        close.Pressed += () => screen.Closed?.Invoke();
         column.AddChild(close);
         return screen;
     }

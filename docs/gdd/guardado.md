@@ -82,7 +82,7 @@ Si el juego no puede arrancar porque el contenido no carga, muestra la pantalla 
 | `ui.save.failed` | No se pudo guardar la partida | The game could not be saved |
 | `ui.slot.summary` | {name}: {date}, {clock} · {count, plural, one {# colono} other {# colonos}} | {name}: {date}, {clock} · {count, plural, one {# settler} other {# settlers}} |
 | `ui.slot.saved_at` | Guardada el {when} | Saved on {when} |
-| `ui.slot.autosave` | Autoguardado | Autosave |
+| `ui.slot.autosaved_at` | Autoguardado · Guardada el {when} | Autosave · Saved on {when} |
 | `ui.common.yes` | Sí | Yes |
 | `ui.common.no` | No | No |
 | `ui.error.title` | Algo salió mal | Something went wrong |

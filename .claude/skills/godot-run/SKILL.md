@@ -59,6 +59,11 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 # La partida de cerca, con órdenes, el inspector y el registro; y las opciones sobre ella
 & $env:GODOT_BIN --path game -- --screenshot out/partida.png --locale es --seed 42 --play --level 14 --zoom 22 --ticks 200 --orders --inspect
 & $env:GODOT_BIN --path game -- --screenshot out/pausa.png --locale en --seed 42 --play --options
+# Partidas guardadas: --ticks 1500 pasa la medianoche y autoguarda en out/saves
+& $env:GODOT_BIN --path game -- --screenshot out/partida.png --seed 42 --play --ticks 1500 --saves out/saves
+& $env:GODOT_BIN --path game -- --screenshot out/cargar.png --locale es --saves out/saves --show load
+& $env:GODOT_BIN --path game -- --screenshot out/guardar.png --locale en --saves out/saves --load <ranura> --show save
+& $env:GODOT_BIN --path game -- --screenshot out/error.png --locale es --show error
 ```
 
 Las capturas necesitan ventana, así que se corren sin `--headless`. Una ruta relativa parte de `game/`, porque Godot arranca en esa carpeta: los ejemplos guardan en `game/out/`. Revisa las imágenes con Read. La carpeta `out/` no se versiona.
@@ -89,9 +94,12 @@ Van después de `--`:
 | `--inspect` | Con `--play`, selecciona al primer colono para ver el inspector | H1.7 |
 | `--zoom <n>` | Distancia de la cámara a lo que mira; menos es más cerca (por defecto 85) | H1.7 |
 | `--licenses <archivo>` | Escribe los avisos de licencia del motor y de .NET que viajan con el juego exportado, y sale. Lo usa `tools/package-windows.ps1` | H1.8 |
+| `--saves <carpeta>` | Carpeta de las partidas guardadas en lugar de `user://saves`, relativa a `game/`. Las capturas y el benchmark sólo guardan y autoguardan si se da | H2.1 |
+| `--load <ranura>` | Carga la partida de esa ranura (el nombre del archivo sin `.olsave`) en lugar del menú. Si no carga, sale con 1 | H2.1 |
+| `--show <load\|save\|error>` | Abre Cargar partida en lugar del menú; Guardar partida sobre la partida de `--play` o `--load`; o el error de una partida dañada | H2.1 |
 | `--benchmark <s>` | Juega `<s>` segundos a 4× con las órdenes del smoke, sin vsync, y mide FPS y ms por tick. Sale con 1 si no llega a 60 FPS de media o pasa de 2 ms por tick. Necesita ventana | H1.8 |
 
-Sin argumentos, el juego abre el menú principal. El smoke, además de simular, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones y los menús; falla si falta un texto.
+Sin argumentos, el juego abre el menú principal. El smoke, además de simular, guarda y carga la partida (misma huella, y la misma 600 ticks después), escribe y carga una ranura en una carpeta temporal, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones, Guardar, Cargar, el error y los menús; falla si falta un texto.
 
 ## Exportar
 

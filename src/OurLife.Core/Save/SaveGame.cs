@@ -39,6 +39,13 @@ public static class SaveGame
         Converters = { new JsonStringEnumConverter() },
     };
 
+    // The header is read leniently: a newer game may add fields to it, and its format version
+    // must still be read to say the save is newer rather than damaged.
+    private static readonly JsonSerializerOptions HeaderOptions = new(JsonOptions)
+    {
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
+    };
+
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertiesByType = new();
 
     /// <summary>Writes the game to <paramref name="output"/>, which stays open.</summary>
@@ -77,7 +84,7 @@ public static class SaveGame
         return Guard(() =>
         {
             using var archive = new ZipArchive(input, ZipArchiveMode.Read, leaveOpen: true);
-            return ReadEntry<SaveHeader>(archive, HeaderEntry);
+            return ReadEntry<SaveHeader>(archive, HeaderEntry, HeaderOptions);
         });
     }
 
@@ -90,7 +97,7 @@ public static class SaveGame
         return Guard(() =>
         {
             using var archive = new ZipArchive(input, ZipArchiveMode.Read, leaveOpen: true);
-            var header = ReadEntry<SaveHeader>(archive, HeaderEntry);
+            var header = ReadEntry<SaveHeader>(archive, HeaderEntry, HeaderOptions);
             if (header.FormatVersion > FormatVersion)
             {
                 throw new SaveLoadException(SaveLoadError.Newer, $"format {header.FormatVersion}, this game reads {FormatVersion}");
@@ -101,7 +108,7 @@ public static class SaveGame
                 throw new SaveLoadException(SaveLoadError.Older, $"format {header.FormatVersion}, this game reads {FormatVersion}");
             }
 
-            return Restore(ReadEntry<SavedState>(archive, StateEntry), content);
+            return Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content);
         });
     }
 
@@ -182,6 +189,17 @@ public static class SaveGame
 
     private static Simulation Restore(SavedState state, DefDatabase content)
     {
+        // Valid JSON can still hold null where a list belongs.
+        if (state.ColonyName is null || state.Era is null || state.Knowledge is null || state.Random is null
+            || state.Generations is null || state.FreeSlots is null || state.Components is null || state.Commands is null
+            || state.Components.Any(store => store?.Type is null || store.Entities is null || store.Entities.Any(saved => saved is null))
+            || state.Commands.Any(saved => saved?.Type is null)
+            || state.Random.Any(stream => stream?.Name is null)
+            || state.Map is { Materials: null } or { Shapes: null } or { MaterialIndexes: null } or { Flags: null })
+        {
+            throw Corrupt("a list or text of the state is null");
+        }
+
         var simulation = new Simulation(state.Seed, content) { ColonyName = state.ColonyName, CurrentTick = state.Tick };
         if (state.Tick < 0)
         {
@@ -222,6 +240,11 @@ public static class SaveGame
 
                 var component = saved.Value.Deserialize(saveType.Type, JsonOptions) ?? throw Corrupt($"a null {store.Type}");
                 CheckDefReferences(component, defIds);
+                if (component is Position position && simulation.HasMap && !simulation.Map.Size.Contains(position.X, position.Y, position.Z))
+                {
+                    throw Corrupt($"{entity} stands outside the map, at {position.Cell}");
+                }
+
                 saveType.AddTo!(simulation.World, entity, component);
             }
         }
@@ -277,7 +300,10 @@ public static class SaveGame
         return map;
     }
 
-    /// <summary>Checks the <see cref="DefRefAttribute"/> properties of a component and of the objects it holds.</summary>
+    /// <summary>
+    /// Checks the <see cref="DefRefAttribute"/> properties of a component and of the objects it
+    /// holds, and that none of its lists is null: components always start them empty.
+    /// </summary>
     private static void CheckDefReferences(object value, HashSet<(Type, string)> defIds)
     {
         foreach (var property in PropertiesByType.GetOrAdd(value.GetType(), FindCheckedProperties))
@@ -285,6 +311,11 @@ public static class SaveGame
             var child = property.GetValue(value);
             if (child is null)
             {
+                if (property.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
+                {
+                    throw Corrupt($"the list {value.GetType().Name}.{property.Name} is null");
+                }
+
                 continue;
             }
 
@@ -300,7 +331,7 @@ public static class SaveGame
             {
                 foreach (var item in items)
                 {
-                    if (item is not null)
+                    if (item is not null && item.GetType().IsClass && item.GetType().Assembly == typeof(SaveGame).Assembly)
                     {
                         CheckDefReferences(item, defIds);
                     }
@@ -313,7 +344,7 @@ public static class SaveGame
         }
     }
 
-    /// <summary>The properties that may hold def ids: marked strings, and Core classes or lists of them.</summary>
+    /// <summary>The properties to check: marked strings, Core classes and lists.</summary>
     private static PropertyInfo[] FindCheckedProperties(Type type) =>
         [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.GetIndexParameters().Length == 0)
@@ -328,11 +359,8 @@ public static class SaveGame
             return true;
         }
 
-        return type.IsGenericType
-               && typeof(IEnumerable).IsAssignableFrom(type)
-               && type.GetGenericArguments() is [var item]
-               && item.IsClass
-               && item.Assembly == typeof(SaveGame).Assembly;
+        // Every list, so a null one is caught; only Core classes inside it are walked.
+        return type.IsGenericType && typeof(IEnumerable).IsAssignableFrom(type);
     }
 
     private static void RequireDef<T>(DefDatabase content, string id)
@@ -367,17 +395,18 @@ public static class SaveGame
 
     private static void WriteEntry<T>(ZipArchive archive, string name, T value)
     {
+        // Fastest would halve the size gain and save little time: most of it goes to the JSON.
         var entry = archive.CreateEntry(name, CompressionLevel.Optimal);
         entry.LastWriteTime = EntryTimestamp;
         using var stream = entry.Open();
         JsonSerializer.Serialize(stream, value, JsonOptions);
     }
 
-    private static T ReadEntry<T>(ZipArchive archive, string name)
+    private static T ReadEntry<T>(ZipArchive archive, string name, JsonSerializerOptions options)
     {
         var entry = archive.GetEntry(name) ?? throw Corrupt($"the entry {name} is missing");
         using var stream = entry.Open();
-        return JsonSerializer.Deserialize<T>(stream, JsonOptions) ?? throw Corrupt($"the entry {name} is empty");
+        return JsonSerializer.Deserialize<T>(stream, options) ?? throw Corrupt($"the entry {name} is empty");
     }
 
     private sealed class SavedState

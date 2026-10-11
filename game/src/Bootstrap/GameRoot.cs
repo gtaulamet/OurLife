@@ -287,6 +287,12 @@ public partial class GameRoot : Node
         }
         catch (SaveLoadException ex)
         {
+            if (!_interactive)
+            {
+                Fail($"The saved game '{slotId}' cannot be loaded: {ex.Message}", ExitFailure);
+                return null;
+            }
+
             GD.PushWarning($"The saved game '{slotId}' cannot be loaded: {ex.Message}");
             ShowLoadError(ex);
             return null;
@@ -497,13 +503,6 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// Builds every screen without a window and frees them: the game screen (3D view, input and HUD,
-    /// with a colonist picked by a click and shown in the inspector) for the simulation that ran, so the view draws a
-    /// world with work done in it, the menus over it, and the main, new game and options screens.
-    /// Texts formatted in code that do not exist are then in the localizer's missing keys, and the
-    /// smoke fails.
-    /// </summary>
-    /// <summary>
     /// The default village name in the default language: the name is part of the state, so the
     /// smoke's fingerprint must not depend on <c>--lang</c>.
     /// </summary>
@@ -573,6 +572,13 @@ public partial class GameRoot : Node
         }
     }
 
+    /// <summary>
+    /// Builds every screen without a window and frees them: the game screen (3D view, input and HUD,
+    /// with a colonist picked by a click and shown in the inspector) for the simulation that ran, so the view draws a
+    /// world with work done in it, the menus over it, and the main, new game and options screens.
+    /// Texts formatted in code that do not exist are then in the localizer's missing keys, and the
+    /// smoke fails. The pause menu has Save, and the save, load and error screens are built too.
+    /// </summary>
     private void BuildScreens(Simulation simulation, CommandLineOptions options, SaveSlots slots)
     {
         var stopwatch = Stopwatch.StartNew();

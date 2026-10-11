@@ -27,7 +27,7 @@ Eres el ingeniero de Godot de OurLife. Antes de empezar, lee `CLAUDE.md` y `docs
 
 - `dotnet build OurLife.sln` sin errores.
 - Si `GODOT_BIN` existe: `& $env:GODOT_BIN --headless --path game -- --smoke` debe salir con código 0.
-- Para cambios visuales: `& $env:GODOT_BIN --path game -- --screenshot out/<nombre>.png --locale es` y lo mismo con `en`. Sin más opciones la captura muestra el menú principal; `--play` muestra la partida, `--level <z>` elige el nivel del corte, `--zoom <n>` acerca la cámara, `--orders` e `--inspect` muestran órdenes y el inspector, `--options` abre las opciones y `--probe` muestra la pantalla de prueba de idiomas. La lista completa está en la skill `godot-run`. Revisa las imágenes con Read.
+- Para cambios visuales: `& $env:GODOT_BIN --path game -- --screenshot out/<nombre>.png --locale es` y lo mismo con `en`. Sin más opciones la captura muestra el menú principal; `--play` muestra la partida, `--level <z>` elige el nivel del corte, `--zoom <n>` acerca la cámara, `--orders` e `--inspect` muestran órdenes y el inspector, `--options` abre las opciones, `--saves`, `--load` y `--show load|save|error` muestran las partidas guardadas y `--probe` muestra la pantalla de prueba de idiomas. La lista completa está en la skill `godot-run`. Revisa las imágenes con Read.
 
 ## Al terminar
 

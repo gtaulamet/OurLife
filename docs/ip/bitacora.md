@@ -8,12 +8,13 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-1-guardado`, creada desde `main` |
+| Rama de trabajo | `ip2/h2-1-guardado`, con H2.1 terminado y en `origin`; falta adelantar `main` |
 | `main` | En el cierre de IP1, con el tag `v0.1.0`, también en `origin` |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Siguiente | H2.1 Guardado y carga |
-| Validación | `dotnet build` sin advertencias, 398 tests en verde, smoke con código 0 (H2.1, avance 2) |
+| Hitos de IP2 hechos | H2.1 Guardado y carga |
+| Siguiente | H2.2 Día, noche y sueño, o H2.3 Almacenes y acarreo |
+| Validación | `dotnet build` sin advertencias, 402 tests en verde, smoke con código 0 con la comprobación de guardado y carga |
 | Huella del smoke | `580DB895C5F5B361` con `--seed 1 --ticks 5000`; `25578FB766A30761` con `--seed 42 --ticks 5000`. Cambiaron en H2.1 porque el nombre de la aldea entra en el estado |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -21,10 +22,10 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H2.1 Guardado y carga** (`IP2.md`):
-   1. Revisión de código, documentación (`overview.md`, skill `godot-run`, `IP2.md`) y cierre.
-2. Después: H2.2 a H2.7, en el orden de la ruta crítica de `IP2.md`.
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+1. **Cerrar H2.1:** adelantar `main` con `git fetch . ip2/h2-1-guardado:main` y subirlo.
+2. **Probar en el editor** (lo puede hacer el usuario): guardar desde la pausa en una ranura nueva y en una existente, cargar desde el menú, y ver aparecer el autoguardado después de la medianoche del juego.
+3. **H2.2 o H2.3** (`IP2.md`), en ramas `ip2/h2-2-dia-noche` o `ip2/h2-3-almacenes` desde `main`. Cada componente o comando nuevo se registra en `SaveTypes`, y el escenario de continuidad de `SaveGameTests` debe ejercitar el estado nuevo.
+4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
@@ -61,6 +62,7 @@ En orden:
   - Opciones `--saves <carpeta>`, `--load <ranura>` y `--show load|save|error`.
   - El smoke guarda y carga en memoria (misma huella, y la misma 600 ticks después), escribe, lista y carga una ranura en `user://smoke-saves` y arma las pantallas nuevas. Un valle guardado pesa 33 KB y tarda unos 33 ms en guardarse y otro tanto en cargarse.
   - 23 claves nuevas en es y en; se quitó `ui.mainmenu.load_later`.
+- H2.1, avance 5 (revisión de código y cierre): 10 hallazgos, 9 corregidos y uno descartado con su motivo (detalle en el registro de H2.1 de `IP2.md`). Documentación: `overview.md` (sección Guardado), ADR-010 en la lista, skill `godot-run`, agentes y `CLAUDE.md` (registrar cada componente o comando en `SaveTypes`). H2.1 queda hecho; falta adelantar `main`.
 - H2.1, avance 4 (capturas): menú principal, Cargar, Guardar y Error revisadas en es y en (en `game/out/h21-*.png`, con `--saves out/saves`; la carpeta es relativa a `game/`). El autoguardado apareció al pasar la medianoche con `--ticks 1500`. Los botones de menú se estiraban en las columnas anchas: ahora mantienen su ancho, centrados.
 
 ### 2026-10-10: H1.7 Interacción y UI (en curso)

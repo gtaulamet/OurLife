@@ -44,7 +44,7 @@
   "ui.save.failed": "No se pudo guardar la partida",
   "ui.slot.summary": "{name}: {date}, {clock} · {count, plural, one {# colono} other {# colonos}}",
   "ui.slot.saved_at": "Guardada el {when}",
-  "ui.slot.autosave": "Autoguardado",
+  "ui.slot.autosaved_at": "Autoguardado · Guardada el {when}",
   "ui.common.yes": "Sí",
   "ui.common.no": "No",
   "ui.error.title": "Algo salió mal",

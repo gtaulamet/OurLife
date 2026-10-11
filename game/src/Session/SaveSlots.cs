@@ -93,18 +93,29 @@ public sealed class SaveSlots
 
     /// <summary>Writes the game in the slot, replacing what it held.</summary>
     /// <exception cref="IOException">The file cannot be written.</exception>
+    /// <exception cref="InvalidOperationException">A component or command is not registered in <c>SaveTypes</c>.</exception>
     public void Write(string slotId, Simulation simulation, string gameId, bool isAutosave)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         System.IO.Directory.CreateDirectory(Directory);
         var path = PathOf(slotId);
         var temporary = path + TemporaryExtension;
-        using (var file = File.Create(temporary))
+        try
         {
-            SaveGame.Write(file, simulation, new SaveInfo(gameId, isAutosave, GameVersion, DateTimeOffset.Now));
-        }
+            using (var file = File.Create(temporary))
+            {
+                SaveGame.Write(file, simulation, new SaveInfo(gameId, isAutosave, GameVersion, DateTimeOffset.Now));
+            }
 
-        File.Move(temporary, path, overwrite: true);
+            File.Move(temporary, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporary))
+            {
+                File.Delete(temporary);
+            }
+        }
     }
 
     /// <summary>The game of a slot, with the colony systems added, and its header.</summary>

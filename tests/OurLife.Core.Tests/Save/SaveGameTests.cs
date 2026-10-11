@@ -81,6 +81,43 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_newer_format_with_new_header_fields_is_still_newer()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "header.json", json => json.Replace(
+            $"\"FormatVersion\":{SaveGame.FormatVersion}", $"\"Thumbnail\":\"abc\",\"FormatVersion\":{SaveGame.FormatVersion + 1}", StringComparison.Ordinal));
+
+        LoadFails(file).Reason.ShouldBe(SaveLoadError.Newer);
+        SaveGame.ReadHeader(new MemoryStream(file)).FormatVersion.ShouldBe(SaveGame.FormatVersion + 1);
+    }
+
+    [Fact]
+    public void A_null_list_in_the_state_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Knowledge\":[]", "\"Knowledge\":null", StringComparison.Ordinal));
+
+        LoadFails(file).Reason.ShouldBe(SaveLoadError.Corrupt);
+    }
+
+    [Fact]
+    public void A_null_list_in_a_component_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Unreachable\":[]", "\"Unreachable\":null", StringComparison.Ordinal));
+
+        var failure = LoadFails(file);
+
+        failure.Reason.ShouldBe(SaveLoadError.Corrupt);
+        failure.Detail.ShouldContain("Unreachable");
+    }
+
+    [Fact]
+    public void An_entity_outside_the_map_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Z\":1}", "\"Z\":99}", StringComparison.Ordinal));
+
+        LoadFails(file).Detail.ShouldContain("outside the map");
+    }
+
+    [Fact]
     public void A_truncated_file_is_corrupt()
     {
         var file = Save(BusyColony().Simulation);
