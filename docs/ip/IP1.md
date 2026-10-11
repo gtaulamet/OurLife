@@ -4,6 +4,8 @@
 
 **Estimación:** 112 a 153 h; eran 100 a 135 h antes del paso a 3D. **Versión al cerrar:** `v0.1.0`.
 
+**Estado:** cerrada el 11 de octubre de 2026 con `v0.1.0`. Se cumple cada punto de la definición de hecho; la evidencia está en los registros de H1.3 a H1.8 y en `docs/ip/playtest-ip1.md`.
+
 ## Cambios de alcance
 
 - **2026-10-09, antes de H1.4:** el render pasa de pixel art 16×16 con `TileMapLayer` a 3D low-poly con el Nature Kit de Kenney (ADR-009, que reemplaza a ADR-007). Lo decidió el usuario.
@@ -22,7 +24,7 @@
 | H1.5 Render y cámara | Hecho | `ip1/h1-5-render-camara` | Valle en 3D con terreno por chunks, corte por nivel, plantas y cámara; colonos y objetos pasan a H1.7 |
 | H1.6 Colonos e IA | Hecho | `ip1/h1-6-colonos-ia` | 5 colonos que llegan, comen, duermen, excavan, cavan escaleras, talan y recolectan; A* 3D y conectividad incremental; 0,01 ms por tick |
 | H1.7 Interacción y UI | Hecho | `ip1/h1-7-interaccion-ui` | Partida en tiempo real con órdenes por arrastre, inspector, HUD, registro y menús en es y en |
-| H1.8 Integración | En curso | `ip1/h1-8-integracion` | Balance del invierno, exportación de Windows y checklist (`docs/ip/playtest-ip1.md`) listos; falta el playtest humano y el tag `v0.1.0` |
+| H1.8 Integración | Hecho | `ip1/h1-8-integracion` | Invierno como amenaza, exportación de Windows, playtest humano aprobado y `v0.1.0` |
 
 **Ruta crítica:** H1.1 → H1.2 → (H1.3 ∥ H1.4) → (H1.5 ∥ H1.6) → H1.7 → H1.8.
 
@@ -443,3 +445,43 @@
   - Los nombres de las acciones de órdenes se armaban en cada cuadro.
   - Además, las capturas ignoran el ratón real, para que el marco no aparezca donde esté el cursor.
   - Quedan como están: usar `Aabb.IntersectsRay` en lugar de la prueba propia (no existe en la API de C# de Godot 4.7); el recorrido del inspector (ver tercera ronda); y crear un `Theme` por pantalla, que sólo pasa al cambiar de menú.
+
+## Registro de H1.8: Integración
+
+**Entregado**
+
+- Playtest automático largo con el smoke: 30 días en las semillas 1, 42 y 7, y un año y medio en la 1 y la 42.
+- **Balance del invierno**, elegido por el usuario: el playtest mostró que no se podía perder.
+  - `PlantDef.dormantSeasons`: en esas estaciones una planta recolectada no rebrota. El cargador valida que las estaciones existan en el calendario y que no estén todas.
+  - El arbusto de bayas duerme en invierno y pasa a 10 bayas y 3 días de rebrote.
+  - Tests del contenido real: sin recolectar, la colonia muere en su primer invierno; recolectando en otoño alrededor de la aldea, lo pasa.
+- Talar y Recolectar toman todas las plantas visibles en el rectángulo, porque las de una ladera están a distintas alturas. Excavar, Escalera y Cancelar siguen en el nivel de la primera celda.
+- Modo `--benchmark <s>`: juega a 4× con órdenes y sin vsync, y comprueba el presupuesto de IP1. Falla sin ventana, sin ticks medidos o combinado con `--smoke` o `--screenshot`.
+- Exportación de Windows:
+  - Preset "Windows Desktop", con los JSON de contenido incluidos y `config/version="0.1.0"`.
+  - Modo `--licenses`: escribe la licencia de Godot, los avisos de sus componentes y el de .NET, leídos del propio motor.
+  - `tools/package-windows.ps1`: exporta, corre el smoke sobre el ejecutable exportado y arma `builds/OurLife-v0.1.0-windows-x86_64.zip` con `LICENSES.txt` y `CREDITS.md`.
+- Plantillas de exportación de Godot 4.7.2 .NET para Windows x86_64, instaladas en la PC de desarrollo.
+- README con cómo se juega, cómo exportar y cómo medir; CREDITS con el motor y el runtime.
+- Checklist del playtest humano en `docs/ip/playtest-ip1.md`, con atajos `--ticks` para empezar en otoño o en invierno.
+
+**Decisiones**
+
+- El invierno es la amenaza de IP1. Sus números están en los defs y en la spec (`docs/gdd/colonos-e-ia.md`, "Balance del invierno").
+- El ciclo de día y noche y el sueño nocturno van en IP2 (`plan-maestro.md`), no en `v0.1.0`.
+- El lanzador de consola sólo se exporta en debug; el ejecutable de release se espera con `Start-Process -Wait`.
+
+**Validación**
+
+- `dotnet build` sin advertencias y 379 tests en verde.
+- Smoke con código 0 en el editor y en el ejecutable exportado, con la misma huella: `AED7A63935A0B1F7` (semilla 1) y `05BB6F15EEBBEDC9` (semilla 42, cambia por el balance). El exportado corre sobre el .NET 8 empaquetado y el editor sobre .NET 10.
+- `--benchmark 20` en el exportado: 431 FPS de media, 330 en el 1 % más lento y 0,039 ms por tick, en un ROG Strix G18 con RTX 4090 de portátil.
+- Pasada automática del checklist con capturas del exportado en es y en, incluida la pantalla de fin de partida.
+- Playtest humano del usuario el 11 de octubre de 2026: todo el checklist aprobado y visto bueno para publicar `v0.1.0`. Un hallazgo menor, el día en el registro, pasa al backlog para IP2.
+- `/code-review` con 10 hallazgos; 8 corregidos y 2 que quedan como están:
+  - Cancelar volvía a tomar todos los niveles visibles y podía borrar órdenes enterradas.
+  - Talar y Recolectar podían dejar afuera el nivel de la celda inicial.
+  - El benchmark podía declararse dentro del presupuesto sin ventana, sin ticks o combinado con otro modo.
+  - El script de empaquetado no ponía comillas a la ruta de `LICENSES.txt`, y tenía comentarios en español.
+  - `dormantSeasons` aceptaba todas las estaciones.
+  - Quedan como están: la caja de Talar y Recolectar se dibuja en un nivel, porque coincide en x e y con lo que se marca; y el costo de `PlantGrowthSystem` en invierno, unos 57 arbustos por tick con el benchmark en 0,03 ms por tick.

@@ -108,14 +108,15 @@ Antes del playtest humano, Claude Code verificó con el ejecutable exportado lo 
 | Muertes en el registro y "La colonia ha caído" | Captura con `--ticks 86400` en es y en: cinco muertes, el mensaje final y la pantalla de fin | ✅ |
 | Rendimiento | `--benchmark 20` en el exportado: 431 FPS de media, 330 en el 1 % más lento, 0,039 ms por tick (RTX 4090 de portátil) | ✅ |
 
-**Queda para la prueba humana:** persistencia del idioma y de la pantalla completa al reiniciar, pantalla de Nueva partida (nombre, semilla y "Al azar"), cámara (movimiento, zoom, rotación), niveles con RePág y AvPág, pausa y velocidades con teclado y ratón, arrastre de cada orden (incluidos Cancelar, la ladera y soltar fuera del mapa), inspector de celda, selección con clic y Esc, la sensación de los colonos al caminar, y jugar un otoño y un invierno a mano.
+La prueba humana se hizo el mismo día y aprobó todo el checklist (ver Resultado). **Lo que quedaba para ella:** persistencia del idioma y de la pantalla completa al reiniciar, pantalla de Nueva partida (nombre, semilla y "Al azar"), cámara (movimiento, zoom, rotación), niveles con RePág y AvPág, pausa y velocidades con teclado y ratón, arrastre de cada orden (incluidos Cancelar, la ladera y soltar fuera del mapa), inspector de celda, selección con clic y Esc, la sensación de los colonos al caminar, y jugar un otoño y un invierno a mano.
 
 ## Hallazgos
 
 | # | Qué pasó | Pasos para reproducirlo | Gravedad (bloquea `v0.1.0` o no) |
 |---|---|---|---|
-| 1 | El registro muestra la hora de cada mensaje pero no el día: en el fin de partida, cinco muertes de días distintos aparecen como "00:02", "00:33", "13:09"… sin saber cuándo pasó cada una. Cumple la spec, que pide la hora | `--play --seed 42 --ticks 86400` | No bloquea. Propuesta: mostrar el día cuando cambia, para IP2 |
-| 2 | | | |
+| 1 | El registro muestra la hora de cada mensaje pero no el día: en el fin de partida, cinco muertes de días distintos aparecen como "00:02", "00:33", "13:09"… sin saber cuándo pasó cada una. Cumple la spec, que pide la hora | `--play --seed 42 --ticks 86400` | No bloquea. Pasa al backlog, para IP2: mostrar el día cuando cambia |
+
+La prueba humana no encontró otros hallazgos.
 
 ## Resultado
 

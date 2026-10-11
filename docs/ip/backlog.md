@@ -10,6 +10,10 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 - Pantalla de error al arrancar: hoy, si el contenido no carga, el juego se cierra y el error sólo queda en el registro de Godot.
 - Separador de miles en español según CLDR, que pide al menos dos dígitos de agrupación: "1234" y "12.345". .NET escribe "1.234".
 
+## Interfaz
+
+- Registro de eventos con el día, para IP2: hoy cada mensaje muestra sólo la hora, y en una partida larga no se sabe de qué día es cada uno. Propuesta: una línea con la fecha cuando cambia el día, o el día junto a la hora. Hallazgo de la pasada automática del playtest de IP1.
+
 ## Diseño
 
 - ¿Elementos de fantasía en la ambientación medieval? Por ahora no.

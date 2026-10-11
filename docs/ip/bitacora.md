@@ -8,37 +8,29 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip1/h1-8-integracion`, creada desde `main` (cierre de H1.7) y subida a `origin` |
-| Último commit de código | El avance 1 de H1.8, en `ip1/h1-8-integracion` |
-| `main` | En el cierre de H1.7 (`f2905a5`), también en `origin` |
-| Hitos hechos | H1.1 a H1.7 |
-| Hito en curso | H1.8 Integración: playtest, balance, bugs, ms/tick, README y export de Windows (`v0.1.0`) |
-| Validación | `dotnet build` sin advertencias, 379 tests en verde, smoke con código 0; `--benchmark 20` con 447 FPS de media y 0,033 ms por tick |
-| Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `05BB6F15EEBBEDC9` con `--seed 42 --ticks 5000` (cambia en H1.8 por el balance de las bayas) |
+| Rama de trabajo | `ip1/h1-8-integracion`, ya en `main` |
+| `main` | En el cierre de IP1, con el tag `v0.1.0`, también en `origin` |
+| Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
+| Siguiente | IP2 "Asentamiento" (`plan-maestro.md`, sección 7.3) |
+| Validación | `dotnet build` sin advertencias, 379 tests en verde, smoke con código 0 en el editor y en el exportado; `--benchmark 20` del exportado con 431 FPS de media y 0,039 ms por tick |
+| Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `05BB6F15EEBBEDC9` con `--seed 42 --ticks 5000` (cambió en H1.8 por el balance de las bayas) |
+| Versión | `v0.1.0`: `./tools/package-windows.ps1` arma `builds/OurLife-v0.1.0-windows-x86_64.zip` (no se versiona) |
 
 ## Pendientes
 
 En orden:
 
-1. **H1.8 Integración, por avances.** Cada avance termina con build y tests en verde, la bitácora al día, un commit en `ip1/h1-8-integracion` y `git push`:
-   1. Playtest automático largo y medida del presupuesto (`--benchmark`). **Hecho.**
-   2. Checklist del playtest humano en `docs/ip/playtest-ip1.md`, a partir de la definición de hecho de IP1 y de los criterios de las specs. **Hecho.**
-   3. README y CREDITS al día para `v0.1.0`. **Hecho.**
-   4. Exportación de Windows. **Hecho:** `tools/package-windows.ps1` arma `builds/OurLife-v0.1.0-windows-x86_64.zip`. Las plantillas de Windows x86_64 de Godot 4.7.2 .NET están instaladas en esta PC, en `%APPDATA%\Godot\export_templates\4.7.2.stable.mono`; en la otra PC habría que instalarlas (README, "Exportar para Windows").
-   5. Balance: invierno sin bayas. **Hecho** (ver Historial).
-   6. Playtest humano con el checklist, revisión de código, cierre de IP1 y tag `v0.1.0`. **Esperando el playtest del usuario** con `docs/ip/playtest-ip1.md`. La pasada automática con el exportado ya está hecha y anotada en ese archivo (un hallazgo menor: el registro no muestra el día). La revisión de código de H1.8 ya se hizo. Después: corregir los hallazgos, registro de H1.8 en `IP1.md`, adelantar `main` y, con el visto bueno del usuario, el tag `v0.1.0`.
-2. **Quedan de H1.7 para H1.8 o el backlog** (detalle en `docs/art.md` y el registro de H1.7 de `IP1.md`):
+1. **Planificar IP2:** escribir `docs/ip/IP2.md` a partir de la sección 7.3 de `plan-maestro.md`, con sus hitos, horas y definición de hecho, y crear la rama del primer hito desde `main`. Incluye el ciclo de día y noche y el sueño nocturno, que el usuario sumó el 2026-10-11.
+2. **Para revisar al planificar IP2** (algunos pueden entrar ahí):
+   - Del backlog: el día en el registro de eventos (hallazgo del playtest), la pantalla de error al arrancar y la agrupación de miles del español según CLDR.
+   - Guardar el nombre de la aldea en la simulación, que el guardado de IP2 necesita.
    - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
    - Un arbusto que muestre las bayas; hoy con y sin frutos se distinguen sólo por la forma.
-   - Guardar el nombre de la aldea en la simulación, para el guardado de IP2.
    - Que `EntityRenderer` cambie los modelos cuando cambie la época (llega con la segunda época).
    - Los argumentos de entidad y de def en `TextResolver`, con el primer texto que los use (`docs/i18n.md`).
-3. **Para el balance de H1.8:**
-   - El fondo del valle tiene muchas rampas, porque el relieve varía de a un nivel. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
-   - En la vista 3D se ven como un serrucho.
-   - La luz deja el nivel actual un 40 % más claro que el color del catálogo, y eso ayuda a distinguirlo.
-
-El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantalla de error al arrancar y la agrupación de miles del español según CLDR.
+   - El fondo del valle tiene muchas rampas, que en 3D se ven como un serrucho. Se puede suavizar bajando `terrainAmplitude` en `worldgen.json`.
+   - El sueño nocturno de IP2 cambia el ritmo de las comidas: volver a correr los tests del invierno (`ColonyTests`).
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
@@ -95,7 +87,11 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - El smoke arma la pantalla de partida con el inspector, la pausa, las opciones y los tres menús, y falla si falta un texto.
   - Revisadas las capturas del menú principal y de las opciones en es y en. La casilla de pantalla completa tiene poco contraste sobre el fondo oscurecido: revisar en QA.
 
-### 2026-10-11: H1.8 Integración (en curso)
+### 2026-10-11: H1.8 Integración y cierre de IP1
+
+- El usuario hizo el playtest humano con el checklist: todo aprobado, sin hallazgos nuevos, y visto bueno para publicar `v0.1.0`. El hallazgo menor de la pasada automática (el día en el registro) pasó al backlog.
+- Registro de H1.8 en `IP1.md` e IP1 marcada como cerrada; README con el estado de la versión.
+- Adelanté `main` al cierre, creé el tag anotado `v0.1.0` y subí los dos.
 
 - Creé la rama `ip1/h1-8-integracion` desde `main` y dividí el hito en seis avances (ver Pendientes).
 - Avance 1:

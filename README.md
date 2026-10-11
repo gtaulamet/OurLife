@@ -2,7 +2,7 @@
 
 Simulador de colonias al estilo de Dwarf Fortress. Un grupo de colonos funda una aldea medieval en un valle con niveles Z: talan, excavan, construyen y sobreviven. Más adelante, la aldea podrá avanzar por la Edad Moderna y la Contemporánea. El juego está en español por defecto y también en inglés.
 
-**Estado:** IP1, "Primeros colonos", en su último hito: versión `0.1.0`. El avance de los hitos está en [docs/ip/IP1.md](docs/ip/IP1.md).
+**Estado:** versión `0.1.0`, el cierre de IP1 "Primeros colonos". Lo que sigue es IP2, "Asentamiento" ([plan maestro](docs/plan-maestro.md)). El registro de IP1 está en [docs/ip/IP1.md](docs/ip/IP1.md).
 
 ## Cómo se juega (v0.1.0)
 
