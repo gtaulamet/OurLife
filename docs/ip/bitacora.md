@@ -14,7 +14,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Siguiente | IP2 "Asentamiento" (`plan-maestro.md`, sección 7.3) |
 | Validación | `dotnet build` sin advertencias, 379 tests en verde, smoke con código 0 en el editor y en el exportado; `--benchmark 20` del exportado con 431 FPS de media y 0,039 ms por tick |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `05BB6F15EEBBEDC9` con `--seed 42 --ticks 5000` (cambió en H1.8 por el balance de las bayas) |
-| Versión | `v0.1.0`: `./tools/package-windows.ps1` arma `builds/OurLife-v0.1.0-windows-x86_64.zip` (no se versiona) |
+| Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
 
@@ -38,6 +38,7 @@ En orden:
 - **Mensajes de commit:** en PowerShell, `git commit -F -` con un here-string no funciona porque el texto llega como argumento. Escribir el mensaje en un archivo del scratchpad y usar `git commit -F <archivo>`.
 - **Códigos de salida:** no cortar la salida de Godot con `Select-Object -First`, porque `$LASTEXITCODE` deja de ser confiable. Guardar la salida en una variable y filtrarla después.
 - **Reimportación:** si un `.import` cambia dentro del mismo segundo que la importación anterior, Godot no lo reimporta. Basta con borrar `game/.godot/imported/<archivo>-*` y volver a correr `--import`.
+- **GitHub CLI:** `gh` está instalado en esta PC y autenticado como `gtaulamet`. Una sesión de PowerShell abierta antes de instalarlo no lo tiene en el `PATH`: usar `& 'C:\Program Files\GitHub CLI\gh.exe'`. Las releases se crean con `gh release create <tag> <zip> --verify-tag --notes-file <archivo>`.
 - **Archivos `.uid`:** un script nuevo no tiene `.uid` hasta que el editor abre el proyecto. `& $env:GODOT_BIN --headless --path game --import` los genera sin abrirlo; correrlo antes de cerrar un hito y versionarlos.
 - **Fuente nítida:** el smoke y `--screenshot` fallan si la caché de la fuente tiene suavizado. El mensaje indica cómo reimportar.
 - **Comandos bloqueados:** un filtro de seguridad rechaza los comandos de PowerShell cuyo texto contiene `/code-review`, aunque sea dentro de un string. Esos textos se editan con la herramienta de edición.
@@ -92,6 +93,7 @@ En orden:
 - El usuario hizo el playtest humano con el checklist: todo aprobado, sin hallazgos nuevos, y visto bueno para publicar `v0.1.0`. El hallazgo menor de la pasada automática (el día en el registro) pasó al backlog.
 - Registro de H1.8 en `IP1.md` e IP1 marcada como cerrada; README con el estado de la versión.
 - Adelanté `main` al cierre, creé el tag anotado `v0.1.0` y subí los dos.
+- El usuario pidió publicarla como release de GitHub. Instalé `gh` con winget, el usuario se autenticó con `gh auth login`, rearmé el zip desde el commit del tag (el anterior ya no estaba en `builds/`) y creé la release "OurLife v0.1.0: Primeros colonos" con el zip y notas en español.
 
 - Creé la rama `ip1/h1-8-integracion` desde `main` y dividí el hito en seis avances (ver Pendientes).
 - Avance 1:
