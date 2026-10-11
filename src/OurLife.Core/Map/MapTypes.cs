@@ -20,6 +20,23 @@ public enum TileShape : byte
     StairUpDown,
 }
 
+/// <summary>Ids of the tile shapes, so the presentation keeps no list of its own.</summary>
+public static class TileShapes
+{
+    /// <summary>The id of a shape in texts, like <c>stair_up</c> in <c>ui.inspector.shape.stair_up</c>.</summary>
+    public static string Id(TileShape shape) => shape switch
+    {
+        TileShape.Empty => "empty",
+        TileShape.Floor => "floor",
+        TileShape.Wall => "wall",
+        TileShape.Ramp => "ramp",
+        TileShape.StairUp => "stair_up",
+        TileShape.StairDown => "stair_down",
+        TileShape.StairUpDown => "stair_updown",
+        _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null),
+    };
+}
+
 /// <summary>Extra facts about a cell. Fog arrives in a later milestone.</summary>
 [Flags]
 public enum TileFlags : byte

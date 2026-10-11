@@ -98,7 +98,7 @@ public partial class InspectorPanel : PanelContainer
         {
             var need = _simulation.Content.Get<NeedDef>(state.Need);
             var percent = need.Max == 0 ? 0 : state.Value * 100 / need.Max;
-            _lines.Add(text.Format("ui.inspector.need", ("need", text.Capitalized(text.Format($"def.need.{need.Id}.name"))), ("percent", percent)));
+            _lines.Add(text.Format("ui.inspector.need", ("need", text.Capitalized(NameOf(need))), ("percent", percent)));
         }
     }
 
@@ -108,11 +108,11 @@ public partial class InspectorPanel : PanelContainer
         var text = _services.Text;
         _lines.Add(text.Format("ui.inspector.cell", ("x", cell.X), ("y", cell.Y), ("z", cell.Z)));
 
-        var shape = text.Format($"ui.inspector.shape.{ShapeId(map.ShapeAt(cell))}");
+        var shape = text.Format($"ui.inspector.shape.{TileShapes.Id(map.ShapeAt(cell))}");
         var material = map.MaterialAt(cell);
         var body = material is null
             ? shape
-            : text.Format("ui.inspector.shape_material", ("shape", shape), ("material", text.Format($"def.material.{material.Id}.name")));
+            : text.Format("ui.inspector.shape_material", ("shape", shape), ("material", NameOf(material)));
         _lines.Add(text.Capitalized(body));
 
         var flags = map.FlagsAt(cell);
@@ -147,7 +147,7 @@ public partial class InspectorPanel : PanelContainer
 
             if (world.TryGet<Plant>(entity, out var plant))
             {
-                var name = text.Capitalized(text.Format($"def.plant.{plant.Def}.name", ("count", 1)));
+                var name = text.Capitalized(NameOf(_simulation.Content.Get<PlantDef>(plant.Def), 1));
                 _lines.Add(world.Has<Harvested>(entity) ? text.Format("ui.inspector.plant_harvested", ("plant", name)) : name);
                 if (world.Has<ChopOrder>(entity))
                 {
@@ -161,21 +161,13 @@ public partial class InspectorPanel : PanelContainer
             }
             else if (world.TryGet<ItemStack>(entity, out var stack))
             {
-                var item = text.Format($"def.item.{stack.Def}.name", ("count", stack.Count));
+                var item = NameOf(_simulation.Content.Get<ItemDef>(stack.Def), stack.Count);
                 _lines.Add(text.Format("ui.inspector.items", ("count", stack.Count), ("item", item)));
             }
         }
     }
 
-    private static string ShapeId(TileShape shape) => shape switch
-    {
-        TileShape.Empty => "empty",
-        TileShape.Floor => "floor",
-        TileShape.Wall => "wall",
-        TileShape.Ramp => "ramp",
-        TileShape.StairUp => "stair_up",
-        TileShape.StairDown => "stair_down",
-        TileShape.StairUpDown => "stair_updown",
-        _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null),
-    };
+    /// <summary>The name of a def in the current language; <paramref name="count"/> picks the plural where the text has one.</summary>
+    private string NameOf(Def def, int count = 1) =>
+        _services.Text.Format(def.NameKey ?? throw new InvalidOperationException($"Defs of type {def.GetType().Name} have no texts."), ("count", count));
 }

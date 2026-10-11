@@ -50,6 +50,18 @@ public class MapRaycastTests
     }
 
     [Fact]
+    public void The_distance_is_where_the_ray_meets_the_ground_or_enters_the_wall()
+    {
+        // A floor of level 1 lies at height 1; the column's top, at height 3.
+        MapRaycast.TryFirstHit(Map, (0.5, 0.5, 10), (0, 0, -1), 2, 0, out _, out var toFloor).ShouldBeTrue();
+        toFloor.ShouldBe(9, 1e-9);
+        MapRaycast.TryFirstHit(Map, (1.5, 1.5, 10), (0, 0, -1), 2, 0, out _, out var toColumn).ShouldBeTrue();
+        toColumn.ShouldBe(7, 1e-9);
+        MapRaycast.TryFirstHit(Map, (-5, 1.5, 2.5), (1, 0, 0), 2, 0, out _, out var toSide).ShouldBeTrue();
+        toSide.ShouldBe(6, 1e-9);
+    }
+
+    [Fact]
     public void A_level_ray_hits_a_wall_from_the_side()
     {
         Hit((-5, 1.5, 2.5), (1, 0, 0), maxLevel: 2).ShouldBe(new TileCoord(1, 1, 2));

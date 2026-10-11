@@ -22,10 +22,26 @@ public static class MapRaycast
         (double X, double Y, double Z) direction,
         int maxLevel,
         out TileCoord cell,
-        int minLevel = 0)
+        int minLevel = 0) =>
+        TryFirstHit(map, origin, direction, maxLevel, minLevel, out cell, out _);
+
+    /// <summary>
+    /// Like the other overload, and also how far along the ray the hit is, in lengths of
+    /// <paramref name="direction"/>: where the ray enters the cell, or for a floor where it reaches
+    /// the ground. With a unit direction it is a distance, to compare with things drawn on the map.
+    /// </summary>
+    public static bool TryFirstHit(
+        GameMap map,
+        (double X, double Y, double Z) origin,
+        (double X, double Y, double Z) direction,
+        int maxLevel,
+        int minLevel,
+        out TileCoord cell,
+        out double distance)
     {
         ArgumentNullException.ThrowIfNull(map);
         cell = default;
+        distance = 0;
         var size = map.Size;
         var top = Math.Min(size.Depth, maxLevel + 1);
         var bottom = Math.Max(0, minLevel);
@@ -53,30 +69,37 @@ public static class MapRaycast
         var (stepY, nextY, deltaY) = Axis(origin.Y, direction.Y, y);
         var (stepZ, nextZ, deltaZ) = Axis(origin.Z, direction.Z, z);
 
+        // Where the ray entered the current cell.
+        var entered = enter;
         while (true)
         {
             // The same choice as the step below: the ray leaves this cell through the bottom.
             var leavesThroughBottom = stepZ < 0 && nextZ < nextX && nextZ < nextY;
             var shape = map.ShapeAt(x, y, z);
-            if (shape is TileShape.Floor or TileShape.StairDown ? leavesThroughBottom : shape != TileShape.Empty)
+            var thin = shape is TileShape.Floor or TileShape.StairDown;
+            if (thin ? leavesThroughBottom : shape != TileShape.Empty)
             {
                 cell = new TileCoord(x, y, z);
+                distance = thin ? nextZ : entered;
                 return true;
             }
 
             if (nextX <= nextY && nextX <= nextZ)
             {
                 x += stepX;
+                entered = nextX;
                 nextX += deltaX;
             }
             else if (nextY <= nextZ)
             {
                 y += stepY;
+                entered = nextY;
                 nextY += deltaY;
             }
             else
             {
                 z += stepZ;
+                entered = nextZ;
                 nextZ += deltaZ;
             }
 

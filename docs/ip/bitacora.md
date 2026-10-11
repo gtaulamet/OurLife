@@ -13,7 +13,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | En `48dac75`, el cierre de H1.6, también en `origin` |
 | Hitos hechos | H1.1 a H1.6 |
 | Hito en curso | H1.7 Interacción y UI, spec en `docs/gdd/interfaz-ip1.md` |
-| Validación | `dotnet build` sin advertencias, 369 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 370 tests en verde, smoke con código 0 |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (cambia desde H1.6 porque el smoke trae la colonia) |
 
 ## Pendientes
@@ -27,7 +27,7 @@ En orden:
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
    5. HUD: barra superior, barra de órdenes y registro; textos es y en. **Hecho.**
    6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`. **Hecho.**
-   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre. **Capturas, smoke y dos rondas de revisión hechos** (10 y 10 hallazgos corregidos, registro de H1.7 en `IP1.md`). Falta una tercera ronda de revisión sobre las correcciones y el cierre: `IP1.md` en "Hecho", `plan-maestro.md`, la skill `godot-run` con las opciones nuevas, y adelantar `main`.
+   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre. **Capturas, smoke y tres rondas de revisión hechos** (10, 10 y 10 hallazgos, registro de H1.7 en `IP1.md`). Falta el cierre: `IP1.md` en "Hecho", `plan-maestro.md`, la skill `godot-run` con las opciones nuevas, y adelantar `main`.
 2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
    - `DesignateCommand` para las órdenes.
    - Eventos `EntitySpawnedEvent`, `EntityChangedEvent`, `EntityRemovedEvent`, `DesignationsChangedEvent`, `NotificationEvent` y `ColonyLostEvent`.
@@ -52,6 +52,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - **Mensajes de commit:** en PowerShell, `git commit -F -` con un here-string no funciona porque el texto llega como argumento. Escribir el mensaje en un archivo del scratchpad y usar `git commit -F <archivo>`.
 - **Códigos de salida:** no cortar la salida de Godot con `Select-Object -First`, porque `$LASTEXITCODE` deja de ser confiable. Guardar la salida en una variable y filtrarla después.
 - **Reimportación:** si un `.import` cambia dentro del mismo segundo que la importación anterior, Godot no lo reimporta. Basta con borrar `game/.godot/imported/<archivo>-*` y volver a correr `--import`.
+- **Archivos `.uid`:** un script nuevo no tiene `.uid` hasta que el editor abre el proyecto. `& $env:GODOT_BIN --headless --path game --import` los genera sin abrirlo; correrlo antes de cerrar un hito y versionarlos.
 - **Fuente nítida:** el smoke y `--screenshot` fallan si la caché de la fuente tiene suavizado. El mensaje indica cómo reimportar.
 - **Comandos bloqueados:** un filtro de seguridad rechaza los comandos de PowerShell cuyo texto contiene `/code-review`, aunque sea dentro de un string. Esos textos se editan con la herramienta de edición.
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
@@ -109,6 +110,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - 367 tests en verde; smoke con código 0 y las mismas huellas (`AED7A63935A0B1F7` con la semilla 1).
 - Primera ronda de revisión de código sobre toda la rama: 10 hallazgos, todos corregidos. El detalle está en el registro de H1.7 de `IP1.md`. Lo más importante: el rayo elegía la celda de adelante al apuntar un suelo con la cámara inclinada, y arrastrar una orden sobre una ladera marcaba todos los niveles enterrados. El smoke ahora dibuja la partida que trabajó, y `GameScreen` es el único lugar que arma una partida. 368 tests.
 - Segunda ronda: 10 hallazgos más, todos corregidos (detalle en `IP1.md`). Lo más importante: un clic en el cuerpo de un colono elegía la celda de atrás; ahora se elige por la caja del modelo dibujado, y el smoke lo comprueba. La lista de órdenes sale del enum (`DesignationKinds.Id`). 369 tests y las mismas huellas.
+- Tercera ronda: 10 hallazgos, 9 corregidos y uno descartado con su motivo (detalle en `IP1.md`). Lo más importante: un colono detrás de una loma ganaba el clic; `MapRaycast` ahora informa la distancia del impacto. También faltaban los `.uid` de 11 scripts: `--import` los genera sin abrir el editor. 370 tests.
 
 ### 2026-10-10: H1.6 Colonos e IA
 

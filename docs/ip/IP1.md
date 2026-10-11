@@ -399,7 +399,7 @@
 
 **Validación**
 
-- `dotnet build` sin advertencias y 369 tests en verde.
+- `dotnet build` sin advertencias y 370 tests en verde.
 - Smoke con `--seed 1` y `--seed 42`, `--ticks 5000`: código 0 y las huellas de H1.6. Ahora también arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic, abre la pausa, las opciones y los menús, y falla si falta un texto.
 - Capturas revisadas en es y en: menú principal, opciones (sobre la partida y desde el menú) y partida con órdenes, inspector y registro.
 - `/code-review`, primera ronda, con 10 hallazgos, todos corregidos:
@@ -423,3 +423,13 @@
   - El rayo del marco corría dos veces por cuadro al mover el ratón.
   - La lista de órdenes estaba en el HUD, en la entrada y en un test. Ahora sale del enum, con `DesignationKinds.Id` en Core, como `JobKinds`.
   - La tabla de textos de la spec no coincidía con las claves reales.
+- Tercera ronda, con 10 hallazgos; 9 corregidos:
+  - En un paso vertical de escalera, el colono giraba a 0°. Ahora conserva el rumbo.
+  - Un colono detrás de una loma ganaba el clic. `MapRaycast` informa la distancia del impacto, con test, y el colono sólo gana si está delante del terreno.
+  - Un clic podía elegir a un colono que el corte de nivel oculta, y el marco de selección seguía dibujado sobre lo que el corte oculta.
+  - El inspector armaba a mano las claves de nombre de los defs; ahora usa `Def.NameKey`.
+  - El smoke cargaba dos veces el catálogo de visuales.
+  - Las teclas de velocidad repetían los valores de `GameSession.Speeds`.
+  - El id de cada forma de celda estaba en el inspector y en un test; ahora está en Core (`TileShapes.Id`).
+  - Faltaban los `.uid` de 11 scripts nuevos; los generó `--import`.
+  - Queda como está: que el inspector recorra las entidades para hallar las de una celda. Son unas 300 en el valle, y desde la segunda ronda sólo se recorren si pasó un tick o llegaron eventos.

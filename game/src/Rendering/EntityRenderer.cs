@@ -245,7 +245,13 @@ public partial class EntityRenderer : Node3D
         var cost = ticksPerTile * PathFinder.StepCost(position.Cell, next);
         var fraction = Math.Clamp((float)movement.Progress / cost, 0f, 1f);
         var there = CellBase(next.X, next.Y, next.Z);
-        facing = Mathf.Atan2(there.X - here.X, there.Z - here.Z);
+
+        // A step straight up or down the stairs has no heading: the walker keeps the last one.
+        if (next.X != position.X || next.Y != position.Y)
+        {
+            facing = Mathf.Atan2(there.X - here.X, there.Z - here.Z);
+        }
+
         return here.Lerp(there, fraction);
     }
 

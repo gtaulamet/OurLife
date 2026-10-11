@@ -27,8 +27,8 @@ public partial class GameInput : Node3D
     private static readonly Color SelectionColor = new(1f, 0.95f, 0.4f, 0.45f);
     private static readonly Color BoxColor = new(1f, 0.7f, 0.2f, 0.3f);
 
-    private static readonly (string Action, int Speed)[] SpeedKeys =
-        [(InputActions.Speed1, 1), (InputActions.Speed2, 2), (InputActions.Speed3, 4)];
+    // Keys 1 to 3 choose the speeds of GameSession.Speeds, in order.
+    private static readonly string[] SpeedActions = [InputActions.Speed1, InputActions.Speed2, InputActions.Speed3];
 
     private GameSession _session = null!;
     private WorldView _view = null!;
@@ -101,18 +101,27 @@ public partial class GameInput : Node3D
         }
 
         // A selected colonist is followed as it walks; one that died is no longer selected.
-        if (_selection is { IsColonist: true } selection)
+        if (_selection is not { } selection)
+        {
+            return;
+        }
+
+        var cell = selection.Cell;
+        if (selection.IsColonist)
         {
             var world = _session.Simulation.World;
             if (!world.IsAlive(selection.Colonist))
             {
                 Select(null);
+                return;
             }
-            else
-            {
-                PlaceOn(_selected, world.Get<Position>(selection.Colonist).Cell, world.Get<Position>(selection.Colonist).Cell);
-            }
+
+            cell = world.Get<Position>(selection.Colonist).Cell;
+            PlaceOn(_selected, cell, cell);
         }
+
+        // The frame is drawn through the terrain: it hides with what it marks, when the view cuts it off.
+        _selected.Visible = LevelShading.IsVisible(cell.Z, _view.ViewLevel);
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -162,11 +171,11 @@ public partial class GameInput : Node3D
             _session.TogglePause();
         }
 
-        foreach (var (action, speed) in SpeedKeys)
+        for (var i = 0; i < Math.Min(SpeedActions.Length, GameSession.Speeds.Count); i++)
         {
-            if (Godot.Input.IsActionJustPressed(action))
+            if (Godot.Input.IsActionJustPressed(SpeedActions[i]))
             {
-                _session.SetSpeed(speed);
+                _session.SetSpeed(GameSession.Speeds[i]);
             }
         }
     }
@@ -224,21 +233,25 @@ public partial class GameInput : Node3D
     /// <summary>Selects what a click at the point picks: the colonist drawn there, else the colonist or the cell under it.</summary>
     public void ClickAt(Vector2 screenPoint)
     {
-        if (ColonistAt(screenPoint) is { IsNone: false } colonist)
+        var ground = CellPicker.PickWithDistance(_view.Camera.Camera, screenPoint, _session.Simulation.Map, _view.ViewLevel);
+
+        // Only a colonist in front of the ground the ray meets: not one behind a hill.
+        if (ColonistAt(screenPoint, ground?.Distance ?? float.MaxValue) is { IsNone: false } colonist)
         {
             SelectColonist(colonist);
         }
-        else if (PickAt(screenPoint) is { } cell)
+        else if (ground is { } hit)
         {
-            Select(SelectionAt(cell));
+            Select(SelectionAt(hit.Cell));
         }
     }
 
     /// <summary>
-    /// The colonist whose drawn model is under the point, nearest the camera, or none. The model
-    /// stands tall over its cell, so the ray through its body meets the ground behind it.
+    /// The colonist whose drawn model is under the point, nearest the camera and nearer than
+    /// <paramref name="limit"/>, or none. The model stands tall over its cell, so the ray through
+    /// its body meets the ground behind it.
     /// </summary>
-    private EntityId ColonistAt(Vector2 screenPoint)
+    private EntityId ColonistAt(Vector2 screenPoint, float limit)
     {
         var camera = _view.Camera.Camera;
         var from = camera.ProjectRayOrigin(screenPoint);
@@ -246,7 +259,7 @@ public partial class GameInput : Node3D
         var colonists = new List<EntityId>();
         _session.Simulation.World.Query<Colonist>(colonists);
         var nearest = EntityId.None;
-        var nearestDistance = float.MaxValue;
+        var nearestDistance = limit;
         foreach (var colonist in colonists)
         {
             if (_view.DrawnBounds(colonist) is { } bounds && RayEntry(bounds, from, direction) is { } distance
@@ -308,7 +321,10 @@ public partial class GameInput : Node3D
         return false;
     }
 
-    /// <summary>The colonist on the cell or on the one above it (a wall's top), lowest id first; else the cell.</summary>
+    /// <summary>
+    /// The colonist on the cell or on the one above it (a wall's top), lowest id first; else the
+    /// cell. Only colonists the view draws: not one the level cut hides.
+    /// </summary>
     private Selection SelectionAt(TileCoord cell)
     {
         var world = _session.Simulation.World;
@@ -318,7 +334,7 @@ public partial class GameInput : Node3D
         foreach (var colonist in colonists)
         {
             var position = world.Get<Position>(colonist).Cell;
-            if (position == cell || position == above)
+            if ((position == cell || position == above) && LevelShading.IsVisible(position.Z, _view.ViewLevel))
             {
                 return new Selection(colonist, position);
             }

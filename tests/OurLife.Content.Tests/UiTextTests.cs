@@ -6,16 +6,13 @@ namespace OurLife.Content.Tests;
 /// <summary>Texts that the game's UI builds at run time from an id, checked in every language.</summary>
 public class UiTextTests
 {
-    // The ids InspectorPanel gives each TileShape.
-    private static readonly string[] ShapeIds = ["empty", "floor", "wall", "ramp", "stair_up", "stair_down", "stair_updown"];
-
     [Fact]
     public void Every_tile_shape_has_its_name_in_every_language()
     {
-        ShapeIds.Length.ShouldBe(Enum.GetValues<TileShape>().Length, "a new shape needs its id in InspectorPanel and here");
         foreach (var catalog in GameContent.Catalogs.Values)
         {
-            foreach (var id in ShapeIds)
+            // The inspector names every shape, with the ids of TileShapes.
+            foreach (var id in Enum.GetValues<TileShape>().Select(TileShapes.Id))
             {
                 catalog.Messages.ContainsKey($"ui.inspector.shape.{id}").ShouldBeTrue($"{catalog.Locale}: missing ui.inspector.shape.{id}");
             }

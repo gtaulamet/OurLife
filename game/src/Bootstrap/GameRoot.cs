@@ -248,6 +248,9 @@ public partial class GameRoot : Node
                 return;
             }
 
+            // The game screen of the smoke draws with the catalog just checked.
+            _catalog = catalog;
+
             var ticks = options.Ticks ?? DefaultSmokeTicks;
             var simulation = new Simulation(options.Seed ?? DefaultSeed, services.Defs);
             if (!GenerateWorld(simulation))
@@ -305,8 +308,7 @@ public partial class GameRoot : Node
     private void BuildScreens(Simulation simulation, CommandLineOptions options)
     {
         var stopwatch = Stopwatch.StartNew();
-        _catalog ??= LoadVisualCatalog();
-        var screen = GameScreen.Create(_services!, _catalog, _services!.Text.Format("ui.newgame.default_name"), simulation, options.Level);
+        var screen = GameScreen.Create(_services!, _catalog!,_services!.Text.Format("ui.newgame.default_name"), simulation, options.Level);
         ShowGame(screen);
         stopwatch.Stop();
         GD.Print(string.Create(
