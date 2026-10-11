@@ -24,6 +24,8 @@
   "ui.common.back": "Back",
   "ui.common.main_menu": "Main Menu",
   "ui.options.title": "Options",
+  "ui.options.display": "Display",
+  "ui.options.windowed": "Windowed",
   "ui.options.fullscreen": "Fullscreen",
   "ui.pause.title": "Paused",
   "ui.pause.resume": "Resume",

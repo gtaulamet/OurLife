@@ -316,6 +316,7 @@ public partial class GameRoot : Node
         _screen?.QueueFree();
         _screen = null;
     }
+
     private static VisualCatalog LoadVisualCatalog() =>
         VisualCatalog.Parse(Godot.FileAccess.GetFileAsString(VisualCatalog.ResourcePath));
 

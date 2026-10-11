@@ -11,6 +11,7 @@ public partial class OptionsScreen : Control
 {
     private GameServices _services = null!;
     private readonly List<(string Locale, Button Button)> _languages = [];
+    private readonly List<(bool Fullscreen, Button Button)> _modes = [];
 
     public event Action? Closed;
 
@@ -38,17 +39,23 @@ public partial class OptionsScreen : Control
             screen._languages.Add((locale, button));
         }
 
-        var fullscreen = new CheckBox { Text = "ui.options.fullscreen", ButtonPressed = services.Settings.Fullscreen };
-        fullscreen.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
-        fullscreen.Toggled += on =>
+        // Two options, like the languages: a check box's mark was hard to see on the dimmed backdrop.
+        column.AddChild(UiBuilder.Caption("ui.options.display"));
+        var modes = new HBoxContainer();
+        modes.AddThemeConstantOverride("separation", UiBuilder.Gap);
+        column.AddChild(modes);
+        foreach (var (key, fullscreen) in new[] { ("ui.options.windowed", false), ("ui.options.fullscreen", true) })
         {
-            services.Settings.SetFullscreen(on);
-            services.Settings.ApplyWindowMode();
-        };
-        column.AddChild(fullscreen);
+            var button = new Button { Text = key, ToggleMode = true };
+            button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
+            button.Pressed += () => screen.ChooseFullscreen(fullscreen);
+            modes.AddChild(button);
+            screen._modes.Add((fullscreen, button));
+        }
 
         column.AddChild(UiBuilder.MenuButton("ui.common.back", () => screen.Closed?.Invoke()));
         screen.RefreshLanguages();
+        screen.RefreshModes();
         return screen;
     }
 
@@ -72,6 +79,21 @@ public partial class OptionsScreen : Control
         foreach (var (locale, button) in _languages)
         {
             button.SetPressedNoSignal(locale == _services.Localizer.CurrentLocale);
+        }
+    }
+
+    private void ChooseFullscreen(bool fullscreen)
+    {
+        _services.Settings.SetFullscreen(fullscreen);
+        _services.Settings.ApplyWindowMode();
+        RefreshModes();
+    }
+
+    private void RefreshModes()
+    {
+        foreach (var (fullscreen, button) in _modes)
+        {
+            button.SetPressedNoSignal(fullscreen == _services.Settings.Fullscreen);
         }
     }
 }

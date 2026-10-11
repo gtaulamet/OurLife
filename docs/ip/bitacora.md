@@ -4,16 +4,16 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-10.*
+*Actualizado el 2026-10-11.*
 
 | Dato | Valor |
 |---|---|
 | Rama de trabajo | `ip1/h1-7-interaccion-ui`, creada desde H1.6 y subida a `origin` |
-| Último commit de código | `48dac75 feat(core)` de H1.6; H1.7 está en curso (ver Pendientes) |
+| Último commit de código | El avance 7 de H1.7, en `ip1/h1-7-interaccion-ui` (ver Pendientes) |
 | `main` | En `48dac75`, el cierre de H1.6, también en `origin` |
 | Hitos hechos | H1.1 a H1.6 |
 | Hito en curso | H1.7 Interacción y UI, spec en `docs/gdd/interfaz-ip1.md` |
-| Validación | `dotnet build` sin advertencias, 356 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 367 tests en verde, smoke con código 0 |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (cambia desde H1.6 porque el smoke trae la colonia) |
 
 ## Pendientes
@@ -27,7 +27,7 @@ En orden:
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
    5. HUD: barra superior, barra de órdenes y registro; textos es y en. **Hecho.**
    6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`. **Hecho.**
-   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre.
+   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre. **Capturas y smoke hechos;** falta la revisión de código, la documentación y el cierre.
 2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
    - `DesignateCommand` para las órdenes.
    - Eventos `EntitySpawnedEvent`, `EntityChangedEvent`, `EntityRemovedEvent`, `DesignationsChangedEvent`, `NotificationEvent` y `ColonyLostEvent`.
@@ -99,6 +99,15 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
   - El nombre de la aldea se ve en la barra superior. Todavía no se guarda en la simulación: hará falta para el guardado de IP2.
   - El smoke arma la pantalla de partida con el inspector, la pausa, las opciones y los tres menús, y falla si falta un texto.
   - Revisadas las capturas del menú principal y de las opciones en es y en. La casilla de pantalla completa tiene poco contraste sobre el fondo oscurecido: revisar en QA.
+
+### 2026-10-11: H1.7, avance 7 (QA)
+
+- El botón presionado del tema por defecto era apenas más oscuro que el normal: no se veía qué idioma, velocidad u orden estaba activa. `UiTheme` le da un fondo ocre (`PressedColor`) con texto blanco, y copia los márgenes por defecto para que los botones no cambien de tamaño.
+- La casilla de pantalla completa pasa a una fila "Pantalla: Ventana | Pantalla completa", igual que la del idioma. Claves nuevas `ui.options.display` y `ui.options.windowed` en es y en, y en la spec.
+- Tiny5 a 16 px se lee bien sobre el 3D en las capturas: no se agranda.
+- Capturas revisadas en es y en: menú principal, opciones (sobre la partida y desde el menú) y partida con órdenes, inspector y registro.
+- 367 tests en verde; smoke con código 0 y las mismas huellas (`AED7A63935A0B1F7` con la semilla 1).
+
 ### 2026-10-10: H1.6 Colonos e IA
 
 - Retomé el trabajo sin commitear de la sesión anterior, que no había quedado en la bitácora:

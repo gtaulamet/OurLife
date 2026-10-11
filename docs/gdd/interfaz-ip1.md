@@ -21,7 +21,7 @@ flowchart LR
 | Menú principal | Título; botones Nueva partida, Cargar partida (deshabilitado hasta IP2), Opciones y Salir |
 | Nueva partida | Nombre de la aldea, que trae un nombre por defecto; semilla, con un botón "Al azar"; Empezar y Volver |
 | Partida | Vista 3D del valle con el HUD encima |
-| Opciones | Idioma (Español, English), aplicado en vivo; pantalla completa. Las dos preferencias se guardan |
+| Opciones | Idioma (Español, English), aplicado en vivo; pantalla (Ventana, Pantalla completa). En cada fila se resalta la opción activa. Las dos preferencias se guardan |
 | Pausa | Se abre con Esc y pausa el tiempo. Botones Continuar, Opciones y Menú principal |
 | La colonia ha caído | Aparece cuando muere el último colono. Botón Menú principal |
 
@@ -112,6 +112,8 @@ Todos van en `ui.json` de `es` y `en`, con estas claves (propuesta de texto en e
 | `ui.common.back` | Volver |
 | `ui.common.main_menu` | Menú principal |
 | `ui.options.title` | Opciones |
+| `ui.options.display` | Pantalla |
+| `ui.options.windowed` | Ventana |
 | `ui.options.fullscreen` | Pantalla completa |
 | `ui.pause.title` | Pausa |
 | `ui.pause.resume` | Continuar |

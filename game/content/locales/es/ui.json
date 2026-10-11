@@ -24,6 +24,8 @@
   "ui.common.back": "Volver",
   "ui.common.main_menu": "Menú principal",
   "ui.options.title": "Opciones",
+  "ui.options.display": "Pantalla",
+  "ui.options.windowed": "Ventana",
   "ui.options.fullscreen": "Pantalla completa",
   "ui.pause.title": "Pausa",
   "ui.pause.resume": "Continuar",
