@@ -21,7 +21,7 @@
 | H1.4 Mapa y generación | Hecho | `ip1/h1-4-mapa-generacion` | Valle de 96×96×32 generado en unos 20 ms, superficie conectada, regiones de conectividad |
 | H1.5 Render y cámara | Hecho | `ip1/h1-5-render-camara` | Valle en 3D con terreno por chunks, corte por nivel, plantas y cámara; colonos y objetos pasan a H1.7 |
 | H1.6 Colonos e IA | Hecho | `ip1/h1-6-colonos-ia` | 5 colonos que llegan, comen, duermen, excavan, cavan escaleras, talan y recolectan; A* 3D y conectividad incremental; 0,01 ms por tick |
-| H1.7 Interacción y UI | Pendiente | | |
+| H1.7 Interacción y UI | En curso | `ip1/h1-7-interaccion-ui` | Partida en tiempo real con órdenes por arrastre, inspector, HUD, registro y menús en es y en; falta cerrar la revisión de código |
 | H1.8 Integración | Pendiente | | |
 
 **Ruta crítica:** H1.1 → H1.2 → (H1.3 ∥ H1.4) → (H1.5 ∥ H1.6) → H1.7 → H1.8.
@@ -366,3 +366,49 @@
   - La regla "escalera sin planta" vive en un solo lugar.
   - El smoke cuenta órdenes con `OrderedCells`.
   - Se arregló una tabla rota en `i18n.md` y el orden del tick en `overview.md`.
+
+## Registro de H1.7: Interacción y UI
+
+**Entregado**
+
+- Spec en `docs/gdd/interfaz-ip1.md`: pantallas, controles, HUD, inspector, selección de celdas, dibujo del mundo, textos nuevos y criterios de aceptación.
+- Core:
+  - `MapRaycast`: recorrido de la grilla de Amanatides y Woo que salta los niveles ocultos. El suelo y la bajada de escalera, que se dibujan en la base de la celda, cuentan sólo donde el rayo llega a ellos.
+  - `Simulation.ApplyCommandsNow`, para que una orden dada en pausa se vea en el acto, con la misma huella.
+  - `Settings` guarda la pantalla completa.
+  - `ColonyStart` emite `event.colony.arrived`.
+- Godot:
+  - `GameSession` corre la simulación en tiempo real con `TickPacer`: pausa, velocidades 1×, 2× y 4×, y espera mientras hay un menú abierto.
+  - `GameScreen` une la sesión, la vista, la entrada, el HUD y los menús, y es el único lugar que arma una partida nueva (`NewGame`).
+  - `EntityRenderer` reemplaza a `PlantRenderer`: plantas, pilas y colonos que siguen los eventos. Los colonos avanzan entre celdas y miran hacia donde caminan; un arbusto recolectado cambia de modelo.
+  - `OrderMarkers` marca las órdenes con colores. La escalera en ambos sentidos se dibuja con su hueco.
+  - `GameInput`: marco bajo el ratón, órdenes por arrastre (en el nivel de la primera celda, salvo que cambie el nivel de la vista), selección de colono o celda, teclas de órdenes y de tiempo, y Esc o clic derecho para salir.
+  - `Hud` con fecha y hora, pausa y velocidades, nivel, `InspectorPanel`, `EventLog` y barra de órdenes. El registro guarda `LocalizedText` y se retraduce al cambiar de idioma.
+  - Menús construidos con `UiBuilder`: principal (Cargar deshabilitado hasta IP2), nueva partida (nombre de la aldea y semilla), opciones (idioma en vivo, ventana o pantalla completa), pausa y fin de partida.
+  - `UiTheme` resalta en ocre el botón activo de cada fila.
+  - Opciones de línea de comandos `--play`, `--options`, `--inspect`, `--orders`, `--zoom` y `--ticks` fuera del smoke, para capturas.
+- Arte: arbusto sin frutos (`plant.berry_bush.harvested`) y colonos a escala 2.
+- Textos de todo H1.7 en es y en; `UiTextTests` comprueba las claves que se arman en ejecución.
+
+**Decisiones**
+
+- Excavar usa la tecla M, porque la E rota la cámara.
+- Tiny5 a 16 px se lee bien sobre el 3D: no se agranda.
+- El nombre de la aldea todavía no se guarda en la simulación; lo necesitará el guardado de IP2.
+- Los colonos están en pose de T porque el modelo no trae animación.
+
+**Validación**
+
+- `dotnet build` sin advertencias y 368 tests en verde.
+- Smoke con `--seed 1` y `--seed 42`, `--ticks 5000`: código 0 y las huellas de H1.6. Ahora también arma la pantalla de partida sobre el mundo que trabajó, con el inspector, la pausa, las opciones y los menús, y falla si falta un texto.
+- Capturas revisadas en es y en: menú principal, opciones (sobre la partida y desde el menú) y partida con órdenes, inspector y registro.
+- `/code-review`, primera ronda, con 10 hallazgos, todos corregidos:
+  - El rayo tomaba el suelo al entrar por arriba de la celda, y con la cámara inclinada elegía la celda de adelante. Test nuevo con un rayo inclinado.
+  - Arrastrar una orden sobre una ladera marcaba todas las celdas enterradas entre las dos alturas. La caja queda en el nivel de la primera celda; para abarcar varios niveles se cambia el nivel de la vista mientras se arrastra. Soltar fuera del mapa ya no usa la última celda apuntada.
+  - El marco bajo el ratón no seguía a la cámara ni al nivel.
+  - El reloj del HUD sólo se refrescaba al cambiar el minuto; ahora sigue al tick.
+  - El smoke armaba una partida nueva en lugar de dibujar la que había trabajado, y `GameRoot` tenía una copia de la creación de partida.
+  - `TextResolver.Capitalized` no usaba la cultura de respaldo del catálogo.
+  - El registro guardaba todos los mensajes de la partida.
+  - Un comentario en español en `UiBuilder`.
+  - `EntityRenderer` recorría todas las plantas cada cuadro para mover a los colonos.

@@ -10,8 +10,10 @@ public static class MapRaycast
 {
     /// <summary>
     /// The first cell along the ray that is not air, skipping every level above
-    /// <paramref name="maxLevel"/>, as the view hides them. A wall is hit from above or from the
-    /// side; a floor, ramp or stairs as soon as the ray enters its cell.
+    /// <paramref name="maxLevel"/>, as the view hides them. A wall, ramp or stairs up is hit as
+    /// soon as the ray enters its cell. A floor or the opening of stairs down lies on the bottom of
+    /// its cell, so it is hit only where the ray leaves the cell through the bottom: a slanted ray
+    /// that only crosses the top of the cell points at the cell behind it.
     /// </summary>
     public static bool TryFirstHit(
         GameMap map,
@@ -50,7 +52,10 @@ public static class MapRaycast
 
         while (true)
         {
-            if (map.ShapeAt(x, y, z) != TileShape.Empty)
+            // The same choice as the step below: the ray leaves this cell through the bottom.
+            var leavesThroughBottom = stepZ < 0 && nextZ < nextX && nextZ < nextY;
+            var shape = map.ShapeAt(x, y, z);
+            if (shape is TileShape.Floor or TileShape.StairDown ? leavesThroughBottom : shape != TileShape.Empty)
             {
                 cell = new TileCoord(x, y, z);
                 return true;

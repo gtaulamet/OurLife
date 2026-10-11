@@ -54,6 +54,16 @@ public class MapRaycastTests
         Hit((0.2, 0.2, 2.9), (1, 1, -0.6), maxLevel: 2).ShouldBe(new TileCoord(1, 1, 2));
     }
 
+    [Fact]
+    public void A_slanted_ray_hits_the_floor_where_it_reaches_the_ground()
+    {
+        // Like the camera, about 55° down, aimed at (1.3, 0.5) on the floor of level 1. It crosses
+        // the top of the floor cell (0, 0) first, but the floor is on the bottom of the cell.
+        var direction = (1.0, 0.0, -1.43);
+        var origin = (1.3 - 5, 0.5, 1 + (5 * 1.43));
+        Hit(origin, direction, maxLevel: 2).ShouldBe(new TileCoord(1, 0, 1));
+    }
+
     [Theory]
     [InlineData(10, 10, 10, 1, 0, 0)]
     [InlineData(1.5, 1.5, 10, 0, 0, 1)]

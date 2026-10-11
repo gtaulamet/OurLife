@@ -39,7 +39,7 @@ public partial class Hud : CanvasLayer
     private Label _level = null!;
     private Label _hint = null!;
     private Button _pause = null!;
-    private int _shownMinute = -1;
+    private long _shownTick = -1;
 
     public InspectorPanel Inspector { get; private set; } = null!;
 
@@ -84,11 +84,11 @@ public partial class Hud : CanvasLayer
 
     public override void _Process(double delta)
     {
-        // The clock only changes once per game minute: no need to format it every frame.
-        var date = _session.Simulation.CurrentDate;
-        if (date.Minute != _shownMinute)
+        // The clock only changes with a tick: no need to format it every frame.
+        var tick = _session.Simulation.CurrentTick;
+        if (tick != _shownTick)
         {
-            _shownMinute = date.Minute;
+            _shownTick = tick;
             RefreshDate();
         }
     }

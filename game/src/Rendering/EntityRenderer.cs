@@ -22,6 +22,9 @@ public partial class EntityRenderer : Node3D
     private const float GlideRate = 14f;
 
     private readonly Dictionary<EntityId, EntityView> _views = [];
+
+    // The views that move, a few among thousands of plants: the only ones updated every frame.
+    private readonly Dictionary<EntityId, EntityView> _walkers = [];
     private Simulation _simulation = null!;
     private ModelLibrary _models = null!;
     private int _viewLevel;
@@ -91,9 +94,9 @@ public partial class EntityRenderer : Node3D
     {
         var world = _simulation.World;
         var glide = Math.Min(1f, (float)delta * GlideRate);
-        foreach (var (entity, view) in _views)
+        foreach (var (entity, view) in _walkers)
         {
-            if (!view.Moves || !world.IsAlive(entity))
+            if (!world.IsAlive(entity))
             {
                 continue;
             }
@@ -131,8 +134,13 @@ public partial class EntityRenderer : Node3D
         }
 
         AddChild(node);
-        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node), moves);
+        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node));
         _views.Add(entity, view);
+        if (moves)
+        {
+            _walkers.Add(entity, view);
+        }
+
         UpdateVisibility(view);
     }
 
@@ -156,6 +164,7 @@ public partial class EntityRenderer : Node3D
     {
         if (_views.Remove(entity, out var view))
         {
+            _walkers.Remove(entity);
             view.Node.QueueFree();
         }
     }
@@ -245,7 +254,7 @@ public partial class EntityRenderer : Node3D
         return hash % 360;
     }
 
-    private sealed class EntityView(Node3D node, VisualModel model, int level, IReadOnlyList<MeshInstance3D> meshes, bool moves)
+    private sealed class EntityView(Node3D node, VisualModel model, int level, IReadOnlyList<MeshInstance3D> meshes)
     {
         public Node3D Node { get; } = node;
 
@@ -254,9 +263,6 @@ public partial class EntityRenderer : Node3D
         public int Level { get; set; } = level;
 
         public IReadOnlyList<MeshInstance3D> Meshes { get; } = meshes;
-
-        /// <summary>True for creatures, whose position is updated every frame.</summary>
-        public bool Moves { get; } = moves;
 
         /// <summary>Depth its materials are shaded for; -1 before the first time.</summary>
         public int ShadedDepth { get; set; } = -1;

@@ -7,7 +7,6 @@ using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
-using OurLife.Core.WorldGen;
 using OurLife.Game.Content;
 using OurLife.Game.Localization;
 using OurLife.Game.Rendering;
@@ -181,9 +180,14 @@ public partial class GameRoot : Node
     {
         _catalog ??= LoadVisualCatalog();
         var screen = GameScreen.Create(_services!, _catalog, colonyName, seed, level, distance);
+        ShowGame(screen);
+        return screen;
+    }
+
+    private void ShowGame(GameScreen screen)
+    {
         screen.MainMenuRequested += ShowMainMenu;
         ShowScreen(screen);
-        return screen;
     }
 
     /// <summary>
@@ -249,7 +253,8 @@ public partial class GameRoot : Node
                 return;
             }
 
-            var colonists = StartColony(simulation);
+            // The same two steps as GameScreen.NewGame, apart so the smoke can report each one.
+            var colonists = GameScreen.StartColony(simulation);
             var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
             GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
             var stairSite = OrderWorkAround(simulation, arrival);
@@ -270,7 +275,7 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] date {simulation.CurrentDate} | state {simulation.ComputeStateHash():X16}");
             GD.Print($"[smoke] date shown to the player: {services.Text.Date(simulation.CurrentDate)}, {services.Text.Clock(simulation.CurrentDate)}");
 
-            BuildScreens(options);
+            BuildScreens(simulation, options);
 
             if (services.Localizer.MissingKeys.Count > 0)
             {
@@ -289,14 +294,17 @@ public partial class GameRoot : Node
 
     /// <summary>
     /// Builds every screen without a window and frees them: the game screen (3D view, input and HUD,
-    /// with the first colonist in the inspector) for <c>--seed</c>, the menus over it, and the
-    /// main, new game and options screens. Texts formatted in code that do not exist are then in
-    /// the localizer's missing keys, and the smoke fails.
+    /// with the first colonist in the inspector) for the simulation that ran, so the view draws a
+    /// world with work done in it, the menus over it, and the main, new game and options screens.
+    /// Texts formatted in code that do not exist are then in the localizer's missing keys, and the
+    /// smoke fails.
     /// </summary>
-    private void BuildScreens(CommandLineOptions options)
+    private void BuildScreens(Simulation simulation, CommandLineOptions options)
     {
         var stopwatch = Stopwatch.StartNew();
-        var screen = StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, distance: null);
+        _catalog ??= LoadVisualCatalog();
+        var screen = GameScreen.Create(_services!, _catalog, _services!.Text.Format("ui.newgame.default_name"), simulation, options.Level);
+        ShowGame(screen);
         stopwatch.Stop();
         GD.Print(string.Create(
             CultureInfo.InvariantCulture,
@@ -353,28 +361,6 @@ public partial class GameRoot : Node
         }
 
         return problems.Count == 0;
-    }
-
-    /// <summary>Generates the only WorldGen def of the content, until IP7 brings the choice of site.</summary>
-    /// <exception cref="InvalidOperationException">The content has no WorldGen def, or more than one.</exception>
-    private static WorldGenDef GenerateTheOnlyWorld(Simulation simulation)
-    {
-        var worlds = simulation.Content.All<WorldGenDef>();
-        if (worlds.Count != 1)
-        {
-            throw new InvalidOperationException($"The content must have exactly one WorldGen def until IP7, found {worlds.Count}.");
-        }
-
-        WorldGenerator.Generate(simulation, worlds[0]);
-        return worlds[0];
-    }
-
-    /// <summary>Brings the colonists of the only scenario and adds the colony systems.</summary>
-    private static IReadOnlyList<EntityId> StartColony(Simulation simulation)
-    {
-        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content));
-        ColonySystems.AddTo(simulation);
-        return colonists;
     }
 
     /// <summary>
@@ -474,7 +460,7 @@ public partial class GameRoot : Node
     private static bool GenerateWorld(Simulation simulation)
     {
         var stopwatch = Stopwatch.StartNew();
-        var world = GenerateTheOnlyWorld(simulation);
+        var world = GameScreen.GenerateTheOnlyWorld(simulation);
         stopwatch.Stop();
         var map = simulation.Map;
 

@@ -70,7 +70,7 @@ Las teclas de las órdenes son las mismas en los dos idiomas. Excavar usa la M (
 
 - El rayo de la cámara recorre la grilla celda por celda e ignora las que están por encima del nivel de la vista. La primera celda que no es aire es la apuntada: un muro (por arriba o por el costado), o una celda de suelo, rampa o escalera.
 - Una celda apuntada se resalta con un marco.
-- **Marcar un área:** al soltar el botón, la caja entre la celda del primer clic y la del último, en x, y y z, se envía como `DesignateCommand` con la orden activa. Mientras se arrastra se dibuja la caja.
+- **Marcar un área:** al soltar el botón, la caja entre la celda del primer clic y la del último se envía como `DesignateCommand` con la orden activa. Mientras se arrastra se dibuja la caja. La caja queda en el nivel de la primera celda, para que arrastrar sobre una ladera no marque todas las celdas enterradas entre las dos alturas. Para abarcar varios niveles, por ejemplo una escalera, se cambia el nivel de la vista (RePág, AvPág) mientras se arrastra. Si el botón se suelta fuera del mapa, no se marca nada.
 - **Seleccionar:** un clic elige al colono de la celda apuntada o de la de arriba, si hay alguno; si no, la celda. Con varios colonos, el de menor id.
 
 ## Inspector

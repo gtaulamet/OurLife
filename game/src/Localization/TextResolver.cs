@@ -44,7 +44,8 @@ public sealed class TextResolver
             return text;
         }
 
-        var culture = CultureInfo.GetCultureInfo(_localizer.CurrentLocale);
+        // The catalog's culture, which falls back to the invariant one for a language .NET does not know.
+        var culture = _localizer.Catalog(_localizer.CurrentLocale).Culture;
         return culture.TextInfo.ToUpper(text[0]) + text[1..];
     }
 

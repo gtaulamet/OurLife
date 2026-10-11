@@ -44,8 +44,10 @@ public partial class GameInput : Node3D
     private MeshInstance3D _hover = null!;
     private MeshInstance3D _selected = null!;
     private MeshInstance3D _box = null!;
+    private Vector2? _mouse;
     private TileCoord? _hoverCell;
     private TileCoord? _dragStart;
+    private int _dragLevel;
     private Selection? _selection;
     private DesignationKind? _order;
 
@@ -101,6 +103,12 @@ public partial class GameInput : Node3D
     {
         HandleKeys();
 
+        // The camera and the view level move without the mouse: the frame follows what is under it now.
+        if (_mouse is { } mouse)
+        {
+            Hover(mouse);
+        }
+
         // A selected colonist is followed as it walks; one that died is no longer selected.
         if (_selection is { IsColonist: true } selection)
         {
@@ -121,13 +129,15 @@ public partial class GameInput : Node3D
         switch (@event)
         {
             case InputEventMouseMotion motion:
+                _mouse = motion.Position;
                 Hover(motion.Position);
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press:
                 _dragStart = PickAt(press.Position);
+                _dragLevel = _view.ViewLevel;
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } release:
-                Release(PickAt(release.Position) ?? _hoverCell);
+                Release(PickAt(release.Position));
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true }:
                 BackOut();
@@ -185,9 +195,17 @@ public partial class GameInput : Node3D
         _box.Visible = _order is not null && _dragStart is not null && _hoverCell is not null;
         if (_box.Visible)
         {
-            PlaceOn(_box, _dragStart!.Value, _hoverCell!.Value);
+            PlaceOn(_box, _dragStart!.Value, BoxCorner(_dragStart.Value, _hoverCell!.Value));
         }
     }
+
+    /// <summary>
+    /// The far corner of a dragged box. It stays on the level of the first cell, so a drag across
+    /// a slope does not take every buried cell between the two heights; changing the view level
+    /// while dragging reaches other levels.
+    /// </summary>
+    private TileCoord BoxCorner(TileCoord start, TileCoord end) =>
+        _view.ViewLevel == _dragLevel ? new TileCoord(end.X, end.Y, start.Z) : end;
 
     private void Release(TileCoord? end)
     {
@@ -201,7 +219,7 @@ public partial class GameInput : Node3D
 
         if (_order is { } order)
         {
-            _session.Enqueue(new DesignateCommand(order, start.Value, end.Value));
+            _session.Enqueue(new DesignateCommand(order, start.Value, BoxCorner(start.Value, end.Value)));
         }
         else
         {

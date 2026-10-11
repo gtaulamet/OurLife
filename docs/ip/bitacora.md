@@ -13,7 +13,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | En `48dac75`, el cierre de H1.6, también en `origin` |
 | Hitos hechos | H1.1 a H1.6 |
 | Hito en curso | H1.7 Interacción y UI, spec en `docs/gdd/interfaz-ip1.md` |
-| Validación | `dotnet build` sin advertencias, 367 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 368 tests en verde, smoke con código 0 |
 | Huella del smoke | `AED7A63935A0B1F7` con `--seed 1 --ticks 5000`; `0E9BCBB94E6FFC95` con `--seed 42 --ticks 5000` (cambia desde H1.6 porque el smoke trae la colonia) |
 
 ## Pendientes
@@ -27,7 +27,7 @@ En orden:
    4. Entrada: apuntar, seleccionar y marcar áreas arrastrando; inspector de colono y de celda. **Hecho.**
    5. HUD: barra superior, barra de órdenes y registro; textos es y en. **Hecho.**
    6. Menús: principal, nueva partida, opciones, pausa y fin de partida; `GameRoot` arranca en el menú y suma `--play`. **Hecho.**
-   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre. **Capturas y smoke hechos;** falta la revisión de código, la documentación y el cierre.
+   7. QA: capturas es y en, smoke con la pantalla de partida, `/code-review`, documentación y commit de cierre. **Capturas, smoke y primera ronda de revisión hechos** (10 hallazgos corregidos, registro de H1.7 en `IP1.md`). Falta una segunda ronda de revisión sobre las correcciones y el cierre: `IP1.md` en "Hecho", `plan-maestro.md`, la skill `godot-run` con las opciones nuevas, y adelantar `main`.
 2. **Contrato con la presentación,** en la spec de H1.6 (`docs/gdd/colonos-e-ia.md`, "Contrato con la presentación"):
    - `DesignateCommand` para las órdenes.
    - Eventos `EntitySpawnedEvent`, `EntityChangedEvent`, `EntityRemovedEvent`, `DesignationsChangedEvent`, `NotificationEvent` y `ColonyLostEvent`.
@@ -107,6 +107,7 @@ El backlog (`docs/ip/backlog.md`) tiene dos temas para más adelante: una pantal
 - Tiny5 a 16 px se lee bien sobre el 3D en las capturas: no se agranda.
 - Capturas revisadas en es y en: menú principal, opciones (sobre la partida y desde el menú) y partida con órdenes, inspector y registro.
 - 367 tests en verde; smoke con código 0 y las mismas huellas (`AED7A63935A0B1F7` con la semilla 1).
+- Primera ronda de revisión de código sobre toda la rama: 10 hallazgos, todos corregidos. El detalle está en el registro de H1.7 de `IP1.md`. Lo más importante: el rayo elegía la celda de adelante al apuntar un suelo con la cámara inclinada, y arrastrar una orden sobre una ladera marcaba todos los niveles enterrados. El smoke ahora dibuja la partida que trabajó, y `GameScreen` es el único lugar que arma una partida. 368 tests.
 
 ### 2026-10-10: H1.6 Colonos e IA
 

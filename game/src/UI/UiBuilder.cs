@@ -3,8 +3,8 @@ using Godot;
 namespace OurLife.Game.UI;
 
 /// <summary>
-/// Small helpers to build menus in code with the global theme (escenas mínimas, UI en C#). Texts
-/// passed as keys are translated by Godot and follow language changes on their own.
+/// Small helpers to build menus in code with the global theme: scenes stay minimal and the UI is
+/// built in C#. Texts passed as keys are translated by Godot and follow language changes on their own.
 /// </summary>
 public static class UiBuilder
 {

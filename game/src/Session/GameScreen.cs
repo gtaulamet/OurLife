@@ -1,6 +1,7 @@
 using Godot;
 using OurLife.Core.Colony;
 using OurLife.Core.Defs;
+using OurLife.Core.Ecs;
 using OurLife.Core.Sim;
 using OurLife.Core.WorldGen;
 using OurLife.Game.Bootstrap;
@@ -46,8 +47,15 @@ public partial class GameScreen : Node
     public static GameScreen Create(GameServices services, VisualCatalog catalog, string colonyName, ulong seed, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
+        return Create(services, catalog, colonyName, NewGame(services.Defs, seed), level, distance);
+    }
+
+    /// <summary>Builds the screen for a simulation already started with <see cref="NewGame"/>, which may have run.</summary>
+    public static GameScreen Create(GameServices services, VisualCatalog catalog, string colonyName, Simulation simulation, int? level, int? distance = null)
+    {
+        ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(catalog);
-        var simulation = NewGame(services.Defs, seed);
+        ArgumentNullException.ThrowIfNull(simulation);
         var screen = new GameScreen { Name = nameof(GameScreen), _services = services };
         try
         {
@@ -87,16 +95,36 @@ public partial class GameScreen : Node
     {
         ArgumentNullException.ThrowIfNull(content);
         var simulation = new Simulation(seed, content);
-        var worlds = content.All<WorldGenDef>();
+        GenerateTheOnlyWorld(simulation);
+        StartColony(simulation);
+        return simulation;
+    }
+
+    /// <summary>
+    /// The first half of <see cref="NewGame"/>: generates the only WorldGen def of the content,
+    /// until IP7 brings the choice of site. Public so the smoke can time it.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">The content has no WorldGen def, or more than one.</exception>
+    public static WorldGenDef GenerateTheOnlyWorld(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var worlds = simulation.Content.All<WorldGenDef>();
         if (worlds.Count != 1)
         {
             throw new InvalidOperationException($"The content must have exactly one WorldGen def until IP7, found {worlds.Count}.");
         }
 
         WorldGenerator.Generate(simulation, worlds[0]);
-        ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(content));
+        return worlds[0];
+    }
+
+    /// <summary>The second half of <see cref="NewGame"/>: brings the colonists of the only scenario and adds the colony systems.</summary>
+    public static IReadOnlyList<EntityId> StartColony(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content));
         ColonySystems.AddTo(simulation);
-        return simulation;
+        return colonists;
     }
 
     /// <summary>Opens the options over the game, as the pause menu's button does; for screenshots.</summary>

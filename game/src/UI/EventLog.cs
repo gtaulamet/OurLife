@@ -48,6 +48,12 @@ public partial class EventLog : PanelContainer
 
         if (added)
         {
+            // Only the last ones are ever shown: the log does not grow with the game.
+            if (_entries.Count > Shown)
+            {
+                _entries.RemoveRange(0, _entries.Count - Shown);
+            }
+
             Refresh();
         }
     }
@@ -57,10 +63,9 @@ public partial class EventLog : PanelContainer
     private void Refresh()
     {
         var text = _services.Text;
-        var first = Math.Max(0, _entries.Count - Shown);
         _text.Text = string.Join(
             "\n",
-            _entries.Skip(first).Select(entry => text.Format("ui.log.entry", ("clock", text.Clock(entry.Date)), ("text", text.Resolve(entry.Text)))));
+            _entries.Select(entry => text.Format("ui.log.entry", ("clock", text.Clock(entry.Date)), ("text", text.Resolve(entry.Text)))));
         Visible = _entries.Count > 0;
     }
 }
