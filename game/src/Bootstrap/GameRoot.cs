@@ -331,16 +331,26 @@ public partial class GameRoot : Node
             CultureInfo.InvariantCulture,
             $"[smoke] game screen built in {stopwatch.Elapsed.TotalMilliseconds:F0} ms at level {screen.View.ViewLevel}"));
 
-        // A click on a colonist's chest selects it, with the camera's real slant. A long smoke can
-        // end with the colony lost: then there is nobody to click.
+        // A click on a colonist's chest selects it, with the camera's real slant. A colonist that
+        // the terrain hides from the camera cannot be clicked, so any drawn one will do. A long
+        // smoke can end with the colony lost: then there is nobody to click.
         var colonists = new List<EntityId>();
         screen.Session.Simulation.World.Query<Colonist>(colonists);
-        if (colonists.Count > 0 && screen.View.DrawnBounds(colonists[0]) is { } bounds)
+        var drawn = colonists.Where(colonist => screen.View.DrawnBounds(colonist) is not null).ToList();
+        foreach (var colonist in drawn)
         {
-            screen.Input.ClickAt(screen.View.Camera.Camera.UnprojectPosition(bounds.GetCenter()));
+            screen.Input.ClickAt(screen.View.Camera.Camera.UnprojectPosition(screen.View.DrawnBounds(colonist)!.Value.GetCenter()));
+            if (screen.Input.Selected is { IsColonist: true })
+            {
+                break;
+            }
+        }
+
+        if (drawn.Count > 0)
+        {
             if (screen.Input.Selected is not { IsColonist: true })
             {
-                throw new InvalidOperationException("A click on a colonist's chest did not select a colonist.");
+                throw new InvalidOperationException($"A click on the chest of each of the {drawn.Count} drawn colonists selected none.");
             }
 
             GD.Print("[smoke] a click on a colonist selects it");

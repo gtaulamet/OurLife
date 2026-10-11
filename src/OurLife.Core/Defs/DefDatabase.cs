@@ -133,6 +133,18 @@ public sealed partial class DefDatabase
         {
             errors.Add($"The content needs exactly one TimeConfig def, found {timeConfigs.Length}.");
         }
+        else if (byType.TryGetValue(typeof(PlantDef), out var plantDefs))
+        {
+            // Seasons are not defs: their ids come from the calendar.
+            var seasons = timeConfigs[0].Seasons;
+            foreach (var plant in plantDefs.Values.Cast<PlantDef>())
+            {
+                foreach (var season in plant.DormantSeasons.Where(season => !seasons.Contains(season)))
+                {
+                    errors.Add($"{Describe(plant)}: dormantSeasons names '{season}', but the TimeConfig has no such season.");
+                }
+            }
+        }
 
         if (errors.Count > 0)
         {

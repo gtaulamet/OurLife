@@ -230,17 +230,34 @@ public partial class GameInput : Node3D
         _box.Visible = _order is not null && _dragStart is not null && _dragEnd is not null;
         if (_box.Visible)
         {
-            PlaceOn(_box, _dragStart!.Value, BoxCorner(_dragStart.Value, _dragEnd!.Value));
+            var start = _dragStart!.Value;
+            var (_, to) = Box(_order!.Value, start, _dragEnd!.Value);
+
+            // A box over every visible level would hide the view: an order on plants is drawn
+            // as the rectangle on the level of the first cell.
+            PlaceOn(_box, start, IsCellOrder(_order.Value) ? to : new TileCoord(to.X, to.Y, start.Z));
         }
     }
 
+    private static bool IsCellOrder(DesignationKind order) => order is DesignationKind.Mine or DesignationKind.Stairs;
+
     /// <summary>
-    /// The far corner of a dragged box. It stays on the level of the first cell, so a drag across
-    /// a slope does not take every buried cell between the two heights; changing the view level
-    /// while dragging reaches other levels.
+    /// The box of cells a drag gives. Digging and stairs stay on the level of the first cell, so a
+    /// drag across a slope does not take every buried cell between the two heights; changing the
+    /// view level while dragging reaches other levels. Chopping, gathering and cancelling take
+    /// everything the view shows in the rectangle, from the deepest level drawn up to the view
+    /// level, because plants grow at every height of a slope.
     /// </summary>
-    private TileCoord BoxCorner(TileCoord start, TileCoord end) =>
-        _view.ViewLevel == _dragLevel ? new TileCoord(end.X, end.Y, start.Z) : end;
+    private (TileCoord From, TileCoord To) Box(DesignationKind order, TileCoord start, TileCoord end)
+    {
+        if (IsCellOrder(order))
+        {
+            return (start, _view.ViewLevel == _dragLevel ? new TileCoord(end.X, end.Y, start.Z) : end);
+        }
+
+        var bottom = Math.Max(0, _view.ViewLevel - LevelShading.MaxDepth);
+        return (new TileCoord(start.X, start.Y, bottom), new TileCoord(end.X, end.Y, _view.ViewLevel));
+    }
 
     /// <summary>
     /// Ends a left press: at a point of the world, or at none when the button was released over
@@ -264,7 +281,8 @@ public partial class GameInput : Node3D
         {
             if (start is { } first && end is { } last)
             {
-                _session.Enqueue(new DesignateCommand(order, first, BoxCorner(first, last)));
+                var (from, to) = Box(order, first, last);
+                _session.Enqueue(new DesignateCommand(order, from, to));
             }
         }
         else if (screenPoint is { } clicked)

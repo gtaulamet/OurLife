@@ -106,6 +106,9 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Item", "id": "Log", "kind": "raw", "visual": "item.log", "stackLimit": 10 }]""", "invalid id")]
     [InlineData("""[{ "type": "Era", "id": "second_age", "order": 0 }]""", "share order 0")]
     [InlineData("""[{ "type": "TimeConfig", "id": "other_time", "ticksPerSecond": 10, "minutesPerTick": 1, "daysPerSeason": 15, "seasons": ["spring"], "startYear": 1200, "startHour": 6 }]""", "exactly one TimeConfig")]
+    [InlineData("""[{ "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["monsoon"] }]""", "no such season")]
+    [InlineData("""[{ "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["winter", "winter"] }]""", "repeats a season")]
+    [InlineData("""[{ "type": "Plant", "id": "oak", "visual": "plant.oak", "dormantSeasons": ["winter"] }]""", "only makes sense for a plant that can be gathered")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

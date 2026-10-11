@@ -280,6 +280,31 @@ public class ColonyScenarioTests
     }
 
     [Fact]
+    public void A_bush_gathered_in_winter_waits_for_spring()
+    {
+        var bed = ColonyTestBed.Flat(6);
+        var bush = bed.AddPlant("bush", 4, 4, 1);
+        RunUntilSeason(bed, "winter");
+
+        // Gathered on the first tick of winter, with its regrowth days over long before spring.
+        bed.World.Add(bush, new Harvested { RegrowsAtTick = bed.Simulation.CurrentTick + 1 });
+        bed.Simulation.Run(10 * TicksPerDay);
+        bed.World.Has<Harvested>(bush).ShouldBeTrue();
+
+        RunUntilSeason(bed, "spring");
+        bed.Simulation.Run(1);
+        bed.World.Has<Harvested>(bush).ShouldBeFalse();
+    }
+
+    private static void RunUntilSeason(ColonyTestBed bed, string season)
+    {
+        while (bed.Simulation.CurrentDate.SeasonId != season)
+        {
+            bed.Simulation.Run(60);
+        }
+    }
+
+    [Fact]
     public void A_tree_that_blocks_its_cell_drops_its_fruit_where_the_gatherer_stands()
     {
         var bed = ColonyTestBed.Flat(6);

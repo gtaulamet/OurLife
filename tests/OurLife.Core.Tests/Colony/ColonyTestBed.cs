@@ -26,7 +26,7 @@ internal sealed class ColonyTestBed
           { "type": "Plant", "id": "tree", "visual": "plant.tree", "blocksMovement": true,
             "chop": { "item": "log", "count": 4, "workTicks": 60 } },
           { "type": "Plant", "id": "bush", "visual": "plant.bush",
-            "harvest": { "item": "berries", "count": 8, "workTicks": 30 }, "regrowDays": 4 },
+            "harvest": { "item": "berries", "count": 8, "workTicks": 30 }, "regrowDays": 4, "dormantSeasons": ["winter"] },
           { "type": "Plant", "id": "fruit_tree", "visual": "plant.fruit_tree", "blocksMovement": true,
             "harvest": { "item": "berries", "count": 8, "workTicks": 30 }, "regrowDays": 4 },
           { "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 200, "lowThreshold": 4000,

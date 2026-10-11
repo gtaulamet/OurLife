@@ -17,7 +17,8 @@
     "type": "Plant",
     "id": "berry_bush",
     "visual": "plant.berry_bush",
-    "harvest": { "item": "berries", "count": 8, "workTicks": 60 },
-    "regrowDays": 4
+    "harvest": { "item": "berries", "count": 10, "workTicks": 60 },
+    "regrowDays": 3,
+    "dormantSeasons": ["winter"]
   }
 ]

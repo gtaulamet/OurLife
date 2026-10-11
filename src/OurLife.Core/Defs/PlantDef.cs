@@ -27,6 +27,13 @@ public sealed class PlantDef : Def, IHasVisual
     /// <summary>Days until a gathered plant can be gathered again.</summary>
     public int RegrowDays { get; init; }
 
+    /// <summary>
+    /// Seasons, by the ids of the calendar, in which a gathered plant does not bear fruit again:
+    /// it waits for the first season that is not in the list. A plant that was not gathered keeps
+    /// its fruit.
+    /// </summary>
+    public IReadOnlyList<string> DormantSeasons { get; init; } = [];
+
     internal override IEnumerable<DefReference> References()
     {
         yield return new DefReference(typeof(ItemDef), Chop?.Item, "chop.item");
@@ -51,6 +58,16 @@ public sealed class PlantDef : Def, IHasVisual
         if (Harvest is not null && RegrowDays == 0)
         {
             yield return "a plant that can be gathered needs regrowDays.";
+        }
+
+        if (DormantSeasons.Count > 0 && Harvest is null)
+        {
+            yield return "dormantSeasons only makes sense for a plant that can be gathered.";
+        }
+
+        if (DormantSeasons.Distinct(StringComparer.Ordinal).Count() != DormantSeasons.Count)
+        {
+            yield return "dormantSeasons repeats a season.";
         }
     }
 }

@@ -98,6 +98,16 @@ Un colono sin trabajo elige uno con esta prioridad:
 ## Plantas
 
 - En el tick en que se cumplen sus `regrowDays`, un arbusto recolectado vuelve a estar maduro.
+- Salvo en sus `dormantSeasons` (ids de estación del calendario): ahí no rebrota y espera a la primera estación que no está en la lista. Un arbusto que no se recolectó conserva sus frutos.
+
+### Balance del invierno (H1.8)
+
+El arbusto de bayas duerme en invierno, así que el invierno es la amenaza de IP1. Con 10 bayas por recolección, 3 días de rebrote y 400 de nutrición por baya:
+
+- Una colonia que nunca recolecta llega al invierno sin reservas y muere entre los días 11 y 14.
+- Una colonia que recolecta en otoño los arbustos de un radio de 25 celdas alrededor de la aldea pasa el invierno y llega a la primavera con comida de sobra.
+
+Los dos casos son tests del contenido real (`ColonyTests`), con las semillas 1 y 42.
 
 ## Contrato con la presentación (H1.7)
 
