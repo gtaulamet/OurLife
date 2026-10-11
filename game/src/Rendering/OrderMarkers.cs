@@ -1,4 +1,5 @@
 using Godot;
+using OurLife.Core.Colony;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
@@ -10,7 +11,8 @@ namespace OurLife.Game.Rendering;
 /// Marks the player's orders on the map with a translucent colour per kind: walls to dig and
 /// cells for stairs as boxes around the cell, plants to chop or gather as a floating marker
 /// (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>). Only the levels the view shows
-/// are marked. Rebuilt whenever orders or plants change, or the view level does.
+/// are marked. Rebuilt when orders change, when a marked plant is chopped or gathered, or when the
+/// view level changes.
 /// </summary>
 public partial class OrderMarkers : Node3D
 {
@@ -22,6 +24,9 @@ public partial class OrderMarkers : Node3D
 
     private readonly List<(Transform3D Transform, Color Color)> _marks = [];
     private readonly List<EntityId> _plants = [];
+
+    // Plants with an order: chopping or gathering one ends its order without a designation event.
+    private readonly HashSet<EntityId> _markedPlants = [];
     private Simulation _simulation = null!;
     private MultiMeshInstance3D _instance = null!;
     private int _viewLevel;
@@ -47,8 +52,18 @@ public partial class OrderMarkers : Node3D
         return markers;
     }
 
-    /// <summary>Asks for a rebuild at the end of the frame; several changes in a frame cost one.</summary>
-    public void MarkDirty() => _dirty = true;
+    /// <summary>
+    /// Follows an event of the simulation. A change asks for a rebuild at the end of the frame, so
+    /// several changes in a frame cost one; changes of other entities, like piles, cost nothing.
+    /// </summary>
+    public void Apply(ISimEvent simEvent) =>
+        _dirty |= simEvent switch
+        {
+            DesignationsChangedEvent => true,
+            EntityChangedEvent changed => _markedPlants.Contains(changed.Entity),
+            EntityRemovedEvent removed => _markedPlants.Contains(removed.Entity),
+            _ => false,
+        };
 
     public void SetViewLevel(int viewLevel)
     {
@@ -92,23 +107,9 @@ public partial class OrderMarkers : Node3D
             }
         }
 
-        var world = _simulation.World;
-        world.Query<Plant, Position>(_plants);
-        foreach (var plant in _plants)
-        {
-            var chop = world.Has<ChopOrder>(plant);
-            if (!chop && !world.Has<HarvestOrder>(plant))
-            {
-                continue;
-            }
-
-            var position = world.Get<Position>(plant);
-            if (LevelShading.IsVisible(position.Z, _viewLevel))
-            {
-                var above = new Vector3(position.X + 0.5f, position.Z + 2.2f, position.Y + 0.5f);
-                _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.3f, 0.3f, 0.3f)), above), chop ? ChopColor : HarvestColor));
-            }
-        }
+        _markedPlants.Clear();
+        AddPlantMarks<ChopOrder>(ChopColor);
+        AddPlantMarks<HarvestOrder>(HarvestColor);
 
         using var box = new BoxMesh();
         var multimesh = new MultiMesh
@@ -129,5 +130,28 @@ public partial class OrderMarkers : Node3D
 
         // The node keeps its own reference (see MapRenderer).
         multimesh.Dispose();
+    }
+
+    /// <summary>A floating marker over each plant with the order <typeparamref name="TOrder"/>.</summary>
+    private void AddPlantMarks<TOrder>(Color color)
+        where TOrder : class
+    {
+        var world = _simulation.World;
+        world.Query<TOrder, Position>(_plants);
+        foreach (var plant in _plants)
+        {
+            // A plant with both orders shows the first one: chopping it ends both.
+            if (!_markedPlants.Add(plant))
+            {
+                continue;
+            }
+
+            var position = world.Get<Position>(plant);
+            if (LevelShading.IsVisible(position.Z, _viewLevel))
+            {
+                var above = new Vector3(position.X + 0.5f, position.Z + 2.2f, position.Y + 0.5f);
+                _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.3f, 0.3f, 0.3f)), above), color));
+            }
+        }
     }
 }

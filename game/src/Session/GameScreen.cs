@@ -130,6 +130,12 @@ public partial class GameScreen : Node
     /// <summary>Opens the options over the game, as the pause menu's button does; for screenshots.</summary>
     public void OpenOptions()
     {
+        // Over the end screen there is no pause menu to go back to.
+        if (_over)
+        {
+            return;
+        }
+
         var options = OptionsScreen.Create(_services, dimmed: true);
         options.Closed += OpenPauseMenu;
         ShowOverlay(options);

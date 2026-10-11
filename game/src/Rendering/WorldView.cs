@@ -1,5 +1,5 @@
 using Godot;
-using OurLife.Core.Colony;
+using OurLife.Core.Ecs;
 using OurLife.Core.Sim;
 using OurLife.Game.Input;
 
@@ -67,6 +67,9 @@ public partial class WorldView : Node3D
         }
     }
 
+    /// <summary>The box a drawn entity fills, or null if it is not drawn (see <see cref="EntityRenderer.DrawnBounds"/>).</summary>
+    public Aabb? DrawnBounds(EntityId entity) => _entities.DrawnBounds(entity);
+
     /// <summary>Follows the events of a frame: entities that appear, change or go, and orders.</summary>
     public void Apply(IReadOnlyList<ISimEvent> events)
     {
@@ -74,10 +77,7 @@ public partial class WorldView : Node3D
         foreach (var simEvent in events)
         {
             _entities.Apply(simEvent);
-            if (simEvent is DesignationsChangedEvent or EntityChangedEvent or EntityRemovedEvent or EntitySpawnedEvent)
-            {
-                _orders.MarkDirty();
-            }
+            _orders.Apply(simEvent);
         }
     }
 

@@ -81,6 +81,24 @@ public partial class EntityRenderer : Node3D
         }
     }
 
+    /// <summary>The box a drawn entity fills in the world, or null if it is not drawn or hidden: what a click can hit.</summary>
+    public Aabb? DrawnBounds(EntityId entity)
+    {
+        if (!_views.TryGetValue(entity, out var view) || !view.Node.Visible)
+        {
+            return null;
+        }
+
+        Aabb? bounds = null;
+        foreach (var mesh in view.Meshes)
+        {
+            var box = mesh.GlobalTransform * mesh.GetAabb();
+            bounds = bounds is { } merged ? merged.Merge(box) : box;
+        }
+
+        return bounds;
+    }
+
     public void SetViewLevel(int viewLevel)
     {
         _viewLevel = viewLevel;

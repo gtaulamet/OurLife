@@ -9,33 +9,36 @@ namespace OurLife.Core.Map;
 public static class MapRaycast
 {
     /// <summary>
-    /// The first cell along the ray that is not air, skipping every level above
-    /// <paramref name="maxLevel"/>, as the view hides them. A wall, ramp or stairs up is hit as
-    /// soon as the ray enters its cell. A floor or the opening of stairs down lies on the bottom of
-    /// its cell, so it is hit only where the ray leaves the cell through the bottom: a slanted ray
-    /// that only crosses the top of the cell points at the cell behind it.
+    /// The first cell along the ray that is not air, between <paramref name="minLevel"/> and
+    /// <paramref name="maxLevel"/>: the view hides the levels above it and those too deep. A wall,
+    /// ramp or stairs up is hit as soon as the ray enters its cell. A floor or the opening of
+    /// stairs down lies on the bottom of its cell, so it is hit only where the ray leaves the cell
+    /// through the bottom: a slanted ray that only crosses the top of the cell points at the cell
+    /// behind it.
     /// </summary>
     public static bool TryFirstHit(
         GameMap map,
         (double X, double Y, double Z) origin,
         (double X, double Y, double Z) direction,
         int maxLevel,
-        out TileCoord cell)
+        out TileCoord cell,
+        int minLevel = 0)
     {
         ArgumentNullException.ThrowIfNull(map);
         cell = default;
         var size = map.Size;
         var top = Math.Min(size.Depth, maxLevel + 1);
-        if (top <= 0 || (direction.X == 0 && direction.Y == 0 && direction.Z == 0))
+        var bottom = Math.Max(0, minLevel);
+        if (bottom >= top || (direction.X == 0 && direction.Y == 0 && direction.Z == 0))
         {
             return false;
         }
 
         // Where the ray enters and leaves the box of the visible map.
         double enter = 0, leave = double.PositiveInfinity;
-        if (!Clip(origin.X, direction.X, size.Width, ref enter, ref leave)
-            || !Clip(origin.Y, direction.Y, size.Height, ref enter, ref leave)
-            || !Clip(origin.Z, direction.Z, top, ref enter, ref leave))
+        if (!Clip(origin.X, direction.X, 0, size.Width, ref enter, ref leave)
+            || !Clip(origin.Y, direction.Y, 0, size.Height, ref enter, ref leave)
+            || !Clip(origin.Z, direction.Z, bottom, top, ref enter, ref leave))
         {
             return false;
         }
@@ -44,7 +47,7 @@ public static class MapRaycast
         var t = enter + 1e-9;
         var x = Math.Clamp((int)Math.Floor(origin.X + (direction.X * t)), 0, size.Width - 1);
         var y = Math.Clamp((int)Math.Floor(origin.Y + (direction.Y * t)), 0, size.Height - 1);
-        var z = Math.Clamp((int)Math.Floor(origin.Z + (direction.Z * t)), 0, top - 1);
+        var z = Math.Clamp((int)Math.Floor(origin.Z + (direction.Z * t)), bottom, top - 1);
 
         var (stepX, nextX, deltaX) = Axis(origin.X, direction.X, x);
         var (stepY, nextY, deltaY) = Axis(origin.Y, direction.Y, y);
@@ -77,22 +80,22 @@ public static class MapRaycast
                 nextZ += deltaZ;
             }
 
-            if ((uint)x >= (uint)size.Width || (uint)y >= (uint)size.Height || (uint)z >= (uint)top)
+            if ((uint)x >= (uint)size.Width || (uint)y >= (uint)size.Height || z < bottom || z >= top)
             {
                 return false;
             }
         }
     }
 
-    /// <summary>Narrows [enter, leave] to where the ray is between 0 and <paramref name="max"/> on one axis.</summary>
-    private static bool Clip(double origin, double direction, double max, ref double enter, ref double leave)
+    /// <summary>Narrows [enter, leave] to where the ray is between <paramref name="min"/> and <paramref name="max"/> on one axis.</summary>
+    private static bool Clip(double origin, double direction, double min, double max, ref double enter, ref double leave)
     {
         if (direction == 0)
         {
-            return origin >= 0 && origin < max;
+            return origin >= min && origin < max;
         }
 
-        var t0 = (0 - origin) / direction;
+        var t0 = (min - origin) / direction;
         var t1 = (max - origin) / direction;
         enter = Math.Max(enter, Math.Min(t0, t1));
         leave = Math.Min(leave, Math.Max(t0, t1));

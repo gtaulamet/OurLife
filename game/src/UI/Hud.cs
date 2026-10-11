@@ -20,15 +20,6 @@ public partial class Hud : CanvasLayer
     private const int Margin = 12;
     private const int Gap = 8;
 
-    private static readonly (DesignationKind Kind, string Id)[] Orders =
-    [
-        (DesignationKind.Mine, "mine"),
-        (DesignationKind.Stairs, "stairs"),
-        (DesignationKind.Chop, "chop"),
-        (DesignationKind.Harvest, "harvest"),
-        (DesignationKind.Cancel, "cancel"),
-    ];
-
     private readonly Dictionary<DesignationKind, Button> _orderButtons = [];
     private readonly List<(int Speed, Button Button)> _speedButtons = [];
     private GameServices _services = null!;
@@ -79,8 +70,12 @@ public partial class Hud : CanvasLayer
 
     public override void _ExitTree() => _services.Localizer.LocaleChanged -= OnLocaleChanged;
 
-    /// <summary>Follows the events of a frame: new messages for the log.</summary>
-    public void Apply(IReadOnlyList<ISimEvent> events) => Log.Apply(events, _session.Simulation.Calendar);
+    /// <summary>Follows the events of a frame: new messages for the log, and news for the inspector.</summary>
+    public void Apply(IReadOnlyList<ISimEvent> events)
+    {
+        Log.Apply(events, _session.Simulation.Calendar);
+        Inspector.NoteChange();
+    }
 
     public override void _Process(double delta)
     {
@@ -150,10 +145,10 @@ public partial class Hud : CanvasLayer
         var orders = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         orders.AddThemeConstantOverride("separation", Gap / 2);
         column.AddChild(orders);
-        foreach (var (kind, id) in Orders)
+        foreach (var kind in Enum.GetValues<DesignationKind>())
         {
             // The key is translated by Godot, live; UiTextTests checks it exists for every order.
-            var key = $"ui.orders.{id}";
+            var key = $"ui.orders.{DesignationKinds.Id(kind)}";
             var button = new Button { Text = key, ToggleMode = true, FocusMode = Control.FocusModeEnum.None };
             button.Pressed += () => _input.Order = _input.Order == kind ? null : kind;
             orders.AddChild(button);
@@ -208,8 +203,7 @@ public partial class Hud : CanvasLayer
         _hint.Visible = _input.Order is not null;
         if (_input.Order is { } order)
         {
-            var id = Orders.First(entry => entry.Kind == order).Id;
-            _hint.Text = _services.Text.Format("ui.orders.hint", ("order", _services.Text.Format($"ui.orders.name.{id}")));
+            _hint.Text = _services.Text.Format("ui.orders.hint", ("order", _services.Text.Format($"ui.orders.name.{DesignationKinds.Id(order)}")));
         }
     }
 }

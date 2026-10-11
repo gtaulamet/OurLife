@@ -203,7 +203,10 @@ public partial class GameRoot : Node
         simulation.World.Query<Colonist>(colonists);
         if (options.Orders && colonists.Count > 0)
         {
+            // Applied at once, like orders given while time is stopped, so their marks show even
+            // with no --ticks or under --options.
             OrderWorkAround(simulation, simulation.World.Get<Position>(colonists[0]).Cell);
+            simulation.ApplyCommandsNow();
         }
 
         screen.Advance(options.Ticks ?? 0);
@@ -294,7 +297,7 @@ public partial class GameRoot : Node
 
     /// <summary>
     /// Builds every screen without a window and frees them: the game screen (3D view, input and HUD,
-    /// with the first colonist in the inspector) for the simulation that ran, so the view draws a
+    /// with a colonist picked by a click and shown in the inspector) for the simulation that ran, so the view draws a
     /// world with work done in it, the menus over it, and the main, new game and options screens.
     /// Texts formatted in code that do not exist are then in the localizer's missing keys, and the
     /// smoke fails.
@@ -310,9 +313,21 @@ public partial class GameRoot : Node
             CultureInfo.InvariantCulture,
             $"[smoke] game screen built in {stopwatch.Elapsed.TotalMilliseconds:F0} ms at level {screen.View.ViewLevel}"));
 
+        // A click on a colonist's chest selects it, with the camera's real slant. A long smoke can
+        // end with the colony lost: then there is nobody to click.
         var colonists = new List<EntityId>();
         screen.Session.Simulation.World.Query<Colonist>(colonists);
-        screen.Input.SelectColonist(colonists[0]);
+        if (colonists.Count > 0 && screen.View.DrawnBounds(colonists[0]) is { } bounds)
+        {
+            screen.Input.ClickAt(screen.View.Camera.Camera.UnprojectPosition(bounds.GetCenter()));
+            if (screen.Input.Selected is not { IsColonist: true })
+            {
+                throw new InvalidOperationException("A click on a colonist's chest did not select a colonist.");
+            }
+
+            GD.Print("[smoke] a click on a colonist selects it");
+        }
+
         screen.Advance(10);
         screen.OpenPauseMenu();
         screen.OpenOptions();

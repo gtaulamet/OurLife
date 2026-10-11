@@ -1,3 +1,4 @@
+using OurLife.Core.Colony;
 using OurLife.Core.Map;
 
 namespace OurLife.Content.Tests;
@@ -7,8 +8,6 @@ public class UiTextTests
 {
     // The ids InspectorPanel gives each TileShape.
     private static readonly string[] ShapeIds = ["empty", "floor", "wall", "ramp", "stair_up", "stair_down", "stair_updown"];
-
-    private static readonly string[] OrderIds = ["mine", "stairs", "chop", "harvest", "cancel"];
 
     [Fact]
     public void Every_tile_shape_has_its_name_in_every_language()
@@ -28,7 +27,8 @@ public class UiTextTests
     {
         foreach (var catalog in GameContent.Catalogs.Values)
         {
-            foreach (var id in OrderIds)
+            // The HUD has a button for every kind, with the ids of DesignationKinds.
+            foreach (var id in Enum.GetValues<DesignationKind>().Select(DesignationKinds.Id))
             {
                 catalog.Messages.ContainsKey($"ui.orders.{id}").ShouldBeTrue($"{catalog.Locale}: missing ui.orders.{id}");
                 catalog.Messages.ContainsKey($"ui.orders.name.{id}").ShouldBeTrue($"{catalog.Locale}: missing ui.orders.name.{id}");

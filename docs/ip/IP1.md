@@ -399,8 +399,8 @@
 
 **Validación**
 
-- `dotnet build` sin advertencias y 368 tests en verde.
-- Smoke con `--seed 1` y `--seed 42`, `--ticks 5000`: código 0 y las huellas de H1.6. Ahora también arma la pantalla de partida sobre el mundo que trabajó, con el inspector, la pausa, las opciones y los menús, y falla si falta un texto.
+- `dotnet build` sin advertencias y 369 tests en verde.
+- Smoke con `--seed 1` y `--seed 42`, `--ticks 5000`: código 0 y las huellas de H1.6. Ahora también arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic, abre la pausa, las opciones y los menús, y falla si falta un texto.
 - Capturas revisadas en es y en: menú principal, opciones (sobre la partida y desde el menú) y partida con órdenes, inspector y registro.
 - `/code-review`, primera ronda, con 10 hallazgos, todos corregidos:
   - El rayo tomaba el suelo al entrar por arriba de la celda, y con la cámara inclinada elegía la celda de adelante. Test nuevo con un rayo inclinado.
@@ -412,3 +412,14 @@
   - El registro guardaba todos los mensajes de la partida.
   - Un comentario en español en `UiBuilder`.
   - `EntityRenderer` recorría todas las plantas cada cuadro para mover a los colonos.
+- Segunda ronda, con 10 hallazgos, todos corregidos:
+  - Un clic en el cuerpo de un colono elegía la celda de atrás, porque el modelo es alto y la cámara está inclinada. Ahora se elige por la caja del modelo dibujado, y el smoke lo comprueba con un clic en el pecho de un colono.
+  - El smoke fallaba si la colonia había muerto: no había colono para seleccionar.
+  - Las opciones podían abrirse sobre el fin de partida y no tenían adónde volver.
+  - `--orders` no aplicaba las órdenes con el tiempo detenido.
+  - El rayo apuntaba celdas de niveles demasiado hondos, que la vista no dibuja. `MapRaycast` recibe el nivel mínimo, con test.
+  - Las marcas de órdenes se reconstruían con cualquier cambio de entidad. Ahora sólo con órdenes nuevas o con plantas marcadas que cambian.
+  - El inspector recorría todas las entidades dos veces, cinco veces por segundo, aun en pausa. Ahora una vez, y sólo si pasó un tick o llegaron eventos.
+  - El rayo del marco corría dos veces por cuadro al mover el ratón.
+  - La lista de órdenes estaba en el HUD, en la entrada y en un test. Ahora sale del enum, con `DesignationKinds.Id` en Core, como `JobKinds`.
+  - La tabla de textos de la spec no coincidía con las claves reales.

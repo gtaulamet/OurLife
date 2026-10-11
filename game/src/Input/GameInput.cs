@@ -27,15 +27,6 @@ public partial class GameInput : Node3D
     private static readonly Color SelectionColor = new(1f, 0.95f, 0.4f, 0.45f);
     private static readonly Color BoxColor = new(1f, 0.7f, 0.2f, 0.3f);
 
-    private static readonly (string Action, DesignationKind Kind)[] OrderKeys =
-    [
-        (InputActions.OrderMine, DesignationKind.Mine),
-        (InputActions.OrderStairs, DesignationKind.Stairs),
-        (InputActions.OrderChop, DesignationKind.Chop),
-        (InputActions.OrderHarvest, DesignationKind.Harvest),
-        (InputActions.OrderCancel, DesignationKind.Cancel),
-    ];
-
     private static readonly (string Action, int Speed)[] SpeedKeys =
         [(InputActions.Speed1, 1), (InputActions.Speed2, 2), (InputActions.Speed3, 4)];
 
@@ -103,7 +94,7 @@ public partial class GameInput : Node3D
     {
         HandleKeys();
 
-        // The camera and the view level move without the mouse: the frame follows what is under it now.
+        // Every frame, as the camera and the view level also move without the mouse.
         if (_mouse is { } mouse)
         {
             Hover(mouse);
@@ -129,15 +120,15 @@ public partial class GameInput : Node3D
         switch (@event)
         {
             case InputEventMouseMotion motion:
+                // _Process frames the cell under it, once per frame.
                 _mouse = motion.Position;
-                Hover(motion.Position);
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press:
                 _dragStart = PickAt(press.Position);
                 _dragLevel = _view.ViewLevel;
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } release:
-                Release(PickAt(release.Position));
+                Release(release.Position);
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true }:
                 BackOut();
@@ -158,9 +149,9 @@ public partial class GameInput : Node3D
 
     private void HandleKeys()
     {
-        foreach (var (action, kind) in OrderKeys)
+        foreach (var kind in Enum.GetValues<DesignationKind>())
         {
-            if (Godot.Input.IsActionJustPressed(action))
+            if (Godot.Input.IsActionJustPressed(InputActions.Order(kind)))
             {
                 Order = Order == kind ? null : kind;
             }
@@ -207,24 +198,96 @@ public partial class GameInput : Node3D
     private TileCoord BoxCorner(TileCoord start, TileCoord end) =>
         _view.ViewLevel == _dragLevel ? new TileCoord(end.X, end.Y, start.Z) : end;
 
-    private void Release(TileCoord? end)
+    private void Release(Vector2 screenPoint)
     {
         var start = _dragStart;
         _dragStart = null;
         _box.Visible = false;
-        if (start is null || end is null)
+        if (start is null)
         {
             return;
         }
 
         if (_order is { } order)
         {
-            _session.Enqueue(new DesignateCommand(order, start.Value, BoxCorner(start.Value, end.Value)));
+            if (PickAt(screenPoint) is { } corner)
+            {
+                _session.Enqueue(new DesignateCommand(order, start.Value, BoxCorner(start.Value, corner)));
+            }
         }
         else
         {
-            Select(SelectionAt(end.Value));
+            ClickAt(screenPoint);
         }
+    }
+
+    /// <summary>Selects what a click at the point picks: the colonist drawn there, else the colonist or the cell under it.</summary>
+    public void ClickAt(Vector2 screenPoint)
+    {
+        if (ColonistAt(screenPoint) is { IsNone: false } colonist)
+        {
+            SelectColonist(colonist);
+        }
+        else if (PickAt(screenPoint) is { } cell)
+        {
+            Select(SelectionAt(cell));
+        }
+    }
+
+    /// <summary>
+    /// The colonist whose drawn model is under the point, nearest the camera, or none. The model
+    /// stands tall over its cell, so the ray through its body meets the ground behind it.
+    /// </summary>
+    private EntityId ColonistAt(Vector2 screenPoint)
+    {
+        var camera = _view.Camera.Camera;
+        var from = camera.ProjectRayOrigin(screenPoint);
+        var direction = camera.ProjectRayNormal(screenPoint);
+        var colonists = new List<EntityId>();
+        _session.Simulation.World.Query<Colonist>(colonists);
+        var nearest = EntityId.None;
+        var nearestDistance = float.MaxValue;
+        foreach (var colonist in colonists)
+        {
+            if (_view.DrawnBounds(colonist) is { } bounds && RayEntry(bounds, from, direction) is { } distance
+                && distance < nearestDistance)
+            {
+                nearest = colonist;
+                nearestDistance = distance;
+            }
+        }
+
+        return nearest;
+    }
+
+    /// <summary>How far along the ray it enters the box (slab test), or null if it misses.</summary>
+    private static float? RayEntry(Aabb box, Vector3 from, Vector3 direction)
+    {
+        float enter = 0, leave = float.MaxValue;
+        for (var axis = 0; axis < 3; axis++)
+        {
+            float origin = from[axis], step = direction[axis], min = box.Position[axis], max = box.End[axis];
+            if (step == 0)
+            {
+                if (origin < min || origin > max)
+                {
+                    return null;
+                }
+
+                continue;
+            }
+
+            var t0 = (min - origin) / step;
+            var t1 = (max - origin) / step;
+            enter = Math.Max(enter, Math.Min(t0, t1));
+            leave = Math.Min(leave, Math.Max(t0, t1));
+            if (enter > leave)
+            {
+                return null;
+            }
+        }
+
+        return enter;
     }
 
     /// <summary>Clears the order, or else the selection. False if there was neither.</summary>

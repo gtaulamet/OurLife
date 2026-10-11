@@ -42,6 +42,14 @@ public class MapRaycastTests
     }
 
     [Fact]
+    public void Levels_below_the_deepest_drawn_are_skipped()
+    {
+        MapRaycast.TryFirstHit(Map, (1.5, 1.5, 10), (0, 0, -1), maxLevel: 2, out var cell, minLevel: 2).ShouldBeTrue();
+        cell.ShouldBe(new TileCoord(1, 1, 2));
+        MapRaycast.TryFirstHit(Map, (0.5, 0.5, 10), (0, 0, -1), maxLevel: 2, out _, minLevel: 2).ShouldBeFalse();
+    }
+
+    [Fact]
     public void A_level_ray_hits_a_wall_from_the_side()
     {
         Hit((-5, 1.5, 2.5), (1, 0, 0), maxLevel: 2).ShouldBe(new TileCoord(1, 1, 2));

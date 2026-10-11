@@ -18,6 +18,21 @@ public enum DesignationKind
     Cancel,
 }
 
+/// <summary>Ids of the order kinds, so the presentation keeps no list of its own.</summary>
+public static class DesignationKinds
+{
+    /// <summary>The id of a kind in texts and input actions, like <c>mine</c> in <c>ui.orders.mine</c>.</summary>
+    public static string Id(DesignationKind kind) => kind switch
+    {
+        DesignationKind.Mine => "mine",
+        DesignationKind.Stairs => "stairs",
+        DesignationKind.Chop => "chop",
+        DesignationKind.Harvest => "harvest",
+        DesignationKind.Cancel => "cancel",
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+    };
+}
+
 /// <summary>
 /// The player's order over a box of cells, corners included, in any order. Cells outside the map
 /// are ignored. Orders on cells are map flags; orders on plants are components of the plant.

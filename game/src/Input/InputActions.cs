@@ -1,4 +1,5 @@
 using Godot;
+using OurLife.Core.Colony;
 
 namespace OurLife.Game.Input;
 
@@ -17,11 +18,6 @@ public static class InputActions
     public const string RotateRight = "camera_rotate_right";
     public const string LevelUp = "view_level_up";
     public const string LevelDown = "view_level_down";
-    public const string OrderMine = "order_mine";
-    public const string OrderStairs = "order_stairs";
-    public const string OrderChop = "order_chop";
-    public const string OrderHarvest = "order_harvest";
-    public const string OrderCancel = "order_cancel";
     public const string TogglePause = "time_pause";
     public const string Speed1 = "time_speed_1";
     public const string Speed2 = "time_speed_2";
@@ -37,21 +33,31 @@ public static class InputActions
         (RotateRight, [Key.E]),
         (LevelUp, [Key.Pageup]),
         (LevelDown, [Key.Pagedown]),
-        (OrderMine, [Key.M]),
-        (OrderStairs, [Key.B]),
-        (OrderChop, [Key.T]),
-        (OrderHarvest, [Key.R]),
-        (OrderCancel, [Key.X]),
         (TogglePause, [Key.Space]),
         (Speed1, [Key.Key1]),
         (Speed2, [Key.Key2]),
         (Speed3, [Key.Key3]),
     ];
 
+    /// <summary>The action that chooses an order, like <c>order_mine</c>.</summary>
+    public static string Order(DesignationKind kind) => $"order_{DesignationKinds.Id(kind)}";
+
+    /// <summary>The key of each order; the buttons show it in their text (<c>ui.orders.&lt;id&gt;</c>).</summary>
+    private static Key OrderKey(DesignationKind kind) => kind switch
+    {
+        DesignationKind.Mine => Key.M,
+        DesignationKind.Stairs => Key.B,
+        DesignationKind.Chop => Key.T,
+        DesignationKind.Harvest => Key.R,
+        DesignationKind.Cancel => Key.X,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "The order has no key."),
+    };
+
     /// <summary>Adds the actions that are missing; calling it again changes nothing.</summary>
     public static void Register()
     {
-        foreach (var (action, keys) in Bindings)
+        var orders = Enum.GetValues<DesignationKind>().Select(kind => (Order(kind), new[] { OrderKey(kind) }));
+        foreach (var (action, keys) in Bindings.Concat(orders))
         {
             if (InputMap.HasAction(action))
             {

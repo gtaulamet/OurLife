@@ -71,7 +71,7 @@ Las teclas de las órdenes son las mismas en los dos idiomas. Excavar usa la M (
 - El rayo de la cámara recorre la grilla celda por celda e ignora las que están por encima del nivel de la vista. La primera celda que no es aire es la apuntada: un muro (por arriba o por el costado), o una celda de suelo, rampa o escalera.
 - Una celda apuntada se resalta con un marco.
 - **Marcar un área:** al soltar el botón, la caja entre la celda del primer clic y la del último se envía como `DesignateCommand` con la orden activa. Mientras se arrastra se dibuja la caja. La caja queda en el nivel de la primera celda, para que arrastrar sobre una ladera no marque todas las celdas enterradas entre las dos alturas. Para abarcar varios niveles, por ejemplo una escalera, se cambia el nivel de la vista (RePág, AvPág) mientras se arrastra. Si el botón se suelta fuera del mapa, no se marca nada.
-- **Seleccionar:** un clic elige al colono de la celda apuntada o de la de arriba, si hay alguno; si no, la celda. Con varios colonos, el de menor id.
+- **Seleccionar:** un clic elige al colono cuyo modelo está bajo el ratón, el más cercano a la cámara. Si no hay ninguno, elige al colono de la celda apuntada o de la de arriba (con varios, el de menor id), y si tampoco hay, la celda.
 
 ## Inspector
 
@@ -118,18 +118,20 @@ Todos van en `ui.json` de `es` y `en`, con estas claves (propuesta de texto en e
 | `ui.pause.title` | Pausa |
 | `ui.pause.resume` | Continuar |
 | `ui.gameover.title` | La colonia ha caído |
+| `ui.hud.date` | {date}, {clock} |
 | `ui.hud.level` | Nivel {level} |
 | `ui.hud.pause` | Pausa |
 | `ui.hud.speed` | {speed}× |
 | `ui.orders.mine`, `stairs`, `chop`, `harvest`, `cancel` | Excavar (M), Escalera (B), Talar (T), Recolectar (R), Cancelar (X) |
+| `ui.orders.name.mine`, `stairs`, `chop`, `harvest`, `cancel` | Excavar, Escalera, Talar, Recolectar, Cancelar (para la ayuda) |
 | `ui.orders.hint` | {order}: arrastra sobre el mapa. Clic derecho para terminar |
 | `ui.inspector.idle` | Sin tarea |
 | `ui.inspector.need` | {need}: {percent} % |
 | `ui.inspector.cell` | Celda ({x}, {y}), nivel {z} |
 | `ui.inspector.shape_material` | {shape} de {material} |
-| `ui.inspector.shape.<forma>` | Aire, Suelo, Muro, Rampa, Escalera arriba, Escalera abajo, Escalera |
+| `ui.inspector.shape.<forma>` | aire, suelo, muro, rampa, escalera hacia arriba, escalera hacia abajo, escalera (en minúscula: la interfaz pone la mayúscula al empezar la línea) |
 | `ui.inspector.order.<orden>` | Marcado para excavar, … |
-| `ui.inspector.harvested` | sin frutos |
+| `ui.inspector.plant_harvested` | {plant}, sin frutos |
 | `ui.inspector.items` | {count} {item} |
 | `ui.log.entry` | {clock} {text} |
 

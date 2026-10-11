@@ -12,7 +12,8 @@ namespace OurLife.Game.UI;
 /// <summary>
 /// Shows what the player selected (see "Inspector" in <c>docs/gdd/interfaz-ip1.md</c>): a
 /// colonist's name, job and needs, or a cell's shape, material, orders, plant and items. It
-/// refreshes a few times per second while time runs, and when the language changes.
+/// refreshes a few times per second while time runs or the simulation changes, and when the
+/// language changes.
 /// </summary>
 public partial class InspectorPanel : PanelContainer
 {
@@ -25,6 +26,8 @@ public partial class InspectorPanel : PanelContainer
     private Label _text = null!;
     private Selection? _selection;
     private double _sinceRefresh;
+    private long _refreshedTick = -1;
+    private bool _changed;
 
     public static InspectorPanel Create(GameServices services, Simulation simulation)
     {
@@ -48,10 +51,13 @@ public partial class InspectorPanel : PanelContainer
         Refresh();
     }
 
+    /// <summary>Something happened in the simulation, like an order given while paused: refresh even without a tick.</summary>
+    public void NoteChange() => _changed = true;
+
     public override void _Process(double delta)
     {
         _sinceRefresh += delta;
-        if (Visible && _sinceRefresh >= RefreshSeconds)
+        if (Visible && _sinceRefresh >= RefreshSeconds && (_changed || _simulation.CurrentTick != _refreshedTick))
         {
             Refresh();
         }
@@ -62,6 +68,8 @@ public partial class InspectorPanel : PanelContainer
     private void Refresh()
     {
         _sinceRefresh = 0;
+        _changed = false;
+        _refreshedTick = _simulation.CurrentTick;
         if (_selection is not { } selection)
         {
             return;
@@ -119,21 +127,20 @@ public partial class InspectorPanel : PanelContainer
         }
 
         // What stands on the cell, or on the floor above a wall's top.
-        DescribeEntitiesAt(cell);
-        if (map.ShapeAt(cell) == TileShape.Wall && cell.Z + 1 < map.Size.Depth)
-        {
-            DescribeEntitiesAt(new TileCoord(cell.X, cell.Y, cell.Z + 1));
-        }
+        var above = map.ShapeAt(cell) == TileShape.Wall ? new TileCoord(cell.X, cell.Y, cell.Z + 1) : cell;
+        DescribeEntitiesAt(cell, above);
     }
 
-    private void DescribeEntitiesAt(TileCoord cell)
+    /// <summary>The plants and piles on either cell, in one pass over the entities.</summary>
+    private void DescribeEntitiesAt(TileCoord cell, TileCoord other)
     {
         var world = _simulation.World;
         var text = _services.Text;
         world.Query<Position>(_entities);
         foreach (var entity in _entities)
         {
-            if (world.Get<Position>(entity).Cell != cell)
+            var at = world.Get<Position>(entity).Cell;
+            if (at != cell && at != other)
             {
                 continue;
             }
