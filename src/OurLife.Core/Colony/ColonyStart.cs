@@ -40,7 +40,6 @@ public static class ColonyStart
         }
 
         var arrival = FindArrival(simulation);
-        simulation.ColonyName = colonyName;
         var creature = simulation.Content.Get<CreatureDef>(scenario.Creature);
         var random = simulation.Random.Get("colony.start");
         var spots = SpotsAround(simulation.Map, arrival);
@@ -70,6 +69,8 @@ public static class ColonyStart
             ItemPiles.Drop(simulation, item.Item, item.Count, arrival);
         }
 
+        // Named once the colony is there: a failure above leaves the simulation as it was.
+        simulation.ColonyName = colonyName;
         simulation.Events.Emit(new NotificationEvent(
             simulation.CurrentTick,
             LocalizedText.Of("event.colony.arrived").With("count", colonists.Count),

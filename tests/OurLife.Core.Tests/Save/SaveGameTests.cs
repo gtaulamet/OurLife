@@ -118,6 +118,44 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_header_with_a_null_text_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "header.json", json => json.Replace("\"GameId\":\"game-1\"", "\"GameId\":null", StringComparison.Ordinal));
+
+        Should.Throw<SaveLoadException>(() => SaveGame.ReadHeader(new MemoryStream(file))).Reason.ShouldBe(SaveLoadError.Corrupt);
+        LoadFails(file).Reason.ShouldBe(SaveLoadError.Corrupt);
+    }
+
+    [Fact]
+    public void An_enum_saved_as_a_number_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Gender\":\"Female\"", "\"Gender\":99", StringComparison.Ordinal));
+
+        LoadFails(file).Reason.ShouldBe(SaveLoadError.Corrupt);
+    }
+
+    [Fact]
+    public void A_job_cell_outside_the_map_is_corrupt()
+    {
+        var bed = BusyColony();
+        bed.Simulation.Run(20);
+        var file = Rewrite(Save(bed.Simulation), "state.json", json => json.Replace("\"Cell\":{\"X\":", "\"Cell\":{\"X\":9", StringComparison.Ordinal));
+
+        LoadFails(file).Detail.ShouldContain("outside the map");
+    }
+
+    [Fact]
+    public void Loading_also_gives_the_header()
+    {
+        var bed = BusyColony();
+
+        SaveGame.Load(new MemoryStream(Save(bed.Simulation)), ColonyTestBed.Content, out var header);
+
+        header.ColonyName.ShouldBe("Valdeolmos");
+        header.Tick.ShouldBe(1);
+    }
+
+    [Fact]
     public void A_truncated_file_is_corrupt()
     {
         var file = Save(BusyColony().Simulation);

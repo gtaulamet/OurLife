@@ -125,9 +125,7 @@ public sealed class SaveSlots
         try
         {
             using var file = File.OpenRead(PathOf(slotId));
-            var header = SaveGame.ReadHeader(file);
-            file.Position = 0;
-            var simulation = SaveGame.Load(file, content);
+            var simulation = SaveGame.Load(file, content, out var header);
             ColonySystems.AddTo(simulation);
             return (simulation, header);
         }

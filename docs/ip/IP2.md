@@ -85,7 +85,7 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 **Verificación**
 
 - Continuidad: en Core, con una colonia que excava, tala, recolecta, tiene una orden inalcanzable y un comando pendiente; con el contenido real, en las semillas 1, 7 y 42, cortando a los 20 000 ticks y siguiendo otros 20 000. Misma huella al cargar y al final.
-- 402 tests en verde; smoke con código 0. Un valle guardado pesa 33 KB y se guarda o se carga en unos 30 ms.
+- 406 tests en verde; smoke con código 0. Un valle guardado pesa 33 KB y se guarda o se carga en unos 30 ms.
 - Capturas revisadas en es y en: menú principal con Cargar habilitado, Cargar partida, Guardar partida y Error.
 
 **Revisión de código:** 10 hallazgos, 9 corregidos.
@@ -99,3 +99,16 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - Comentario de documentación de `BuildScreens` en su lugar.
 - Compresión: se probó `Fastest` por el tirón del autoguardado, pero ahorra poco tiempo (el costo está en el JSON) y duplica el tamaño. Queda `Optimal`, y la escritura en segundo plano pasa al backlog.
 - Descartado: convertir en error de carga una excepción de `ColonySystems.AddTo`. Si el contenido no cumple las reglas de la colonia, tampoco arranca una partida nueva, y eso ya lo cubren los tests del contenido.
+
+**Segunda ronda de revisión:** 10 hallazgos, 8 corregidos.
+
+- La cabecera se valida: textos nulos o números negativos son una partida dañada, también al listar.
+- Los enums se leen sólo por nombre, y toda celda de un componente (camino, trabajo, objetivos inalcanzables) debe estar dentro del mapa.
+- Guardar tampoco lanza si un componente no se puede serializar.
+- La pantalla de error de un arranque fallido no puede fallar ella misma: cualquier error vuelve a la versión sin traducir.
+- Una partida que se lee bien pero que la pantalla no puede mostrar da el error de partida dañada.
+- `SaveGame.Load` también devuelve la cabecera: cada ranura se lee una sola vez.
+- `--saves` acepta rutas de Godot (`user://…`).
+- `Settle` nombra la aldea al final, para que un fallo no deje un nombre sin colonia.
+- El smoke guarda a mitad de sus ticks y sigue las dos partidas hasta el final: lo que informa y dibuja es la partida que corrió sus ticks, con las mismas huellas.
+- Quedan como están: el tirón del autoguardado (en el backlog, unos 30 ms por día del juego) y validar la consistencia profunda de un archivo bien formado pero editado a mano (objetivos vivos, índices de caminos). La partida la escribe el juego; los controles cubren archivos truncados, de otra versión o con datos imposibles.

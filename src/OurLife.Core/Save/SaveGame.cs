@@ -36,7 +36,8 @@ public static class SaveGame
     {
         IncludeFields = true,
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-        Converters = { new JsonStringEnumConverter() },
+        // Enums by name only: a number would deserialize to a value the enum does not define.
+        Converters = { new JsonStringEnumConverter(namingPolicy: null, allowIntegerValues: false) },
     };
 
     // The header is read leniently: a newer game may add fields to it, and its format version
@@ -84,20 +85,24 @@ public static class SaveGame
         return Guard(() =>
         {
             using var archive = new ZipArchive(input, ZipArchiveMode.Read, leaveOpen: true);
-            return ReadEntry<SaveHeader>(archive, HeaderEntry, HeaderOptions);
+            return ReadHeader(archive);
         });
     }
 
     /// <summary>Reads a saved game into a new simulation over <paramref name="content"/>, without systems.</summary>
     /// <exception cref="SaveLoadException">The file is damaged, of another format version, or uses defs the content lacks.</exception>
-    public static Simulation Load(Stream input, DefDatabase content)
+    public static Simulation Load(Stream input, DefDatabase content) => Load(input, content, out _);
+
+    /// <summary>The same as <see cref="Load(Stream, DefDatabase)"/>, giving also the header, so the file is read once.</summary>
+    /// <exception cref="SaveLoadException">The file is damaged, of another format version, or uses defs the content lacks.</exception>
+    public static Simulation Load(Stream input, DefDatabase content, out SaveHeader header)
     {
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(content);
-        return Guard(() =>
+        (var simulation, header) = Guard(() =>
         {
             using var archive = new ZipArchive(input, ZipArchiveMode.Read, leaveOpen: true);
-            var header = ReadEntry<SaveHeader>(archive, HeaderEntry, HeaderOptions);
+            var header = ReadHeader(archive);
             if (header.FormatVersion > FormatVersion)
             {
                 throw new SaveLoadException(SaveLoadError.Newer, $"format {header.FormatVersion}, this game reads {FormatVersion}");
@@ -108,8 +113,22 @@ public static class SaveGame
                 throw new SaveLoadException(SaveLoadError.Older, $"format {header.FormatVersion}, this game reads {FormatVersion}");
             }
 
-            return Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content);
+            return (Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content), header);
         });
+        return simulation;
+    }
+
+    /// <summary>The header, checked: valid JSON can still hold null texts or negative numbers.</summary>
+    private static SaveHeader ReadHeader(ZipArchive archive)
+    {
+        var header = ReadEntry<SaveHeader>(archive, HeaderEntry, HeaderOptions);
+        if (header.GameId is null || header.GameVersion is null || header.ColonyName is null || header.Era is null
+            || header.Tick < 0 || header.Colonists < 0)
+        {
+            throw Corrupt("the header has a null text or a negative number");
+        }
+
+        return header;
     }
 
     private static SavedState Capture(Simulation simulation)
@@ -239,7 +258,7 @@ public static class SaveGame
                 }
 
                 var component = saved.Value.Deserialize(saveType.Type, JsonOptions) ?? throw Corrupt($"a null {store.Type}");
-                CheckDefReferences(component, defIds);
+                CheckComponent(component, defIds, simulation);
                 if (component is Position position && simulation.HasMap && !simulation.Map.Size.Contains(position.X, position.Y, position.Z))
                 {
                     throw Corrupt($"{entity} stands outside the map, at {position.Cell}");
@@ -302,10 +321,21 @@ public static class SaveGame
 
     /// <summary>
     /// Checks the <see cref="DefRefAttribute"/> properties of a component and of the objects it
-    /// holds, and that none of its lists is null: components always start them empty.
+    /// holds, that none of its lists is null (components always start them empty), and that every
+    /// cell it names is inside the map.
     /// </summary>
-    private static void CheckDefReferences(object value, HashSet<(Type, string)> defIds)
+    private static void CheckComponent(object value, HashSet<(Type, string)> defIds, Simulation simulation)
     {
+        if (value is TileCoord cell)
+        {
+            if (simulation.HasMap && !simulation.Map.Size.Contains(cell.X, cell.Y, cell.Z))
+            {
+                throw Corrupt($"the cell {cell} is outside the map");
+            }
+
+            return;
+        }
+
         foreach (var property in PropertiesByType.GetOrAdd(value.GetType(), FindCheckedProperties))
         {
             var child = property.GetValue(value);
@@ -331,20 +361,20 @@ public static class SaveGame
             {
                 foreach (var item in items)
                 {
-                    if (item is not null && item.GetType().IsClass && item.GetType().Assembly == typeof(SaveGame).Assembly)
+                    if (item is not null && item.GetType().Assembly == typeof(SaveGame).Assembly)
                     {
-                        CheckDefReferences(item, defIds);
+                        CheckComponent(item, defIds, simulation);
                     }
                 }
             }
             else
             {
-                CheckDefReferences(child, defIds);
+                CheckComponent(child, defIds, simulation);
             }
         }
     }
 
-    /// <summary>The properties to check: marked strings, Core classes and lists.</summary>
+    /// <summary>The properties to check: marked strings, cells, Core classes and lists.</summary>
     private static PropertyInfo[] FindCheckedProperties(Type type) =>
         [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.GetIndexParameters().Length == 0)
@@ -354,7 +384,7 @@ public static class SaveGame
 
     private static bool IsCoreClassOrList(Type type)
     {
-        if (type.IsClass && type.Assembly == typeof(SaveGame).Assembly)
+        if ((type.IsClass || type == typeof(TileCoord)) && type.Assembly == typeof(SaveGame).Assembly)
         {
             return true;
         }

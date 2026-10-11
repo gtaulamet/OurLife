@@ -14,7 +14,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga |
 | Siguiente | H2.2 Día, noche y sueño, o H2.3 Almacenes y acarreo |
-| Validación | `dotnet build` sin advertencias, 402 tests en verde, smoke con código 0 con la comprobación de guardado y carga |
+| Validación | `dotnet build` sin advertencias, 406 tests en verde, smoke con código 0 con la comprobación de guardado y carga |
 | Huella del smoke | `580DB895C5F5B361` con `--seed 1 --ticks 5000`; `25578FB766A30761` con `--seed 42 --ticks 5000`. Cambiaron en H2.1 porque el nombre de la aldea entra en el estado |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -62,6 +62,7 @@ En orden:
   - Opciones `--saves <carpeta>`, `--load <ranura>` y `--show load|save|error`.
   - El smoke guarda y carga en memoria (misma huella, y la misma 600 ticks después), escribe, lista y carga una ranura en `user://smoke-saves` y arma las pantallas nuevas. Un valle guardado pesa 33 KB y tarda unos 33 ms en guardarse y otro tanto en cargarse.
   - 23 claves nuevas en es y en; se quitó `ui.mainmenu.load_later`.
+- H2.1, avance 6: segunda ronda de revisión, 10 hallazgos, 8 corregidos (detalle en `IP2.md`). El smoke ahora guarda a mitad de sus ticks; las huellas no cambiaron. 406 tests.
 - H2.1, avance 5 (revisión de código y cierre): 10 hallazgos, 9 corregidos y uno descartado con su motivo (detalle en el registro de H2.1 de `IP2.md`). Documentación: `overview.md` (sección Guardado), ADR-010 en la lista, skill `godot-run`, agentes y `CLAUDE.md` (registrar cada componente o comando en `SaveTypes`). H2.1 queda hecho; falta adelantar `main`.
 - H2.1, avance 4 (capturas): menú principal, Cargar, Guardar y Error revisadas en es y en (en `game/out/h21-*.png`, con `--saves out/saves`; la carpeta es relativa a `game/`). El autoguardado apareció al pasar la medianoche con `--ticks 1500`. Los botones de menú se estiraban en las columnas anchas: ahora mantienen su ancho, centrados.
 

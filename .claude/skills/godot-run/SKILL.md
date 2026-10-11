@@ -99,7 +99,7 @@ Van después de `--`:
 | `--show <load\|save\|error>` | Abre Cargar partida en lugar del menú; Guardar partida sobre la partida de `--play` o `--load`; o el error de una partida dañada | H2.1 |
 | `--benchmark <s>` | Juega `<s>` segundos a 4× con las órdenes del smoke, sin vsync, y mide FPS y ms por tick. Sale con 1 si no llega a 60 FPS de media o pasa de 2 ms por tick. Necesita ventana | H1.8 |
 
-Sin argumentos, el juego abre el menú principal. El smoke, además de simular, guarda y carga la partida (misma huella, y la misma 600 ticks después), escribe y carga una ranura en una carpeta temporal, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones, Guardar, Cargar, el error y los menús; falla si falta un texto.
+Sin argumentos, el juego abre el menú principal. El smoke, además de simular, guarda y carga la partida a mitad de los ticks (misma huella al cargar y al final), escribe y carga una ranura en una carpeta temporal, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones, Guardar, Cargar, el error y los menús; falla si falta un texto.
 
 ## Exportar
 

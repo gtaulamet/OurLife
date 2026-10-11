@@ -133,7 +133,8 @@ public partial class GameScreen : Node
 
     /// <summary>
     /// Writes the game in a slot; false if it could not be written, which is logged. A component
-    /// missing from <c>SaveTypes</c> also fails here instead of throwing at every autosave.
+    /// missing from <c>SaveTypes</c> or that cannot be serialized also fails here instead of
+    /// throwing at every autosave.
     /// </summary>
     public bool Save(string slotId, bool autosave = false)
     {
@@ -147,7 +148,8 @@ public partial class GameScreen : Node
             _slots.Write(slotId, Session.Simulation, GameId, autosave);
             return true;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
+                                       or NotSupportedException or System.Text.Json.JsonException)
         {
             GD.PushError($"The game could not be saved in slot '{slotId}': {ex.Message}");
             return false;

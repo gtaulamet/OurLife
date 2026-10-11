@@ -97,7 +97,7 @@ El texto final de cada clave lo revisa el i18n-specialist; la tabla fija las cla
 ## Línea de comandos
 
 - `--load <ranura>` abre la partida de esa ranura, para capturas y pruebas.
-- El smoke guarda la partida que corrió en memoria, la carga en otra simulación, sigue las dos unos ticks y falla si las huellas difieren. También escribe y lee una ranura en una carpeta temporal.
+- El smoke guarda la partida en memoria a mitad de sus ticks, la carga en otra simulación, sigue las dos hasta el final y falla si las huellas difieren. También escribe y lee una ranura en una carpeta temporal.
 
 ## Criterios de aceptación
 

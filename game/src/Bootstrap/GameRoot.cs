@@ -114,8 +114,9 @@ public partial class GameRoot : Node
             _bridge = new GodotLocalizationBridge(localizer, catalogs);
             return ErrorScreen.Create(new TextResolver(localizer).Format("ui.error.startup", ("detail", detail)), "ui.mainmenu.quit");
         }
-        catch (Exception ex) when (ex is LocalizationException or IOException)
+        catch (Exception ex)
         {
+            // Already failing: anything that goes wrong here falls back to the untranslated screen.
             GD.PushError($"The texts could not load either: {ex.Message}");
             return null;
         }
@@ -161,7 +162,7 @@ public partial class GameRoot : Node
 
         // Automated runs never touch the player's saved games, unless told where to save.
         _slots = options.SavesPath is { } savesPath
-            ? new SaveSlots(Path.GetFullPath(savesPath))
+            ? new SaveSlots(Path.GetFullPath(ProjectSettings.GlobalizePath(savesPath)))
             : automated ? null : SaveSlots.ForPlayer();
 
         if (UiTheme.FontImportProblem() is { } fontProblem)
@@ -300,7 +301,26 @@ public partial class GameRoot : Node
 
         _catalog ??= LoadVisualCatalog();
         var gameId = header.GameId.Length > 0 ? header.GameId : SaveSlots.NewGameId();
-        var screen = GameScreen.Create(_services, _catalog, _slots, gameId, simulation, level, distance);
+        GameScreen screen;
+        try
+        {
+            screen = GameScreen.Create(_services, _catalog, _slots, gameId, simulation, level, distance);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException or KeyNotFoundException or IndexOutOfRangeException)
+        {
+            // The file read well but holds a game the screen cannot show: damaged all the same.
+            var problem = new SaveLoadException(SaveLoadError.Corrupt, ex.Message, ex);
+            if (!_interactive)
+            {
+                Fail($"The saved game '{slotId}' cannot be shown: {ex}", ExitFailure);
+                return null;
+            }
+
+            GD.PushWarning($"The saved game '{slotId}' cannot be shown: {ex}");
+            ShowLoadError(problem);
+            return null;
+        }
+
         ShowGame(screen);
         return screen;
     }
@@ -451,9 +471,30 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
             var stairSite = OrderWorkAround(simulation, arrival);
 
+            // Halfway, the game is saved and loaded, and the copy goes on beside it: both must
+            // end alike. The game reported and drawn is the one that ran all its ticks.
+            var half = ticks / 2;
             var stopwatch = Stopwatch.StartNew();
-            simulation.Run(ticks);
+            simulation.Run(half);
             stopwatch.Stop();
+            var loaded = SaveAndLoad(services, simulation);
+            if (loaded is null)
+            {
+                GetTree().Quit(ExitFailure);
+                return;
+            }
+
+            stopwatch.Start();
+            simulation.Run(ticks - half);
+            stopwatch.Stop();
+            loaded.Run(ticks - half);
+            if (loaded.ComputeStateHash() != simulation.ComputeStateHash())
+            {
+                Fail($"[smoke] saved at tick {half} and loaded, the game differs {ticks - half} ticks later from the one that never stopped", ExitFailure);
+                return;
+            }
+
+            GD.Print($"[smoke] saved at tick {half} and loaded: same state, and the same {ticks - half} ticks later");
 
             // Nobody shows the events in smoke mode.
             simulation.Events.Clear();
@@ -473,7 +514,7 @@ public partial class GameRoot : Node
             {
                 DeleteFolder(slots.Directory);
                 _slots = slots;
-                if (!CheckSaveAndLoad(services, simulation, slots))
+                if (!CheckSlots(services, simulation, slots))
                 {
                     GetTree().Quit(ExitFailure);
                     return;
@@ -513,10 +554,10 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// The game that ran is saved and loaded with the same fingerprint, and both go on alike for a
-    /// while (<c>docs/gdd/guardado.md</c>). Then a slot is written, listed and loaded.
+    /// The game saved and loaded in memory, with the colony systems, if it has the same
+    /// fingerprint as the one saved (<c>docs/gdd/guardado.md</c>); else null, reported.
     /// </summary>
-    private static bool CheckSaveAndLoad(GameServices services, Simulation simulation, SaveSlots slots)
+    private static Simulation? SaveAndLoad(GameServices services, Simulation simulation)
     {
         var stopwatch = Stopwatch.StartNew();
         var buffer = new MemoryStream();
@@ -529,23 +570,19 @@ public partial class GameRoot : Node
             CultureInfo.InvariantCulture,
             $"[smoke] save: {buffer.Length / 1024} KB, saved in {saved.TotalMilliseconds:F0} ms, loaded in {(stopwatch.Elapsed - saved).TotalMilliseconds:F0} ms"));
 
-        var before = simulation.ComputeStateHash();
-        if (loaded.ComputeStateHash() != before)
+        var expected = simulation.ComputeStateHash();
+        if (loaded.ComputeStateHash() != expected)
         {
-            GD.PushError($"[smoke] the loaded game differs from the saved one: {loaded.ComputeStateHash():X16} instead of {before:X16}");
-            return false;
+            GD.PushError($"[smoke] the loaded game differs from the saved one: {loaded.ComputeStateHash():X16} instead of {expected:X16}");
+            return null;
         }
 
-        simulation.Run(SmokeTicksAfterLoad);
-        loaded.Run(SmokeTicksAfterLoad);
-        simulation.Events.Clear();
-        loaded.Events.Clear();
-        if (loaded.ComputeStateHash() != simulation.ComputeStateHash())
-        {
-            GD.PushError($"[smoke] {SmokeTicksAfterLoad} ticks after loading, the game differs from the one that never stopped");
-            return false;
-        }
+        return loaded;
+    }
 
+    /// <summary>A slot is written, listed and loaded with the same fingerprint.</summary>
+    private static bool CheckSlots(GameServices services, Simulation simulation, SaveSlots slots)
+    {
         slots.Write(SmokeSlot, simulation, SmokeSlot, isAutosave: false);
         var listed = slots.List();
         if (listed is not [{ Id: SmokeSlot, Header: { } header }] || header.ColonyName != simulation.ColonyName || header.Tick != simulation.CurrentTick)
@@ -560,7 +597,7 @@ public partial class GameRoot : Node
             return false;
         }
 
-        GD.Print($"[smoke] save and load: same state, and the same after {SmokeTicksAfterLoad} more ticks; slot written, listed and loaded");
+        GD.Print("[smoke] slot written, listed and loaded");
         return true;
     }
 
