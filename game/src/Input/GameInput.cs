@@ -14,12 +14,17 @@ public readonly record struct Selection(EntityId Colonist, TileCoord Cell)
     public bool IsColonist => !Colonist.IsNone;
 }
 
+/// <summary>A buildable and the material to build it of: what a drag with the build tool plans.</summary>
+public readonly record struct BuildChoice(string Buildable, string Material);
+
 /// <summary>
 /// The player's hands in a game (see "Controles" and "Selección de celdas" in
 /// <c>docs/gdd/interfaz-ip1.md</c>): the cell under the mouse is framed; with an order active,
-/// dragging marks a box of cells and sends a <see cref="DesignateCommand"/>; without one, a click
-/// selects a colonist or a cell. Keys choose orders and set the time. Esc and the right button
-/// back out: first the order, then the selection, then they ask for the pause menu.
+/// dragging marks a box of cells and sends a <see cref="DesignateCommand"/>; with something to
+/// build chosen, it sends a <see cref="PlaceBlueprintCommand"/> (<c>docs/gdd/construccion.md</c>);
+/// with neither, a click selects a colonist or a cell. Keys choose orders and set the time. Esc
+/// and the right button back out: first the order or the building, then the selection, then they
+/// ask for the pause menu.
 /// </summary>
 public partial class GameInput : Node3D
 {
@@ -53,12 +58,19 @@ public partial class GameInput : Node3D
     private int _dragLevel;
     private Selection? _selection;
     private DesignationKind? _order;
+    private BuildChoice? _build;
+
+    // The last thing chosen to build, which the build key brings back.
+    private BuildChoice? _lastBuild;
 
     /// <summary>Raised when the player selects something or clears the selection.</summary>
     public event Action<Selection?>? SelectionChanged;
 
     /// <summary>Raised when the active order changes; null means no order.</summary>
     public event Action<DesignationKind?>? OrderChanged;
+
+    /// <summary>Raised when what to build changes; null means the build tool is off.</summary>
+    public event Action<BuildChoice?>? BuildChanged;
 
     /// <summary>Raised when Esc has nothing left to back out of.</summary>
     public event Action? PauseMenuRequested;
@@ -76,15 +88,41 @@ public partial class GameInput : Node3D
                 return;
             }
 
-            // A change of order drops the drag under way.
+            // A change of order drops the drag under way, and the build tool.
             _order = value;
-            _pressed = false;
-            _dragStart = null;
-            _dragEnd = null;
-            _box.Visible = false;
+            DropDrag();
             OrderChanged?.Invoke(value);
+            if (value is not null)
+            {
+                Build = null;
+            }
         }
     }
+
+    /// <summary>What the next drag plans, or null; choosing something to build clears the order.</summary>
+    public BuildChoice? Build
+    {
+        get => _build;
+        set
+        {
+            if (_build == value)
+            {
+                return;
+            }
+
+            _build = value;
+            _lastBuild = value ?? _lastBuild;
+            DropDrag();
+            BuildChanged?.Invoke(value);
+            if (value is not null)
+            {
+                Order = null;
+            }
+        }
+    }
+
+    /// <summary>The order or the build tool is on: a drag marks a box.</summary>
+    private bool Marking => _order is not null || _build is not null;
 
     public static GameInput Create(GameSession session, WorldView view)
     {
@@ -98,6 +136,24 @@ public partial class GameInput : Node3D
     }
 
     public override void _Ready() => InputActions.Register();
+
+    /// <summary>Turns the build tool on, with the last thing chosen or else the first of the bar, or off.</summary>
+    public void ToggleBuild() => Build = Build is null ? _lastBuild ?? DefaultBuild() : null;
+
+    /// <summary>The first buildable of the bar, of its first material: what the build tool starts with.</summary>
+    private BuildChoice? DefaultBuild()
+    {
+        var first = Construction.BuildablesInOrder(_session.Simulation.Content).FirstOrDefault();
+        return first is null ? null : new BuildChoice(first.Id, first.Materials[0]);
+    }
+
+    private void DropDrag()
+    {
+        _pressed = false;
+        _dragStart = null;
+        _dragEnd = null;
+        _box.Visible = false;
+    }
 
     public void ClearSelection() => Select(null);
 
@@ -199,6 +255,11 @@ public partial class GameInput : Node3D
             }
         }
 
+        if (Godot.Input.IsActionJustPressed(InputActions.Build))
+        {
+            ToggleBuild();
+        }
+
         if (Godot.Input.IsActionJustPressed(InputActions.TogglePause))
         {
             _session.TogglePause();
@@ -230,20 +291,23 @@ public partial class GameInput : Node3D
             }
         }
 
-        _box.Visible = _order is not null && _dragStart is not null && _dragEnd is not null;
+        _box.Visible = Marking && _dragStart is not null && _dragEnd is not null;
         if (_box.Visible)
         {
             var start = _dragStart!.Value;
-            var (_, to) = Box(_order!.Value, start, _dragEnd!.Value);
+            var (_, to) = Box(_order, start, _dragEnd!.Value);
 
             // A box over every visible level would hide the view: an order on plants is drawn
             // as the rectangle on the level of the first cell.
-            PlaceOn(_box, start, IsCellOrder(_order.Value) ? to : new TileCoord(to.X, to.Y, start.Z));
+            PlaceOn(_box, start, IsCellOrder(_order) ? to : new TileCoord(to.X, to.Y, start.Z));
         }
     }
 
-    /// <summary>Orders whose box stays on one level: Cancel too, so it never clears orders the view does not show.</summary>
-    private static bool IsCellOrder(DesignationKind order) => order is not (DesignationKind.Chop or DesignationKind.Harvest);
+    /// <summary>
+    /// Orders whose box stays on one level: Cancel too, so it never clears orders the view does not
+    /// show, and building, which is no order (null).
+    /// </summary>
+    private static bool IsCellOrder(DesignationKind? order) => order is not (DesignationKind.Chop or DesignationKind.Harvest);
 
     /// <summary>
     /// The box of cells a drag gives. Digging, stairs and cancelling stay on the level of the first
@@ -252,7 +316,7 @@ public partial class GameInput : Node3D
     /// every plant the view shows in the rectangle, from the deepest level drawn up to the view
     /// level, because plants grow at every height of a slope; the first cell's level is always in.
     /// </summary>
-    private (TileCoord From, TileCoord To) Box(DesignationKind order, TileCoord start, TileCoord end)
+    private (TileCoord From, TileCoord To) Box(DesignationKind? order, TileCoord start, TileCoord end)
     {
         if (IsCellOrder(order))
         {
@@ -282,12 +346,14 @@ public partial class GameInput : Node3D
         _dragStart = null;
         _dragEnd = null;
         _box.Visible = false;
-        if (_order is { } order)
+        if (Marking)
         {
             if (start is { } first && end is { } last)
             {
-                var (from, to) = Box(order, first, last);
-                _session.Enqueue(new DesignateCommand(order, from, to));
+                var (from, to) = Box(_order, first, last);
+                _session.Enqueue(_build is { } build
+                    ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to)
+                    : new DesignateCommand(_order!.Value, from, to));
             }
         }
         else if (screenPoint is { } clicked)
@@ -372,12 +438,18 @@ public partial class GameInput : Node3D
         return enter;
     }
 
-    /// <summary>Clears the order, or else the selection. False if there was neither.</summary>
+    /// <summary>Clears the order or the build tool, or else the selection. False if there was none.</summary>
     private bool BackOut()
     {
         if (_order is not null)
         {
             Order = null;
+            return true;
+        }
+
+        if (_build is not null)
+        {
+            Build = null;
             return true;
         }
 

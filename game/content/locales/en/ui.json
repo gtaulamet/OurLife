@@ -122,5 +122,8 @@
   "ui.orders.deconstruct": "Deconstruct (V)",
   "ui.orders.channel": "Channel (H)",
   "ui.orders.name.deconstruct": "Deconstruct",
-  "ui.orders.name.channel": "Channel"
+  "ui.orders.name.channel": "Channel",
+  "ui.orders.build": "Build (C)",
+  "ui.orders.name.build": "Build {material} {buildable}",
+  "ui.inspector.blueprint": "{material} {buildable} blueprint: {delivered} of {cost}"
 }

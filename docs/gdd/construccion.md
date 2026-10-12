@@ -9,7 +9,7 @@ Spec de H2.4 de IP2: planos de muros, suelos, puertas, escaleras y rampas, con e
 
 | Material | `kind` | `builtFrom` | Color |
 |---|---|---|---|
-| `timber` (madera) | `wood` | `log` (tronco) | `#9A6B40` |
+| `timber` (madera) | `wood` | `log` (tronco) | `#7E5531` |
 | `masonry` (mampostería) | `stone` | `stone` (piedra) | `#9E9A92` |
 
 - Un objeto es `builtFrom` de un solo material.
@@ -27,6 +27,7 @@ Un def nuevo, `Buildable`, con nombre, descripción y género en cada idioma:
 | `cost` | Unidades del objeto del material que hay que traer |
 | `workTicks` | Ticks de trabajo, con todo el material en el plano |
 | `outline` | Al arrastrar una caja, el plano va sólo en el borde (para muros) |
+| `order` | Lugar en la barra de construcción |
 
 Contenido de IP2:
 
@@ -96,8 +97,8 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 ## Lo que se ve
 
 - **Barra de órdenes:** Construir (C) abre una fila con los construibles y el material elegido (Madera / Mampostería). Elegido uno, se arrastra la caja como con las órdenes. Desmontar (V) y Canalizar (H) son órdenes como las demás.
-- Un plano se dibuja como la pieza del resultado, transparente y con el color del material. Con todo el material entregado, se ve más opaco.
-- La puerta tiene su pieza propia: un marco y una hoja, teñidos con el material.
+- Un plano se dibuja como una caja translúcida del tamaño aproximado del resultado (un muro entero, una losa de suelo, media altura para la rampa, dos niveles para la escalera), con el color del material. Con todo el material entregado, se ve más opaca.
+- La puerta tiene su pieza propia: dos postes y una hoja más baja que los muros, teñidos con el material y girados en la línea de los muros.
 - Muros, suelos, rampas y escaleras construidos usan las piezas del terreno, teñidas con el material.
 - Las celdas con orden de desmontar o de canalizar llevan una marca de color, como las demás órdenes.
 - El inspector de una celda con plano dice qué es, el material y lo entregado ("Plano de muro de madera: 1 de 2"). El de una celda construida nombra la forma y el material como hasta ahora.

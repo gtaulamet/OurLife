@@ -29,6 +29,9 @@ public sealed class BuildableDef : Def
     /// <summary>A dragged box gets blueprints only on its border, as walls want.</summary>
     public bool Outline { get; init; }
 
+    /// <summary>Place in the build bar: lowest first, then by id.</summary>
+    public int Order { get; init; }
+
     internal override IEnumerable<DefReference> References() =>
         Materials.Select(material => new DefReference(typeof(MaterialDef), material, "materials"));
 

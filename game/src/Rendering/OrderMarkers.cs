@@ -1,5 +1,6 @@
 using Godot;
 using OurLife.Core.Colony;
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
@@ -11,9 +12,11 @@ namespace OurLife.Game.Rendering;
 /// Marks the player's orders on the map with a translucent colour per kind: walls to dig and
 /// cells for stairs as boxes around the cell, plants to chop or gather as a floating marker
 /// (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>), and stockpile cells as a thin
-/// tinted floor (<c>docs/gdd/almacenes.md</c>). Only the levels the view shows are marked. Rebuilt
-/// when orders or stockpiles change, when a marked plant is chopped or gathered, or when the view
-/// level changes.
+/// tinted floor (<c>docs/gdd/almacenes.md</c>). Blueprints are boxes of the rough shape of what
+/// they build, in their material's colour, fainter until every unit is there
+/// (<c>docs/gdd/construccion.md</c>). Only the levels the view shows are marked. Rebuilt when
+/// orders, stockpiles or blueprints change, when a marked plant is chopped or gathered, or when
+/// the view level changes.
 /// </summary>
 public partial class OrderMarkers : Node3D
 {
@@ -23,6 +26,10 @@ public partial class OrderMarkers : Node3D
     private static readonly Color ChopColor = new(0.95f, 0.2f, 0.15f, 0.8f);
     private static readonly Color HarvestColor = new(1f, 0.85f, 0.15f, 0.8f);
     private static readonly Color StockpileColor = new(0.15f, 0.65f, 0.95f, 0.5f);
+    private static readonly Color DeconstructColor = new(0.8f, 0.3f, 0.95f, 0.5f);
+    private static readonly Color ChannelColor = new(0.1f, 0.85f, 0.6f, 0.55f);
+    private const float BlueprintAlpha = 0.5f;
+    private const float SuppliedBlueprintAlpha = 0.8f;
 
     private readonly List<(Transform3D Transform, Color Color)> _marks = [];
     private readonly List<EntityId> _plants = [];
@@ -30,6 +37,10 @@ public partial class OrderMarkers : Node3D
 
     // Plants with an order: chopping or gathering one ends its order without a designation event.
     private readonly HashSet<EntityId> _markedPlants = [];
+
+    // Blueprints drawn, whose deliveries and end come as entity events.
+    private readonly HashSet<EntityId> _blueprints = [];
+    private readonly List<EntityId> _plans = [];
     private Simulation _simulation = null!;
     private MultiMeshInstance3D _instance = null!;
     private int _viewLevel;
@@ -63,8 +74,9 @@ public partial class OrderMarkers : Node3D
         _dirty |= simEvent switch
         {
             DesignationsChangedEvent or StockpilesChangedEvent => true,
-            EntityChangedEvent changed => _markedPlants.Contains(changed.Entity),
-            EntityRemovedEvent removed => _markedPlants.Contains(removed.Entity),
+            EntitySpawnedEvent spawned => _simulation.World.IsAlive(spawned.Entity) && _simulation.World.Has<Blueprint>(spawned.Entity),
+            EntityChangedEvent changed => _markedPlants.Contains(changed.Entity) || _blueprints.Contains(changed.Entity),
+            EntityRemovedEvent removed => _markedPlants.Contains(removed.Entity) || _blueprints.Contains(removed.Entity),
             _ => false,
         };
 
@@ -108,7 +120,21 @@ public partial class OrderMarkers : Node3D
             {
                 _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.9f, 0.12f, 0.9f)), centre + new Vector3(0, 0.08f, 0)), StairsColor));
             }
+
+            if ((flags & TileFlags.ChannelDesignation) != 0)
+            {
+                _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.9f, 0.12f, 0.9f)), centre + new Vector3(0, 0.08f, 0)), ChannelColor));
+            }
+
+            if ((flags & TileFlags.DeconstructDesignation) != 0)
+            {
+                // On a wall's top, like digging; on anything else, over its floor.
+                var height = map.ShapeAt(cell) == TileShape.Wall ? 1.06f : 0.5f;
+                _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.94f, 0.05f, 0.94f)), centre + new Vector3(0, height, 0)), DeconstructColor));
+            }
         }
+
+        AddBlueprints();
 
         _simulation.World.Query<Stockpile>(_zones);
         foreach (var zone in _zones)
@@ -150,6 +176,41 @@ public partial class OrderMarkers : Node3D
     }
 
     /// <summary>A floating marker over each plant with the order <typeparamref name="TOrder"/>.</summary>
+    /// <summary>A translucent box per blueprint the view shows, of the rough size of what it builds.</summary>
+    private void AddBlueprints()
+    {
+        var world = _simulation.World;
+        var content = _simulation.Content;
+        _blueprints.Clear();
+        world.Query<Blueprint, Position>(_plans);
+        foreach (var blueprint in _plans)
+        {
+            _blueprints.Add(blueprint);
+            var cell = world.Get<Position>(blueprint).Cell;
+            if (!LevelShading.IsVisible(cell.Z, _viewLevel))
+            {
+                continue;
+            }
+
+            var plan = world.Get<Blueprint>(blueprint);
+            var buildable = content.Get<BuildableDef>(plan.Buildable);
+            var size = buildable.Shape switch
+            {
+                BuildShape.Wall => new Vector3(0.9f, 0.9f, 0.9f),
+                BuildShape.Floor => new Vector3(0.96f, 0.08f, 0.96f),
+                BuildShape.Door => new Vector3(0.6f, 0.9f, 0.6f),
+                BuildShape.Ramp => new Vector3(0.9f, 0.45f, 0.9f),
+                BuildShape.Stairs => new Vector3(0.6f, 1.8f, 0.6f),
+                _ => Vector3.One,
+            };
+
+            var color = Color.FromHtml(content.Get<MaterialDef>(plan.Material).Color);
+            color.A = plan.Delivered >= buildable.Cost ? SuppliedBlueprintAlpha : BlueprintAlpha;
+            var centre = new Vector3(cell.X + 0.5f, cell.Z + (size.Y / 2) + 0.01f, cell.Y + 0.5f);
+            _marks.Add((new Transform3D(Basis.Identity.Scaled(size), centre), color));
+        }
+    }
+
     private void AddPlantMarks<TOrder>(Color color)
         where TOrder : class
     {

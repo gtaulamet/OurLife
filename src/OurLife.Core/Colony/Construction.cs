@@ -77,6 +77,13 @@ public static class Construction
         return wanted is null ? null : content.All<BuildableDef>().FirstOrDefault(buildable => buildable.Shape == wanted);
     }
 
+    /// <summary>The buildables in the order of the build bar: by <see cref="BuildableDef.Order"/>, then id.</summary>
+    public static IReadOnlyList<BuildableDef> BuildablesInOrder(DefDatabase content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        return [.. content.All<BuildableDef>().OrderBy(buildable => buildable.Order).ThenBy(buildable => buildable.Id, StringComparer.Ordinal)];
+    }
+
     /// <summary>The cells a blueprint takes: its own, and the one above for stairs.</summary>
     public static IEnumerable<TileCoord> CellsOf(BuildShape shape, TileCoord cell)
     {

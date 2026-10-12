@@ -122,5 +122,8 @@
   "ui.orders.deconstruct": "Desmontar (V)",
   "ui.orders.channel": "Canalizar (H)",
   "ui.orders.name.deconstruct": "Desmontar",
-  "ui.orders.name.channel": "Canalizar"
+  "ui.orders.name.channel": "Canalizar",
+  "ui.orders.build": "Construir (C)",
+  "ui.orders.name.build": "Construir {buildable} de {material}",
+  "ui.inspector.blueprint": "Plano de {buildable} de {material}: {delivered} de {cost}"
 }

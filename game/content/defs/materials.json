@@ -27,6 +27,6 @@
     "minedItem": "stone",
     "minedItemChance": 2500
   },
-  { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 150, "builtFrom": "log" },
+  { "type": "Material", "id": "timber", "kind": "wood", "color": "#7E5531", "mineWorkTicks": 150, "builtFrom": "log" },
   { "type": "Material", "id": "masonry", "kind": "stone", "color": "#9E9A92", "mineWorkTicks": 150, "builtFrom": "stone" }
 ]

@@ -410,6 +410,18 @@ public partial class GameRoot : Node
             screen.Input.SelectCell(simulation.World.Get<Stockpile>(zones[0]).Cells[0]);
         }
 
+        var blueprints = new List<EntityId>();
+        simulation.World.Query<Blueprint, Position>(blueprints);
+        if (options.InspectBlueprint && blueprints.Count > 0)
+        {
+            screen.Input.SelectCell(simulation.World.Get<Position>(blueprints[0]).Cell);
+        }
+
+        if (options.Build)
+        {
+            screen.Input.ToggleBuild();
+        }
+
         if (options.Options)
         {
             screen.OpenOptions();
@@ -475,7 +487,7 @@ public partial class GameRoot : Node
             var colonists = GameScreen.StartColony(simulation, SmokeColonyName(services));
             var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
             GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
-            var stairSite = OrderWorkAround(simulation, arrival);
+            var (stairSite, house) = OrderWorkAround(simulation, arrival);
 
             // Halfway, the game is saved and loaded, and the copy goes on beside it: both must
             // end alike. The game reported and drawn is the one that ran all its ticks.
@@ -505,6 +517,7 @@ public partial class GameRoot : Node
             // Nobody shows the events in smoke mode.
             simulation.Events.Clear();
             ReportColony(simulation, colonists, stairSite);
+            ReportHouse(simulation, house);
 
             var totalMs = stopwatch.Elapsed.TotalMilliseconds;
             var msPerTick = ticks == 0 ? 0 : totalMs / ticks;
@@ -712,10 +725,10 @@ public partial class GameRoot : Node
 
     /// <summary>
     /// Gives the colonists every kind of order around their arrival, so the smoke exercises every
-    /// job and measures the ticks with work going on: chop and gather nearby, dig the hills, and
-    /// stairs down where the ground allows them.
+    /// job and measures the ticks with work going on: chop and gather nearby, dig the hills, stairs
+    /// down where the ground allows them, and a house of timber walls with a door.
     /// </summary>
-    private static TileCoord? OrderWorkAround(Simulation simulation, TileCoord arrival)
+    private static (TileCoord? Stairs, TileCoord? House) OrderWorkAround(Simulation simulation, TileCoord arrival)
     {
         TileCoord Offset(int dx, int dy, int dz) => new(arrival.X + dx, arrival.Y + dy, arrival.Z + dz);
         simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Chop, Offset(-SmokeOrderRadius, -SmokeOrderRadius, -3), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
@@ -723,7 +736,26 @@ public partial class GameRoot : Node
         simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Mine, Offset(-SmokeOrderRadius, -SmokeOrderRadius, 0), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
 
         // A stockpile beside the arrival, for what the colonists chop, dig and gather.
-        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Stockpile, Offset(2, -6, -2), Offset(6, -3, 2)));
+        var (stockpileFrom, stockpileTo) = StockpileBox(arrival);
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Stockpile, stockpileFrom, stockpileTo));
+
+        // A house on flat open ground near the arrival, with the door in the middle of its south wall.
+        var buildables = Construction.BuildablesInOrder(simulation.Content);
+        var wall = buildables.FirstOrDefault(buildable => buildable.Shape == BuildShape.Wall);
+        var doorway = buildables.FirstOrDefault(buildable => buildable.Shape == BuildShape.Door);
+        var house = FindHouseSite(simulation, arrival, FindStairSite(simulation, arrival));
+        if (wall is not null && doorway is not null && wall.Materials.FirstOrDefault(doorway.Materials.Contains) is { } material && house is { } corner)
+        {
+            var far = HouseFar(corner);
+            simulation.Commands.Enqueue(new PlaceBlueprintCommand(wall.Id, material, corner, far));
+            var door = HouseDoor(corner);
+            simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Cancel, door, door));
+            simulation.Commands.Enqueue(new PlaceBlueprintCommand(doorway.Id, material, door, door));
+        }
+        else
+        {
+            GD.PushWarning("[smoke] No wall and door of one material, or no flat ground for them; the smoke builds no house.");
+        }
         var site = FindStairSite(simulation, arrival);
         if (site is { } stairs)
         {
@@ -734,7 +766,70 @@ public partial class GameRoot : Node
             GD.PushWarning("[smoke] No cell near the arrival can take stairs; the smoke does not dig any.");
         }
 
-        return site;
+        return (site, house);
+    }
+
+    private const int HouseSize = 5;
+
+    // Far enough to find flat open ground in the valley, near enough to walk there.
+    private const int HouseSearchRadius = 16;
+
+    /// <summary>The stockpile of the smoke's orders, beside the arrival.</summary>
+    private static (TileCoord From, TileCoord To) StockpileBox(TileCoord arrival) =>
+        (new TileCoord(arrival.X + 2, arrival.Y - 6, arrival.Z - 2), new TileCoord(arrival.X + 6, arrival.Y - 3, arrival.Z + 2));
+
+    private static TileCoord HouseFar(TileCoord corner) => new(corner.X + HouseSize - 1, corner.Y + HouseSize - 1, corner.Z);
+
+    private static TileCoord HouseDoor(TileCoord corner) => new(corner.X + (HouseSize / 2), corner.Y + HouseSize - 1, corner.Z);
+
+    /// <summary>
+    /// The north-west corner of the box of the smoke's house: the nearest to the arrival, on its
+    /// level, where every cell is a flat floor and those of the border are open and without a plant,
+    /// clear of the stockpile, of the arrival itself and of the stairs. Ties go to the lower cell index.
+    /// </summary>
+    private static TileCoord? FindHouseSite(Simulation simulation, TileCoord arrival, TileCoord? stairs)
+    {
+        var map = simulation.Map;
+        var plantCells = Designations.PlantCells(simulation);
+        var (stockpileFrom, stockpileTo) = StockpileBox(arrival);
+        // Walls go on the border, which needs open floors; inside, a bush or a tree may stay.
+        bool Open(int x, int y, bool border) =>
+            map.Size.Contains(x, y, arrival.Z) && map.ShapeAt(x, y, arrival.Z) == TileShape.Floor
+            && (!border || (map.IsStandable(x, y, arrival.Z) && !plantCells.Contains(new TileCoord(x, y, arrival.Z))))
+            && new TileCoord(x, y, arrival.Z) != stairs && Math.Max(Math.Abs(x - arrival.X), Math.Abs(y - arrival.Y)) > 1
+            && !(x >= stockpileFrom.X && x <= stockpileTo.X && y >= stockpileFrom.Y && y <= stockpileTo.Y);
+
+        TileCoord? best = null;
+        var bestDistance = int.MaxValue;
+        for (var dy = -HouseSearchRadius; dy <= HouseSearchRadius; dy++)
+        {
+            for (var dx = -HouseSearchRadius; dx <= HouseSearchRadius; dx++)
+            {
+                var corner = new TileCoord(arrival.X + dx, arrival.Y + dy, arrival.Z);
+                var distance = Math.Max(Math.Abs(dx), Math.Abs(dy));
+                if (distance >= bestDistance)
+                {
+                    continue;
+                }
+
+                var open = true;
+                for (var y = corner.Y; y < corner.Y + HouseSize && open; y++)
+                {
+                    for (var x = corner.X; x < corner.X + HouseSize && open; x++)
+                    {
+                        open = Open(x, y, x == corner.X || y == corner.Y || x == corner.X + HouseSize - 1 || y == corner.Y + HouseSize - 1);
+                    }
+                }
+
+                if (open)
+                {
+                    best = corner;
+                    bestDistance = distance;
+                }
+            }
+        }
+
+        return best;
     }
 
     /// <summary>
@@ -764,6 +859,33 @@ public partial class GameRoot : Node
         }
 
         return best;
+    }
+
+    /// <summary>How the house of the smoke's orders goes: blueprints left and cells built in its box.</summary>
+    private static void ReportHouse(Simulation simulation, TileCoord? house)
+    {
+        if (house is not { } from)
+        {
+            return;
+        }
+
+        var map = simulation.Map;
+        var to = HouseFar(from);
+        int built = 0, doors = 0;
+        for (var y = from.Y; y <= to.Y; y++)
+        {
+            for (var x = from.X; x <= to.X; x++)
+            {
+                var cell = new TileCoord(x, y, from.Z);
+                if (map.Size.Contains(x, y, from.Z) && Construction.IsBuilt(map, cell))
+                {
+                    built++;
+                    doors += map.ShapeAt(cell) == TileShape.Door ? 1 : 0;
+                }
+            }
+        }
+
+        GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors");
     }
 
     /// <summary>How many colonists live, what each one is doing and how hungry and rested they are.</summary>

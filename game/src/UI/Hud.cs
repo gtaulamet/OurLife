@@ -1,5 +1,6 @@
 using Godot;
 using OurLife.Core.Colony;
+using OurLife.Core.Defs;
 using OurLife.Core.Sim;
 using OurLife.Game.Bootstrap;
 using OurLife.Game.Input;
@@ -11,7 +12,8 @@ namespace OurLife.Game.UI;
 /// <summary>
 /// The HUD of a game, drawn over the 3D view (see "HUD de la partida" in
 /// <c>docs/gdd/interfaz-ip1.md</c>): date and clock, time buttons and level on top; the inspector
-/// on the right; the event log, the order hint and the orders bar at the bottom. Buttons whose
+/// on the right; the event log, the order hint, the build bar (<c>docs/gdd/construccion.md</c>)
+/// and the orders bar at the bottom. Buttons whose
 /// text is a key are translated by Godot; texts with arguments are formatted here again when the
 /// language changes. Empty space lets the mouse through to the world.
 /// </summary>
@@ -29,6 +31,8 @@ public partial class Hud : CanvasLayer
     private Label _date = null!;
     private Label _level = null!;
     private Label _hint = null!;
+    private HBoxContainer _buildRow = null!;
+    private Button _buildButton = null!;
     private Button _pause = null!;
     private long _shownTick = -1;
 
@@ -60,6 +64,7 @@ public partial class Hud : CanvasLayer
 
         input.SelectionChanged += hud.Inspector.Inspect;
         input.OrderChanged += hud.OnOrderChanged;
+        input.BuildChanged += hud.OnBuildChanged;
         session.ClockChanged += hud.RefreshTimeButtons;
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
@@ -142,11 +147,24 @@ public partial class Hud : CanvasLayer
         _hint = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
         column.AddChild(_hint);
 
+        // What to build and of what, shown while the build tool is on.
+        _buildRow = new HBoxContainer { Name = "BuildBar", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        _buildRow.AddThemeConstantOverride("separation", Gap / 2);
+        column.AddChild(_buildRow);
+
         var orders = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         orders.AddThemeConstantOverride("separation", Gap / 2);
         column.AddChild(orders);
         foreach (var kind in Enum.GetValues<DesignationKind>())
         {
+            // Building sits among the orders, before Cancel, which closes the bar.
+            if (kind == DesignationKind.Cancel)
+            {
+                _buildButton = new Button { Text = "ui.orders.build", ToggleMode = true, FocusMode = Control.FocusModeEnum.None };
+                _buildButton.Pressed += _input.ToggleBuild;
+                orders.AddChild(_buildButton);
+            }
+
             // The key is translated by Godot, live; UiTextTests checks it exists for every order.
             var key = $"ui.orders.{DesignationKinds.Id(kind)}";
             var button = new Button { Text = key, ToggleMode = true, FocusMode = Control.FocusModeEnum.None };
@@ -158,7 +176,72 @@ public partial class Hud : CanvasLayer
         return column;
     }
 
-    private void OnLocaleChanged(string locale) => RefreshAll();
+    private void OnLocaleChanged(string locale)
+    {
+        RefreshAll();
+        RefreshBuildBar();
+    }
+
+    private void OnBuildChanged(BuildChoice? build)
+    {
+        RefreshBuildBar();
+        RefreshHint();
+    }
+
+    /// <summary>
+    /// Builds the bar again: a button per buildable, then one per material the chosen one allows,
+    /// the chosen ones pressed. Choosing a buildable keeps the material if it allows it.
+    /// </summary>
+    private void RefreshBuildBar()
+    {
+        var build = _input.Build;
+        _buildButton.SetPressedNoSignal(build is not null);
+        _buildRow.Visible = build is not null;
+        foreach (var child in _buildRow.GetChildren())
+        {
+            _buildRow.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        if (build is not { } choice)
+        {
+            return;
+        }
+
+        var content = _session.Simulation.Content;
+        foreach (var buildable in Construction.BuildablesInOrder(content))
+        {
+            var material = buildable.Materials.Contains(choice.Material) ? choice.Material : buildable.Materials[0];
+            AddBuildButton(buildable, buildable.Id == choice.Buildable, new BuildChoice(buildable.Id, material));
+        }
+
+        _buildRow.AddChild(new VSeparator());
+        foreach (var material in content.Get<BuildableDef>(choice.Buildable).Materials)
+        {
+            AddBuildButton(content.Get<MaterialDef>(material), material == choice.Material, choice with { Material = material });
+        }
+    }
+
+    private void AddBuildButton(Def def, bool chosen, BuildChoice choice)
+    {
+        var text = _services.Text;
+        var button = new Button
+        {
+            Text = text.Capitalized(text.Format(def.NameKey!, ("count", 1))),
+            AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled,
+            ToggleMode = true,
+            ButtonPressed = chosen,
+            FocusMode = Control.FocusModeEnum.None,
+        };
+
+        // Pressing the chosen one again keeps it chosen: the bar is drawn again either way.
+        button.Pressed += () =>
+        {
+            _input.Build = choice;
+            RefreshBuildBar();
+        };
+        _buildRow.AddChild(button);
+    }
 
     private void OnViewLevelChanged(int level) => RefreshLevel();
 
@@ -200,10 +283,20 @@ public partial class Hud : CanvasLayer
 
     private void RefreshHint()
     {
-        _hint.Visible = _input.Order is not null;
+        var text = _services.Text;
+        _hint.Visible = _input.Order is not null || _input.Build is not null;
         if (_input.Order is { } order)
         {
-            _hint.Text = _services.Text.Format("ui.orders.hint", ("order", _services.Text.Format($"ui.orders.name.{DesignationKinds.Id(order)}")));
+            _hint.Text = text.Format("ui.orders.hint", ("order", text.Format($"ui.orders.name.{DesignationKinds.Id(order)}")));
+        }
+        else if (_input.Build is { } build)
+        {
+            var content = _session.Simulation.Content;
+            var name = text.Format(
+                "ui.orders.name.build",
+                ("buildable", text.Format(content.Get<BuildableDef>(build.Buildable).NameKey!, ("count", 1))),
+                ("material", text.Format(content.Get<MaterialDef>(build.Material).NameKey!, ("count", 1))));
+            _hint.Text = text.Format("ui.orders.hint", ("order", name));
         }
     }
 }

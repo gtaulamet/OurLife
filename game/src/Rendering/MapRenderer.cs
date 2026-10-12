@@ -17,7 +17,7 @@ public partial class MapRenderer : Node3D
     private const int FloatsPerInstance = 16;
 
     private static readonly TerrainPiece[] ChunkPieces =
-        [TerrainPiece.Block, TerrainPiece.Floor, TerrainPiece.Ramp, TerrainPiece.Steps, TerrainPiece.Hole];
+        [TerrainPiece.Block, TerrainPiece.Floor, TerrainPiece.Ramp, TerrainPiece.Steps, TerrainPiece.Hole, TerrainPiece.Door];
 
     // North, east, south and west in map coordinates, with the yaw that turns +X towards each.
     private static readonly (int Dx, int Dy, float Yaw)[] Directions =
@@ -264,7 +264,22 @@ public partial class MapRenderer : Node3D
             case TileShape.StairDown:
                 Add(TerrainPiece.Hole, new Transform3D(Basis.Identity, origin), _cutColor);
                 break;
+            case TileShape.Door:
+                Add(TerrainPiece.Door, new Transform3D(new Basis(Vector3.Up, DoorYaw(x, y, z)), origin), MaterialColor(x, y, z));
+                break;
         }
+    }
+
+    /// <summary>
+    /// A door lies in the line of its walls: across X unless the walls are only to its north or
+    /// south, which turns it a quarter.
+    /// </summary>
+    private float DoorYaw(int x, int y, int z)
+    {
+        bool IsWall(int dx, int dy) => _map.ShapeOrEmpty(x + dx, y + dy, z) == TileShape.Wall;
+        var alongX = IsWall(-1, 0) || IsWall(1, 0);
+        var alongY = IsWall(0, -1) || IsWall(0, 1);
+        return alongY && !alongX ? Mathf.Pi / 2 : 0;
     }
 
     /// <summary>

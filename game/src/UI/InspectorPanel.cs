@@ -12,7 +12,8 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// Shows what the player selected (see "Inspector" in <c>docs/gdd/interfaz-ip1.md</c>): a
-/// colonist's name, job, load and needs, or a cell's shape, material, orders, plant and items.
+/// colonist's name, job, load and needs, or a cell's shape, material, orders, plant, items and
+/// blueprint (<c>docs/gdd/construccion.md</c>).
 /// On a stockpile cell it also lists the zone's categories, each with a Yes/No button that changes
 /// its filter (<c>docs/gdd/almacenes.md</c>). It refreshes a few times per second while time runs
 /// or the simulation changes, and when the language changes.
@@ -153,12 +154,22 @@ public partial class InspectorPanel : PanelContainer
             _lines.Add(text.Format("ui.inspector.order.stairs"));
         }
 
+        if ((flags & TileFlags.DeconstructDesignation) != 0)
+        {
+            _lines.Add(text.Format("ui.inspector.order.deconstruct"));
+        }
+
+        if ((flags & TileFlags.ChannelDesignation) != 0)
+        {
+            _lines.Add(text.Format("ui.inspector.order.channel"));
+        }
+
         // What stands on the cell, or on the floor above a wall's top.
         var above = map.ShapeAt(cell) == TileShape.Wall ? new TileCoord(cell.X, cell.Y, cell.Z + 1) : cell;
         DescribeEntitiesAt(cell, above);
     }
 
-    /// <summary>The plants and piles on either cell, in one pass over the entities.</summary>
+    /// <summary>The plants, piles and blueprints on either cell, in one pass over the entities.</summary>
     private void DescribeEntitiesAt(TileCoord cell, TileCoord other)
     {
         var world = _simulation.World;
@@ -190,6 +201,16 @@ public partial class InspectorPanel : PanelContainer
             {
                 var item = NameOf(_simulation.Content.Get<ItemDef>(stack.Def), stack.Count);
                 _lines.Add(text.Format("ui.inspector.items", ("count", stack.Count), ("item", item)));
+            }
+            else if (world.TryGet<Blueprint>(entity, out var plan))
+            {
+                var buildable = _simulation.Content.Get<BuildableDef>(plan.Buildable);
+                _lines.Add(text.Capitalized(text.Format(
+                    "ui.inspector.blueprint",
+                    ("buildable", NameOf(buildable)),
+                    ("material", NameOf(_simulation.Content.Get<MaterialDef>(plan.Material))),
+                    ("delivered", plan.Delivered),
+                    ("cost", buildable.Cost))));
             }
         }
     }

@@ -22,6 +22,12 @@ public enum TerrainPiece
 
     /// <summary>A dark slab on top of a block that the view cuts at the current level.</summary>
     Cut,
+
+    /// <summary>
+    /// A floor with two posts and a leaf lower than the walls, across X; turned to lie in the line
+    /// of the walls, where it reads as a gap with a door in it.
+    /// </summary>
+    Door,
 }
 
 /// <summary>
@@ -42,6 +48,11 @@ public static class TerrainMeshes
             (new Vector3(-0.17f, 0.34f, -0.5f), new Vector3(0.5f, 0.67f, 0.5f)),
             (new Vector3(0.17f, 0.67f, -0.5f), new Vector3(0.5f, 1f, 0.5f))),
         TerrainPiece.Ramp => Ramp(),
+        TerrainPiece.Door => Boxes(
+            (new Vector3(-0.5f, 0, -0.5f), new Vector3(0.5f, FloorThickness, 0.5f)),
+            (new Vector3(-0.5f, 0, -0.12f), new Vector3(-0.38f, 1f, 0.12f)),
+            (new Vector3(0.38f, 0, -0.12f), new Vector3(0.5f, 1f, 0.12f)),
+            (new Vector3(-0.38f, FloorThickness, -0.04f), new Vector3(0.38f, 0.75f, 0.04f))),
         _ => throw new ArgumentOutOfRangeException(nameof(piece), piece, null),
     };
 

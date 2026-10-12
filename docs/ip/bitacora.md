@@ -15,7 +15,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo |
 | En curso | H2.4 Construcción |
 | Validación | `dotnet build` sin advertencias, 458 tests en verde, smoke con código 0 |
-| Huella del smoke | `83ED688C1E308AF2` con `--seed 1 --ticks 5000`; `241213DFAECB759E` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: el mapa lista los materiales de construcción y el trabajo tiene `Recipient` |
+| Huella del smoke | `53055BD55C3B31BD` con `--seed 1 --ticks 5000`; `9B2822CEDD6AD89C` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -25,8 +25,7 @@ En orden:
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
 3. **H2.4** (`docs/gdd/construccion.md`):
-   1. Godot: barra de construcción con material, planos transparentes, pieza de la puerta, órdenes nuevas e inspector.
-   2. Textos de la UI de construcción (`ui.orders.build`, `ui.inspector.blueprint`), capturas, `terrainAmplitude`, revisión de código y cierre.
+   1. Revisión de código, documentación (`overview.md`, `IP2.md`, ADR si hace falta) y cierre.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -54,6 +53,13 @@ En orden:
   - Trabajos `deliver`, `build` y `deconstruct` en el tipo nuevo `construction` (orden 3; acarreo pasa a 4) y `channel` en minería. Entregar funciona como acarrear: la pila más cercana de lo que falta y el plano más cercano a la pila (`Job.Recipient`). Nadie come de una pila que alguien entrega.
   - Los materiales del contenido se ordenan por id: el banco de pruebas rellena el mapa con `rock` explícitamente (`AsciiMap.ParseFilled`).
   - Tests: `ConstructionTests` (muro de troncos del almacén, plano que espera material, el muro no sube sobre un colono, borde de la caja, casa de cuatro muros con puerta, canal con rampa, desmontar, escalera de dos niveles, rampa junto a un muro, cancelar, plano que pierde su lugar, órdenes y planos que se excluyen) y validaciones de defs. La continuidad del guardado incluye planos, un canal y un muro por desmontar. 458 tests.
+- Avance 3 (Godot):
+  - Herramienta Construir (C): abre una fila con los construibles (por `order` del def) y los materiales que admite el elegido; arrastrar manda `PlaceBlueprintCommand`. La tecla y el botón recuerdan lo último elegido. Desmontar (V) y Canalizar (H) salen solas de `DesignationKind`.
+  - Planos como cajas translúcidas del color del material, más opacas con todo entregado; marcas de desmontar y de canalizar. Pieza `Door`: dos postes y una hoja más baja que los muros, girada en la línea de los muros. Madera un poco más oscura (`#7E5531`).
+  - Inspector: el plano con lo entregado ("Plano de muro de madera: 0 de 2") y las órdenes nuevas.
+  - Las órdenes del smoke y de `--orders` suman una casa de 5 × 5 con puerta en el primer sitio llano cercano con el borde libre de plantas; el smoke informa cuánto se construyó. Opciones `--build` e `--inspect-blueprint` para capturas.
+  - `terrainAmplitude` pasa de 3 a 2: con 3 no había sitio llano de 5 × 5 cerca de la llegada en la semilla 42; con 2 lo hay en las semillas 1, 7 y 42 (no en la 100). Las plantas también cerraban sitios: por eso sólo el borde tiene que estar libre.
+  - Capturas revisadas: planos con la barra y el inspector en es y en; la casa terminada con su puerta en es.
 
 ### 2026-10-11: H2.3 Almacenes y acarreo
 

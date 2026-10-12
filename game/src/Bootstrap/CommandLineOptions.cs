@@ -46,6 +46,12 @@ public sealed record CommandLineOptions
     /// <summary>Select the first cell of the first stockpile, to see its filters in screenshots (milestone H2.3).</summary>
     public bool InspectStockpile { get; init; }
 
+    /// <summary>Select the cell of the first blueprint, to see it in the inspector in screenshots (milestone H2.4).</summary>
+    public bool InspectBlueprint { get; init; }
+
+    /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
+    public bool Build { get; init; }
+
     /// <summary>Give the smoke's orders around the arrival at the start, to see them in screenshots (milestone H1.7).</summary>
     public bool Orders { get; init; }
 
@@ -144,6 +150,12 @@ public sealed record CommandLineOptions
                 case "--inspect-stockpile":
                     options = options with { InspectStockpile = true };
                     break;
+                case "--inspect-blueprint":
+                    options = options with { InspectBlueprint = true };
+                    break;
+                case "--build":
+                    options = options with { Build = true };
+                    break;
                 case "--orders":
                     options = options with { Orders = true };
                     break;
@@ -223,7 +235,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}";

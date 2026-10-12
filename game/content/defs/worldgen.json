@@ -10,7 +10,7 @@
     "valleyHalfWidth": 14,
     "valleyMeander": 8,
     "terrainNoiseScale": 24,
-    "terrainAmplitude": 3,
+    "terrainAmplitude": 2,
     "detailNoiseScale": 8,
     "forestNoiseScale": 12,
     "soilMaterial": "soil",
