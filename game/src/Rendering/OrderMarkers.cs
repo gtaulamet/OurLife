@@ -175,7 +175,6 @@ public partial class OrderMarkers : Node3D
         multimesh.Dispose();
     }
 
-    /// <summary>A floating marker over each plant with the order <typeparamref name="TOrder"/>.</summary>
     /// <summary>A translucent box per blueprint the view shows, of the rough size of what it builds.</summary>
     private void AddBlueprints()
     {
@@ -211,6 +210,7 @@ public partial class OrderMarkers : Node3D
         }
     }
 
+    /// <summary>A floating marker over each plant with the order <typeparamref name="TOrder"/>.</summary>
     private void AddPlantMarks<TOrder>(Color color)
         where TOrder : class
     {

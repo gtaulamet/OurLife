@@ -8,14 +8,14 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-4-construccion`, creada desde `main` (H2.3) |
-| `main` | En H2.3, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
+| Rama de trabajo | `ip2/h2-4-construccion`, creada desde `main` (H2.3). Siguiente: H2.5 Muebles y camas |
+| `main` | En H2.4, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo |
-| En curso | H2.4 Construcción |
-| Validación | `dotnet build` sin advertencias, 458 tests en verde, smoke con código 0 |
-| Huella del smoke | `53055BD55C3B31BD` con `--seed 1 --ticks 5000`; `9B2822CEDD6AD89C` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
+| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción |
+| En curso | Ninguno: falta crear la rama de H2.5 |
+| Validación | `dotnet build` sin advertencias, 461 tests en verde, smoke con código 0 |
+| Huella del smoke | `7D097C8EDD26F1AC` con `--seed 1 --ticks 5000`; `B1F8CEE707B258FC` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -24,9 +24,9 @@ En orden:
 
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
-3. **H2.4** (`docs/gdd/construccion.md`):
-   1. Revisión de código, documentación (`overview.md`, `IP2.md`, ADR si hace falta) y cierre.
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
+4. **H2.5 Muebles y camas** (`docs/ip/IP2.md`): crear la rama `ip2/h2-5-muebles-camas` desde `main` y empezar por la spec.
+5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
@@ -42,7 +42,7 @@ En orden:
 
 ## Historial
 
-### 2026-10-12: H2.4 Construcción (en curso)
+### 2026-10-12: H2.4 Construcción
 
 - Rama `ip2/h2-4-construccion` desde `main`.
 - Avance 1: spec `docs/gdd/construccion.md`. Decisiones: los materiales de construcción son defs `Material` con `builtFrom` (madera desde troncos, mampostería desde piedra) y una celda es construida si su material lo tiene; def `Buildable` con forma, materiales, costo, trabajo y `outline` (el muro marca el borde de la caja); la puerta es una forma nueva del mapa, pisable; los planos son entidades; trabajos `deliver` y `build` en el tipo nuevo `construction` (antes del acarreo), `deconstruct` y `channel` (este en minería); la escalera construida ocupa dos niveles. Atajos: Construir (C), Desmontar (V), Canalizar (H), porque B y D ya están en uso.
@@ -60,6 +60,7 @@ En orden:
   - Las órdenes del smoke y de `--orders` suman una casa de 5 × 5 con puerta en el primer sitio llano cercano con el borde libre de plantas; el smoke informa cuánto se construyó. Opciones `--build` e `--inspect-blueprint` para capturas.
   - `terrainAmplitude` pasa de 3 a 2: con 3 no había sitio llano de 5 × 5 cerca de la llegada en la semilla 42; con 2 lo hay en las semillas 1, 7 y 42 (no en la 100). Las plantas también cerraban sitios: por eso sólo el borde tiene que estar libre.
   - Capturas revisadas: planos con la barra y el inspector en es y en; la casa terminada con su puerta en es.
+- Avance 4 (revisión y cierre): 10 hallazgos, todos atendidos (detalle en `IP2.md`). Lo principal: nadie trabaja parado sobre una celda que otro trabajo va a cerrar (dos constructores vecinos se esperaban para siempre), desmontar una escalera reserva y despeja sus dos mitades, y muros, puertas, rampas y escaleras van sólo sobre suelo firme. Sin ADR nuevo: lo construido se reconoce por el material, dentro de las reglas existentes. 461 tests. `main` adelantado a H2.4.
 
 ### 2026-10-11: H2.3 Almacenes y acarreo
 

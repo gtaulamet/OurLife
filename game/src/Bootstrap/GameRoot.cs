@@ -743,7 +743,8 @@ public partial class GameRoot : Node
         var buildables = Construction.BuildablesInOrder(simulation.Content);
         var wall = buildables.FirstOrDefault(buildable => buildable.Shape == BuildShape.Wall);
         var doorway = buildables.FirstOrDefault(buildable => buildable.Shape == BuildShape.Door);
-        var house = FindHouseSite(simulation, arrival, FindStairSite(simulation, arrival));
+        var site = FindStairSite(simulation, arrival);
+        var house = FindHouseSite(simulation, arrival, site);
         if (wall is not null && doorway is not null && wall.Materials.FirstOrDefault(doorway.Materials.Contains) is { } material && house is { } corner)
         {
             var far = HouseFar(corner);
@@ -756,7 +757,6 @@ public partial class GameRoot : Node
         {
             GD.PushWarning("[smoke] No wall and door of one material, or no flat ground for them; the smoke builds no house.");
         }
-        var site = FindStairSite(simulation, arrival);
         if (site is { } stairs)
         {
             simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Stairs, stairs, stairs));

@@ -23,6 +23,7 @@ public sealed class JobSystem : ISimSystem
     private readonly List<TileCoord> _path = [];
     private readonly List<TileCoord> _goal = [];
     private readonly List<EntityId> _blueprints = [];
+    private readonly List<EntityId> _occupants = [];
     private int? _blueprintsCheckedAt;
 
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
@@ -274,6 +275,7 @@ public sealed class JobSystem : ISimSystem
                 }
 
                 DigChannel(simulation, job.Cell, simulation.World.Get<Position>(colonist).Cell);
+                _storage.Invalidate();
                 return true;
             default:
                 throw new InvalidOperationException($"Unknown job {job.Kind}.");
@@ -304,15 +306,18 @@ public sealed class JobSystem : ISimSystem
     }
 
     /// <summary>
-    /// Takes down what was built, in half the time it took to build. A floor that turns into air
-    /// waits while someone stands on it.
+    /// Takes down what was built, in half the time it took to build. A floor, or the upper half of
+    /// stairs, that turns into air waits while someone stands on it.
     /// </summary>
     private bool Deconstruct(Simulation simulation, EntityId colonist, Job job)
     {
         var map = simulation.Map;
-        if (map.ShapeAt(job.Cell) == TileShape.Floor && AnyColonistOn(simulation, job.Cell))
+        foreach (var open in Construction.CellsLeftOpen(map, job.Cell))
         {
-            return false;
+            if (AnyColonistOn(simulation, open))
+            {
+                return false;
+            }
         }
 
         var buildable = Construction.BuildableFor(simulation.Content, map.ShapeAt(job.Cell))!;
@@ -356,8 +361,8 @@ public sealed class JobSystem : ISimSystem
     private bool AnyColonistOn(Simulation simulation, TileCoord cell)
     {
         var world = simulation.World;
-        world.Query<Colonist, Position>(_blueprints);
-        foreach (var colonist in _blueprints)
+        world.Query<Colonist, Position>(_occupants);
+        foreach (var colonist in _occupants)
         {
             if (world.Get<Position>(colonist).Cell == cell)
             {

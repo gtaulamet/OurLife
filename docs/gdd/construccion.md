@@ -47,13 +47,13 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 
 | Forma | Celda | Resultado |
 |---|---|---|
-| `wall` | Suelo plano | Muro |
-| `door` | Suelo plano | Puerta: una celda pisable con su propio dibujo |
-| `ramp` | Suelo plano, con un muro al lado (norte, este, sur u oeste) que tiene aire arriba, y sin muro arriba | Rampa hacia ese muro |
+| `wall` | Suelo firme | Muro |
+| `door` | Suelo firme | Puerta: una celda pisable con su propio dibujo |
+| `ramp` | Suelo firme, con un muro al lado (norte, este, sur u oeste) que tiene aire arriba, y sin muro arriba | Rampa hacia ese muro |
 | `floor` | Aire (vacío), con un vecino pisable en el mismo nivel | Suelo |
-| `stairs` | Suelo plano con aire arriba | Escalera de subida en la celda y de bajada en la de arriba |
+| `stairs` | Suelo firme con aire arriba | Escalera de subida en la celda y de bajada en la de arriba |
 
-- Suelo plano quiere decir la forma `floor`, natural o construida, sin nada que la bloquee.
+- Suelo firme quiere decir la forma `floor` sobre un muro, o un suelo construido. Un suelo natural que quedó sobre aire (porque se excavó el muro de abajo) no sirve: al desmontar lo que se construyó encima volvería como un suelo construido que nadie pagó.
 - La puerta es una forma nueva del mapa, `door`. Se pisa como un suelo; en IP2 no se abre ni se cierra ni frena a nadie.
 - Arrastrar un muro marca el borde de la caja: una casa de cuatro muros se marca de una vez. Las demás formas llenan la caja.
 - Si el terreno cambia y el plano ya no tiene sentido (por ejemplo, alguien canaliza la celda), el plano desaparece y lo entregado cae en su celda o, si no se puede pisar, en la celda pisable vecina más cercana en el orden fijo de las direcciones.
@@ -61,7 +61,7 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 ## Traer los materiales
 
 - **Trabajo nuevo:** `deliver` (entregar), del tipo de trabajo nuevo `construction` (construcción), que va antes del acarreo.
-- El colono elige el plano más cercano al que le falta material y que nadie está abasteciendo. Después elige la pila del objeto del material más cercana al plano, en su región, que nadie tenga reservada. Puede ser una pila suelta o una guardada en un almacén.
+- Como al acarrear, el colono elige la pila más cercana a él de algún objeto que falte en un plano, en su región y que nadie tenga reservada; puede ser una pila suelta o una guardada en un almacén. Después elige, entre los planos que necesitan ese objeto y que nadie está abasteciendo, el más cercano a la pila.
 - Camina hasta la pila, levanta lo que falta (o toda la pila si no alcanza), lo lleva a una celda vecina del plano y lo deja en el plano. El plano lleva la cuenta de lo entregado.
 - Si falta más, el plano vuelve a estar disponible: lo toma el mismo colono u otro.
 - Si deja el trabajo con algo en las manos, lo suelta donde está, como al acarrear.
@@ -70,7 +70,7 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 ## Construir
 
 - **Trabajo nuevo:** `build` (construir), del tipo `construction`. Un plano con todo su material lo toma un colono, que trabaja desde una celda vecina (las ocho, con la regla de las diagonales de excavar).
-- Mientras haya un colono parado en la celda de un plano que no se pisa al terminar (un muro), el trabajo no avanza.
+- Mientras haya un colono parado en la celda de un plano que no se pisa al terminar (un muro), el trabajo no avanza. Por eso nadie construye, canaliza ni desmonta parado sobre una celda que otro trabajo va a cerrar o abrir (un plano de muro, un canal, un suelo por desmontar): dos constructores de muros vecinos se esperarían para siempre.
 - Al terminar, la celda toma la forma y el material del plano, pierde el pasto y el plano desaparece. Las pilas que quedaron en una celda que ya no se pisa caen en la celda del constructor.
 - El progreso es del trabajo: si el colono lo deja, el siguiente empieza de cero, como al excavar.
 
@@ -80,7 +80,7 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 - Resultado:
   - Muro, puerta y rampa pasan a suelo. Si debajo hay un muro, el suelo toma su material, como en el valle; si no, el del muro.
   - Suelo pasa a aire.
-  - Escalera: se desmontan las dos celdas, la de subida pasa a suelo (con la misma regla) y la de bajada a aire.
+  - Escalera: se desmontan las dos celdas, la de subida pasa a suelo (con la misma regla) y la de bajada a aire. Las dos quedan reservadas para quien desmonta, y el trabajo espera si alguien está parado en la de bajada; las pilas que había ahí caen en la celda del colono.
 - Devuelve `cost × deconstructRefundPercent / 100` unidades, redondeado hacia arriba, del objeto del material, en la celda desmontada si se pisa o en la del colono si no.
 
 ## Canalizar

@@ -11,7 +11,11 @@ namespace OurLife.Core.Colony;
 /// included; only on its border if the buildable is drawn as an outline. Unknown defs, or a
 /// material the buildable does not allow, are ignored.
 /// </summary>
-public sealed record PlaceBlueprintCommand(string Buildable, string Material, TileCoord From, TileCoord To) : ISimCommand
+public sealed record PlaceBlueprintCommand(
+    [property: DefRef(typeof(BuildableDef))] string Buildable,
+    [property: DefRef(typeof(MaterialDef))] string Material,
+    TileCoord From,
+    TileCoord To) : ISimCommand
 {
     public void Apply(Simulation simulation)
     {
@@ -139,13 +143,54 @@ public static class Construction
         var here = map.ShapeAt(cell);
         return shape switch
         {
-            BuildShape.Wall or BuildShape.Door => here == TileShape.Floor,
+            BuildShape.Wall or BuildShape.Door => IsGround(map, cell),
             BuildShape.Floor => here == TileShape.Empty && HasStandableNeighbour(map, cell),
-            BuildShape.Ramp => here == TileShape.Floor && map.ShapeOrEmpty(cell.X, cell.Y, cell.Z + 1) != TileShape.Wall && RampDirection(map, cell),
-            BuildShape.Stairs => here == TileShape.Floor && map.ShapeOrEmpty(cell.X, cell.Y, cell.Z + 1) == TileShape.Empty
+            BuildShape.Ramp => IsGround(map, cell) && map.ShapeOrEmpty(cell.X, cell.Y, cell.Z + 1) != TileShape.Wall && RampDirection(map, cell),
+            BuildShape.Stairs => IsGround(map, cell) && map.ShapeOrEmpty(cell.X, cell.Y, cell.Z + 1) == TileShape.Empty
                                  && cell.Z + 1 < map.Size.Depth,
             _ => false,
         };
+    }
+
+    /// <summary>
+    /// A flat floor that taking down what is built on it gives back as it was: over a wall, whose
+    /// material it takes again, or built itself. A natural floor left over air, as digging out the
+    /// wall below leaves it, would come back as a built floor nobody paid for.
+    /// </summary>
+    private static bool IsGround(GameMap map, TileCoord cell) =>
+        map.ShapeAt(cell) == TileShape.Floor && (IsBuilt(map, cell) || (cell.Z > 0 && map.ShapeAt(cell with { Z = cell.Z - 1 }) == TileShape.Wall));
+
+    /// <summary>The other half of built stairs on the cell: above a way up, below a way down; null off built stairs.</summary>
+    public static TileCoord? StairPartner(GameMap map, TileCoord cell)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        if (!map.Size.Contains(cell.X, cell.Y, cell.Z) || !IsBuilt(map, cell))
+        {
+            return null;
+        }
+
+        var shape = map.ShapeAt(cell);
+        var other = shape.GoesUp() ? cell with { Z = cell.Z + 1 } : shape.GoesDown() ? cell with { Z = cell.Z - 1 } : (TileCoord?)null;
+        return other is { } partner && map.Size.Contains(partner.X, partner.Y, partner.Z) && IsBuilt(map, partner) ? partner : null;
+    }
+
+    /// <summary>The cells that taking down what was built on the cell turns into air: a floor, or the upper half of stairs.</summary>
+    public static IEnumerable<TileCoord> CellsLeftOpen(GameMap map, TileCoord cell)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        var shape = map.ShapeAt(cell);
+        if (shape == TileShape.Floor)
+        {
+            yield return cell;
+        }
+        else if (shape is TileShape.StairDown && IsBuilt(map, cell))
+        {
+            yield return cell;
+        }
+        else if (shape.GoesUp() && StairPartner(map, cell) is { } upper && map.ShapeAt(upper) == TileShape.StairDown)
+        {
+            yield return upper;
+        }
     }
 
     /// <summary>
@@ -226,6 +271,7 @@ public static class Construction
         var map = simulation.Map;
         var material = map.MaterialAt(cell)!;
         var buildable = BuildableFor(simulation.Content, map.ShapeAt(cell))!;
+        var leftOpen = CellsLeftOpen(map, cell).ToList();
         switch (map.ShapeAt(cell))
         {
             case TileShape.Wall:
@@ -268,9 +314,9 @@ public static class Construction
             ItemPiles.Drop(simulation, material.BuiltFrom!, refund, map.IsStandable(cell) ? cell : worker);
         }
 
-        if (!map.IsStandable(cell))
+        foreach (var open in leftOpen)
         {
-            MovePiles(simulation, cell, worker);
+            MovePiles(simulation, open, worker);
         }
     }
 

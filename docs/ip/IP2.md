@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.3 hechos; H2.4 en curso.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.4 hechos; sigue H2.5.
 
 ## Estado de los hitos
 
@@ -13,7 +13,7 @@
 | H2.1 Guardado y carga | Hecho | `ip2/h2-1-guardado` | Partidas en ZIP con JSON, ranuras, autoguardado diario y pantalla de error; continuidad probada en tres semillas |
 | H2.2 Día, noche y sueño | Hecho | `ip2/h2-2-dia-noche` | La aldea duerme de 21 a 6, el sol cruza el cielo y el registro muestra el día |
 | H2.3 Almacenes y acarreo | Hecho | `ip2/h2-3-almacenes` | Zonas con filtros por categoría, acarreo con reservas y la carga en las manos |
-| H2.4 Construcción | En curso | `ip2/h2-4-construccion` | Spec `docs/gdd/construccion.md` |
+| H2.4 Construcción | Hecho | `ip2/h2-4-construccion` | Planos de muro, suelo, puerta, rampa y escalera con material; desmontar y canalizar; `terrainAmplitude` 2 |
 | H2.5 Muebles y camas | Pendiente | `ip2/h2-5-muebles-camas` | |
 | H2.6 Gestión de la colonia | Pendiente | `ip2/h2-6-gestion` | |
 | H2.7 Integración | Pendiente | `ip2/h2-7-integracion` | |
@@ -53,7 +53,7 @@
 - El día en el registro de eventos (backlog, hallazgo del playtest): H2.2.
 - Volver a correr los tests del invierno con el sueño nocturno: H2.2.
 - Argumentos de entidad y de def en `TextResolver`: H2.6, con las alertas, que son el primer texto que los usa.
-- Suavizar el fondo del valle bajando `terrainAmplitude` en `worldgen.json`: se evalúa en H2.4, donde construir pide suelo parejo. Cambia las huellas.
+- Suavizar el fondo del valle bajando `terrainAmplitude` en `worldgen.json`: en H2.4 bajó de 3 a 2. Cambió las huellas.
 
 Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto que muestra las bayas, el cambio de modelos con la época y la agrupación de miles del español según CLDR.
 
@@ -200,3 +200,30 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - El smoke cuenta como guardado sólo lo que el almacén acepta y conserva (`Stockpiles.StoredItems`).
 - Queda como está: `ItemPiles.Drop` recorre todas las pilas para encontrar las de una celda; pasa pocas veces por tick. Se corrigió su comentario.
 - 439 tests en verde; smoke con código 0 y las mismas huellas.
+
+## Registro de H2.4: Construcción
+
+**Entregado**
+
+- Spec `docs/gdd/construccion.md`.
+- Materiales de construcción: `MaterialDef.builtFrom` (madera desde troncos, mampostería desde piedra) y `MaterialKind.Wood`. Una celda es construida si su material tiene `builtFrom`.
+- Def `Buildable` (muro, suelo, puerta, rampa y escalera) con forma, materiales, costo, trabajo, `outline` y `order`. `AiConfig.deconstructRefundPercent` (50).
+- Forma `Door` del mapa. Órdenes Desmontar (V) y Canalizar (H); Excavar y las escaleras sólo toman celdas naturales; Cancelar quita planos y deja lo entregado.
+- `PlaceBlueprintCommand` y el componente `Blueprint`, registrados en `SaveTypes`. Trabajos `deliver`, `build` y `deconstruct` en el tipo nuevo `construction` (antes del acarreo) y `channel` en minería.
+- Godot: herramienta Construir (C) con la fila de construibles y materiales, planos como cajas translúcidas del color del material, pieza de la puerta, marcas de desmontar y canalizar, el plano en el inspector. `--orders` y el smoke suman una casa de 5 × 5 con puerta; `--build` e `--inspect-blueprint` para capturas.
+- `terrainAmplitude` bajó de 3 a 2 para que haya sitios llanos donde construir.
+
+**Verificación**
+
+- `ConstructionTests`: muro de troncos del almacén, plano que espera material, el muro no sube sobre un colono, borde de la caja, casa de cuatro muros con puerta y paso por la puerta, canal con rampa, desmontar, escalera de dos niveles, rampa junto a un muro, cancelar, plano que pierde su lugar, órdenes y planos que se excluyen, constructores vecinos, suelo firme y desmontar una escalera con algo arriba. Validaciones de los defs nuevos.
+- La continuidad del guardado incluye planos, un canal y un muro por desmontar.
+- 461 tests en verde; smoke con código 0, con la casa construida (15 de 16 celdas con la semilla 1, que se queda sin troncos; entera con la 42). Huellas: `7D097C8EDD26F1AC` con la semilla 1 y `B1F8CEE707B258FC` con la 42.
+- Capturas revisadas: planos con la barra y el inspector en es y en; la casa terminada con su puerta.
+
+**Revisión de código:** 10 hallazgos, todos atendidos.
+
+- Dos constructores de muros vecinos podían esperarse para siempre, cada uno parado sobre el plano del otro. Nadie construye, canaliza ni desmonta desde una celda que otro trabajo va a cerrar o abrir.
+- Desmontar una escalera desde abajo dejaba en el aire lo que había en la celda de arriba, y no esperaba a quien estuviera parado ahí. Las dos mitades quedan reservadas para quien desmonta.
+- Un muro sobre un suelo natural que quedó sobre aire volvía, al desmontarlo, como un suelo construido que se podía desmontar otra vez por más material. Los muros, puertas, rampas y escaleras van sólo sobre suelo firme.
+- Canalizar rearma el índice de almacenes; `PlaceBlueprintCommand` lleva `[DefRef]`; documentación y un buffer propio en `JobSystem`; el smoke busca la escalera una vez.
+- La entrega elige como el acarreo (la pila más cercana al colono y el plano más cercano a la pila): se corrigió la spec.

@@ -241,6 +241,74 @@ public class ConstructionTests
         Blueprints(bed).Select(blueprint => blueprint.Cell).ShouldBe([new TileCoord(8, 8, 1)]);
     }
 
+    [Fact]
+    public void Builders_of_neighbouring_walls_never_stand_on_each_others_cell()
+    {
+        // A corridor one cell wide: the only place to build the first wall from is the second
+        // wall's cell. Whoever built it from there would wait forever for the other builder to
+        // leave the first wall's cell.
+        var bed = new ColonyTestBed(ColonyTestBed.Level(5, 3, '#'), "#####\n#...#\n#####");
+        bed.Simulation.Commands.Enqueue(new PlaceBlueprintCommand("wall", "timber", new TileCoord(1, 1, 1), new TileCoord(2, 1, 1)));
+        bed.Simulation.ApplyCommandsNow();
+        foreach (var blueprint in Blueprints(bed))
+        {
+            blueprint.Plan.Delivered = 2;
+        }
+
+        var colonists = new[] { bed.AddColonist(1, 1, 1, name: "First"), bed.AddColonist(2, 1, 1, name: "Second") };
+
+        bed.Simulation.Tick();
+
+        var wallCells = Blueprints(bed).Select(blueprint => blueprint.Cell).ToHashSet();
+        foreach (var colonist in colonists)
+        {
+            if (bed.JobOf(colonist) is { Kind: JobKind.Build })
+            {
+                var path = bed.World.Get<Movement>(colonist).Path;
+                var site = path.Count > 0 ? path[^1] : bed.World.Get<Position>(colonist).Cell;
+                wallCells.ShouldNotContain(site, $"{bed.World.Get<Colonist>(colonist).Name} builds {bed.JobOf(colonist)!.Cell} from {site}, path {string.Join(" ", path)}");
+            }
+        }
+
+        bed.Simulation.Run(600);
+        bed.Map.ShapeAt(2, 1, 1).ShouldBe(TileShape.Wall);
+    }
+
+    [Fact]
+    public void Walls_go_only_on_firm_ground_never_on_a_floor_left_over_air()
+    {
+        var bed = new ColonyTestBed("###\n#.#\n###", "...\n...\n...");
+
+        Place(bed, "wall", "timber", new TileCoord(1, 1, 1));
+        Place(bed, "wall", "timber", new TileCoord(0, 0, 1));
+
+        Blueprints(bed).Select(blueprint => blueprint.Cell).ShouldBe([new TileCoord(0, 0, 1)]);
+    }
+
+    [Fact]
+    public void Taking_down_stairs_opens_the_upper_half_and_drops_what_lay_there_by_the_worker()
+    {
+        var bed = new ColonyTestBed(
+            ColonyTestBed.Level(8, 8, '#'),
+            "....####\n....####\n....####\n....####\n....####\n....####\n....####\n....####",
+            "    ....\n    ....\n    ....\n    ....\n    ....\n    ....\n    ....\n    ....");
+        Build(bed, TileShape.StairUp, "masonry", new TileCoord(2, 4, 1));
+        Build(bed, TileShape.StairDown, "masonry", new TileCoord(2, 4, 2));
+        bed.AddItems("log", 5, 2, 4, 2);
+        bed.Designate(DesignationKind.Deconstruct, new TileCoord(2, 4, 1), new TileCoord(2, 4, 1));
+        bed.AddColonist(1, 1, 1);
+
+        bed.Simulation.Run(300);
+
+        bed.Map.ShapeAt(2, 4, 1).ShouldBe(TileShape.Floor);
+        bed.Map.ShapeAt(2, 4, 2).ShouldBe(TileShape.Empty);
+        bed.CountItems("log").ShouldBe(5);
+        bed.CountItems("stone").ShouldBe(2);
+        var piles = new List<EntityId>();
+        bed.World.Query<ItemStack, Position>(piles);
+        piles.ShouldAllBe(pile => bed.Map.IsStandable(bed.World.Get<Position>(pile).Cell));
+    }
+
     private static void Place(ColonyTestBed bed, string buildable, string material, TileCoord cell)
     {
         bed.Simulation.Commands.Enqueue(new PlaceBlueprintCommand(buildable, material, cell, cell));

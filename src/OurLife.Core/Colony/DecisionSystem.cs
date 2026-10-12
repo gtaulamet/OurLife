@@ -63,6 +63,11 @@ public sealed class DecisionSystem : ISimSystem
     private readonly List<(EntityId Blueprint, string Item)> _supplyNeeded = [];
     private readonly HashSet<string> _neededItems = new(StringComparer.Ordinal);
 
+    // Cells that work under way will make unstandable: wall blueprints and the cells ordered to
+    // be channelled or taken down to air. Rebuilt every tick; only looked up, never iterated.
+    private readonly HashSet<TileCoord> _closingCells = [];
+    private readonly List<EntityId> _blueprints = [];
+
     // Items no blueprint can take from the colonist in this search.
     private readonly HashSet<string> _noRecipient = new(StringComparer.Ordinal);
     private readonly List<TileCoord> _recipientSites = [];
@@ -164,6 +169,7 @@ public sealed class DecisionSystem : ISimSystem
         _reservedCells.Clear();
         _entityUses.Clear();
         _hauledPiles.Clear();
+        FindClosingCells(simulation);
         foreach (var colonist in _colonists)
         {
             if (simulation.World.TryGet<Job>(colonist, out var job))
@@ -198,10 +204,11 @@ public sealed class DecisionSystem : ISimSystem
         {
             ReserveCell(map, job.Cell);
 
-            // Stairs and channels also dig out the cell below, which may have its own order to dig.
-            if (DigsBelow(job.Kind))
+            // Stairs and channels also dig out the cell below, which may have its own order to
+            // dig; taking down stairs takes down their other half.
+            if (OtherCellOf(map, job.Kind, job.Cell) is { } other)
             {
-                ReserveCell(map, job.Cell with { Z = job.Cell.Z - 1 });
+                ReserveCell(map, other);
             }
         }
     }
@@ -230,9 +237,9 @@ public sealed class DecisionSystem : ISimSystem
         else if (IsCellOrder(job.Kind))
         {
             UnreserveCell(map, job.Cell);
-            if (DigsBelow(job.Kind))
+            if (OtherCellOf(map, job.Kind, job.Cell) is { } other)
             {
-                UnreserveCell(map, job.Cell with { Z = job.Cell.Z - 1 });
+                UnreserveCell(map, other);
             }
         }
     }
@@ -240,8 +247,62 @@ public sealed class DecisionSystem : ISimSystem
     /// <summary>Jobs on cells the player ordered, gathered in one pass by <see cref="AddOrderedCells"/>.</summary>
     private static bool IsCellOrder(JobKind kind) => kind is JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Deconstruct;
 
-    /// <summary>Jobs that also dig out the cell below theirs.</summary>
-    private static bool DigsBelow(JobKind kind) => kind is JobKind.DigStairs or JobKind.Channel;
+    /// <summary>
+    /// The other cell a job on cells changes: the one below for stairs and channels, the other
+    /// half for taking down stairs; null for the rest. Shapes do not change between reserving and
+    /// releasing, which happen in the same decision.
+    /// </summary>
+    private static TileCoord? OtherCellOf(GameMap map, JobKind kind, TileCoord cell) => kind switch
+    {
+        JobKind.DigStairs or JobKind.Channel => cell with { Z = cell.Z - 1 },
+        JobKind.Deconstruct => Construction.StairPartner(map, cell),
+        _ => null,
+    };
+
+    /// <summary>
+    /// The cells that waiting work will make unstandable. Work that waits while someone stands on
+    /// its cell is never done from one of them: two builders of neighbouring walls, each on the
+    /// other's cell, would wait for each other forever.
+    /// </summary>
+    private void FindClosingCells(Simulation simulation)
+    {
+        var world = simulation.World;
+        var map = simulation.Map;
+        _closingCells.Clear();
+        world.Query<Blueprint, Position>(_blueprints);
+        foreach (var blueprint in _blueprints)
+        {
+            if (simulation.Content.Get<BuildableDef>(world.Get<Blueprint>(blueprint).Buildable).Shape == BuildShape.Wall)
+            {
+                _closingCells.Add(world.Get<Position>(blueprint).Cell);
+            }
+        }
+
+        foreach (var index in map.OrderedCells)
+        {
+            var cell = map.Size.CoordOf(index);
+            var flags = map.FlagsAt(cell);
+            if ((flags & TileFlags.ChannelDesignation) != 0)
+            {
+                _closingCells.Add(cell);
+            }
+
+            if ((flags & TileFlags.DeconstructDesignation) != 0)
+            {
+                _closingCells.UnionWith(Construction.CellsLeftOpen(map, cell));
+            }
+        }
+    }
+
+    /// <summary>The cells to work from; for work that waits on its cell, none that other work will close.</summary>
+    private void FindSites(GameMap map, JobKind kind, TileCoord target)
+    {
+        WorkSites.Find(map, kind, target, _sites);
+        if (kind is JobKind.Build or JobKind.Channel or JobKind.Deconstruct)
+        {
+            _sites.RemoveAll(_closingCells.Contains);
+        }
+    }
 
     private void ReleaseEntity(EntityId entity)
     {
@@ -540,7 +601,7 @@ public sealed class DecisionSystem : ISimSystem
         foreach (var candidate in _workableCells)
         {
             var wanted = jobs.Contains(candidate.Kind) && !IsReserved(map, candidate.Cell)
-                         && !(DigsBelow(candidate.Kind) && IsReserved(map, candidate.Cell with { Z = candidate.Cell.Z - 1 }));
+                         && !(OtherCellOf(map, candidate.Kind, candidate.Cell) is { } other && IsReserved(map, other));
             if (wanted)
             {
                 _candidates.Add(candidate);
@@ -671,7 +732,7 @@ public sealed class DecisionSystem : ISimSystem
                 continue;
             }
 
-            WorkSites.Find(map, candidate.Kind, candidate.Cell, _sites);
+            FindSites(map, candidate.Kind, candidate.Cell);
             if (AnyInRegion(_sites, connectivity, region))
             {
                 reachable.Add((candidate, PathFinder.Estimate(from, candidate.Cell), map.Size.IndexOf(candidate.Cell.X, candidate.Cell.Y, candidate.Cell.Z)));
@@ -702,7 +763,7 @@ public sealed class DecisionSystem : ISimSystem
 
             attempts++;
 
-            WorkSites.Find(map, candidate.Kind, candidate.Cell, _sites);
+            FindSites(map, candidate.Kind, candidate.Cell);
             KeepInRegion(_sites, connectivity, region);
             if (_paths.TryFind(map, from, _sites, _path))
             {
@@ -799,7 +860,7 @@ public sealed class DecisionSystem : ISimSystem
         var best = int.MaxValue;
         foreach (var (blueprint, needed) in _supplyNeeded)
         {
-            if (needed != item || _entityUses.GetValueOrDefault(blueprint) > 0 || IsIgnored(person, blueprint, default))
+            if (needed != item || IsIgnored(person, blueprint, default))
             {
                 continue;
             }
