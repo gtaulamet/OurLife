@@ -212,7 +212,7 @@ public partial class Hud : CanvasLayer
         foreach (var buildable in Construction.BuildablesInOrder(content))
         {
             var material = buildable.Materials.Contains(choice.Material) ? choice.Material : buildable.Materials[0];
-            AddBuildButton(buildable, buildable.Id == choice.Buildable, new BuildChoice(buildable.Id, material));
+            AddBuildButton(buildable, buildable.Id == choice.Buildable, choice with { Buildable = buildable.Id, Material = material });
         }
 
         _buildRow.AddChild(new VSeparator());
@@ -297,6 +297,12 @@ public partial class Hud : CanvasLayer
                 ("buildable", text.Format(content.Get<BuildableDef>(build.Buildable).NameKey!, ("count", 1))),
                 ("material", text.Format(content.Get<MaterialDef>(build.Material).NameKey!, ("count", 1))));
             _hint.Text = text.Format("ui.orders.hint", ("order", name));
+
+            // Furniture can be turned before placing it: the second line says how far.
+            if (content.Get<BuildableDef>(build.Buildable).IsFurniture)
+            {
+                _hint.Text += "\n" + text.Format("ui.orders.rotate_hint", ("quarter", build.Rotation + 1));
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ namespace OurLife.Game.Input;
 /// <summary>
 /// Input actions of the game, registered in code so <c>project.godot</c> stays minimal. The keys
 /// follow <c>docs/gdd/interfaz-ip1.md</c>: WASD or arrows to move, Q/E to rotate, Page Up/Down to change level,
-/// M, B, T, R, Z, V, H and X for orders, C to build, Space and 1 to 3 for time.
+/// M, B, T, R, Z, V, H and X for orders, C to build and G to turn furniture, Space and 1 to 3 for time.
 /// </summary>
 public static class InputActions
 {
@@ -26,6 +26,9 @@ public static class InputActions
     /// <summary>Opens or closes the build bar (see <c>docs/gdd/construccion.md</c>).</summary>
     public const string Build = "order_build";
 
+    /// <summary>Turns the furniture about to be placed a quarter (see <c>docs/gdd/muebles-y-camas.md</c>).</summary>
+    public const string RotateBuild = "build_rotate";
+
     private static readonly (string Action, Key[] Keys)[] Bindings =
     [
         (CameraLeft, [Key.A, Key.Left]),
@@ -41,6 +44,7 @@ public static class InputActions
         (Speed2, [Key.Key2]),
         (Speed3, [Key.Key3]),
         (Build, [Key.C]),
+        (RotateBuild, [Key.G]),
     ];
 
     /// <summary>The action that chooses an order, like <c>order_mine</c>.</summary>

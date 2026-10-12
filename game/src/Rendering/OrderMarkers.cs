@@ -139,6 +139,12 @@ public partial class OrderMarkers : Node3D
         _simulation.World.Query<Stockpile>(_zones);
         foreach (var zone in _zones)
         {
+            // A chest is drawn by its model: no tint.
+            if (_simulation.World.Has<Furniture>(zone))
+            {
+                continue;
+            }
+
             foreach (var cell in _simulation.World.Get<Stockpile>(zone).Cells)
             {
                 if (LevelShading.IsVisible(cell.Z, _viewLevel))
@@ -200,6 +206,7 @@ public partial class OrderMarkers : Node3D
                 BuildShape.Door => new Vector3(0.6f, 0.9f, 0.6f),
                 BuildShape.Ramp => new Vector3(0.9f, 0.45f, 0.9f),
                 BuildShape.Stairs => new Vector3(0.6f, 1.8f, 0.6f),
+                BuildShape.Furniture => new Vector3(0.7f, 0.4f, 0.7f),
                 _ => Vector3.One,
             };
 

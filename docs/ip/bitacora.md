@@ -15,7 +15,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción |
 | En curso | H2.5 Muebles y camas |
 | Validación | `dotnet build` sin advertencias, 471 tests en verde, smoke con código 0 |
-| Huella del smoke | `7D097C8EDD26F1AC` con `--seed 1 --ticks 5000`; `B1F8CEE707B258FC` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
+| Huella del smoke | `3E695C938198BD29` con `--seed 1 --ticks 5000`; `2A4DCA24DF54B58A` con `--seed 42 --ticks 5000` (H2.5: la casa del smoke amueblada). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -26,8 +26,7 @@ En orden:
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
 3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
 4. **H2.5** (`docs/gdd/muebles-y-camas.md`):
-   1. Godot: modelos de muebles girados, tecla G, inspector; la casa del smoke amueblada; capturas.
-   2. Revisión de código y cierre.
+   1. Revisión de código y cierre.
 5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -55,6 +54,12 @@ En orden:
   - Dormir: el colono va a su cama o toma la libre más cercana a la que llega; una cama con dueño muerto está libre. En su cama recupera a `restRecoveryPercent` (150).
   - Modelos copiados a `game/assets/models/kenney_furniture-kit` y `kenney_survival-kit`, en el catálogo y en `CREDITS.md`.
   - Tests: `FurnitureTests` (descanso en cama, tomar la cama libre, cama libre al morir el dueño, cofre que recibe troncos y se desmonta, giro, reglas de colocación, almacén y Cancelar con muebles) y validaciones de defs. La continuidad del guardado incluye cama, cofre y una mesa por construir. 471 tests.
+- Avance 3 (Godot):
+  - Los muebles se dibujan con su modelo, girados de a cuartos. El catálogo de visuales acepta `center: true` para modelos con el origen en una esquina (Furniture Kit); escalas: cama 1, mesa 1,1, silla 1,6, cofre 2.
+  - Tecla G: gira el mueble elegido; la pista suma una segunda línea con el giro. El cofre no se tiñe como almacén; el plano de un mueble es una caja baja.
+  - Inspector: "Silla de madera", el dueño de una cama o "Libre", y en el colono "Duerme en su cama" o "Sin cama".
+  - La casa del smoke se amuebla con los muebles del contenido en sus rincones; el smoke informa muebles y camas tomadas. Opción `--inspect-furniture`.
+  - Capturas revisadas: la casa amueblada en es (cama, mesa y silla) y de noche en en, con un colono en la cama.
 
 ### 2026-10-12: H2.4 Construcción
 

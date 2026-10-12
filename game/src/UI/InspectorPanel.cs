@@ -122,6 +122,7 @@ public partial class InspectorPanel : PanelContainer
             var item = NameOf(_simulation.Content.Get<ItemDef>(carried.Def), carried.Count);
             _lines.Add(text.Format("ui.inspector.carrying", ("count", carried.Count), ("item", item)));
         }
+        _lines.Add(text.Format(HasBed(colonist) ? "ui.inspector.has_bed" : "ui.inspector.no_bed"));
         foreach (var state in world.Get<Needs>(colonist).Values)
         {
             var need = _simulation.Content.Get<NeedDef>(state.Need);
@@ -169,7 +170,14 @@ public partial class InspectorPanel : PanelContainer
         DescribeEntitiesAt(cell, above);
     }
 
-    /// <summary>The plants, piles and blueprints on either cell, in one pass over the entities.</summary>
+    private bool HasBed(EntityId colonist)
+    {
+        var world = _simulation.World;
+        world.Query<Bed>(_entities);
+        return _entities.Exists(bed => world.Get<Bed>(bed).Owner == colonist);
+    }
+
+    /// <summary>The plants, piles, furniture and blueprints on either cell, in one pass over the entities.</summary>
     private void DescribeEntitiesAt(TileCoord cell, TileCoord other)
     {
         var world = _simulation.World;
@@ -201,6 +209,19 @@ public partial class InspectorPanel : PanelContainer
             {
                 var item = NameOf(_simulation.Content.Get<ItemDef>(stack.Def), stack.Count);
                 _lines.Add(text.Format("ui.inspector.items", ("count", stack.Count), ("item", item)));
+            }
+            else if (world.TryGet<Furniture>(entity, out var furniture))
+            {
+                _lines.Add(text.Capitalized(text.Format(
+                    "ui.inspector.furniture",
+                    ("buildable", NameOf(_simulation.Content.Get<BuildableDef>(furniture.Buildable))),
+                    ("material", NameOf(_simulation.Content.Get<MaterialDef>(furniture.Material))))));
+                if (world.TryGet<Bed>(entity, out var bed))
+                {
+                    _lines.Add(world.IsAlive(bed.Owner) && world.TryGet<Colonist>(bed.Owner, out var owner)
+                        ? text.Format("ui.inspector.bed_owner", ("name", owner.Name))
+                        : text.Format("ui.inspector.bed_free"));
+                }
             }
             else if (world.TryGet<Blueprint>(entity, out var plan))
             {

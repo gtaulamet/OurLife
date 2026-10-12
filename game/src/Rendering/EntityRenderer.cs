@@ -153,7 +153,9 @@ public partial class EntityRenderer : Node3D
         node.Position = moves ? WalkingPosition(entity, out _) : CellBase(position.X, position.Y, position.Z);
         if (!moves)
         {
-            node.RotationDegrees = new Vector3(0, CellAngle(position.X, position.Y), 0);
+            // Furniture faces where the player turned it; the rest gets a fixed angle per cell.
+            var angle = _simulation.World.TryGet<Furniture>(entity, out var furniture) ? furniture.Rotation * 90f : CellAngle(position.X, position.Y);
+            node.RotationDegrees = new Vector3(0, angle, 0);
         }
 
         AddChild(node);
@@ -231,7 +233,7 @@ public partial class EntityRenderer : Node3D
         }
     }
 
-    /// <summary>The model of a plant, a pile or a creature, or null for an entity that is not drawn.</summary>
+    /// <summary>The model of a plant, a pile, a creature or a piece of furniture, or null for an entity that is not drawn.</summary>
     private VisualModel? ModelOf(EntityId entity)
     {
         var world = _simulation.World;
@@ -253,6 +255,10 @@ public partial class EntityRenderer : Node3D
         else if (world.TryGet<Colonist>(entity, out var colonist))
         {
             visual = content.Get<CreatureDef>(colonist.Creature).Visual;
+        }
+        else if (world.TryGet<Furniture>(entity, out var furniture) && content.Get<BuildableDef>(furniture.Buildable).Visual is { } furnitureVisual)
+        {
+            visual = furnitureVisual;
         }
         else
         {

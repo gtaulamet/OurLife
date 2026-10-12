@@ -39,15 +39,48 @@ public sealed class ModelLibrary : IDisposable
         return scene;
     }
 
-    /// <summary>A new instance of a model, scaled as the catalog says.</summary>
+    /// <summary>
+    /// A new instance of a model, scaled as the catalog says. A model to centre goes inside a holder
+    /// node, moved so the middle of its meshes lies over the holder's origin.
+    /// </summary>
     /// <exception cref="InvalidOperationException">The model cannot be loaded.</exception>
     public Node3D Instantiate(VisualModel model)
     {
         var scene = Load(model) ?? throw new InvalidOperationException(
             $"Cannot load the model of '{model.Id}' ({model.ModelPath}). Import the project: godot --headless --path game --import");
         var node = scene.Instantiate<Node3D>();
-        node.Scale = Vector3.One * model.Scale;
-        return node;
+        if (!model.Center)
+        {
+            node.Scale = Vector3.One * model.Scale;
+            return node;
+        }
+
+        var middle = BoundsOf(node, Transform3D.Identity)?.GetCenter() ?? Vector3.Zero;
+        node.Position = new Vector3(-middle.X, 0, -middle.Z);
+        var holder = new Node3D { Name = node.Name, Scale = Vector3.One * model.Scale };
+        holder.AddChild(node);
+        return holder;
+    }
+
+    /// <summary>The box around the meshes under a node, in the space <paramref name="toParent"/> leads to.</summary>
+    private static Aabb? BoundsOf(Node node, Transform3D toParent)
+    {
+        var transform = node is Node3D spatial ? toParent * spatial.Transform : toParent;
+        Aabb? bounds = null;
+        if (node is MeshInstance3D { Mesh: not null } mesh)
+        {
+            bounds = transform * mesh.GetAabb();
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            if (BoundsOf(child, transform) is { } inner)
+            {
+                bounds = bounds is { } box ? box.Merge(inner) : inner;
+            }
+        }
+
+        return bounds;
     }
 
     /// <summary>The mesh instances of a model instance, to shade them later without walking its nodes.</summary>

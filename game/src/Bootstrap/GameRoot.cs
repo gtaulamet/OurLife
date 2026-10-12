@@ -417,6 +417,13 @@ public partial class GameRoot : Node
             screen.Input.SelectCell(simulation.World.Get<Position>(blueprints[0]).Cell);
         }
 
+        var pieces = new List<EntityId>();
+        simulation.World.Query<Furniture, Position>(pieces);
+        if (options.InspectFurniture && pieces.Count > 0)
+        {
+            screen.Input.SelectCell(simulation.World.Get<Position>(pieces[0]).Cell);
+        }
+
         if (options.Build)
         {
             screen.Input.ToggleBuild();
@@ -752,6 +759,7 @@ public partial class GameRoot : Node
             var door = HouseDoor(corner);
             simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Cancel, door, door));
             simulation.Commands.Enqueue(new PlaceBlueprintCommand(doorway.Id, material, door, door));
+            FurnishHouse(simulation, corner);
         }
         else
         {
@@ -770,6 +778,24 @@ public partial class GameRoot : Node
     }
 
     private const int HouseSize = 5;
+
+    /// <summary>
+    /// Every piece of furniture of the content, in the order of the build bar, in the corners
+    /// inside the smoke's house, each turned once more than the one before.
+    /// </summary>
+    private static void FurnishHouse(Simulation simulation, TileCoord corner)
+    {
+        TileCoord[] spots =
+        [
+            new(corner.X + 1, corner.Y + 1, corner.Z), new(corner.X + 3, corner.Y + 1, corner.Z),
+            new(corner.X + 3, corner.Y + 3, corner.Z), new(corner.X + 1, corner.Y + 3, corner.Z),
+        ];
+        var furniture = Construction.BuildablesInOrder(simulation.Content).Where(buildable => buildable.IsFurniture).ToList();
+        for (var i = 0; i < Math.Min(spots.Length, furniture.Count); i++)
+        {
+            simulation.Commands.Enqueue(new PlaceBlueprintCommand(furniture[i].Id, furniture[i].Materials[0], spots[i], spots[i], i));
+        }
+    }
 
     // Far enough to find flat open ground in the valley, near enough to walk there.
     private const int HouseSearchRadius = 16;
@@ -885,7 +911,11 @@ public partial class GameRoot : Node
             }
         }
 
-        GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors");
+        var beds = new List<EntityId>();
+        simulation.World.Query<Bed>(beds);
+        var taken = beds.Count(bed => simulation.World.IsAlive(simulation.World.Get<Bed>(bed).Owner));
+        GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors, "
+                 + $"{simulation.World.Store<Furniture>().Count} pieces of furniture, {taken} beds taken");
     }
 
     /// <summary>How many colonists live, what each one is doing and how hungry and rested they are.</summary>

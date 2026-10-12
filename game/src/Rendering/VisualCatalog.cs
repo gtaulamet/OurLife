@@ -7,7 +7,8 @@ namespace OurLife.Game.Rendering;
 /// A model of the catalog: the scene to instance, how to fit it into a cell, and whether its kit
 /// stores sRGB colours in glTF's linear colour field, so they need correcting.
 /// </summary>
-public sealed record VisualModel(string Id, string ModelPath, float Scale, bool SrgbAsLinear = false);
+/// <param name="Center">The model's origin is off its middle, as in the Furniture Kit: it is centred on the cell when instanced.</param>
+public sealed record VisualModel(string Id, string ModelPath, float Scale, bool SrgbAsLinear = false, bool Center = false);
 
 /// <summary>
 /// The visual catalog (<c>assets/models/visuals.json</c>, ADR-009): terrain colours that are not
@@ -68,7 +69,7 @@ public sealed class VisualCatalog
             var models = new Dictionary<string, VisualModel>(StringComparer.Ordinal);
             foreach (var entry in root.GetProperty("models").EnumerateObject())
             {
-                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale");
+                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center");
                 var scale = entry.Value.TryGetProperty("scale", out var scaleValue) ? scaleValue.GetSingle() : 1f;
                 if (scale <= 0)
                 {
@@ -77,7 +78,8 @@ public sealed class VisualCatalog
 
                 var path = StringValue(entry.Value.GetProperty("model"), $"{entry.Name}.model");
                 var srgbAsLinear = kits.Exists(kit => path.StartsWith(kit, StringComparison.Ordinal));
-                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear));
+                var center = entry.Value.TryGetProperty("center", out var centerValue) && centerValue.GetBoolean();
+                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center));
             }
 
             var palette = new Dictionary<string, string>(StringComparer.Ordinal);

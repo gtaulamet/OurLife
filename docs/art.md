@@ -40,7 +40,7 @@ Formato fijado en H1.5 (`game/assets/models/visuals.json`):
 - `terrain`: colores del terreno que no salen de un `MaterialDef`. `grassColor` es el suelo con pasto, y `cutColor` es el hueco de una escalera hacia abajo y la celda sin material.
 - `srgbAsLinearKits`: carpetas de kits que guardan sus colores sRGB en el campo de color lineal de glTF, como los de Kenney. El importador los aclara una segunda vez, y el juego deshace esa conversión sólo en los modelos de esas carpetas.
 - `palette`: reemplaza el color de un material de los modelos, por su nombre dentro del `.glb` (`leafsGreen`, `woodBark`, `grass`). Mantiene la paleta terrosa de la época. Sin entrada, se usa el color del kit corregido.
-- `models`: el modelo de cada id visual y su escala (1 si falta). La escala hace que el modelo ocupe una celda.
+- `models`: el modelo de cada id visual y su escala (1 si falta). La escala hace que el modelo ocupe una celda. `center: true` centra sobre la celda un modelo cuyo origen está en una esquina, como los del Furniture Kit.
 - El terreno no tiene modelos: sus piezas se generan en código y se tiñen con el `color` del `MaterialDef` (ADR-009).
 
 Los defs nombran su visual con el campo `visual`. Los tests de contenido (`VisualCatalogTests`) verifican que:

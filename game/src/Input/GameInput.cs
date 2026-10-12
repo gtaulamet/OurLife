@@ -1,5 +1,6 @@
 using Godot;
 using OurLife.Core.Colony;
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
@@ -14,8 +15,11 @@ public readonly record struct Selection(EntityId Colonist, TileCoord Cell)
     public bool IsColonist => !Colonist.IsNone;
 }
 
-/// <summary>A buildable and the material to build it of: what a drag with the build tool plans.</summary>
-public readonly record struct BuildChoice(string Buildable, string Material);
+/// <summary>
+/// A buildable, the material to build it of and, for furniture, its quarter turns: what a drag
+/// with the build tool plans.
+/// </summary>
+public readonly record struct BuildChoice(string Buildable, string Material, int Rotation = 0);
 
 /// <summary>
 /// The player's hands in a game (see "Controles" and "Selección de celdas" in
@@ -260,6 +264,12 @@ public partial class GameInput : Node3D
             ToggleBuild();
         }
 
+        if (Godot.Input.IsActionJustPressed(InputActions.RotateBuild) && Build is { } build
+            && _session.Simulation.Content.Get<BuildableDef>(build.Buildable).IsFurniture)
+        {
+            Build = build with { Rotation = (build.Rotation + 1) % 4 };
+        }
+
         if (Godot.Input.IsActionJustPressed(InputActions.TogglePause))
         {
             _session.TogglePause();
@@ -352,7 +362,7 @@ public partial class GameInput : Node3D
             {
                 var (from, to) = Box(_order, first, last);
                 _session.Enqueue(_build is { } build
-                    ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to)
+                    ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to, build.Rotation)
                     : new DesignateCommand(_order!.Value, from, to));
             }
         }
