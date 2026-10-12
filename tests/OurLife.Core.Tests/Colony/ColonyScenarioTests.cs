@@ -251,7 +251,8 @@ public class ColonyScenarioTests
         bed.JobOf(colonist)!.Kind.ShouldBe(JobKind.Sleep);
         var cell = bed.World.Get<Position>(colonist).Cell;
 
-        bed.Simulation.Run(11 * 60);
+        // About 8 hours at 1200 an hour: rested by 14:00, long before the night.
+        bed.Simulation.Run(9 * 60);
 
         bed.Need(colonist, "rest").Value.ShouldBeGreaterThan(9000);
         bed.JobOf(colonist)?.Kind.ShouldNotBe(JobKind.Sleep);

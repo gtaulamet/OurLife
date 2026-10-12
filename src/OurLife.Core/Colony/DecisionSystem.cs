@@ -36,6 +36,9 @@ public sealed class DecisionSystem : ISimSystem
     private readonly List<TileCoord> _goal = [];
     private readonly List<NeedDef> _needsBelow = [];
 
+    // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
+    private bool _night;
+
     // Orders on cells that have somewhere to stand, shared by every colonist. They depend only on
     // the orders and on where creatures can walk, so they are found again only when either changes.
     private readonly List<Candidate> _workableCells = [];
@@ -55,6 +58,7 @@ public sealed class DecisionSystem : ISimSystem
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
+        _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
         world.Query<Colonist, Position>(_colonists);
         ReserveCurrentJobs(simulation);
 
@@ -270,21 +274,26 @@ public sealed class DecisionSystem : ISimSystem
     }
 
     /// <summary>
-    /// The needs below their critical threshold, or, with <paramref name="critical"/> false, those
-    /// below the low threshold but not the critical one: callers always try the critical ones
-    /// first, so a need with no way to meet it is searched for once per decision. In the order of
-    /// the creature. The list is reused: read it before the next call.
+    /// The needs that come before any work, or, with <paramref name="critical"/> false, those that
+    /// wait until there is no work: callers always try the first ones first, so a need with no way
+    /// to meet it is searched for once per decision. In the order of the creature. The list is
+    /// reused: read it before the next call.
     /// </summary>
+    /// <remarks>
+    /// A need comes first below its critical threshold, and a need met by sleeping also below its
+    /// night threshold at night. By day, sleeping waits for the critical threshold: the low one
+    /// does not count, so colonists keep their nights (see <c>docs/gdd/dia-y-noche.md</c>).
+    /// </remarks>
     private List<NeedDef> NeedsBelow(Simulation simulation, EntityId colonist, bool critical)
     {
         _needsBelow.Clear();
         foreach (var state in simulation.World.Get<Needs>(colonist).Values)
         {
             var need = simulation.Content.Get<NeedDef>(state.Need);
-            var below = critical
-                ? state.Value < need.CriticalThreshold
-                : state.Value < need.LowThreshold && state.Value >= need.CriticalThreshold;
-            if (below)
+            var sleep = need.SatisfiedBy == NeedSatisfaction.Sleeping;
+            var urgent = state.Value < need.CriticalThreshold || (_night && sleep && state.Value < need.NightThresholdOrLow);
+            var low = !urgent && state.Value < need.LowThreshold && !(sleep && !_night);
+            if (critical ? urgent : low)
             {
                 _needsBelow.Add(need);
             }

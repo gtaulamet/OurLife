@@ -120,7 +120,7 @@ public class ColonyRulesTests
 
         bed.Simulation.Run(53);
         bed.Need(colonist, "hunger").Value.ShouldBe(10_000 - 200);
-        bed.Need(colonist, "rest").Value.ShouldBe(10_000 - 600);
+        bed.Need(colonist, "rest").Value.ShouldBe(10_000 - 500);
     }
 
     [Fact]

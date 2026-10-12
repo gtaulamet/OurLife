@@ -34,6 +34,15 @@ public sealed class NeedDef : Def
     /// <summary>Points restored per hour while sleeping. Only for needs satisfied by sleeping.</summary>
     public int RecoveryPerHour { get; init; }
 
+    /// <summary>
+    /// At night (see <see cref="AiConfigDef"/>), below this value the creature goes to sleep before
+    /// any work. Only for needs satisfied by sleeping; without it, the low threshold counts at night.
+    /// </summary>
+    public int? NightThreshold { get; init; }
+
+    /// <summary>The value below which, at night, the need comes before any work.</summary>
+    public int NightThresholdOrLow => NightThreshold ?? LowThreshold;
+
     internal override IEnumerable<string> Validate()
     {
         if (Max <= 0)
@@ -64,6 +73,16 @@ public sealed class NeedDef : Def
         if (SatisfiedBy != NeedSatisfaction.Sleeping && RecoveryPerHour != 0)
         {
             yield return "only needs satisfied by sleeping have recoveryPerHour.";
+        }
+
+        if (NightThreshold is not null && SatisfiedBy != NeedSatisfaction.Sleeping)
+        {
+            yield return "only needs satisfied by sleeping have nightThreshold.";
+        }
+
+        if (NightThreshold is { } night && !(night > CriticalThreshold && night <= Max))
+        {
+            yield return "nightThreshold must satisfy criticalThreshold < nightThreshold <= max.";
         }
     }
 }

@@ -170,7 +170,8 @@ public sealed class JobSystem : ISimSystem
             case JobKind.Eat:
                 return Eat(simulation, colonist, job);
             case JobKind.Sleep:
-                return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping);
+                // At night a rested colonist sleeps on until morning.
+                return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping) && !_rules.Ai.IsNight(simulation.CurrentDate.Hour);
             case JobKind.Wander:
                 return simulation.CurrentTick >= job.UntilTick;
             default:

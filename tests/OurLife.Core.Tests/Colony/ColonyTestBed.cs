@@ -31,8 +31,8 @@ internal sealed class ColonyTestBed
             "harvest": { "item": "berries", "count": 8, "workTicks": 30 }, "regrowDays": 4 },
           { "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 200, "lowThreshold": 4000,
             "criticalThreshold": 1500, "deathAfterHoursAtZero": 72, "satisfiedBy": "eating" },
-          { "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600, "lowThreshold": 3000,
-            "criticalThreshold": 1000, "satisfiedBy": "sleeping", "recoveryPerHour": 900 },
+          { "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 500, "lowThreshold": 3000,
+            "criticalThreshold": 1000, "satisfiedBy": "sleeping", "recoveryPerHour": 1200, "nightThreshold": 9000 },
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo", "Sancho", "Pedro"], "female": ["Elvira", "Urraca", "Jimena"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
@@ -40,7 +40,8 @@ internal sealed class ColonyTestBed
           { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"] },
           { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
-            "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30 },
+            "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
+            "nightStartHour": 21, "nightEndHour": 6 },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 7000,
             "items": [{ "item": "provisions", "count": 30 }] }
         ]

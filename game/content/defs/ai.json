@@ -7,6 +7,8 @@
     "wanderWaitMin": 60,
     "wanderWaitMax": 300,
     "unreachableCooldownTicks": 600,
-    "recheckTicks": 30
+    "recheckTicks": 30,
+    "nightStartHour": 21,
+    "nightEndHour": 6
   }
 ]

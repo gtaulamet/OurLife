@@ -64,6 +64,36 @@ public class ColonyTests
         }
     }
 
+    // H2.2: colonists prefer to sleep at night (docs/gdd/dia-y-noche.md).
+    [Theory]
+    [InlineData(1)]
+    [InlineData(42)]
+    public void The_village_sleeps_at_night_and_is_awake_at_noon(ulong seed)
+    {
+        var (simulation, colonists) = NewColony(seed);
+
+        for (var day = 0; day < 3; day++)
+        {
+            RunUntilHour(simulation, 2);
+            Sleeping(simulation, colonists).ShouldBe(colonists.Count, $"asleep at 02:00 of day {day + 2}");
+            RunUntilHour(simulation, 12);
+            Sleeping(simulation, colonists).ShouldBe(0, $"asleep at noon of day {day + 2}");
+        }
+    }
+
+    private static int Sleeping(Simulation simulation, IReadOnlyList<Core.Ecs.EntityId> colonists) =>
+        colonists.Count(colonist => simulation.World.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Sleep);
+
+    /// <summary>Runs whole hours until the clock shows <paramref name="hour"/>:00; the game starts on the hour.</summary>
+    private static void RunUntilHour(Simulation simulation, int hour)
+    {
+        do
+        {
+            simulation.Run(60);
+        }
+        while (simulation.CurrentDate.Hour != hour);
+    }
+
     // Balance of IP1 (H1.8): berries do not grow back in winter, so winter is the threat.
     [Theory]
     [InlineData(1)]

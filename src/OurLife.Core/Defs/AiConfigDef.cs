@@ -24,6 +24,18 @@ public sealed class AiConfigDef : Def
     /// <summary>How often a busy colonist checks for a critical need and a wandering one looks for work.</summary>
     public required int RecheckTicks { get; init; }
 
+    /// <summary>Hour the night starts, when colonists prefer to sleep (see <c>docs/gdd/dia-y-noche.md</c>).</summary>
+    public required int NightStartHour { get; init; }
+
+    /// <summary>Hour the night ends. It may be smaller than the start: the night then crosses midnight.</summary>
+    public required int NightEndHour { get; init; }
+
+    /// <summary>True from <see cref="NightStartHour"/> until just before <see cref="NightEndHour"/>.</summary>
+    public bool IsNight(int hour) =>
+        NightStartHour < NightEndHour
+            ? hour >= NightStartHour && hour < NightEndHour
+            : hour >= NightStartHour || hour < NightEndHour;
+
     internal override IEnumerable<string> Validate()
     {
         if (EatTicksPerUnit <= 0)
@@ -49,6 +61,15 @@ public sealed class AiConfigDef : Def
         if (RecheckTicks <= 0)
         {
             yield return "recheckTicks must be positive.";
+        }
+
+        if (NightStartHour is < 0 or > 23 || NightEndHour is < 0 or > 23)
+        {
+            yield return "nightStartHour and nightEndHour must be hours from 0 to 23.";
+        }
+        else if (NightStartHour == NightEndHour)
+        {
+            yield return "the night must last: nightStartHour and nightEndHour must differ.";
         }
     }
 }

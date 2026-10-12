@@ -13,10 +13,11 @@
     "type": "Need",
     "id": "rest",
     "max": 10000,
-    "decayPerHour": 600,
+    "decayPerHour": 500,
     "lowThreshold": 3000,
     "criticalThreshold": 1000,
     "satisfiedBy": "sleeping",
-    "recoveryPerHour": 900
+    "recoveryPerHour": 1200,
+    "nightThreshold": 9000
   }
 ]
