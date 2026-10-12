@@ -156,6 +156,30 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_null_item_in_a_list_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Values\":[", "\"Values\":[null,", StringComparison.Ordinal));
+
+        LoadFails(file).Detail.ShouldContain("holds a null");
+    }
+
+    [Fact]
+    public void A_step_beyond_the_path_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Next\":0", "\"Next\":99", StringComparison.Ordinal));
+
+        LoadFails(file).Detail.ShouldContain("walks step 99");
+    }
+
+    [Fact]
+    public void A_huge_map_size_is_corrupt_without_allocating_it()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace("\"Width\":16", "\"Width\":40000", StringComparison.Ordinal));
+
+        LoadFails(file).Detail.ShouldContain("do not match its size");
+    }
+
+    [Fact]
     public void A_truncated_file_is_corrupt()
     {
         var file = Save(BusyColony().Simulation);

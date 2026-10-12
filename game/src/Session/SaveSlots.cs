@@ -137,13 +137,15 @@ public sealed class SaveSlots
 
     public void Delete(string slotId) => File.Delete(PathOf(slotId));
 
-    private string PathOf(string slotId)
-    {
-        if (slotId.Length == 0 || slotId.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || slotId.Contains("..", StringComparison.Ordinal))
-        {
-            throw new ArgumentException($"Invalid slot id '{slotId}'.", nameof(slotId));
-        }
+    /// <summary>
+    /// A slot id is a plain file name without the extension: never empty, "." or "..", and
+    /// without separators or characters a file name cannot have. Every file the folder lists is one.
+    /// </summary>
+    public static bool IsValidId(string? id) =>
+        !string.IsNullOrEmpty(id) && id is not ("." or "..") && id.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
 
-        return Path.Combine(Directory, slotId + Extension);
-    }
+    private string PathOf(string slotId) =>
+        IsValidId(slotId)
+            ? Path.Combine(Directory, slotId + Extension)
+            : throw new ArgumentException($"Invalid slot id '{slotId}'.", nameof(slotId));
 }

@@ -47,7 +47,7 @@ public static class SaveGame
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Skip,
     };
 
-    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertiesByType = new();
+    private static readonly ConcurrentDictionary<Type, CheckedProperty[]> PropertiesByType = new();
 
     /// <summary>Writes the game to <paramref name="output"/>, which stays open.</summary>
     /// <exception cref="InvalidOperationException">A component or pending command is not registered in <see cref="SaveTypes"/>.</exception>
@@ -264,6 +264,11 @@ public static class SaveGame
                     throw Corrupt($"{entity} stands outside the map, at {position.Cell}");
                 }
 
+                if (component is Movement movement && (movement.Next < 0 || movement.Next > movement.Path.Count || movement.Progress < 0))
+                {
+                    throw Corrupt($"{entity} walks step {movement.Next} of a path of {movement.Path.Count}");
+                }
+
                 saveType.AddTo!(simulation.World, entity, component);
             }
         }
@@ -280,15 +285,20 @@ public static class SaveGame
 
     private static GameMap RestoreMap(SavedMap saved, DefDatabase content)
     {
-        var size = new MapSize(saved.Width, saved.Height, saved.Depth);
-        var map = new GameMap(size, content.All<MaterialDef>());
+        // The arrays are checked against the size before the map allocates it: a damaged size
+        // could ask for gigabytes.
         var shapes = Convert.FromBase64String(saved.Shapes);
         var materials = Convert.FromBase64String(saved.MaterialIndexes);
         var flags = Convert.FromBase64String(saved.Flags);
-        if (shapes.Length != size.CellCount || flags.Length != size.CellCount || materials.Length != size.CellCount * sizeof(ushort))
+        var cells = (long)saved.Width * saved.Height * saved.Depth;
+        if (saved.Width <= 0 || saved.Height <= 0 || saved.Depth <= 0
+            || shapes.Length != cells || flags.Length != cells || materials.Length != cells * sizeof(ushort))
         {
             throw Corrupt("the map arrays do not match its size");
         }
+
+        var size = new MapSize(saved.Width, saved.Height, saved.Depth);
+        var map = new GameMap(size, content.All<MaterialDef>());
 
         // Saved material indexes point into the saved table of ids; translate them to the content.
         var remap = new ushort[saved.Materials.Count];
@@ -338,21 +348,21 @@ public static class SaveGame
 
         foreach (var property in PropertiesByType.GetOrAdd(value.GetType(), FindCheckedProperties))
         {
-            var child = property.GetValue(value);
+            var child = property.Info.GetValue(value);
             if (child is null)
             {
-                if (property.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
+                if (property.Info.PropertyType != typeof(string) && typeof(IEnumerable).IsAssignableFrom(property.Info.PropertyType))
                 {
-                    throw Corrupt($"the list {value.GetType().Name}.{property.Name} is null");
+                    throw Corrupt($"the list {value.GetType().Name}.{property.Info.Name} is null");
                 }
 
                 continue;
             }
 
-            if (property.GetCustomAttribute<DefRefAttribute>() is { } reference)
+            if (property.DefType is { } defType)
             {
                 var id = (string)child;
-                if (!defIds.Contains((reference.DefType, id)))
+                if (!defIds.Contains((defType, id)))
                 {
                     throw new SaveLoadException(SaveLoadError.MissingContent, id);
                 }
@@ -361,7 +371,12 @@ public static class SaveGame
             {
                 foreach (var item in items)
                 {
-                    if (item is not null && item.GetType().Assembly == typeof(SaveGame).Assembly)
+                    if (item is null)
+                    {
+                        throw Corrupt($"the list {value.GetType().Name}.{property.Info.Name} holds a null");
+                    }
+
+                    if (item.GetType().Assembly == typeof(SaveGame).Assembly)
                     {
                         CheckComponent(item, defIds, simulation);
                     }
@@ -375,12 +390,16 @@ public static class SaveGame
     }
 
     /// <summary>The properties to check: marked strings, cells, Core classes and lists.</summary>
-    private static PropertyInfo[] FindCheckedProperties(Type type) =>
+    private static CheckedProperty[] FindCheckedProperties(Type type) =>
         [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.GetIndexParameters().Length == 0)
             .Where(property =>
                 (property.PropertyType == typeof(string) && property.IsDefined(typeof(DefRefAttribute)))
-                || (property.PropertyType != typeof(string) && IsCoreClassOrList(property.PropertyType)))];
+                || (property.PropertyType != typeof(string) && IsCoreClassOrList(property.PropertyType)))
+            .Select(property => new CheckedProperty(property, property.GetCustomAttribute<DefRefAttribute>()?.DefType))];
+
+    /// <summary>A property to check, with the def type its id names, if it is a <see cref="DefRefAttribute"/>.</summary>
+    private sealed record CheckedProperty(PropertyInfo Info, Type? DefType);
 
     private static bool IsCoreClassOrList(Type type)
     {

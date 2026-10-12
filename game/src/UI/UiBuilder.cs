@@ -62,27 +62,6 @@ public static class UiBuilder
         return label;
     }
 
-    /// <summary>
-    /// A question over <paramref name="parent"/> with Yes and No: Yes runs <paramref name="yes"/>,
-    /// both close it. <paramref name="question"/> is already formatted.
-    /// </summary>
-    public static Control Confirm(Node parent, string question, Action yes)
-    {
-        var (root, column) = Screen("Confirm", dimmed: true);
-        column.AddChild(Text(question));
-        var buttons = new HBoxContainer { Alignment = BoxContainer.AlignmentMode.Center };
-        buttons.AddThemeConstantOverride("separation", Gap);
-        buttons.AddChild(MenuButton("ui.common.yes", () =>
-        {
-            root.QueueFree();
-            yes();
-        }));
-        buttons.AddChild(MenuButton("ui.common.no", root.QueueFree));
-        column.AddChild(buttons);
-        parent.AddChild(root);
-        return root;
-    }
-
     /// <summary>A menu button whose text is a key. It keeps its width, centred, in a wider column.</summary>
     public static Button MenuButton(string key, Action pressed)
     {

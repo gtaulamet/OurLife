@@ -85,7 +85,7 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 **Verificación**
 
 - Continuidad: en Core, con una colonia que excava, tala, recolecta, tiene una orden inalcanzable y un comando pendiente; con el contenido real, en las semillas 1, 7 y 42, cortando a los 20 000 ticks y siguiendo otros 20 000. Misma huella al cargar y al final.
-- 406 tests en verde; smoke con código 0. Un valle guardado pesa 33 KB y se guarda o se carga en unos 30 ms.
+- 409 tests en verde; smoke con código 0. Un valle guardado pesa 33 KB y se guarda o se carga en unos 30 ms.
 - Capturas revisadas en es y en: menú principal con Cargar habilitado, Cargar partida, Guardar partida y Error.
 
 **Revisión de código:** 10 hallazgos, 9 corregidos.
@@ -111,4 +111,15 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - `--saves` acepta rutas de Godot (`user://…`).
 - `Settle` nombra la aldea al final, para que un fallo no deje un nombre sin colonia.
 - El smoke guarda a mitad de sus ticks y sigue las dos partidas hasta el final: lo que informa y dibuja es la partida que corrió sus ticks, con las mismas huellas.
-- Quedan como están: el tirón del autoguardado (en el backlog, unos 30 ms por día del juego) y validar la consistencia profunda de un archivo bien formado pero editado a mano (objetivos vivos, índices de caminos). La partida la escribe el juego; los controles cubren archivos truncados, de otra versión o con datos imposibles.
+- Quedan como están: el tirón del autoguardado (en el backlog, unos 30 ms por día del juego) y validar la consistencia profunda de un archivo bien formado pero editado a mano. La partida la escribe el juego; los controles cubren archivos truncados, de otra versión o con datos imposibles.
+
+**Tercera ronda de revisión:** 10 hallazgos, 8 corregidos.
+
+- Se rechazan como dañados: elementos nulos dentro de una lista, un paso de camino fuera del camino y un mapa cuyo tamaño no coincide con sus arreglos. El tamaño se comprueba antes de reservar la memoria del mapa.
+- Un `Job.Target` muerto no se valida: los sistemas ya lo toleran, porque un objetivo puede morir en una partida normal.
+- Se quitó la captura amplia de excepciones al armar la pantalla de una partida cargada, que tapaba errores de programación: la validación vive en Core.
+- Ids de ranura: cualquier nombre de archivo válido (`SaveSlots.IsValidId`); un `GameId` que no sirve para nombrar el autoguardado se reemplaza por uno nuevo, y guardar no lanza por un id inválido.
+- `ConfirmDialog`: Esc cierra la pregunta y no la pantalla de debajo.
+- `--show save` falla sin `--saves`, o sin `--play` ni `--load`.
+- La caché de propiedades guarda también el tipo de def de `[DefRef]`.
+- Quedan como están: el tirón del autoguardado (backlog) y la repetición de "cargar y agregar los sistemas" en el smoke, que carga en memoria y no desde una ranura.

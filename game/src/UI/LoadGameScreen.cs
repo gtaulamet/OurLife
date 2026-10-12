@@ -61,7 +61,7 @@ public partial class LoadGameScreen : Control
             var load = SlotList.RowButton("ui.load.load", () => LoadRequested?.Invoke(slot.Id));
             load.Disabled = slot.Header is null;
             row.AddChild(load);
-            row.AddChild(SlotList.RowButton("ui.load.delete", () => UiBuilder.Confirm(
+            row.AddChild(SlotList.RowButton("ui.load.delete", () => ConfirmDialog.Show(
                 this,
                 _services.Text.Format("ui.load.confirm_delete", ("name", SlotTexts.Name(slot))),
                 () =>

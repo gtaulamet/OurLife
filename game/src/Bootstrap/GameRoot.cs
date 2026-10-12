@@ -300,27 +300,11 @@ public partial class GameRoot : Node
         }
 
         _catalog ??= LoadVisualCatalog();
-        var gameId = header.GameId.Length > 0 ? header.GameId : SaveSlots.NewGameId();
-        GameScreen screen;
-        try
-        {
-            screen = GameScreen.Create(_services, _catalog, _slots, gameId, simulation, level, distance);
-        }
-        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException or KeyNotFoundException or IndexOutOfRangeException)
-        {
-            // The file read well but holds a game the screen cannot show: damaged all the same.
-            var problem = new SaveLoadException(SaveLoadError.Corrupt, ex.Message, ex);
-            if (!_interactive)
-            {
-                Fail($"The saved game '{slotId}' cannot be shown: {ex}", ExitFailure);
-                return null;
-            }
-
-            GD.PushWarning($"The saved game '{slotId}' cannot be shown: {ex}");
-            ShowLoadError(problem);
-            return null;
-        }
-
+        // The id names the autosave slot: one that cannot be a file name starts a new one.
+        var gameId = SaveSlots.IsValidId(SaveSlots.AutosaveId(header.GameId)) && header.GameId.Length > 0
+            ? header.GameId
+            : SaveSlots.NewGameId();
+        var screen = GameScreen.Create(_services, _catalog, _slots, gameId, simulation, level, distance);
         ShowGame(screen);
         return screen;
     }
@@ -416,6 +400,12 @@ public partial class GameRoot : Node
         }
         else if (options.Show == "save")
         {
+            if (_slots is null)
+            {
+                Fail("--show save needs --saves in automated runs.", ExitBadArguments);
+                return;
+            }
+
             screen.OpenSaveScreen();
         }
 

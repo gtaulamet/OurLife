@@ -31,7 +31,7 @@ public partial class SaveGameScreen : Control
         foreach (var slot in slots.List().Where(slot => slot.Header is { IsAutosave: false }))
         {
             var row = SlotList.AddRow(list, services, slot);
-            row.AddChild(SlotList.RowButton("ui.save.overwrite", () => UiBuilder.Confirm(
+            row.AddChild(SlotList.RowButton("ui.save.overwrite", () => ConfirmDialog.Show(
                 screen,
                 services.Text.Format("ui.save.confirm_overwrite", ("name", SlotTexts.Name(slot))),
                 () => screen.SaveRequested?.Invoke(slot.Id))));

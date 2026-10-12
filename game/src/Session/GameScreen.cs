@@ -149,7 +149,7 @@ public partial class GameScreen : Node
             return true;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException
-                                       or NotSupportedException or System.Text.Json.JsonException)
+                                       or NotSupportedException or System.Text.Json.JsonException or ArgumentException)
         {
             GD.PushError($"The game could not be saved in slot '{slotId}': {ex.Message}");
             return false;
