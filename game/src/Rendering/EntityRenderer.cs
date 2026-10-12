@@ -27,9 +27,7 @@ public partial class EntityRenderer : Node3D
     private const float LoadSize = 0.7f;
     private static readonly Vector3 LoadOffset = new(0f, 0.45f, 0.3f);
 
-    // A sleeper's feet move this far back along its body, so it lies centred on the cell, and it
-    // rises this much on a bed, to the mattress.
-    private const float LyingShift = 0.4f;
+    // How much a sleeper rises on a bed, to the mattress.
     private const float MattressHeight = 0.22f;
 
     private readonly Dictionary<EntityId, EntityView> _views = [];
@@ -131,7 +129,7 @@ public partial class EntityRenderer : Node3D
             }
 
             var target = WalkingPosition(entity, out var facing);
-            if (SleepingPose(entity, view.Node.Rotation.Y) is { } lying)
+            if (SleepingPose(entity, view.Node.Rotation.Y, view.HalfHeight) is { } lying)
             {
                 // Laid down at once: a sleeper does not glide into the bed.
                 view.Node.Position = target + lying.Offset;
@@ -160,6 +158,9 @@ public partial class EntityRenderer : Node3D
         }
 
         var node = _models.Instantiate(model);
+
+        // Measured before it is placed: half its height is how far a sleeper's feet move back.
+        var halfHeight = (ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f) / 2;
         var position = _simulation.World.Get<Position>(entity);
         var moves = _simulation.World.Has<Movement>(entity);
         node.Position = moves ? WalkingPosition(entity, out _) : CellBase(position.X, position.Y, position.Z);
@@ -171,7 +172,7 @@ public partial class EntityRenderer : Node3D
         }
 
         AddChild(node);
-        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node));
+        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node)) { HalfHeight = halfHeight };
         _views.Add(entity, view);
         if (moves)
         {
@@ -289,11 +290,11 @@ public partial class EntityRenderer : Node3D
     }
 
     /// <summary>
-    /// How a sleeping colonist lies, or null if it is not asleep: on its back, its feet moved so its
-    /// body lies over the cell. On the bed its job is for, it takes the bed's heading and lies on
-    /// the mattress; on the ground it keeps the heading it had.
+    /// How a sleeping colonist lies, or null if it is not asleep: on its back, its feet moved back
+    /// half its height so its body lies centred on the cell. On the bed its job is for, it takes
+    /// the bed's heading and lies on the mattress; on the ground it keeps the heading it had.
     /// </summary>
-    private (Vector3 Offset, float Yaw)? SleepingPose(EntityId entity, float yaw)
+    private (Vector3 Offset, float Yaw)? SleepingPose(EntityId entity, float yaw, float halfHeight)
     {
         var world = _simulation.World;
         if (!world.TryGet<Job>(entity, out var job) || job.Kind != JobKind.Sleep || job.Stage != JobStage.Working)
@@ -310,7 +311,7 @@ public partial class EntityRenderer : Node3D
         }
 
         // Lying back, the head points the way the feet had behind them: the feet go the other way.
-        var feet = new Basis(Vector3.Up, yaw) * new Vector3(0, 0, LyingShift);
+        var feet = new Basis(Vector3.Up, yaw) * new Vector3(0, 0, halfHeight);
         return (feet + new Vector3(0, lift, 0), yaw);
     }
 
@@ -386,5 +387,8 @@ public partial class EntityRenderer : Node3D
         public VisualModel? LoadModel { get; set; }
 
         public Node3D? Load { get; set; }
+
+        /// <summary>Half the height of its model as drawn, to lay a sleeper centred on its cell.</summary>
+        public float HalfHeight { get; init; }
     }
 }

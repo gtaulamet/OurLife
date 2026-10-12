@@ -60,6 +60,7 @@ En orden:
   - Inspector: "Silla de madera", el dueño de una cama o "Libre", y en el colono "Duerme en su cama" o "Sin cama".
   - La casa del smoke se amuebla con los muebles del contenido en sus rincones; el smoke informa muebles y camas tomadas. Opción `--inspect-furniture`.
   - Capturas revisadas: la casa amueblada en es (cama, mesa y silla) y de noche en en, con un colono en la cama.
+- Avance 6 (pedido del usuario): colonos más chicos, a escala 1,3 en lugar de 2 (0,87 de alto), para que entren en las camas. El colono acostado se corre la mitad de la altura medida de su modelo, no una distancia fija. Sólo presentación: misma huella.
 - Avance 5 (pedido del usuario): los colonos que duermen se dibujan acostados boca arriba, centrados en la celda; en la cama, a lo largo de ella y sobre el colchón. Sólo presentación: misma huella. Captura de noche revisada.
 - Avance 4 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: almacenes que saltean planos de muebles, el índice de almacenes al perderse un cofre, la cama se toma sólo con camino, el resto de las necesidades en centésimas y la marca `TileFlags.Furniture`. 471 tests. `main` adelantado a H2.5.
 

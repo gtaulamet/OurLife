@@ -29,7 +29,7 @@
     "item.stone": { "model": "res://assets/models/kenney_nature-kit/rock_smallA.glb", "scale": 1.0 },
     "item.berries": { "model": "res://assets/models/kenney_nature-kit/flower_redA.glb", "scale": 1.0 },
     "item.provisions": { "model": "res://assets/models/kenney_nature-kit/pot_small.glb", "scale": 1.0 },
-    "creature.human": { "model": "res://assets/models/kenney_mini-characters/character-male-a.glb", "scale": 2.0 },
+    "creature.human": { "model": "res://assets/models/kenney_mini-characters/character-male-a.glb", "scale": 1.3 },
     "furniture.bed": { "model": "res://assets/models/kenney_furniture-kit/bedSingle.glb", "scale": 1.0, "center": true },
     "furniture.table": { "model": "res://assets/models/kenney_furniture-kit/table.glb", "scale": 1.1, "center": true },
     "furniture.chair": { "model": "res://assets/models/kenney_furniture-kit/chair.glb", "scale": 1.6, "center": true },

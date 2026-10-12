@@ -62,6 +62,9 @@ public sealed class ModelLibrary : IDisposable
         return holder;
     }
 
+    /// <summary>The box around the meshes of an instance, in its parent's space: with its scale, before it is placed.</summary>
+    public static Aabb? BoundsOf(Node3D instance) => BoundsOf(instance, Transform3D.Identity);
+
     /// <summary>The box around the meshes under a node, in the space <paramref name="toParent"/> leads to.</summary>
     private static Aabb? BoundsOf(Node node, Transform3D toParent)
     {
