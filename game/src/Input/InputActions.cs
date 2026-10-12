@@ -6,7 +6,7 @@ namespace OurLife.Game.Input;
 /// <summary>
 /// Input actions of the game, registered in code so <c>project.godot</c> stays minimal. The keys
 /// follow <c>docs/gdd/interfaz-ip1.md</c>: WASD or arrows to move, Q/E to rotate, Page Up/Down to change level,
-/// M, B, T, R and X for orders, Space and 1 to 3 for time.
+/// M, B, T, R, Z and X for orders, Space and 1 to 3 for time.
 /// </summary>
 public static class InputActions
 {
@@ -49,6 +49,7 @@ public static class InputActions
         DesignationKind.Stairs => Key.B,
         DesignationKind.Chop => Key.T,
         DesignationKind.Harvest => Key.R,
+        DesignationKind.Stockpile => Key.Z,
         DesignationKind.Cancel => Key.X,
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "The order has no key."),
     };

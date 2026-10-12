@@ -13,12 +13,18 @@ namespace OurLife.Game.Rendering;
 /// the entity events: what appears, changes or disappears. Entities above the current level or
 /// too deep are hidden, the rest darken with depth like the terrain. A gathered plant uses the
 /// visual <c>&lt;visual&gt;.harvested</c> when the catalog has one. Colonists glide between cells
-/// with the progress of their <see cref="Movement"/> and face where they walk.
+/// with the progress of their <see cref="Movement"/> and face where they walk, and hold the model
+/// of what they carry in front of them (see <c>docs/gdd/almacenes.md</c>).
 /// </summary>
 public partial class EntityRenderer : Node3D
 {
     // How fast a drawn colonist catches up with where the simulation says it is, per second.
     private const float GlideRate = 14f;
+
+    // Size of a carried load against a pile on the ground, and where it is held in the world's
+    // units, whatever the carrier's scale.
+    private const float LoadSize = 0.7f;
+    private static readonly Vector3 LoadOffset = new(0f, 0.45f, 0.3f);
 
     private readonly Dictionary<EntityId, EntityView> _views = [];
 
@@ -158,7 +164,42 @@ public partial class EntityRenderer : Node3D
             _walkers.Add(entity, view);
         }
 
+        UpdateLoad(entity, view);
         UpdateVisibility(view);
+    }
+
+    /// <summary>Shows the model of what a colonist carries in its hands, or nothing.</summary>
+    private void UpdateLoad(EntityId entity, EntityView view)
+    {
+        var era = _simulation.Progress.CurrentEra;
+        VisualModel? wanted = null;
+        if (_simulation.World.TryGet<Carried>(entity, out var carried)
+            && _models.Catalog.TryResolve(_simulation.Content.Get<ItemDef>(carried.Def).Visual, era, out var model))
+        {
+            wanted = model;
+        }
+
+        if (view.LoadModel == wanted)
+        {
+            return;
+        }
+
+        view.Load?.QueueFree();
+        view.Load = null;
+        view.LoadModel = wanted;
+        if (wanted is null)
+        {
+            return;
+        }
+
+        // A child of the carrier, so it walks and turns with it; sized against the carrier's scale.
+        var scale = view.Node.Scale.X == 0 ? 1f : view.Node.Scale.X;
+        var load = _models.Instantiate(wanted);
+        load.Scale *= LoadSize / scale;
+        load.Position = LoadOffset / scale;
+        view.Node.AddChild(load);
+        view.Load = load;
+        view.ShadedDepth = -1;
     }
 
     /// <summary>A changed entity keeps its node unless its model changed, like a bush that was gathered.</summary>
@@ -174,7 +215,11 @@ public partial class EntityRenderer : Node3D
         {
             Remove(entity);
             Spawn(entity);
+            return;
         }
+
+        UpdateLoad(entity, view);
+        UpdateVisibility(view);
     }
 
     private void Remove(EntityId entity)
@@ -259,6 +304,11 @@ public partial class EntityRenderer : Node3D
         if (view.Node.Visible && view.ShadedDepth != depth)
         {
             _models.Shade(view.Model, view.Meshes, depth);
+            if (view.Load is { } load)
+            {
+                _models.Shade(view.LoadModel!, ModelLibrary.MeshesOf(load), depth);
+            }
+
             view.ShadedDepth = depth;
         }
     }
@@ -287,5 +337,10 @@ public partial class EntityRenderer : Node3D
 
         /// <summary>Depth its materials are shaded for; -1 before the first time.</summary>
         public int ShadedDepth { get; set; } = -1;
+
+        /// <summary>The model of what a colonist carries, held in its hands, and its node.</summary>
+        public VisualModel? LoadModel { get; set; }
+
+        public Node3D? Load { get; set; }
     }
 }

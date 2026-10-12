@@ -102,6 +102,9 @@ public partial class GameInput : Node3D
     public void ClearSelection() => Select(null);
 
     /// <summary>Selects a colonist, as a click on it would.</summary>
+    /// <summary>Selects a cell, as a click on it does; for screenshots.</summary>
+    public void SelectCell(TileCoord cell) => Select(new Selection(EntityId.None, cell));
+
     public void SelectColonist(EntityId colonist) =>
         Select(new Selection(colonist, _session.Simulation.World.Get<Position>(colonist).Cell));
 

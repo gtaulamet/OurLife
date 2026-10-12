@@ -17,8 +17,8 @@ Spec de H2.3 de IP2: zonas de almacén con filtros por categoría, y colonos que
 
 ## Zonas de almacén
 
-- Una zona es un conjunto de celdas en las que se puede estar de pie, con una lista de categorías permitidas. Al crearla permite todas.
-- Se dibuja como las órdenes: la herramienta **Almacén (Z)** marca la caja arrastrada, en el nivel de la celda inicial. Las celdas que ya son de otra zona, o en las que no se puede estar de pie, se saltean. Las celdas nuevas de una misma caja forman una zona nueva.
+- Una zona es un conjunto de suelos planos en los que se puede estar de pie (no rampas ni escaleras), con una lista de categorías permitidas. Al crearla permite todas.
+- Se dibuja como las órdenes: la herramienta **Almacén (Z)** marca la caja arrastrada, en el nivel de la celda inicial. Las celdas que ya son de otra zona, las que no son suelo plano y las bloqueadas se saltean. Las celdas nuevas de una misma caja forman una zona nueva.
 - **Cancelar (X)** también quita del almacén las celdas de la caja; una zona sin celdas desaparece.
 - Una celda guarda **una sola pila**, de un solo objeto, hasta el límite de pila de ese objeto.
 - Una celda que deja de ser pisable (por ejemplo, porque se construye un muro en H2.4) sigue en la zona, pero no recibe objetos mientras no se pueda pisar.

@@ -92,10 +92,11 @@ Van después de `--`:
 | `--probe` | Muestra la pantalla de prueba de idiomas de H1.3 en lugar del menú principal | H1.5 |
 | `--play` | Empieza una partida en lugar de mostrar el menú principal, con `--seed` o la semilla 1 | H1.7 |
 | `--options` | Abre las opciones: sobre la partida con `--play`, si no en lugar del menú | H1.7 |
-| `--orders` | Con `--play`, da las órdenes del smoke alrededor de la llegada | H1.7 |
+| `--orders` | Con `--play`, da las órdenes del smoke alrededor de la llegada, con un almacén desde H2.3 | H1.7 |
 | `--inspect` | Con `--play`, selecciona al primer colono para ver el inspector | H1.7 |
 | `--zoom <n>` | Distancia de la cámara a lo que mira; menos es más cerca (por defecto 85) | H1.7 |
 | `--licenses <archivo>` | Escribe los avisos de licencia del motor y de .NET que viajan con el juego exportado, y sale. Lo usa `tools/package-windows.ps1` | H1.8 |
+| `--inspect-stockpile` | Con `--play` o `--load`, selecciona la primera celda del primer almacén para ver sus filtros en el inspector | H2.3 |
 | `--hour <h>` | Con `--play` o `--load`, después de `--ticks`, lleva la partida hasta esa hora, para capturas del ciclo de día y noche | H2.2 |
 | `--saves <carpeta>` | Carpeta de las partidas guardadas en lugar de `user://saves`, relativa a `game/`. Las capturas y el benchmark sólo guardan y autoguardan si se da | H2.1 |
 | `--load <ranura>` | Carga la partida de esa ranura (el nombre del archivo sin `.olsave`) en lugar del menú. Si no carga, sale con 1 | H2.1 |

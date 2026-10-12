@@ -59,7 +59,7 @@ public static class Stockpiles
         return EntityId.None;
     }
 
-    /// <summary>A new zone, accepting every category, with the standable cells of the box that no zone holds.</summary>
+    /// <summary>A new zone, accepting every category, with the free floors of the box that nobody blocks and no zone holds.</summary>
     internal static void Mark(Simulation simulation, TileCoord min, TileCoord max)
     {
         var map = simulation.Map;
@@ -71,7 +71,8 @@ public static class Stockpiles
             {
                 for (var x = min.X; x <= max.X; x++)
                 {
-                    if (map.IsStandable(x, y, z) && !taken.Contains(map.Size.IndexOf(x, y, z)))
+                    // Flat floors only: piles do not sit on ramps or stairs.
+                    if (map.ShapeAt(x, y, z) == TileShape.Floor && map.IsStandable(x, y, z) && !taken.Contains(map.Size.IndexOf(x, y, z)))
                     {
                         cells.Add(new TileCoord(x, y, z));
                     }

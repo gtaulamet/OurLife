@@ -24,8 +24,7 @@ En orden:
 
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
 2. **H2.3** (`docs/gdd/almacenes.md`):
-   1. Godot: herramienta Almacén (Z) en la barra y en `GameInput`, celdas de almacén pintadas, filtros por categoría en el inspector de una celda, "Lleva…" en el inspector de un colono y el objeto en las manos.
-   2. Smoke con un almacén, capturas es y en, revisión de código y cierre.
+   1. Revisión de código, documentación (`overview.md`, `IP2.md`) y cierre.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -51,6 +50,13 @@ En orden:
   - `StorageIndex` (derivado, se arma una vez por tick si hace falta): zona de cada celda y qué hay en cada celda de almacén.
   - Acarreo: el colono elige la pila suelta más cercana con destino; el destino es la celda de almacén más cercana a la pila que acepta el objeto y tiene lugar. Reserva la pila y la celda. Levanta lo que entra, lo lleva y lo deja. Si deja el trabajo con algo en las manos, lo suelta donde está; si muere, también.
   - Tests: `StockpileTests` (troncos apilados en el almacén, filtro de comida, el que tiene hambre suelta la carga y después se guarda, dos acarreadores nunca comparten pila ni destino, Cancelar y celdas ocupadas o no pisables). La continuidad del guardado incluye un almacén, un filtro y un colono cargando, en Core y con el contenido real. 435 tests.
+- Avance 2 (Godot):
+  - Herramienta Almacén (Z): sale sola de `DesignationKind`, con su tecla. Las celdas de almacén se pintan de azul, finas y sobre el suelo.
+  - El inspector de una celda de almacén lista las categorías con un botón Sí/No que manda `SetStockpileFilterCommand`; el de un colono dice qué lleva. El colono muestra el objeto en las manos.
+  - Los almacenes sólo toman suelos planos: sobre las rampas la losa quedaba enterrada y las pilas se veían mal (spec actualizada).
+  - Las órdenes del smoke y de `--orders` incluyen un almacén; el smoke informa cuánto quedó guardado (todos los troncos en las semillas 1 y 42). Opción `--inspect-stockpile` para capturas.
+  - Huellas del smoke nuevas por el almacén en sus órdenes: `0988439535AF5339` con la semilla 42 (la de la semilla 1 se toma al cerrar).
+  - Capturas revisadas: acarreo y carga en es, filtros en en.
 
 ### 2026-10-11: H2.2 Día, noche y sueño
 

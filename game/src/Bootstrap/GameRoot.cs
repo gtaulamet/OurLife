@@ -403,6 +403,13 @@ public partial class GameRoot : Node
             screen.Input.SelectColonist(colonists[0]);
         }
 
+        var zones = new List<EntityId>();
+        simulation.World.Query<Stockpile>(zones);
+        if (options.InspectStockpile && zones.Count > 0)
+        {
+            screen.Input.SelectCell(simulation.World.Get<Stockpile>(zones[0]).Cells[0]);
+        }
+
         if (options.Options)
         {
             screen.OpenOptions();
@@ -714,6 +721,9 @@ public partial class GameRoot : Node
         simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Chop, Offset(-SmokeOrderRadius, -SmokeOrderRadius, -3), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
         simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Harvest, Offset(-SmokeOrderRadius, -SmokeOrderRadius, -3), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
         simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Mine, Offset(-SmokeOrderRadius, -SmokeOrderRadius, 0), Offset(SmokeOrderRadius, SmokeOrderRadius, 3)));
+
+        // A stockpile beside the arrival, for what the colonists chop, dig and gather.
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Stockpile, Offset(2, -6, -2), Offset(6, -3, 2)));
         var site = FindStairSite(simulation, arrival);
         if (site is { } stairs)
         {
@@ -771,6 +781,14 @@ public partial class GameRoot : Node
             .OrderBy(group => group.Key, StringComparer.Ordinal)
             .Select(group => $"{group.Key} {group.Sum(stack => stack.Count)}");
         GD.Print($"[smoke] colony: items on the ground: {string.Join(", ", items)}");
+
+        var zones = new List<EntityId>();
+        world.Query<Stockpile>(zones);
+        var stockpileCells = zones.SelectMany(zone => world.Get<Stockpile>(zone).Cells).ToHashSet();
+        var stored = piles
+            .Where(pile => world.Has<Position>(pile) && stockpileCells.Contains(world.Get<Position>(pile).Cell))
+            .Sum(pile => world.Get<ItemStack>(pile).Count);
+        GD.Print($"[smoke] colony: {zones.Count} stockpiles, {stockpileCells.Count} cells, {stored} items stored, {world.Store<Carried>().Count} colonists carrying");
 
         var map = simulation.Map;
         int mineOrders = 0, stairOrders = 0;

@@ -10,9 +10,10 @@ namespace OurLife.Game.Rendering;
 /// <summary>
 /// Marks the player's orders on the map with a translucent colour per kind: walls to dig and
 /// cells for stairs as boxes around the cell, plants to chop or gather as a floating marker
-/// (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>). Only the levels the view shows
-/// are marked. Rebuilt when orders change, when a marked plant is chopped or gathered, or when the
-/// view level changes.
+/// (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>), and stockpile cells as a thin
+/// tinted floor (<c>docs/gdd/almacenes.md</c>). Only the levels the view shows are marked. Rebuilt
+/// when orders or stockpiles change, when a marked plant is chopped or gathered, or when the view
+/// level changes.
 /// </summary>
 public partial class OrderMarkers : Node3D
 {
@@ -21,9 +22,11 @@ public partial class OrderMarkers : Node3D
     private static readonly Color StairsColor = new(0.25f, 0.55f, 1f, 0.5f);
     private static readonly Color ChopColor = new(0.95f, 0.2f, 0.15f, 0.8f);
     private static readonly Color HarvestColor = new(1f, 0.85f, 0.15f, 0.8f);
+    private static readonly Color StockpileColor = new(0.15f, 0.65f, 0.95f, 0.5f);
 
     private readonly List<(Transform3D Transform, Color Color)> _marks = [];
     private readonly List<EntityId> _plants = [];
+    private readonly List<EntityId> _zones = [];
 
     // Plants with an order: chopping or gathering one ends its order without a designation event.
     private readonly HashSet<EntityId> _markedPlants = [];
@@ -59,7 +62,7 @@ public partial class OrderMarkers : Node3D
     public void Apply(ISimEvent simEvent) =>
         _dirty |= simEvent switch
         {
-            DesignationsChangedEvent => true,
+            DesignationsChangedEvent or StockpilesChangedEvent => true,
             EntityChangedEvent changed => _markedPlants.Contains(changed.Entity),
             EntityRemovedEvent removed => _markedPlants.Contains(removed.Entity),
             _ => false,
@@ -104,6 +107,20 @@ public partial class OrderMarkers : Node3D
             if ((flags & TileFlags.StairsDesignation) != 0)
             {
                 _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.9f, 0.12f, 0.9f)), centre + new Vector3(0, 0.08f, 0)), StairsColor));
+            }
+        }
+
+        _simulation.World.Query<Stockpile>(_zones);
+        foreach (var zone in _zones)
+        {
+            foreach (var cell in _simulation.World.Get<Stockpile>(zone).Cells)
+            {
+                if (LevelShading.IsVisible(cell.Z, _viewLevel))
+                {
+                    // Thin and pale, just over the floor, so the piles on it show through.
+                    var floor = new Vector3(cell.X + 0.5f, cell.Z + TerrainMeshes.FloorThickness + 0.02f, cell.Y + 0.5f);
+                    _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.96f, 0.02f, 0.96f)), floor), StockpileColor));
+                }
             }
         }
 

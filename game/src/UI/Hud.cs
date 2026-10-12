@@ -52,7 +52,7 @@ public partial class Hud : CanvasLayer
         root.AddChild(hud.BuildTopBar(colonyName));
         root.AddChild(hud.BuildBottom());
 
-        hud.Inspector = InspectorPanel.Create(services, session.Simulation);
+        hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
         hud.Inspector.Position = new Vector2(-Margin, 56);
         hud.Inspector.GrowHorizontal = Control.GrowDirection.Begin;

@@ -1,4 +1,5 @@
 using Godot;
+using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
@@ -11,9 +12,10 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// Shows what the player selected (see "Inspector" in <c>docs/gdd/interfaz-ip1.md</c>): a
-/// colonist's name, job and needs, or a cell's shape, material, orders, plant and items. It
-/// refreshes a few times per second while time runs or the simulation changes, and when the
-/// language changes.
+/// colonist's name, job, load and needs, or a cell's shape, material, orders, plant and items.
+/// On a stockpile cell it also lists the zone's categories, each with a Yes/No button that changes
+/// its filter (<c>docs/gdd/almacenes.md</c>). It refreshes a few times per second while time runs
+/// or the simulation changes, and when the language changes.
 /// </summary>
 public partial class InspectorPanel : PanelContainer
 {
@@ -24,19 +26,31 @@ public partial class InspectorPanel : PanelContainer
     private GameServices _services = null!;
     private Simulation _simulation = null!;
     private Label _text = null!;
+    private VBoxContainer _filters = null!;
+    private Action<ISimCommand> _enqueue = null!;
+
+    // The zone whose filters are shown, and its buttons by category, to update them in place.
+    private EntityId _filterZone;
+    private readonly List<(string Category, Button Button)> _filterButtons = [];
     private Selection? _selection;
     private double _sinceRefresh;
     private long _refreshedTick = -1;
     private bool _changed;
 
-    public static InspectorPanel Create(GameServices services, Simulation simulation)
+    /// <param name="enqueue">Gives the player's orders, like a filter change, to the game.</param>
+    public static InspectorPanel Create(GameServices services, Simulation simulation, Action<ISimCommand> enqueue)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(simulation);
-        var panel = new InspectorPanel { Name = nameof(InspectorPanel), _services = services, _simulation = simulation, Visible = false };
+        ArgumentNullException.ThrowIfNull(enqueue);
+        var panel = new InspectorPanel { Name = nameof(InspectorPanel), _services = services, _simulation = simulation, _enqueue = enqueue, Visible = false };
         panel.CustomMinimumSize = new Vector2(320, 0);
+        var column = new VBoxContainer();
+        panel.AddChild(column);
         panel._text = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, AutowrapMode = TextServer.AutowrapMode.WordSmart };
-        panel.AddChild(panel._text);
+        column.AddChild(panel._text);
+        panel._filters = new VBoxContainer();
+        column.AddChild(panel._filters);
         return panel;
     }
 
@@ -63,7 +77,12 @@ public partial class InspectorPanel : PanelContainer
         }
     }
 
-    private void OnLocaleChanged(string locale) => Refresh();
+    private void OnLocaleChanged(string locale)
+    {
+        // The category names are in the buttons' rows: build them again in the new language.
+        _filterZone = EntityId.None;
+        Refresh();
+    }
 
     private void Refresh()
     {
@@ -76,6 +95,7 @@ public partial class InspectorPanel : PanelContainer
         }
 
         _lines.Clear();
+        var zone = EntityId.None;
         if (selection.IsColonist && _simulation.World.IsAlive(selection.Colonist))
         {
             DescribeColonist(selection.Colonist);
@@ -83,9 +103,11 @@ public partial class InspectorPanel : PanelContainer
         else
         {
             DescribeCell(selection.Cell);
+            zone = Stockpiles.ZoneAt(_simulation, selection.Cell);
         }
 
         _text.Text = string.Join("\n", _lines);
+        ShowFilters(zone);
     }
 
     private void DescribeColonist(EntityId colonist)
@@ -94,6 +116,11 @@ public partial class InspectorPanel : PanelContainer
         var text = _services.Text;
         _lines.Add(world.Get<Colonist>(colonist).Name);
         _lines.Add(world.TryGet<Job>(colonist, out var job) ? text.Format(JobKinds.ReportKey(job.Kind)) : text.Format("ui.inspector.idle"));
+        if (world.TryGet<Carried>(colonist, out var carried))
+        {
+            var item = NameOf(_simulation.Content.Get<ItemDef>(carried.Def), carried.Count);
+            _lines.Add(text.Format("ui.inspector.carrying", ("count", carried.Count), ("item", item)));
+        }
         foreach (var state in world.Get<Needs>(colonist).Values)
         {
             var need = _simulation.Content.Get<NeedDef>(state.Need);
@@ -164,6 +191,66 @@ public partial class InspectorPanel : PanelContainer
                 var item = NameOf(_simulation.Content.Get<ItemDef>(stack.Def), stack.Count);
                 _lines.Add(text.Format("ui.inspector.items", ("count", stack.Count), ("item", item)));
             }
+        }
+    }
+
+    /// <summary>
+    /// The filters of the zone under the selected cell, one row per category with Yes and No; none
+    /// off the stockpiles. The rows are built when the zone changes and updated in place otherwise,
+    /// so a button keeps the mouse while the inspector refreshes.
+    /// </summary>
+    private void ShowFilters(EntityId zone)
+    {
+        var world = _simulation.World;
+        if (!world.TryGet<Stockpile>(zone, out var stockpile))
+        {
+            ClearFilters();
+            return;
+        }
+
+        if (zone != _filterZone)
+        {
+            ClearFilters();
+            _filterZone = zone;
+            var text = _services.Text;
+            var title = new Label { Text = text.Format("ui.inspector.stockpile"), AutoTranslateMode = AutoTranslateModeEnum.Disabled };
+            _filters.AddChild(title);
+            foreach (var category in _simulation.Content.All<ItemCategoryDef>())
+            {
+                var row = new HBoxContainer();
+                row.AddChild(new Label
+                {
+                    Text = text.Capitalized(NameOf(category)),
+                    AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+                    SizeFlagsHorizontal = SizeFlags.ExpandFill,
+                });
+
+                // One toggle: pressed means allowed, and its text says so.
+                var button = new Button { ToggleMode = true, CustomMinimumSize = new Vector2(64, 0) };
+                var id = category.Id;
+                button.Toggled += allowed => _enqueue(new SetStockpileFilterCommand(_filterZone, id, allowed));
+                row.AddChild(button);
+                _filters.AddChild(row);
+                _filterButtons.Add((id, button));
+            }
+        }
+
+        foreach (var (category, button) in _filterButtons)
+        {
+            var allowed = stockpile.Categories.BinarySearch(category, StringComparer.Ordinal) >= 0;
+            button.SetPressedNoSignal(allowed);
+            button.Text = allowed ? "ui.common.on" : "ui.common.off";
+        }
+    }
+
+    private void ClearFilters()
+    {
+        _filterZone = EntityId.None;
+        _filterButtons.Clear();
+        foreach (var child in _filters.GetChildren())
+        {
+            _filters.RemoveChild(child);
+            child.QueueFree();
         }
     }
 
