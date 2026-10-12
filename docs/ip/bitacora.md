@@ -14,7 +14,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño |
 | Siguiente | H2.3 Almacenes y acarreo |
-| Validación | `dotnet build` sin advertencias, 431 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 429 tests en verde, smoke con código 0 |
 | Huella del smoke | `19A91FF3BCECB119` con `--seed 1 --ticks 5000`; `9D2B68F847F36435` con `--seed 42 --ticks 5000`. Cambiaron en H2.2 por el sueño nocturno y el balance del descanso |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -54,7 +54,7 @@ En orden:
   - `--hour <h>` lleva la partida hasta esa hora para capturas.
   - 4 claves nuevas en es y en. Capturas revisadas a las 6, 12, 20 y 0, y Opciones en inglés.
   - Huellas nuevas del smoke por el balance del descanso (ver Estado actual).
-- Avance 3 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: `nightThreshold` pasa a 10 000 para que nadie quede despierto de noche, y la luz ya no salta al amanecer. Documentación y `main` adelantado a H2.2. 431 tests.
+- Avance 3 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: `nightThreshold` pasa a 10 000 para que nadie quede despierto de noche, y la luz ya no salta al amanecer. Documentación y `main` adelantado a H2.2. 429 tests.
 
 ### 2026-10-11: planificación de IP2
 

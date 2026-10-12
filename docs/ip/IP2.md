@@ -139,7 +139,7 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 
 - `NightSleepTests`: a las 21 dejan el trabajo y duermen hasta las 6; de día no duermen cansados y sí agotados; siguen durmiendo llenos hasta las 6; vuelven a la cama después de comer de noche; noches que cruzan o no la medianoche. Con el contenido real, la aldea entera duerme a las 2 y nadie al mediodía durante tres días, en las semillas 1 y 42.
 - Los tests del invierno de `ColonyTests` siguen en verde con el balance nuevo, y la continuidad del guardado también.
-- 431 tests en verde; smoke con código 0.
+- 429 tests en verde; smoke con código 0.
 - Capturas revisadas a las 6, 12, 20, 22 y 0, y Opciones en inglés. El ciclo vive en la presentación: no toca la simulación.
 
 **Revisión de código:** 9 hallazgos, todos corregidos.
