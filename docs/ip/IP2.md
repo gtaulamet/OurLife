@@ -2,7 +2,7 @@
 
 **Objetivo.** Pasar de sobrevivir a asentarse: construir una casa con camas, ordenar el almacén, ver a la aldea dormir de noche y retomar la partida otro día.
 
-**Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
+**Estimación:** 77 a 101 h según `plan-maestro.md` (sección 7.3), más 3 o 4 h por la versión para macOS que se sumó a H2.7. **Versión al cerrar:** `v0.2.0`, para Windows y macOS.
 
 **Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.5 hechos; sigue H2.6.
 
@@ -44,7 +44,7 @@
 | H2.4 Construcción | Spec; defs de construibles con costo y tiempo; planos con material; entrega de materiales; trabajo de construcción; desmontaje; canalizar; modelos de muros, suelos, puertas y rampas | game-designer, sim-engineer, art-integrator, godot-engineer, i18n-specialist | 22–28 | Escenarios "plano de muro + troncos en el almacén ⇒ muro construido" y "canal ⇒ hueco hacia abajo y paso libre"; una casa de cuatro muros con puerta, construida en la partida |
 | H2.5 Muebles y camas | Defs de cama, mesa, silla y cofre; colocación con orientación; cofre como almacén; asignación de camas; descanso mejorado | game-designer, sim-engineer, art-integrator, godot-engineer, i18n-specialist | 8–10 | Escenario "colono con cama asignada descansa más rápido que en el suelo"; muebles colocados y vistos en la casa |
 | H2.6 Gestión de la colonia | Panel de prioridades; lista de colonos; alertas de ocioso y de hambre crítica; argumentos de entidad en `TextResolver` | sim-engineer, godot-engineer, i18n-specialist | 10–12 | Cambiar una prioridad cambia qué trabajo toma un colono (test y partida); alertas en es y en con el nombre del colono |
-| H2.7 Integración | Playtest con checklist, balance, rendimiento, bugs, exportación y release `v0.2.0` | qa-tester, game-designer, `/code-review`, humano | 8–10 | `v0.2.0` exportada y checklist de playtest completo |
+| H2.7 Integración | Playtest con checklist, balance, rendimiento, bugs, exportación para Windows y macOS (Apple Silicon) y release `v0.2.0` | qa-tester, game-designer, `/code-review`, humano | 11–14 | `v0.2.0` exportada para Windows y macOS, probada en una Mac, y checklist de playtest completo |
 
 ## Pendientes de IP1 que entran en IP2
 
@@ -53,6 +53,7 @@
 - El día en el registro de eventos (backlog, hallazgo del playtest): H2.2.
 - Volver a correr los tests del invierno con el sueño nocturno: H2.2.
 - Argumentos de entidad y de def en `TextResolver`: H2.6, con las alertas, que son el primer texto que los usa.
+- Versión para macOS con Apple Silicon (pedido del usuario, 12 de octubre de 2026): H2.7. Preset de exportación macOS (universal o `arm64`, identificador de la app, ícono), script de empaquetado como el de Windows con el smoke sobre lo exportado, y prueba en una Mac (arranque, smoke con la misma huella que en Windows, capturas es/en, guardar y cargar). Sin cuenta de Apple Developer la app va con firma ad hoc: se abre la primera vez con clic derecho > Abrir o `xattr -cr`; notarizar queda como opción. A confirmar: si Godot exporta C# a macOS desde Windows o hace falta exportar desde una Mac. Suma unas 3 o 4 horas al hito.
 - Suavizar el fondo del valle bajando `terrainAmplitude` en `worldgen.json`: en H2.4 bajó de 3 a 2. Cambió las huellas.
 
 Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto que muestra las bayas, el cambio de modelos con la época y la agrupación de miles del español según CLDR.

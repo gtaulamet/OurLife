@@ -26,8 +26,9 @@ En orden:
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
 3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
 4. **Probar en el editor** los muebles de H2.5: poner una cama girada con G, ver a un colono dormir en ella y llenar un cofre.
-5. **H2.6 Gestión de la colonia** (`docs/ip/IP2.md`): crear la rama `ip2/h2-6-gestion` desde `main` y empezar por la spec.
-6. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+5. **H2.7 suma la versión para macOS (Apple Silicon)**, junto a la de Windows: ver "Pendientes de IP1 que entran en IP2" en `IP2.md`. Hace falta una Mac para probarla.
+6. **H2.6 Gestión de la colonia** (`docs/ip/IP2.md`): crear la rama `ip2/h2-6-gestion` desde `main` y empezar por la spec.
+7. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
