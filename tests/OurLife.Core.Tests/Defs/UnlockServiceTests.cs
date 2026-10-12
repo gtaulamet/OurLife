@@ -13,9 +13,9 @@ public class UnlockServiceTests
         [
           { "type": "Era", "id": "later_age", "order": 1 },
           { "type": "Knowledge", "id": "printing" },
-          { "type": "Item", "id": "plank", "kind": "raw", "visual": "item.plank", "stackLimit": 20 },
-          { "type": "Item", "id": "musket", "kind": "raw", "visual": "item.musket", "stackLimit": 1, "era": "later_age" },
-          { "type": "Item", "id": "book", "kind": "raw", "visual": "item.book", "stackLimit": 10, "requires": ["printing"] }
+          { "type": "Item", "id": "plank", "category": "misc", "kind": "raw", "visual": "item.plank", "stackLimit": 20 },
+          { "type": "Item", "id": "musket", "category": "misc", "kind": "raw", "visual": "item.musket", "stackLimit": 1, "era": "later_age" },
+          { "type": "Item", "id": "book", "category": "misc", "kind": "raw", "visual": "item.book", "stackLimit": 10, "requires": ["printing"] }
         ]
         """);
 

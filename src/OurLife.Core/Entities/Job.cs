@@ -13,6 +13,9 @@ public enum JobKind
     Eat,
     Sleep,
     Wander,
+
+    /// <summary>Carrying a loose pile to a stockpile (see <c>docs/gdd/almacenes.md</c>).</summary>
+    Haul,
 }
 
 public enum JobStage
@@ -22,6 +25,9 @@ public enum JobStage
 
     /// <summary>Doing the work where it is done.</summary>
     Working,
+
+    /// <summary>Carrying what it picked up to <see cref="Job.Destination"/>.</summary>
+    Carrying,
 }
 
 /// <summary>
@@ -48,6 +54,9 @@ public sealed class Job
 
     /// <summary>True when the colonist gathers to eat, not because the player ordered it.</summary>
     public bool ForFood { get; set; }
+
+    /// <summary>For hauling, the stockpile cell where the load goes.</summary>
+    public TileCoord Destination { get; set; }
 }
 
 public static class JobKinds
@@ -62,6 +71,7 @@ public static class JobKinds
         JobKind.Eat => "eat",
         JobKind.Sleep => "sleep",
         JobKind.Wander => "wander",
+        JobKind.Haul => "haul",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

@@ -20,8 +20,14 @@ internal static class TestContent
 
     public const string FirstEraJson = """{ "type": "Era", "id": "test_age", "order": 0 }""";
 
+    /// <summary>The item categories every test item can use.</summary>
+    public const string CategoriesJson = """
+        { "type": "ItemCategory", "id": "wood" }, { "type": "ItemCategory", "id": "stone" },
+        { "type": "ItemCategory", "id": "food" }, { "type": "ItemCategory", "id": "misc" }
+        """;
+
     private static readonly Lazy<DefDatabase> MinimalLazy =
-        new(() => Load(("defs/base.json", $"[{TimeConfigJson}, {FirstEraJson}]")));
+        new(() => Load(("defs/base.json", $"[{TimeConfigJson}, {FirstEraJson}, {CategoriesJson}]")));
 
     /// <summary>Same time settings as <see cref="Minimal"/>, for tests that only need a calendar.</summary>
     public static TimeSettings Time => Minimal.Time;
@@ -34,7 +40,7 @@ internal static class TestContent
 
     /// <summary>Loads the minimal content plus extra defs given as a JSON array.</summary>
     public static DefDatabase WithDefs(string defsJsonArray) =>
-        Load(("defs/base.json", $"[{TimeConfigJson}, {FirstEraJson}]"), ("defs/extra.json", defsJsonArray));
+        Load(("defs/base.json", $"[{TimeConfigJson}, {FirstEraJson}, {CategoriesJson}]"), ("defs/extra.json", defsJsonArray));
 }
 
 /// <summary>Content files held in memory, keyed by relative path. Dot names are skipped, like on disk.</summary>

@@ -8,13 +8,13 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-2-dia-noche`, terminada y ya en `main` |
+| Rama de trabajo | `ip2/h2-3-almacenes`, creada desde `main` (H2.2) |
 | `main` | En el cierre de IP1, con el tag `v0.1.0`, también en `origin` |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño |
-| Siguiente | H2.3 Almacenes y acarreo |
-| Validación | `dotnet build` sin advertencias, 429 tests en verde, smoke con código 0 |
+| En curso | H2.3 Almacenes y acarreo |
+| Validación | `dotnet build` sin advertencias, 435 tests en verde |
 | Huella del smoke | `19A91FF3BCECB119` con `--seed 1 --ticks 5000`; `9D2B68F847F36435` con `--seed 42 --ticks 5000`. Cambiaron en H2.2 por el sueño nocturno y el balance del descanso |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -23,7 +23,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
-2. **H2.3 Almacenes y acarreo** (`IP2.md`), en la rama `ip2/h2-3-almacenes` desde `main`.
+2. **H2.3** (`docs/gdd/almacenes.md`):
+   1. Godot: herramienta Almacén (Z) en la barra y en `GameInput`, celdas de almacén pintadas, filtros por categoría en el inspector de una celda, "Lleva…" en el inspector de un colono y el objeto en las manos.
+   2. Smoke con un almacén, capturas es y en, revisión de código y cierre.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -39,6 +41,16 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-11: H2.3 Almacenes y acarreo (en curso)
+
+- Rama `ip2/h2-3-almacenes` desde `main`. Spec `docs/gdd/almacenes.md`.
+- Avance 1 (Core):
+  - Def `ItemCategory` (madera, piedra y comida) y `Item.category`. Tipo de trabajo `hauling` con el trabajo `haul`, después de recolectar.
+  - Componentes `Stockpile` (celdas ordenadas y categorías permitidas) y `Carried`. `DesignateCommand` con `Stockpile` crea una zona con las celdas libres y pisables; `Cancel` además saca celdas de las zonas. `SetStockpileFilterCommand` cambia un filtro. `StockpilesChangedEvent` para la vista.
+  - `StorageIndex` (derivado, se arma una vez por tick si hace falta): zona de cada celda y qué hay en cada celda de almacén.
+  - Acarreo: el colono elige la pila suelta más cercana con destino; el destino es la celda de almacén más cercana a la pila que acepta el objeto y tiene lugar. Reserva la pila y la celda. Levanta lo que entra, lo lleva y lo deja. Si deja el trabajo con algo en las manos, lo suelta donde está; si muere, también.
+  - Tests: `StockpileTests` (troncos apilados en el almacén, filtro de comida, el que tiene hambre suelta la carga y después se guarda, dos acarreadores nunca comparten pila ni destino, Cancelar y celdas ocupadas o no pisables). La continuidad del guardado incluye un almacén, un filtro y un colono cargando, en Core y con el contenido real. 435 tests.
 
 ### 2026-10-11: H2.2 Día, noche y sueño
 

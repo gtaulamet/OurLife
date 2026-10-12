@@ -11,6 +11,9 @@ public sealed class ItemDef : Def, IHasVisual
 {
     public required ItemKind Kind { get; init; }
 
+    /// <summary>Id of the <see cref="ItemCategoryDef"/> the stockpiles filter it by.</summary>
+    public required string Category { get; init; }
+
     public required string Visual { get; init; }
 
     /// <summary>Most units of this item that fit in one stack.</summary>
@@ -18,6 +21,11 @@ public sealed class ItemDef : Def, IHasVisual
 
     /// <summary>Hunger points restored by eating one unit. Only for food.</summary>
     public int Nutrition { get; init; }
+
+    internal override IEnumerable<DefReference> References()
+    {
+        yield return new DefReference(typeof(ItemCategoryDef), Category, "category");
+    }
 
     internal override IEnumerable<string> Validate()
     {

@@ -73,6 +73,11 @@ public sealed class NeedsSystem : ISimSystem
             simulation.CurrentTick,
             LocalizedText.Of(DeathKey(need)).With("colonist", person.Name).With("colonist_gender", person.Gender),
             NotificationSeverity.Danger));
+        if (simulation.World.TryGet<Carried>(colonist, out var carried))
+        {
+            ItemPiles.Drop(simulation, carried.Def, carried.Count, simulation.World.Get<Position>(colonist).Cell);
+        }
+
         simulation.Events.Emit(new EntityRemovedEvent(colonist));
         simulation.World.DestroyEntity(colonist);
     }

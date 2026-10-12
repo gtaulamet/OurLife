@@ -15,8 +15,8 @@ public class WorldGeneratorTests
 {
     private static readonly DefDatabase Content = TestContent.WithDefs("""
         [
-          { "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
-          { "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },
+          { "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
+          { "type": "Item", "id": "berries", "category": "food", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },
           { "type": "Material", "id": "soil", "kind": "soil", "color": "#7A5A3A", "mineWorkTicks": 30 },
           { "type": "Material", "id": "granite", "kind": "stone", "color": "#8C7F7D", "mineWorkTicks": 180 },
           { "type": "Material", "id": "limestone", "kind": "stone", "color": "#C8BFA8", "mineWorkTicks": 120 },

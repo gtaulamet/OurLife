@@ -26,6 +26,11 @@ public sealed class JobSystem : ISimSystem
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
     private bool _night;
 
+    // What the stockpiles hold, rebuilt the first time a tick needs it.
+    private readonly StorageIndex _storage = new();
+    private bool _storageFresh;
+    private readonly List<EntityId> _carriers = [];
+
     public JobSystem(ColonyRules rules)
     {
         ArgumentNullException.ThrowIfNull(rules);
@@ -47,7 +52,9 @@ public sealed class JobSystem : ISimSystem
     {
         ArgumentNullException.ThrowIfNull(simulation);
         _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
+        _storageFresh = false;
         var world = simulation.World;
+        DropLoadsOfOtherJobs(simulation);
         world.Query<Job, Position>(_colonists);
         foreach (var colonist in _colonists)
         {
@@ -81,7 +88,40 @@ public sealed class JobSystem : ISimSystem
         }
     }
 
-    private static bool StillValid(Simulation simulation, Job job)
+    /// <summary>
+    /// A colonist who carries something but is no longer taking it to a stockpile, because its
+    /// job ended or something more urgent came, leaves it where it stands.
+    /// </summary>
+    private void DropLoadsOfOtherJobs(Simulation simulation)
+    {
+        var world = simulation.World;
+        world.Query<Carried, Position>(_carriers);
+        foreach (var colonist in _carriers)
+        {
+            if (world.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Haul && job.Stage == JobStage.Carrying)
+            {
+                continue;
+            }
+
+            var carried = world.Get<Carried>(colonist);
+            world.Remove<Carried>(colonist);
+            ItemPiles.Drop(simulation, carried.Def, carried.Count, world.Get<Position>(colonist).Cell);
+            simulation.Events.Emit(new EntityChangedEvent(colonist));
+        }
+    }
+
+    private StorageIndex Storage(Simulation simulation)
+    {
+        if (!_storageFresh)
+        {
+            _storage.Rebuild(simulation);
+            _storageFresh = true;
+        }
+
+        return _storage;
+    }
+
+    private bool StillValid(Simulation simulation, Job job)
     {
         var world = simulation.World;
         var map = simulation.Map;
@@ -98,6 +138,11 @@ public sealed class JobSystem : ISimSystem
                        && (job.ForFood || world.Has<HarvestOrder>(job.Target));
             case JobKind.Eat:
                 return world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var stack) && stack.Count > 0;
+            case JobKind.Haul:
+                // On the way to the pile, it must still be there and loose; once carried, the
+                // destination is checked on arrival.
+                return job.Stage == JobStage.Carrying
+                       || (world.IsAlive(job.Target) && world.Has<ItemStack>(job.Target) && !Storage(simulation).IsStored(simulation, job.Target));
             default:
                 return true;
         }
@@ -178,6 +223,8 @@ public sealed class JobSystem : ISimSystem
                 return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping) && !_night;
             case JobKind.Wander:
                 return simulation.CurrentTick >= job.UntilTick;
+            case JobKind.Haul:
+                return job.Stage == JobStage.Carrying ? Deliver(simulation, colonist, job) : PickUp(simulation, colonist, job);
             default:
                 throw new InvalidOperationException($"Unknown job {job.Kind}.");
         }
@@ -289,6 +336,71 @@ public sealed class JobSystem : ISimSystem
         var movement = world.Get<Movement>(colonist);
         movement.Stop();
         movement.Path.AddRange(_path);
+        return true;
+    }
+
+    /// <summary>
+    /// Lifts from the pile what fits at the destination and sets off there. True, ending the job,
+    /// if nothing fits any more or there is no way to the destination; what was lifted then falls
+    /// back on the cell (see <see cref="DropLoadsOfOtherJobs"/>).
+    /// </summary>
+    private bool PickUp(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        var stack = world.Get<ItemStack>(job.Target);
+        var item = stack.Def;
+        var count = Math.Min(stack.Count, Storage(simulation).SpaceFor(simulation, item, job.Destination));
+        if (count <= 0)
+        {
+            return true;
+        }
+
+        ItemPiles.Take(simulation, job.Target, count);
+        world.Add(colonist, new Carried { Def = item, Count = count });
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
+
+        var from = world.Get<Position>(colonist).Cell;
+        job.Stage = JobStage.Carrying;
+        job.Cell = job.Destination;
+        _goal.Clear();
+        _goal.Add(job.Destination);
+        if (!simulation.Connectivity.AreConnected(from, job.Destination) || !_paths.TryFind(simulation.Map, from, _goal, _path))
+        {
+            return true;
+        }
+
+        var movement = world.Get<Movement>(colonist);
+        movement.Stop();
+        movement.Path.AddRange(_path);
+        return false;
+    }
+
+    /// <summary>
+    /// At the destination, leaves what fits there. Whatever does not fit, because the stockpile
+    /// changed on the way, stays carried and falls on the cell when the job ends.
+    /// </summary>
+    private bool Deliver(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        if (world.Get<Position>(colonist).Cell != job.Destination)
+        {
+            return true;
+        }
+
+        var carried = world.Get<Carried>(colonist);
+        var count = Math.Min(carried.Count, Storage(simulation).SpaceFor(simulation, carried.Def, job.Destination));
+        if (count > 0)
+        {
+            ItemPiles.Drop(simulation, carried.Def, count, job.Destination);
+            carried.Count -= count;
+        }
+
+        if (carried.Count == 0)
+        {
+            world.Remove<Carried>(colonist);
+            simulation.Events.Emit(new EntityChangedEvent(colonist));
+        }
+
         return true;
     }
 

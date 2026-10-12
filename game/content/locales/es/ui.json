@@ -66,11 +66,13 @@
   "ui.orders.stairs": "Escalera (B)",
   "ui.orders.chop": "Talar (T)",
   "ui.orders.harvest": "Recolectar (R)",
+  "ui.orders.stockpile": "Almacén (Z)",
   "ui.orders.cancel": "Cancelar (X)",
   "ui.orders.name.mine": "Excavar",
   "ui.orders.name.stairs": "Escalera",
   "ui.orders.name.chop": "Talar",
   "ui.orders.name.harvest": "Recolectar",
+  "ui.orders.name.stockpile": "Almacén",
   "ui.orders.name.cancel": "Cancelar",
   "ui.orders.hint": "{order}: arrastra sobre el mapa. Clic derecho para terminar",
   "ui.log.entry": "{clock} {text}",
@@ -92,6 +94,8 @@
   "ui.inspector.order.harvest": "Marcado para recolectar",
   "ui.inspector.plant_harvested": "{plant}, sin frutos",
   "ui.inspector.items": "{count} {item}",
+  "ui.inspector.stockpile": "Almacén",
+  "ui.inspector.carrying": "Lleva {count} {item}",
 
   "time.season.spring": "primavera",
   "time.season.summer": "verano",
@@ -106,5 +110,6 @@
   "job.harvest.report": "Recolectando",
   "job.eat.report": "Comiendo",
   "job.sleep.report": "Durmiendo",
-  "job.wander.report": "Paseando"
+  "job.wander.report": "Paseando",
+  "job.haul.report": "Acarreando"
 }

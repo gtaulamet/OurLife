@@ -18,6 +18,7 @@ public static class WorkSites
         switch (kind)
         {
             case JobKind.Eat:
+            case JobKind.Haul:
             case JobKind.Sleep:
             case JobKind.Wander:
                 if (map.IsStandable(target))
@@ -68,7 +69,7 @@ public static class WorkSites
 
         return kind switch
         {
-            JobKind.Eat => dx == 0 && dy == 0,
+            JobKind.Eat or JobKind.Haul => dx == 0 && dy == 0,
             JobKind.Mine => Math.Max(dx, dy) == 1,
             _ => Math.Max(dx, dy) <= 1,
         };

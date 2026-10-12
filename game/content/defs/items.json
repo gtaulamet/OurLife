@@ -1,6 +1,9 @@
 [
-  { "type": "Item", "id": "log", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
-  { "type": "Item", "id": "stone", "kind": "raw", "visual": "item.stone", "stackLimit": 25 },
-  { "type": "Item", "id": "berries", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },
-  { "type": "Item", "id": "provisions", "kind": "food", "visual": "item.provisions", "stackLimit": 50, "nutrition": 2500 }
+  { "type": "ItemCategory", "id": "wood" },
+  { "type": "ItemCategory", "id": "stone" },
+  { "type": "ItemCategory", "id": "food" },
+  { "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
+  { "type": "Item", "id": "stone", "category": "stone", "kind": "raw", "visual": "item.stone", "stackLimit": 25 },
+  { "type": "Item", "id": "berries", "category": "food", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },
+  { "type": "Item", "id": "provisions", "category": "food", "kind": "food", "visual": "item.provisions", "stackLimit": 50, "nutrition": 2500 }
 ]

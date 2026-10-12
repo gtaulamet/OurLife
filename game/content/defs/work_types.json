@@ -1,5 +1,6 @@
 [
   { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs"] },
   { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"] },
-  { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] }
+  { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
+  { "type": "WorkType", "id": "hauling", "order": 3, "jobs": ["haul"] }
 ]

@@ -58,5 +58,17 @@
   "def.work_type.woodcutting.gender": "other",
   "def.work_type.gathering.name": "gathering",
   "def.work_type.gathering.desc": "Gathering berries and other wild fruit.",
-  "def.work_type.gathering.gender": "other"
+  "def.work_type.gathering.gender": "other",
+  "def.item_category.wood.name": "wood",
+  "def.item_category.wood.desc": "Logs and what is made from them.",
+  "def.item_category.wood.gender": "other",
+  "def.item_category.stone.name": "stone",
+  "def.item_category.stone.desc": "Loose stone and blocks.",
+  "def.item_category.stone.gender": "other",
+  "def.item_category.food.name": "food",
+  "def.item_category.food.desc": "Everything that can be eaten.",
+  "def.item_category.food.gender": "other",
+  "def.work_type.hauling.name": "hauling",
+  "def.work_type.hauling.desc": "Carrying loose items to the stockpiles.",
+  "def.work_type.hauling.gender": "other"
 }

@@ -10,6 +10,7 @@ internal static class DefTypes
         ("TimeConfig", typeof(TimeConfigDef), null),
         ("Material", typeof(MaterialDef), "material"),
         ("Plant", typeof(PlantDef), "plant"),
+        ("ItemCategory", typeof(ItemCategoryDef), "item_category"),
         ("Item", typeof(ItemDef), "item"),
         ("Need", typeof(NeedDef), "need"),
         ("Creature", typeof(CreatureDef), "creature"),

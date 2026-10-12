@@ -49,7 +49,7 @@ public class SaveGameTests
         output.Length.ShouldBeLessThan(1_000_000);
     }
 
-    /// <summary>A new colony with orders to harvest and chop around its arrival, on every level.</summary>
+    /// <summary>A new colony with orders to harvest and chop around its arrival, on every level, and a stockpile beside it.</summary>
     private static Simulation NewColonyAtWork(ulong seed)
     {
         var simulation = new Simulation(seed, GameContent.Defs);
@@ -65,6 +65,8 @@ public class SaveGameTests
             DesignationKind.Chop, new TileCoord(arrival.X - 8, arrival.Y - 8, 0), new TileCoord(arrival.X + 8, arrival.Y + 8, top)));
         simulation.Commands.Enqueue(new DesignateCommand(
             DesignationKind.Stairs, arrival with { X = arrival.X + 3 }, arrival with { X = arrival.X + 3 }));
+        simulation.Commands.Enqueue(new DesignateCommand(
+            DesignationKind.Stockpile, new TileCoord(arrival.X - 6, arrival.Y + 2, arrival.Z), new TileCoord(arrival.X - 2, arrival.Y + 5, arrival.Z)));
         return simulation;
     }
 

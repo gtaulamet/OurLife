@@ -54,11 +54,15 @@ public static class ItemPiles
     }
 
     /// <summary>Takes one unit from a pile, which disappears when it runs out.</summary>
-    public static void TakeOne(Simulation simulation, EntityId pile)
+    public static void TakeOne(Simulation simulation, EntityId pile) => Take(simulation, pile, 1);
+
+    /// <summary>Takes units from a pile, at most what it has; the pile disappears when it runs out.</summary>
+    public static void Take(Simulation simulation, EntityId pile, int count)
     {
         ArgumentNullException.ThrowIfNull(simulation);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(count);
         var stack = simulation.World.Get<ItemStack>(pile);
-        stack.Count--;
+        stack.Count -= Math.Min(count, stack.Count);
         if (stack.Count > 0)
         {
             simulation.Events.Emit(new EntityChangedEvent(pile));

@@ -14,7 +14,10 @@ public enum DesignationKind
     Chop,
     Harvest,
 
-    /// <summary>Removes every order in the area.</summary>
+    /// <summary>Marks a stockpile zone (see <c>docs/gdd/almacenes.md</c>).</summary>
+    Stockpile,
+
+    /// <summary>Removes every order in the area, and its cells from the stockpiles.</summary>
     Cancel,
 }
 
@@ -28,6 +31,7 @@ public static class DesignationKinds
         DesignationKind.Stairs => "stairs",
         DesignationKind.Chop => "chop",
         DesignationKind.Harvest => "harvest",
+        DesignationKind.Stockpile => "stockpile",
         DesignationKind.Cancel => "cancel",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
@@ -66,8 +70,12 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
             case DesignationKind.Harvest:
                 OrderPlants(simulation, plants);
                 break;
+            case DesignationKind.Stockpile:
+                Stockpiles.Mark(simulation, min, max);
+                return;
             case DesignationKind.Cancel:
                 Cancel(simulation, plants, min, max);
+                Stockpiles.Unmark(simulation, min, max);
                 break;
             default:
                 throw new InvalidOperationException($"Unknown designation {Kind}.");

@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text;
 using OurLife.Core.Colony;
+using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Save;
@@ -298,13 +299,19 @@ public class SaveGameTests
 
         // Buried rock that nobody can reach: the order stays, and colonists remember it as unreachable.
         bed.Designate(DesignationKind.Mine, new TileCoord(14, 14, 0), new TileCoord(15, 15, 0));
+
+        // A stockpile for wood and stone, so colonists haul what they dig and chop.
+        bed.Designate(DesignationKind.Stockpile, new TileCoord(9, 14, 1), new TileCoord(12, 15, 1));
         bed.Simulation.Run(1);
+        var zones = new List<EntityId>();
+        bed.World.Query<Stockpile>(zones);
+        bed.Simulation.Commands.Enqueue(new SetStockpileFilterCommand(zones[0], "food", Allowed: false));
         return bed;
     }
 
     /// <summary>
     /// Runs until the colony has destroyed entities (free slots), colonists at work, harvested
-    /// bushes and orders left: the continuity test proves little without all of them.
+    /// bushes, orders left and a colonist carrying a load: the continuity test proves little without all of them.
     /// </summary>
     private static void RunUntilEverythingIsInPlay(ColonyTestBed bed)
     {
@@ -312,7 +319,8 @@ public class SaveGameTests
             bed.World.Entities.FreeSlotCount > 0
             && bed.World.Store<Job>().Count > 0
             && bed.World.Store<Harvested>().Count > 0
-            && bed.Map.OrderedCells.Count > 0;
+            && bed.Map.OrderedCells.Count > 0
+            && bed.World.Store<Carried>().Count > 0;
 
         for (var tick = 0; tick < 10_000 && !InPlay(); tick++)
         {

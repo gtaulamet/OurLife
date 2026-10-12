@@ -58,5 +58,17 @@
   "def.work_type.woodcutting.gender": "female",
   "def.work_type.gathering.name": "recolección",
   "def.work_type.gathering.desc": "Recolectar bayas y otros frutos silvestres.",
-  "def.work_type.gathering.gender": "female"
+  "def.work_type.gathering.gender": "female",
+  "def.item_category.wood.name": "madera",
+  "def.item_category.wood.desc": "Troncos y lo que se hace con ellos.",
+  "def.item_category.wood.gender": "female",
+  "def.item_category.stone.name": "piedra",
+  "def.item_category.stone.desc": "Piedra suelta y bloques.",
+  "def.item_category.stone.gender": "female",
+  "def.item_category.food.name": "comida",
+  "def.item_category.food.desc": "Todo lo que se come.",
+  "def.item_category.food.gender": "female",
+  "def.work_type.hauling.name": "acarreo",
+  "def.work_type.hauling.desc": "Llevar los objetos sueltos al almacén.",
+  "def.work_type.hauling.gender": "male"
 }

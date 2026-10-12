@@ -39,6 +39,10 @@ public sealed class DecisionSystem : ISimSystem
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
     private bool _night;
 
+    // What the stockpiles hold, rebuilt the first time a tick needs it.
+    private readonly StorageIndex _storage = new();
+    private bool _storageFresh;
+
     // Orders on cells that have somewhere to stand, shared by every colonist. They depend only on
     // the orders and on where creatures can walk, so they are found again only when either changes.
     private readonly List<Candidate> _workableCells = [];
@@ -59,6 +63,7 @@ public sealed class DecisionSystem : ISimSystem
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
         _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
+        _storageFresh = false;
         world.Query<Colonist, Position>(_colonists);
         ReserveCurrentJobs(simulation);
 
@@ -146,6 +151,12 @@ public sealed class DecisionSystem : ISimSystem
 
     private void Reserve(GameMap map, Job job)
     {
+        // A hauler holds both the pile and the stockpile cell it carries to.
+        if (job.Kind == JobKind.Haul)
+        {
+            _reservedCells.Add(map.Size.IndexOf(job.Destination.X, job.Destination.Y, job.Destination.Z));
+        }
+
         if (!job.Target.IsNone)
         {
             _entityUses[job.Target] = _entityUses.GetValueOrDefault(job.Target) + 1;
@@ -165,6 +176,11 @@ public sealed class DecisionSystem : ISimSystem
     /// <summary>Undoes <see cref="Reserve"/>, for a job the colonist may give up.</summary>
     private void Unreserve(GameMap map, Job job)
     {
+        if (job.Kind == JobKind.Haul)
+        {
+            _reservedCells.Remove(map.Size.IndexOf(job.Destination.X, job.Destination.Y, job.Destination.Z));
+        }
+
         if (!job.Target.IsNone)
         {
             var uses = _entityUses.GetValueOrDefault(job.Target) - 1;
@@ -378,6 +394,24 @@ public sealed class DecisionSystem : ISimSystem
                 }
 
                 break;
+            case JobKind.Haul:
+                // Loose piles with somewhere to go; the destination is chosen with the pile.
+                var storage = Storage(simulation);
+                if (storage.Zones.Count == 0)
+                {
+                    break;
+                }
+
+                world.Query<ItemStack, Position>(_entities);
+                foreach (var pile in _entities)
+                {
+                    if (!storage.IsStored(simulation, pile) && storage.AnyRoomFor(simulation, world.Get<ItemStack>(pile).Def))
+                    {
+                        AddEntity(simulation, kind, pile, capacity: 1);
+                    }
+                }
+
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
         }
@@ -528,11 +562,24 @@ public sealed class DecisionSystem : ISimSystem
         for (var i = 0; i < reachable.Count && i < PathAttempts; i++)
         {
             var candidate = reachable[i].Candidate;
+            var destination = default(TileCoord);
+            if (candidate.Kind == JobKind.Haul && !TryDestination(simulation, candidate, region, out destination))
+            {
+                continue;
+            }
+
             WorkSites.Find(map, candidate.Kind, candidate.Cell, _sites);
             KeepInRegion(_sites, connectivity, region);
             if (_paths.TryFind(map, from, _sites, _path))
             {
-                var job = new Job { Kind = candidate.Kind, Target = candidate.Target, Cell = candidate.Cell, ForFood = forFood };
+                var job = new Job
+                {
+                    Kind = candidate.Kind,
+                    Target = candidate.Target,
+                    Cell = candidate.Cell,
+                    ForFood = forFood,
+                    Destination = destination,
+                };
                 Assign(simulation, colonist, job, _path);
                 return true;
             }
@@ -546,6 +593,52 @@ public sealed class DecisionSystem : ISimSystem
         }
 
         return false;
+    }
+
+    private StorageIndex Storage(Simulation simulation)
+    {
+        if (!_storageFresh)
+        {
+            _storage.Rebuild(simulation);
+            _storageFresh = true;
+        }
+
+        return _storage;
+    }
+
+    /// <summary>
+    /// The stockpile cell nearest the pile, in the colonist's region, that accepts its item, has
+    /// room and nobody else carries to. Ties go to the lowest cell index.
+    /// </summary>
+    private bool TryDestination(Simulation simulation, Candidate candidate, int region, out TileCoord destination)
+    {
+        var storage = Storage(simulation);
+        var map = simulation.Map;
+        var connectivity = simulation.Connectivity;
+        var item = simulation.World.Get<ItemStack>(candidate.Target).Def;
+        destination = default;
+        var best = int.MaxValue;
+        var bestIndex = int.MaxValue;
+        foreach (var zone in storage.Zones)
+        {
+            foreach (var cell in simulation.World.Get<Stockpile>(zone).Cells)
+            {
+                if (cell == candidate.Cell || IsReserved(map, cell) || storage.SpaceFor(simulation, item, cell) == 0
+                    || connectivity.RegionAt(cell) != region)
+                {
+                    continue;
+                }
+
+                var distance = PathFinder.Estimate(candidate.Cell, cell);
+                var index = map.Size.IndexOf(cell.X, cell.Y, cell.Z);
+                if (distance < best || (distance == best && index < bestIndex))
+                {
+                    (best, bestIndex, destination) = (distance, index, cell);
+                }
+            }
+        }
+
+        return best != int.MaxValue;
     }
 
     private void Wander(Simulation simulation, EntityId colonist)

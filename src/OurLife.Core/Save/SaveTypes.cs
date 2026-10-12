@@ -27,8 +27,11 @@ public static class SaveTypes
         Component<ChopOrder>("chop_order");
         Component<HarvestOrder>("harvest_order");
         Component<Harvested>("harvested");
+        Component<Stockpile>("stockpile");
+        Component<Carried>("carried");
 
         Command<DesignateCommand>("designate");
+        Command<SetStockpileFilterCommand>("set_stockpile_filter");
     }
 
     /// <summary>The registered component types, in registration order.</summary>
