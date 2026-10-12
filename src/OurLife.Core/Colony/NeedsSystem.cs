@@ -15,6 +15,9 @@ public sealed class NeedsSystem : ISimSystem
 {
     private const int MinutesPerHour = 60;
 
+    // The remainder counts hundredths of a point per hour times minutes.
+    private const int RemainderPerPoint = MinutesPerHour * 100;
+
     private readonly List<EntityId> _colonists = [];
 
     public void Tick(Simulation simulation)
@@ -33,10 +36,11 @@ public sealed class NeedsSystem : ISimSystem
             foreach (var state in world.Get<Needs>(colonist).Values)
             {
                 var need = simulation.Content.Get<NeedDef>(state.Need);
-                var perHour = asleep && need.SatisfiedBy == NeedSatisfaction.Sleeping ? need.RecoveryPerHour * bedPercent / 100 : -need.DecayPerHour;
+                // In hundredths, so a bed's percent keeps its fraction in the remainder.
+                var perHour = asleep && need.SatisfiedBy == NeedSatisfaction.Sleeping ? need.RecoveryPerHour * bedPercent : -need.DecayPerHour * 100;
                 state.Remainder += perHour * minutes;
-                var whole = state.Remainder / MinutesPerHour;
-                state.Remainder -= whole * MinutesPerHour;
+                var whole = state.Remainder / RemainderPerPoint;
+                state.Remainder -= whole * RemainderPerPoint;
                 state.Value = Math.Clamp(state.Value + whole, 0, need.Max);
                 state.MinutesAtZero = state.Value == 0 ? state.MinutesAtZero + minutes : 0;
                 if (killer is null && need.DeathAfterHoursAtZero is { } hours && state.MinutesAtZero >= hours * MinutesPerHour)

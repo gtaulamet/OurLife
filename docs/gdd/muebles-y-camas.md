@@ -26,7 +26,7 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 
 ## Colocación
 
-- Un mueble ocupa una celda de suelo firme (como un muro, ver H2.4), sin otro mueble, sin plano, sin orden, sin planta y fuera de los almacenes. Un almacén nuevo saltea las celdas con muebles.
+- Un mueble ocupa una celda de suelo firme (como un muro, ver H2.4), sin otro mueble, sin plano, sin orden, sin planta y fuera de los almacenes. Un almacén nuevo saltea las celdas con muebles o con planos de muebles.
 - No bloquea el paso: se camina sobre él.
 - **Orientación:** el plano guarda un giro de 0 a 3 cuartos de vuelta. Con la herramienta Construir, **G** gira lo que se va a colocar; la pista de la barra lo dice. El giro es sólo de presentación: el mueble terminado lo conserva.
 - Muros, escaleras, rampas, puertas y canales no se ponen sobre un mueble. Para cambiar la celda, primero se desmonta el mueble.
@@ -44,7 +44,7 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 ## Camas
 
 - Una cama tiene dueño o está libre. Al ir a dormir, un colono sin cama toma la cama libre más cercana a la que puede llegar, que pasa a ser suya. Si no hay, duerme en el suelo, donde está.
-- Un colono con cama camina hasta ella para dormir. Si no puede llegar, duerme donde está.
+- Un colono con cama camina hasta ella para dormir. Si no puede llegar, duerme donde está. Una cama libre pasa a ser suya sólo si encuentra el camino hasta ella.
 - Durmiendo sobre su cama, recupera el descanso a `restRecoveryPercent` del normal (150 %: 1800 por hora en lugar de 1200).
 - La cama queda libre si su dueño muere o deja de existir; si la cama se desmonta, el colono se queda sin cama.
 

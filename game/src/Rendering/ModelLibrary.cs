@@ -56,7 +56,7 @@ public sealed class ModelLibrary : IDisposable
         }
 
         var middle = BoundsOf(node, Transform3D.Identity)?.GetCenter() ?? Vector3.Zero;
-        node.Position = new Vector3(-middle.X, 0, -middle.Z);
+        node.Position -= new Vector3(middle.X, 0, middle.Z);
         var holder = new Node3D { Name = node.Name, Scale = Vector3.One * model.Scale };
         holder.AddChild(node);
         return holder;

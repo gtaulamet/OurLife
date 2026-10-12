@@ -707,7 +707,7 @@ public partial class GameRoot : Node
         foreach (var def in defs.AllDefs())
         {
             // The plain id must exist: it is the fallback of every era variant.
-            if (def is IHasVisual { Visual: { } visual } && !models.Catalog.TryResolve(visual, era: null, out _))
+            if (DefVisuals.Of(def) is { } visual && !models.Catalog.TryResolve(visual, era: null, out _))
             {
                 problems.Add($"'{visual}' is not in the visual catalog");
             }

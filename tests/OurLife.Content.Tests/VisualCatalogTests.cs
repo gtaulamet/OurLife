@@ -22,8 +22,8 @@ public class VisualCatalogTests
     {
         // The plain id is the fallback of every era variant, so it must always exist.
         var missing = VisualDefs()
-            .Where(def => !Catalog.TryResolve(def.Visual!, era: null, out _))
-            .Select(def => $"{def.GetType().Name} '{((Def)def).Id}': '{def.Visual}'")
+            .Where(entry => !Catalog.TryResolve(entry.Visual, era: null, out _))
+            .Select(entry => $"{entry.Def.GetType().Name} '{entry.Def.Id}': '{entry.Visual}'")
             .ToList();
 
         missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
@@ -32,7 +32,7 @@ public class VisualCatalogTests
     [Fact]
     public void Every_model_of_the_catalog_is_used_by_a_def()
     {
-        var used = VisualDefs().Select(def => def.Visual!).ToHashSet(StringComparer.Ordinal);
+        var used = VisualDefs().Select(entry => entry.Visual).ToHashSet(StringComparer.Ordinal);
 
         // A plant that can be gathered may have a "<visual>.harvested" model for while it has no fruit.
         foreach (var plant in GameContent.Defs.All<PlantDef>().Where(plant => plant.Harvest is not null))
@@ -197,7 +197,8 @@ public class VisualCatalogTests
         Should.Throw<FormatException>(() => VisualCatalog.Parse(json));
     }
 
-    private static IEnumerable<IHasVisual> VisualDefs() => GameContent.Defs.AllDefs().OfType<IHasVisual>().Where(def => def.Visual is not null);
+    private static IEnumerable<(Def Def, string Visual)> VisualDefs() =>
+        GameContent.Defs.AllDefs().Select(def => (def, DefVisuals.Of(def))).Where(entry => entry.Item2 is not null).Select(entry => (entry.def, entry.Item2!));
 
     private static string BaseId(string id)
     {

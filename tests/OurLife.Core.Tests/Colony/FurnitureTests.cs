@@ -122,9 +122,14 @@ public class FurnitureTests
         var bed = ColonyTestBed.Flat(16);
         Furnish(bed, "table", new TileCoord(4, 4, 1));
         Furnish(bed, "chest", new TileCoord(5, 4, 1));
+        Place(bed, "bed", new TileCoord(3, 4, 1));
 
         bed.Designate(DesignationKind.Stockpile, new TileCoord(3, 4, 1), new TileCoord(6, 4, 1));
         bed.Simulation.ApplyCommandsNow();
+        var marked = new List<EntityId>();
+        bed.World.Query<Stockpile>(marked);
+        marked.Where(zone => !bed.World.Has<Furniture>(zone)).Select(zone => bed.World.Get<Stockpile>(zone).Cells).Single()
+            .ShouldBe([new TileCoord(6, 4, 1)]);
         bed.Designate(DesignationKind.Cancel, new TileCoord(0, 0, 1), new TileCoord(15, 15, 1));
         bed.Simulation.ApplyCommandsNow();
 

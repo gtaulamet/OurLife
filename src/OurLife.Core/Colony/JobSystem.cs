@@ -112,6 +112,9 @@ public sealed class JobSystem : ISimSystem
         }
 
         Construction.RemoveSenseless(simulation, _blueprints, _rules.Ai.DeconstructRefundPercent);
+
+        // A chest that went away was a stockpile, and what was dropped may lie on one.
+        _storage.Invalidate();
         _blueprintsCheckedAt = simulation.Map.NavigationVersion;
     }
 

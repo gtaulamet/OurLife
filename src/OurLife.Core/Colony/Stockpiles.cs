@@ -77,17 +77,14 @@ public static class Stockpiles
 
     /// <summary>
     /// A new zone, accepting every category, with the free floors of the box that nobody blocks, no
-    /// zone holds and no furniture stands on.
+    /// zone holds and no furniture, built or planned, stands on.
     /// </summary>
     internal static void Mark(Simulation simulation, TileCoord min, TileCoord max)
     {
         var map = simulation.Map;
         var taken = TakenCells(simulation);
-        var pieces = new List<EntityId>();
-        simulation.World.Query<Furniture, Position>(pieces);
-        foreach (var piece in pieces)
+        foreach (var cell in Construction.FurnitureCells(simulation))
         {
-            var cell = simulation.World.Get<Position>(piece).Cell;
             taken.Add(map.Size.IndexOf(cell.X, cell.Y, cell.Z));
         }
 

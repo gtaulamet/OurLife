@@ -19,7 +19,7 @@ public enum BuildShape
 /// Something colonists build from a blueprint: a wall, a floor, a door, a ramp, stairs, or a piece
 /// of furniture.
 /// </summary>
-public sealed class BuildableDef : Def, IHasVisual
+public sealed class BuildableDef : Def
 {
     public required BuildShape Shape { get; init; }
 

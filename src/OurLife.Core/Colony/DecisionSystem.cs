@@ -498,6 +498,13 @@ public sealed class DecisionSystem : ISimSystem
             _goal.Add(cell);
             if (cell == from || _paths.TryFind(simulation.Map, from, _goal, _path))
             {
+                // A free bed becomes the colonist's only once it can get there.
+                if (world.Get<Bed>(bed).Owner != colonist)
+                {
+                    world.Get<Bed>(bed).Owner = colonist;
+                    simulation.Events.Emit(new EntityChangedEvent(bed));
+                }
+
                 Assign(simulation, colonist, new Job { Kind = JobKind.Sleep, Target = bed, Cell = cell }, cell == from ? [] : _path);
                 return;
             }
@@ -507,8 +514,9 @@ public sealed class DecisionSystem : ISimSystem
     }
 
     /// <summary>
-    /// The colonist's bed if it can reach it; else the nearest free bed it can reach, which becomes
-    /// its own (ties to the lowest id); else none. A bed whose owner is gone is free.
+    /// The colonist's bed if it can reach it; else the nearest free bed it can reach (ties to the
+    /// lowest id), which <see cref="GoToSleep"/> gives it if there is a path; else none. A bed whose
+    /// owner is gone is free.
     /// </summary>
     private EntityId BedOf(Simulation simulation, EntityId colonist, TileCoord from)
     {
@@ -533,12 +541,6 @@ public sealed class DecisionSystem : ISimSystem
             {
                 (best, bestDistance) = (bed, distance);
             }
-        }
-
-        if (!best.IsNone)
-        {
-            world.Get<Bed>(best).Owner = colonist;
-            simulation.Events.Emit(new EntityChangedEvent(best));
         }
 
         return best;

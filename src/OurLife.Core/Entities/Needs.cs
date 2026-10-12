@@ -31,7 +31,7 @@ public sealed class NeedState
 
     public int Value { get; set; }
 
-    /// <summary>Change not yet applied, in points × minutes: integer decay never loses a fraction.</summary>
+    /// <summary>Change not yet applied, in hundredths of a point × minutes: integer rates, and a bed's percent, never lose a fraction.</summary>
     public int Remainder { get; set; }
 
     /// <summary>Game minutes the need has spent at zero in a row.</summary>

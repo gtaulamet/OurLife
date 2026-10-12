@@ -8,14 +8,14 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-5-muebles-camas`, creada desde `main` (H2.4) |
-| `main` | En H2.4, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
+| Rama de trabajo | `ip2/h2-5-muebles-camas`, creada desde `main` (H2.4). Siguiente: H2.6 Gestión de la colonia |
+| `main` | En H2.5, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción |
-| En curso | H2.5 Muebles y camas |
-| Validación | `dotnet build` sin advertencias, 471 tests en verde, smoke con código 0 |
-| Huella del smoke | `3E695C938198BD29` con `--seed 1 --ticks 5000`; `2A4DCA24DF54B58A` con `--seed 42 --ticks 5000` (H2.5: la casa del smoke amueblada). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
+| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas |
+| En curso | Ninguno: falta crear la rama de H2.6 |
+| Validación | `dotnet build` sin advertencias, 475 tests en verde, smoke con código 0 |
+| Huella del smoke | `AC38B78A13976F40` con `--seed 1 --ticks 5000`; `5AB2EE5C863DA876` con `--seed 42 --ticks 5000` (H2.5: casa amueblada y resto de las necesidades en centésimas). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -25,9 +25,9 @@ En orden:
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
 3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
-4. **H2.5** (`docs/gdd/muebles-y-camas.md`):
-   1. Revisión de código y cierre.
-5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+4. **Probar en el editor** los muebles de H2.5: poner una cama girada con G, ver a un colono dormir en ella y llenar un cofre.
+5. **H2.6 Gestión de la colonia** (`docs/ip/IP2.md`): crear la rama `ip2/h2-6-gestion` desde `main` y empezar por la spec.
+6. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
@@ -43,7 +43,7 @@ En orden:
 
 ## Historial
 
-### 2026-10-12: H2.5 Muebles y camas (en curso)
+### 2026-10-12: H2.5 Muebles y camas
 
 - Rama `ip2/h2-5-muebles-camas` desde `main`.
 - Avance 1: spec `docs/gdd/muebles-y-camas.md`. Los muebles son `Buildable` con `shape: furniture` y reusan planos, entrega, construcción y desmontaje de H2.4. Giro de 0 a 3 con la tecla G. La cama tiene dueño (la toma quien se acuesta sin cama) y da `restRecoveryPercent` 150; el cofre es un almacén de una celda; mesa y silla son decorativas. Modelos: `bedSingle`, `table` y `chair` del Furniture Kit y `chest` del Survival Kit de Kenney (CC0), descargados de kenney.nl.
@@ -60,6 +60,7 @@ En orden:
   - Inspector: "Silla de madera", el dueño de una cama o "Libre", y en el colono "Duerme en su cama" o "Sin cama".
   - La casa del smoke se amuebla con los muebles del contenido en sus rincones; el smoke informa muebles y camas tomadas. Opción `--inspect-furniture`.
   - Capturas revisadas: la casa amueblada en es (cama, mesa y silla) y de noche en en, con un colono en la cama.
+- Avance 4 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: almacenes que saltean planos de muebles, el índice de almacenes al perderse un cofre, la cama se toma sólo con camino, el resto de las necesidades en centésimas y la marca `TileFlags.Furniture`. 475 tests. `main` adelantado a H2.5.
 
 ### 2026-10-12: H2.4 Construcción
 

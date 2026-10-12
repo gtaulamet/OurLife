@@ -64,6 +64,9 @@ public enum TileFlags : byte
 
     /// <summary>The player ordered to dig a channel: open this floor down to the level below.</summary>
     ChannelDesignation = 32,
+
+    /// <summary>A piece of furniture stands on the cell (see <c>docs/gdd/muebles-y-camas.md</c>).</summary>
+    Furniture = 64,
 }
 
 /// <summary>A cell of the map. <c>Z</c> grows upwards: 0 is the deepest level.</summary>

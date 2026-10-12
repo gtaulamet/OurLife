@@ -131,14 +131,39 @@ public static class Construction
         return cells;
     }
 
-    /// <summary>The piece of furniture on the cell, or none. Looks at every piece: for orders and work that end, not for every tick.</summary>
+    /// <summary>
+    /// The piece of furniture on the cell, or none. The map flags the cells with furniture, so
+    /// other cells answer at once; only a flagged cell looks for its piece.
+    /// </summary>
     public static EntityId FurnitureAt(Simulation simulation, TileCoord cell)
     {
         ArgumentNullException.ThrowIfNull(simulation);
+        var map = simulation.Map;
+        if (!map.Size.Contains(cell.X, cell.Y, cell.Z) || (map.FlagsAt(cell) & TileFlags.Furniture) == 0)
+        {
+            return EntityId.None;
+        }
+
         var world = simulation.World;
         var pieces = new List<EntityId>();
         world.Query<Furniture, Position>(pieces);
         return pieces.Find(piece => world.Get<Position>(piece).Cell == cell);
+    }
+
+    /// <summary>The cells with furniture or a blueprint of furniture: no stockpile takes them.</summary>
+    public static HashSet<TileCoord> FurnitureCells(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        var entities = new List<EntityId>();
+        var cells = new HashSet<TileCoord>();
+        world.Query<Furniture, Position>(entities);
+        cells.UnionWith(entities.Select(piece => world.Get<Position>(piece).Cell));
+        world.Query<Blueprint, Position>(entities);
+        cells.UnionWith(entities
+            .Where(blueprint => simulation.Content.Get<BuildableDef>(world.Get<Blueprint>(blueprint).Buildable).IsFurniture)
+            .Select(blueprint => world.Get<Position>(blueprint).Cell));
+        return cells;
     }
 
     /// <summary>
@@ -324,12 +349,6 @@ public static class Construction
         if (FurnitureAt(simulation, cell) is { IsNone: false } furniture)
         {
             RemoveFurniture(simulation, furniture, refundPercent);
-            if ((map.FlagsAt(cell) & TileFlags.DeconstructDesignation) != 0)
-            {
-                map.SetFlags(cell.X, cell.Y, cell.Z, map.FlagsAt(cell) & ~TileFlags.DeconstructDesignation);
-                simulation.Events.Emit(new DesignationsChangedEvent(cell, cell));
-            }
-
             return;
         }
 
@@ -440,6 +459,8 @@ public static class Construction
     private static void AddFurniture(Simulation simulation, BuildableDef buildable, Blueprint plan, TileCoord cell)
     {
         var world = simulation.World;
+        var map = simulation.Map;
+        map.SetFlags(cell.X, cell.Y, cell.Z, map.FlagsAt(cell) | TileFlags.Furniture);
         var piece = world.CreateEntity();
         world.Add(piece, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
         world.Add(piece, new Furniture { Buildable = buildable.Id, Material = plan.Material, Rotation = plan.Rotation });
@@ -462,15 +483,22 @@ public static class Construction
     }
 
     /// <summary>
-    /// Takes a piece of furniture away and gives back part of its cost on its cell, or by it if
-    /// nobody can stand there. What a chest held stays on the cell, loose.
+    /// Takes a piece of furniture away, with any order to take it down, and gives back part of its
+    /// cost on its cell, or by it if nobody can stand there. What a chest held stays on the cell, loose.
     /// </summary>
     private static void RemoveFurniture(Simulation simulation, EntityId piece, int refundPercent)
     {
         var world = simulation.World;
+        var map = simulation.Map;
         var furniture = world.Get<Furniture>(piece);
         var buildable = simulation.Content.Get<BuildableDef>(furniture.Buildable);
         var cell = world.Get<Position>(piece).Cell;
+        var flags = map.FlagsAt(cell);
+        map.SetFlags(cell.X, cell.Y, cell.Z, flags & ~(TileFlags.Furniture | TileFlags.DeconstructDesignation));
+        if ((flags & TileFlags.DeconstructDesignation) != 0)
+        {
+            simulation.Events.Emit(new DesignationsChangedEvent(cell, cell));
+        }
         var item = simulation.Content.Get<MaterialDef>(furniture.Material).BuiltFrom!;
         var wasChest = world.Has<Stockpile>(piece);
         simulation.Events.Emit(new EntityRemovedEvent(piece));

@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.4 hechos; H2.5 en curso.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.5 hechos; sigue H2.6.
 
 ## Estado de los hitos
 
@@ -14,7 +14,7 @@
 | H2.2 Día, noche y sueño | Hecho | `ip2/h2-2-dia-noche` | La aldea duerme de 21 a 6, el sol cruza el cielo y el registro muestra el día |
 | H2.3 Almacenes y acarreo | Hecho | `ip2/h2-3-almacenes` | Zonas con filtros por categoría, acarreo con reservas y la carga en las manos |
 | H2.4 Construcción | Hecho | `ip2/h2-4-construccion` | Planos de muro, suelo, puerta, rampa y escalera con material; desmontar y canalizar; `terrainAmplitude` 2 |
-| H2.5 Muebles y camas | En curso | `ip2/h2-5-muebles-camas` | Spec `docs/gdd/muebles-y-camas.md` |
+| H2.5 Muebles y camas | Hecho | `ip2/h2-5-muebles-camas` | Cama, mesa, silla y cofre con giro; camas con dueño que descansan al 150 %; el cofre es un almacén |
 | H2.6 Gestión de la colonia | Pendiente | `ip2/h2-6-gestion` | |
 | H2.7 Integración | Pendiente | `ip2/h2-7-integracion` | |
 
@@ -227,3 +227,30 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - Un muro sobre un suelo natural que quedó sobre aire volvía, al desmontarlo, como un suelo construido que se podía desmontar otra vez por más material. Los muros, puertas, rampas y escaleras van sólo sobre suelo firme.
 - Canalizar rearma el índice de almacenes; `PlaceBlueprintCommand` lleva `[DefRef]`; documentación y un buffer propio en `JobSystem`; el smoke busca la escalera una vez.
 - La entrega elige como el acarreo (la pila más cercana al colono y el plano más cercano a la pila): se corrigió la spec.
+
+## Registro de H2.5: Muebles y camas
+
+**Entregado**
+
+- Spec `docs/gdd/muebles-y-camas.md`.
+- Los muebles son `Buildable` con `shape: furniture`, `visual`, `restRecoveryPercent` (cama) y `storage` (cofre): reusan planos, entrega, construcción y desmontaje de H2.4. Cama, mesa, silla y cofre de madera.
+- `PlaceBlueprintCommand` con giro de 0 a 3, que conservan el plano y el mueble. Componentes `Furniture` y `Bed`; el cofre suma un `Stockpile` de su celda. Marca `TileFlags.Furniture` en el mapa.
+- Camas: quien se acuesta sin cama toma la libre más cercana a la que llega; en su cama descansa al 150 %. La cama queda libre si su dueño ya no existe.
+- Godot: modelos de la cama, la mesa y la silla del Furniture Kit y del cofre del Survival Kit (Kenney, CC0), centrados con `center` en el catálogo y girados; tecla G; el inspector muestra el mueble, el dueño de la cama y si un colono tiene cama. La casa del smoke se amuebla; `--inspect-furniture`.
+
+**Verificación**
+
+- `FurnitureTests`: descanso en cama contra suelo, tomar la cama libre, cama libre al morir el dueño, cofre que recibe troncos y se desmonta, giro, reglas de colocación, almacén y Cancelar con muebles. Validaciones de defs. La continuidad del guardado incluye cama, cofre y una mesa por construir.
+- 475 tests en verde; smoke con código 0, con la casa amueblada y una cama tomada con la semilla 42. Huellas: `AC38B78A13976F40` con la semilla 1 y `5AB2EE5C863DA876` con la 42.
+- Capturas revisadas: la casa amueblada en es y, de noche, un colono en su cama en en.
+
+**Revisión de código:** 9 hallazgos, todos corregidos.
+
+- Un almacén podía marcarse sobre un plano de mueble; al terminarse un cofre, la celda quedaba en dos zonas. Ahora el almacén saltea también los planos de muebles.
+- Un cofre que se perdía por quedar sin suelo firme dejaba el índice de almacenes desactualizado en el mismo tick, y su orden de desmontar quedaba marcada para siempre.
+- Un colono tomaba una cama aunque no encontrara el camino: ahora sólo la toma si puede llegar.
+- La tasa de una cama se redondeaba hacia abajo: el resto de las necesidades cuenta en centésimas.
+- Buscar el mueble de una celda recorría todos los muebles: la marca `Furniture` lo evita en las celdas sin mueble.
+- Centrar un modelo conserva el desplazamiento propio de su raíz.
+- `IHasVisual` vuelve a exigir visual; `DefVisuals.Of` reúne los visuales de los defs, incluidos los muebles.
+
