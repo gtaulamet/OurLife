@@ -78,7 +78,7 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 ## Tick de simulación
 
 1. Aplicar los comandos encolados en orden de llegada.
-2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento y crecimiento de las plantas (`ColonySystems.AddTo`).
+2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento y crecimiento de las plantas (`ColonySystems.AddTo`). La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado y armado una vez por tick.
 3. La conectividad se pone al día al consultarla después de un cambio: se unen regiones en el lugar si el cambio sólo abrió caminos, y se calcula de nuevo si no (ADR-011).
 4. Publicar los eventos y avanzar el contador.
 
@@ -138,6 +138,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | Partida en tiempo real, entrada, HUD, inspector, menús (`docs/gdd/interfaz-ip1.md`) | H1.7 | Hecho |
 | Guardado y carga, ranuras, autoguardado, pantalla de error (`docs/gdd/guardado.md`, ADR-010) | H2.1 | Hecho |
 | Sueño nocturno, ciclo visual de día y noche, el día en el registro (`docs/gdd/dia-y-noche.md`) | H2.2 | Hecho |
+| Almacenes con filtros por categoría y acarreo (`docs/gdd/almacenes.md`) | H2.3 | Hecho |
 
 ## Decisiones
 

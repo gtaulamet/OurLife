@@ -59,6 +59,12 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
             return;
         }
 
+        if (Kind == DesignationKind.Stockpile)
+        {
+            Stockpiles.Mark(simulation, min, max);
+            return;
+        }
+
         var plants = PlantsInside(simulation, min, max);
         switch (Kind)
         {
@@ -70,9 +76,6 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
             case DesignationKind.Harvest:
                 OrderPlants(simulation, plants);
                 break;
-            case DesignationKind.Stockpile:
-                Stockpiles.Mark(simulation, min, max);
-                return;
             case DesignationKind.Cancel:
                 Cancel(simulation, plants, min, max);
                 Stockpiles.Unmark(simulation, min, max);

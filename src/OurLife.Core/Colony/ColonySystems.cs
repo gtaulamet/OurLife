@@ -11,8 +11,9 @@ public static class ColonySystems
         ArgumentNullException.ThrowIfNull(simulation);
         var rules = ColonyRules.From(simulation.Content);
         simulation.AddSystem(new NeedsSystem());
-        simulation.AddSystem(new DecisionSystem(rules));
-        simulation.AddSystem(new JobSystem(rules));
+        var storage = new StorageIndex();
+        simulation.AddSystem(new DecisionSystem(rules, storage));
+        simulation.AddSystem(new JobSystem(rules, storage));
         simulation.AddSystem(new MovementSystem());
         simulation.AddSystem(new PlantGrowthSystem());
     }

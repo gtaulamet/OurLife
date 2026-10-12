@@ -26,15 +26,22 @@ public sealed class JobSystem : ISimSystem
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
     private bool _night;
 
-    // What the stockpiles hold, rebuilt the first time a tick needs it.
-    private readonly StorageIndex _storage = new();
-    private bool _storageFresh;
+    // What the stockpiles hold, shared with the other colony system and rebuilt once per tick.
+    private readonly StorageIndex _storage;
     private readonly List<EntityId> _carriers = [];
 
     public JobSystem(ColonyRules rules)
+        : this(rules, new StorageIndex())
+    {
+    }
+
+    /// <summary>With the stockpile index the other colony system shares, so it is built once per tick.</summary>
+    internal JobSystem(ColonyRules rules, StorageIndex storage)
     {
         ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(storage);
         _rules = rules;
+        _storage = storage;
     }
 
     /// <summary>Stops a colonist's job and its walk; the colonist decides again on the next tick.</summary>
@@ -52,7 +59,6 @@ public sealed class JobSystem : ISimSystem
     {
         ArgumentNullException.ThrowIfNull(simulation);
         _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
-        _storageFresh = false;
         var world = simulation.World;
         DropLoadsOfOtherJobs(simulation);
         world.Query<Job, Position>(_colonists);
@@ -110,16 +116,7 @@ public sealed class JobSystem : ISimSystem
         }
     }
 
-    private StorageIndex Storage(Simulation simulation)
-    {
-        if (!_storageFresh)
-        {
-            _storage.Rebuild(simulation);
-            _storageFresh = true;
-        }
-
-        return _storage;
-    }
+    private StorageIndex Storage(Simulation simulation) => _storage.Fresh(simulation);
 
     private bool StillValid(Simulation simulation, Job job)
     {
@@ -340,9 +337,9 @@ public sealed class JobSystem : ISimSystem
     }
 
     /// <summary>
-    /// Lifts from the pile what fits at the destination and sets off there. True, ending the job,
-    /// if nothing fits any more or there is no way to the destination; what was lifted then falls
-    /// back on the cell (see <see cref="DropLoadsOfOtherJobs"/>).
+    /// Lifts from the pile what fits at the destination and sets off there. True, ending the job
+    /// with nothing lifted, if nothing fits any more or there is no way to the destination; then
+    /// the colonist leaves the pile alone for a while, so it does not try again at once.
     /// </summary>
     private bool PickUp(Simulation simulation, EntityId colonist, Job job)
     {
@@ -355,20 +352,25 @@ public sealed class JobSystem : ISimSystem
             return true;
         }
 
-        ItemPiles.Take(simulation, job.Target, count);
-        world.Add(colonist, new Carried { Def = item, Count = count });
-        simulation.Events.Emit(new EntityChangedEvent(colonist));
-
         var from = world.Get<Position>(colonist).Cell;
-        job.Stage = JobStage.Carrying;
-        job.Cell = job.Destination;
         _goal.Clear();
         _goal.Add(job.Destination);
         if (!simulation.Connectivity.AreConnected(from, job.Destination) || !_paths.TryFind(simulation.Map, from, _goal, _path))
         {
+            world.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget
+            {
+                Entity = job.Target,
+                Cell = job.Cell,
+                UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
+            });
             return true;
         }
 
+        ItemPiles.Take(simulation, job.Target, count);
+        world.Add(colonist, new Carried { Def = item, Count = count });
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
+        job.Stage = JobStage.Carrying;
+        job.Cell = job.Destination;
         var movement = world.Get<Movement>(colonist);
         movement.Stop();
         movement.Path.AddRange(_path);
@@ -377,7 +379,8 @@ public sealed class JobSystem : ISimSystem
 
     /// <summary>
     /// At the destination, leaves what fits there. Whatever does not fit, because the stockpile
-    /// changed on the way, stays carried and falls on the cell when the job ends.
+    /// changed on the way, stays carried and falls on the cell when the job ends: a second pile the
+    /// cell does not keep, which is loose and hauled again (see <see cref="StorageIndex"/>).
     /// </summary>
     private bool Deliver(Simulation simulation, EntityId colonist, Job job)
     {

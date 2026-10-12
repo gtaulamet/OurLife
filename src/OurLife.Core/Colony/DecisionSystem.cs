@@ -39,23 +39,31 @@ public sealed class DecisionSystem : ISimSystem
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
     private bool _night;
 
-    // What the stockpiles hold, rebuilt the first time a tick needs it.
-    private readonly StorageIndex _storage = new();
-    private bool _storageFresh;
+    // What the stockpiles hold, shared with the other colony system and rebuilt once per tick.
+    private readonly StorageIndex _storage;
 
     // Orders on cells that have somewhere to stand, shared by every colonist. They depend only on
     // the orders and on where creatures can walk, so they are found again only when either changes.
     private readonly List<Candidate> _workableCells = [];
     private (int Navigation, int Orders)? _workableCellsVersion;
 
-    // Reservations, rebuilt every tick from the jobs. Only looked up, never iterated.
-    private readonly HashSet<int> _reservedCells = [];
+    // Reservations, rebuilt every tick from the jobs, with how many jobs hold each cell: a stockpile
+    // cell can be both a haul's destination and a stairs order. Only looked up, never iterated.
+    private readonly Dictionary<int, int> _reservedCells = [];
     private readonly Dictionary<EntityId, int> _entityUses = [];
 
     public DecisionSystem(ColonyRules rules)
+        : this(rules, new StorageIndex())
+    {
+    }
+
+    /// <summary>With the stockpile index the other colony system shares, so it is built once per tick.</summary>
+    internal DecisionSystem(ColonyRules rules, StorageIndex storage)
     {
         ArgumentNullException.ThrowIfNull(rules);
+        ArgumentNullException.ThrowIfNull(storage);
         _rules = rules;
+        _storage = storage;
     }
 
     public void Tick(Simulation simulation)
@@ -63,7 +71,6 @@ public sealed class DecisionSystem : ISimSystem
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
         _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
-        _storageFresh = false;
         world.Query<Colonist, Position>(_colonists);
         ReserveCurrentJobs(simulation);
 
@@ -154,21 +161,21 @@ public sealed class DecisionSystem : ISimSystem
         // A hauler holds both the pile and the stockpile cell it carries to.
         if (job.Kind == JobKind.Haul)
         {
-            _reservedCells.Add(map.Size.IndexOf(job.Destination.X, job.Destination.Y, job.Destination.Z));
+            ReserveCell(map, job.Destination);
         }
 
-        if (!job.Target.IsNone)
+        if (HeldEntity(job) is { IsNone: false } held)
         {
-            _entityUses[job.Target] = _entityUses.GetValueOrDefault(job.Target) + 1;
+            _entityUses[held] = _entityUses.GetValueOrDefault(held) + 1;
         }
         else if (job.Kind is JobKind.Mine or JobKind.DigStairs)
         {
-            _reservedCells.Add(map.Size.IndexOf(job.Cell.X, job.Cell.Y, job.Cell.Z));
+            ReserveCell(map, job.Cell);
 
             // Stairs also dig out the cell below, which may have its own order to dig.
             if (job.Kind == JobKind.DigStairs)
             {
-                _reservedCells.Add(map.Size.IndexOf(job.Cell.X, job.Cell.Y, job.Cell.Z - 1));
+                ReserveCell(map, job.Cell with { Z = job.Cell.Z - 1 });
             }
         }
     }
@@ -178,32 +185,56 @@ public sealed class DecisionSystem : ISimSystem
     {
         if (job.Kind == JobKind.Haul)
         {
-            _reservedCells.Remove(map.Size.IndexOf(job.Destination.X, job.Destination.Y, job.Destination.Z));
+            UnreserveCell(map, job.Destination);
         }
 
-        if (!job.Target.IsNone)
+        if (HeldEntity(job) is { IsNone: false } held)
         {
-            var uses = _entityUses.GetValueOrDefault(job.Target) - 1;
+            var uses = _entityUses.GetValueOrDefault(held) - 1;
             if (uses > 0)
             {
-                _entityUses[job.Target] = uses;
+                _entityUses[held] = uses;
             }
             else
             {
-                _entityUses.Remove(job.Target);
+                _entityUses.Remove(held);
             }
         }
         else if (job.Kind is JobKind.Mine or JobKind.DigStairs)
         {
-            _reservedCells.Remove(map.Size.IndexOf(job.Cell.X, job.Cell.Y, job.Cell.Z));
+            UnreserveCell(map, job.Cell);
             if (job.Kind == JobKind.DigStairs)
             {
-                _reservedCells.Remove(map.Size.IndexOf(job.Cell.X, job.Cell.Y, job.Cell.Z - 1));
+                UnreserveCell(map, job.Cell with { Z = job.Cell.Z - 1 });
             }
         }
     }
 
-    private bool IsReserved(GameMap map, TileCoord cell) => _reservedCells.Contains(map.Size.IndexOf(cell.X, cell.Y, cell.Z));
+    private bool IsReserved(GameMap map, TileCoord cell) => _reservedCells.ContainsKey(map.Size.IndexOf(cell.X, cell.Y, cell.Z));
+
+    private void ReserveCell(GameMap map, TileCoord cell)
+    {
+        var index = map.Size.IndexOf(cell.X, cell.Y, cell.Z);
+        _reservedCells[index] = _reservedCells.GetValueOrDefault(index) + 1;
+    }
+
+    private void UnreserveCell(GameMap map, TileCoord cell)
+    {
+        var index = map.Size.IndexOf(cell.X, cell.Y, cell.Z);
+        var holders = _reservedCells.GetValueOrDefault(index) - 1;
+        if (holders > 0)
+        {
+            _reservedCells[index] = holders;
+        }
+        else
+        {
+            _reservedCells.Remove(index);
+        }
+    }
+
+    /// <summary>The entity a job holds: none for a hauler that already lifted its load, which leaves the rest of the pile free.</summary>
+    private static EntityId HeldEntity(Job job) =>
+        job.Kind == JobKind.Haul && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
 
     /// <summary>
     /// A colonist with a job drops it only for something more urgent. It checks every
@@ -595,16 +626,7 @@ public sealed class DecisionSystem : ISimSystem
         return false;
     }
 
-    private StorageIndex Storage(Simulation simulation)
-    {
-        if (!_storageFresh)
-        {
-            _storage.Rebuild(simulation);
-            _storageFresh = true;
-        }
-
-        return _storage;
-    }
+    private StorageIndex Storage(Simulation simulation) => _storage.Fresh(simulation);
 
     /// <summary>
     /// The stockpile cell nearest the pile, in the colonist's region, that accepts its item, has

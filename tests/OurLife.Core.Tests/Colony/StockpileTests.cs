@@ -107,6 +107,22 @@ public class StockpileTests
     }
 
     [Fact]
+    public void A_second_pile_on_a_stockpile_cell_is_loose_and_moves_to_a_cell_of_its_own()
+    {
+        // Like a load that fell on a stockpile cell when its carrier got hungry.
+        var bed = ColonyTestBed.Flat(16);
+        MarkStockpile(bed, new TileCoord(8, 8, 1), new TileCoord(9, 8, 1));
+        bed.AddItems("log", 10, 8, 8, 1);
+        bed.AddItems("stone", 5, 8, 8, 1);
+        bed.AddColonist(4, 4, 1);
+
+        bed.Simulation.Run(300);
+
+        Piles(bed, "log").ShouldBe([(new TileCoord(8, 8, 1), 10)]);
+        Piles(bed, "stone").ShouldBe([(new TileCoord(9, 8, 1), 5)]);
+    }
+
+    [Fact]
     public void Cancel_takes_cells_out_and_a_zone_without_cells_is_gone()
     {
         var bed = ColonyTestBed.Flat(16);

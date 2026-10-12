@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 y H2.2 hechos; sigue H2.3.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.3 hechos; sigue H2.4.
 
 ## Estado de los hitos
 
@@ -12,7 +12,7 @@
 |---|---|---|---|
 | H2.1 Guardado y carga | Hecho | `ip2/h2-1-guardado` | Partidas en ZIP con JSON, ranuras, autoguardado diario y pantalla de error; continuidad probada en tres semillas |
 | H2.2 Día, noche y sueño | Hecho | `ip2/h2-2-dia-noche` | La aldea duerme de 21 a 6, el sol cruza el cielo y el registro muestra el día |
-| H2.3 Almacenes y acarreo | Pendiente | `ip2/h2-3-almacenes` | |
+| H2.3 Almacenes y acarreo | Hecho | `ip2/h2-3-almacenes` | Zonas con filtros por categoría, acarreo con reservas y la carga en las manos |
 | H2.4 Construcción | Pendiente | `ip2/h2-4-construccion` | |
 | H2.5 Muebles y camas | Pendiente | `ip2/h2-5-muebles-camas` | |
 | H2.6 Gestión de la colonia | Pendiente | `ip2/h2-6-gestion` | |
@@ -159,3 +159,32 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - El registro guarda sólo los mensajes que entran con su línea de fecha.
 - `--hour` sin `--play` ni `--load` falla con código 2.
 - Quedan como están, porque es lo que pide la spec: de día el umbral bajo no lleva a dormir; a las 21 todos dejan el trabajo, aunque les falte poco; y quien vuelve a la cama de madrugada se levanta con el descanso lleno, aunque sea pasadas las 6.
+
+## Registro de H2.3: Almacenes y acarreo
+
+**Entregado**
+
+- Spec `docs/gdd/almacenes.md`.
+- Def `ItemCategory` (madera, piedra y comida) y `Item.category`. Tipo de trabajo `hauling` con `haul`, después de recolectar.
+- Componentes `Stockpile` y `Carried`, `DesignateCommand` con `Stockpile` y `Cancel` que quita celdas, `SetStockpileFilterCommand` y `StockpilesChangedEvent`, todo registrado en `SaveTypes`.
+- Un almacén toma suelos planos, libres y fuera de otras zonas. Cada celda guarda una pila: la de menor id; cualquier otra que caiga ahí queda suelta y se acarrea.
+- Acarreo: la pila suelta más cercana con destino, y el destino más cercano a la pila que la acepte y tenga lugar. Se reservan la pila (hasta levantarla) y la celda. Sin camino al destino no se levanta nada y la pila se deja de lado un rato. Quien deja el trabajo con algo en las manos lo suelta donde está; si muere, también.
+- `StorageIndex` derivado, compartido por la decisión y los trabajos, armado una vez por tick.
+- Godot: herramienta Almacén (Z), celdas pintadas de azul, filtros Sí/No en el inspector de una celda, "Lleva…" en el de un colono y el objeto en las manos. Las órdenes del smoke y de `--orders` incluyen un almacén; `--inspect-stockpile` para capturas.
+
+**Verificación**
+
+- `StockpileTests`: troncos apilados en un almacén de madera (una pila por celda, ninguna sobre el límite), filtro de comida, el que tiene hambre suelta la carga y después se guarda, dos acarreadores nunca comparten pila ni destino, una segunda pila en una celda se va a otra, Cancelar y celdas no válidas.
+- La continuidad del guardado incluye un almacén, un filtro y un colono cargando, en Core y con el contenido real en tres semillas.
+- 436 tests en verde; smoke con código 0, con todos los troncos guardados en las semillas 1 y 42. Huellas nuevas por el almacén de las órdenes del smoke: `70636FFDB3474767` con la semilla 1 y `0988439535AF5339` con la 42.
+- Capturas revisadas: acarreo y carga en es, filtros en en.
+
+**Revisión de código:** 10 hallazgos, todos corregidos.
+
+- Una entrega que no entraba, o una carga que caía en una celda de almacén, dejaba dos pilas en la celda para siempre. Ahora la celda guarda sólo la primera, las demás quedan sueltas y la celda no recibe nada hasta que se van.
+- Un acarreador con la carga en las manos ya no reserva lo que quedó de la pila.
+- Las reservas de celdas se cuentan: una celda puede ser destino de un acarreo y orden de escalera a la vez.
+- Una celda de almacén que deja de ser suelo plano (una escalera) no recibe pilas.
+- Antes de levantar se busca el camino al destino; si no hay, la pila se deja de lado un rato y no se repite el intento en cada tick.
+- Un solo índice de almacenes por tick para los dos sistemas.
+- `DesignateCommand` con `Stockpile` no recorre las plantas; el inspector reutiliza su lista al buscar la zona; documentación de `SelectCell` y `SelectColonist` en su lugar.

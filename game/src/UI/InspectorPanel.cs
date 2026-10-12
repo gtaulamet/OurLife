@@ -103,7 +103,7 @@ public partial class InspectorPanel : PanelContainer
         else
         {
             DescribeCell(selection.Cell);
-            zone = Stockpiles.ZoneAt(_simulation, selection.Cell);
+            zone = Stockpiles.ZoneAt(_simulation, selection.Cell, _entities);
         }
 
         _text.Text = string.Join("\n", _lines);

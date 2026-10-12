@@ -41,11 +41,14 @@ public sealed record SetStockpileFilterCommand(EntityId Zone, string Category, b
 /// <summary>Creating and shrinking stockpile zones, for <see cref="DesignateCommand"/> (see <c>docs/gdd/almacenes.md</c>).</summary>
 public static class Stockpiles
 {
-    /// <summary>The zone that holds a cell, or <see cref="EntityId.None"/>. Looks at every zone: for the presentation and commands.</summary>
-    public static EntityId ZoneAt(Simulation simulation, TileCoord cell)
+    /// <summary>
+    /// The zone that holds a cell, or <see cref="EntityId.None"/>. Looks at every zone: for the
+    /// presentation and commands. <paramref name="buffer"/> is filled and reused, to avoid allocating.
+    /// </summary>
+    public static EntityId ZoneAt(Simulation simulation, TileCoord cell, List<EntityId>? buffer = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        var zones = new List<EntityId>();
+        var zones = buffer ?? [];
         simulation.World.Query<Stockpile>(zones);
         foreach (var zone in zones)
         {
@@ -152,20 +155,37 @@ public static class Stockpiles
 
 /// <summary>
 /// What the stockpiles hold, for the colony systems: which zone each cell belongs to and what lies
-/// on each zone cell. Derived from the state (ADR-011): rebuilt when a system needs it in a tick,
-/// only looked up, never iterated.
+/// on each zone cell. Derived from the state (ADR-011): the decision and job systems share one,
+/// rebuilt the first time a tick needs it; only looked up, never iterated.
 /// </summary>
+/// <remarks>
+/// A cell keeps one pile: the one with the lowest id. Any other pile on it, put there by a load
+/// that fell or a delivery that did not fit, is loose, and the cell has no room until it is gone.
+/// </remarks>
 internal sealed class StorageIndex
 {
     private readonly Dictionary<int, EntityId> _zoneByCell = [];
-    private readonly Dictionary<int, (string Item, int Count, bool Mixed)> _loadByCell = [];
+    private readonly Dictionary<int, (EntityId Pile, string Item, int Count, bool Extra)> _loadByCell = [];
     private readonly Dictionary<string, bool> _roomByItem = new(StringComparer.Ordinal);
     private readonly List<EntityId> _entities = [];
+    private long _builtTick = -1;
 
     /// <summary>Zones by ascending id, as they were when rebuilt.</summary>
     public List<EntityId> Zones { get; } = [];
 
-    public void Rebuild(Simulation simulation)
+    /// <summary>Rebuilds the index the first time each tick asks for it.</summary>
+    public StorageIndex Fresh(Simulation simulation)
+    {
+        if (_builtTick != simulation.CurrentTick)
+        {
+            Rebuild(simulation);
+            _builtTick = simulation.CurrentTick;
+        }
+
+        return this;
+    }
+
+    private void Rebuild(Simulation simulation)
     {
         var world = simulation.World;
         var size = simulation.Map.Size;
@@ -196,24 +216,33 @@ internal sealed class StorageIndex
                 continue;
             }
 
+            // Piles come by ascending id: the first one on a cell is the one it keeps.
             var stack = world.Get<ItemStack>(pile);
             _loadByCell[index] = _loadByCell.TryGetValue(index, out var load)
-                ? (load.Item, load.Count + stack.Count, load.Mixed || load.Item != stack.Def)
-                : (stack.Def, stack.Count, false);
+                ? load with { Extra = true }
+                : (pile, stack.Def, stack.Count, false);
         }
     }
 
-    /// <summary>The pile lies on a standable cell of a zone that accepts its item: hauling it makes no sense.</summary>
+    /// <summary>
+    /// The pile is the one its cell keeps, on a usable floor of a zone that accepts its item:
+    /// hauling it makes no sense.
+    /// </summary>
     public bool IsStored(Simulation simulation, EntityId pile)
     {
         var cell = simulation.World.Get<Position>(pile).Cell;
-        return Accepts(simulation, cell, simulation.World.Get<ItemStack>(pile).Def) && simulation.Map.IsStandable(cell);
+        return Usable(simulation, cell, simulation.World.Get<ItemStack>(pile).Def)
+               && _loadByCell.TryGetValue(simulation.Map.Size.IndexOf(cell.X, cell.Y, cell.Z), out var load)
+               && load.Pile == pile;
     }
 
-    /// <summary>Units of the item that still fit on a zone cell; 0 off the zones, where the item is not accepted, or on a cell that cannot be stood on.</summary>
+    /// <summary>
+    /// Units of the item that still fit on a zone cell; 0 off the zones, where the item is not
+    /// accepted, off a usable floor, or on a cell with another item or a loose pile on it.
+    /// </summary>
     public int SpaceFor(Simulation simulation, string item, TileCoord cell)
     {
-        if (!Accepts(simulation, cell, item) || !simulation.Map.IsStandable(cell))
+        if (!Usable(simulation, cell, item))
         {
             return 0;
         }
@@ -224,8 +253,12 @@ internal sealed class StorageIndex
             return limit;
         }
 
-        return load.Item == item && !load.Mixed ? Math.Max(0, limit - load.Count) : 0;
+        return load.Item == item && !load.Extra ? Math.Max(0, limit - load.Count) : 0;
     }
+
+    /// <summary>A zone cell that accepts the item and is still a free flat floor, as stockpiles are made of.</summary>
+    private bool Usable(Simulation simulation, TileCoord cell, string item) =>
+        Accepts(simulation, cell, item) && simulation.Map.ShapeAt(cell) == TileShape.Floor && simulation.Map.IsStandable(cell);
 
     /// <summary>Some zone cell has room for the item, reserved or not: a quick way to skip piles with nowhere to go.</summary>
     public bool AnyRoomFor(Simulation simulation, string item)

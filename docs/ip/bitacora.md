@@ -14,8 +14,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño |
 | En curso | H2.3 Almacenes y acarreo |
-| Validación | `dotnet build` sin advertencias, 435 tests en verde |
-| Huella del smoke | `19A91FF3BCECB119` con `--seed 1 --ticks 5000`; `9D2B68F847F36435` con `--seed 42 --ticks 5000`. Cambiaron en H2.2 por el sueño nocturno y el balance del descanso |
+| Validación | `dotnet build` sin advertencias, 436 tests en verde, smoke con código 0 |
+| Huella del smoke | `70636FFDB3474767` con `--seed 1 --ticks 5000`; `0988439535AF5339` con `--seed 42 --ticks 5000`. Cambiaron en H2.3 porque las órdenes del smoke incluyen un almacén |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -50,12 +50,13 @@ En orden:
   - `StorageIndex` (derivado, se arma una vez por tick si hace falta): zona de cada celda y qué hay en cada celda de almacén.
   - Acarreo: el colono elige la pila suelta más cercana con destino; el destino es la celda de almacén más cercana a la pila que acepta el objeto y tiene lugar. Reserva la pila y la celda. Levanta lo que entra, lo lleva y lo deja. Si deja el trabajo con algo en las manos, lo suelta donde está; si muere, también.
   - Tests: `StockpileTests` (troncos apilados en el almacén, filtro de comida, el que tiene hambre suelta la carga y después se guarda, dos acarreadores nunca comparten pila ni destino, Cancelar y celdas ocupadas o no pisables). La continuidad del guardado incluye un almacén, un filtro y un colono cargando, en Core y con el contenido real. 435 tests.
+- Avance 3 (revisión): 10 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: una celda de almacén guarda una sola pila y las demás quedan sueltas, y las reservas de celdas se cuentan. 436 tests.
 - Avance 2 (Godot):
   - Herramienta Almacén (Z): sale sola de `DesignationKind`, con su tecla. Las celdas de almacén se pintan de azul, finas y sobre el suelo.
   - El inspector de una celda de almacén lista las categorías con un botón Sí/No que manda `SetStockpileFilterCommand`; el de un colono dice qué lleva. El colono muestra el objeto en las manos.
   - Los almacenes sólo toman suelos planos: sobre las rampas la losa quedaba enterrada y las pilas se veían mal (spec actualizada).
   - Las órdenes del smoke y de `--orders` incluyen un almacén; el smoke informa cuánto quedó guardado (todos los troncos en las semillas 1 y 42). Opción `--inspect-stockpile` para capturas.
-  - Huellas del smoke nuevas por el almacén en sus órdenes: `0988439535AF5339` con la semilla 42 (la de la semilla 1 se toma al cerrar).
+  - Huellas del smoke nuevas por el almacén en sus órdenes (ver Estado actual).
   - Capturas revisadas: acarreo y carga en es, filtros en en.
 
 ### 2026-10-11: H2.2 Día, noche y sueño
