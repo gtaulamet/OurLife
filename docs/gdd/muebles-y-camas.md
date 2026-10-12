@@ -51,6 +51,7 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 ## Lo que se ve
 
 - Los muebles se dibujan con su modelo, girado y teñido como el kit (sin tinte por material).
+- Un colono que duerme se dibuja acostado boca arriba, centrado en su celda: en su cama, a lo largo de ella y sobre el colchón; en el suelo, con el rumbo que traía. Al despertar se vuelve a parar. Es sólo presentación.
 - El plano de un mueble es una caja translúcida baja del color del material.
 - La barra de Construir muestra los muebles después de las formas del terreno.
 - Inspector de una celda con mueble: "Cama de madera", y en una cama "Cama de Elvira" o "Libre". En un cofre, los filtros del almacén.

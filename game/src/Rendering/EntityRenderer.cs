@@ -14,7 +14,8 @@ namespace OurLife.Game.Rendering;
 /// too deep are hidden, the rest darken with depth like the terrain. A gathered plant uses the
 /// visual <c>&lt;visual&gt;.harvested</c> when the catalog has one. Colonists glide between cells
 /// with the progress of their <see cref="Movement"/> and face where they walk, and hold the model
-/// of what they carry in front of them (see <c>docs/gdd/almacenes.md</c>).
+/// of what they carry in front of them (see <c>docs/gdd/almacenes.md</c>). A sleeper lies on its
+/// back over its cell, along its bed if it sleeps in one (<c>docs/gdd/muebles-y-camas.md</c>).
 /// </summary>
 public partial class EntityRenderer : Node3D
 {
@@ -25,6 +26,11 @@ public partial class EntityRenderer : Node3D
     // units, whatever the carrier's scale.
     private const float LoadSize = 0.7f;
     private static readonly Vector3 LoadOffset = new(0f, 0.45f, 0.3f);
+
+    // A sleeper's feet move this far back along its body, so it lies centred on the cell, and it
+    // rises this much on a bed, to the mattress.
+    private const float LyingShift = 0.4f;
+    private const float MattressHeight = 0.22f;
 
     private readonly Dictionary<EntityId, EntityView> _views = [];
 
@@ -125,10 +131,16 @@ public partial class EntityRenderer : Node3D
             }
 
             var target = WalkingPosition(entity, out var facing);
-            view.Node.Position = view.Node.Position.Lerp(target, glide);
-            if (facing is { } yaw)
+            if (SleepingPose(entity, view.Node.Rotation.Y) is { } lying)
             {
-                view.Node.Rotation = new Vector3(0, yaw, 0);
+                // Laid down at once: a sleeper does not glide into the bed.
+                view.Node.Position = target + lying.Offset;
+                view.Node.Rotation = new Vector3(-Mathf.Pi / 2, lying.Yaw, 0);
+            }
+            else
+            {
+                view.Node.Position = view.Node.Position.Lerp(target, glide);
+                view.Node.Rotation = new Vector3(0, facing ?? view.Node.Rotation.Y, 0);
             }
 
             var level = world.Get<Position>(entity).Z;
@@ -274,6 +286,32 @@ public partial class EntityRenderer : Node3D
         return _models.Catalog.TryResolve(visual, era, out var model)
             ? model
             : throw new InvalidOperationException($"The visual catalog has no model for '{visual}'.");
+    }
+
+    /// <summary>
+    /// How a sleeping colonist lies, or null if it is not asleep: on its back, its feet moved so its
+    /// body lies over the cell. On the bed its job is for, it takes the bed's heading and lies on
+    /// the mattress; on the ground it keeps the heading it had.
+    /// </summary>
+    private (Vector3 Offset, float Yaw)? SleepingPose(EntityId entity, float yaw)
+    {
+        var world = _simulation.World;
+        if (!world.TryGet<Job>(entity, out var job) || job.Kind != JobKind.Sleep || job.Stage != JobStage.Working)
+        {
+            return null;
+        }
+
+        var lift = 0f;
+        if (!job.Target.IsNone && world.IsAlive(job.Target) && world.TryGet<Furniture>(job.Target, out var bed)
+            && world.Get<Position>(job.Target).Cell == world.Get<Position>(entity).Cell)
+        {
+            yaw = Mathf.DegToRad(bed.Rotation * 90f);
+            lift = MattressHeight;
+        }
+
+        // Lying back, the head points the way the feet had behind them: the feet go the other way.
+        var feet = new Basis(Vector3.Up, yaw) * new Vector3(0, 0, LyingShift);
+        return (feet + new Vector3(0, lift, 0), yaw);
     }
 
     /// <summary>Where a walker is drawn: between its cell and the next one of its route, by its progress.</summary>
