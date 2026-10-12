@@ -23,6 +23,9 @@ public sealed class JobSystem : ISimSystem
     private readonly List<TileCoord> _path = [];
     private readonly List<TileCoord> _goal = [];
 
+    // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
+    private bool _night;
+
     public JobSystem(ColonyRules rules)
     {
         ArgumentNullException.ThrowIfNull(rules);
@@ -43,6 +46,7 @@ public sealed class JobSystem : ISimSystem
     public void Tick(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
+        _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
         var world = simulation.World;
         world.Query<Job, Position>(_colonists);
         foreach (var colonist in _colonists)
@@ -171,7 +175,7 @@ public sealed class JobSystem : ISimSystem
                 return Eat(simulation, colonist, job);
             case JobKind.Sleep:
                 // At night a rested colonist sleeps on until morning.
-                return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping) && !_rules.Ai.IsNight(simulation.CurrentDate.Hour);
+                return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping) && !_night;
             case JobKind.Wander:
                 return simulation.CurrentTick >= job.UntilTick;
             default:

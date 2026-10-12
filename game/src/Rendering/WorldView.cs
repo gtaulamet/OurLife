@@ -1,5 +1,5 @@
 using Godot;
-using OurLife.Core.Defs;
+using OurLife.Core.Colony;
 using OurLife.Core.Ecs;
 using OurLife.Core.Sim;
 using OurLife.Game.Input;
@@ -44,10 +44,9 @@ public partial class WorldView : Node3D
             view.AddChild(environment);
             var sun = new DirectionalLight3D { Name = "Sun", ShadowEnabled = true };
             view.AddChild(sun);
-            // The sun keeps the night of the colonists; the content without colony rules has none.
-            var ai = simulation.Content.All<AiConfigDef>();
-            var (sunrise, sunset) = ai.Count > 0 ? (ai[0].NightEndHour, ai[0].NightStartHour) : (6, 21);
-            view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, sunrise, sunset, dayNight));
+            // The sun keeps the night of the colonists.
+            var ai = ColonyRules.From(simulation.Content).Ai;
+            view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, ai.NightEndHour, ai.NightStartHour, dayNight));
 
             view._map = MapRenderer.Create(map, catalog, viewLevel);
             view.AddChild(view._map);

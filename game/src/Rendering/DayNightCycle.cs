@@ -13,7 +13,7 @@ namespace OurLife.Game.Rendering;
 /// </summary>
 public partial class DayNightCycle : Node
 {
-    private const float MinutesPerDay = 24 * 60;
+    private const float MinutesPerDay = TimeSettings.MinutesPerDay;
 
     // Highest and lowest angles of the sun over the horizon, in degrees.
     private const float NoonElevation = 62f;
@@ -75,8 +75,15 @@ public partial class DayNightCycle : Node
 
     public override void _Process(double delta) => Apply();
 
-    // Releases this reference only; the WorldEnvironment keeps the resource (see MapRenderer.Fill).
-    public override void _ExitTree() => _environment.Dispose();
+    public override void _Notification(int what)
+    {
+        // On deletion, not on leaving the tree: the node may leave and enter again. Releases this
+        // reference only; the WorldEnvironment keeps the resource (see MapRenderer.Fill).
+        if (what == NotificationPredelete)
+        {
+            _environment.Dispose();
+        }
+    }
 
     /// <summary>Puts the light of the current minute of the game, or the noon of IP1 when the cycle is off.</summary>
     public void Apply()
@@ -102,19 +109,29 @@ public partial class DayNightCycle : Node
 
     /// <summary>
     /// Night until shortly before sunrise, dawn at sunrise, full day two hours later and until two
-    /// and a half hours before sunset, dusk shortly before it, and night from sunset.
+    /// and a half hours before sunset, dusk shortly before it, and night from sunset. A short day
+    /// or night shrinks the blends, so the keys never cross.
     /// </summary>
-    private static Look[] KeysFor(float sunrise, float sunset) =>
+    private static Look[] KeysFor(float sunrise, float sunset)
+    {
+        var day = Forward(sunrise, sunset);
+        var night = MinutesPerDay - day;
+        var beforeDawn = Math.Min(45f, night / 3);
+        var intoDay = Math.Min(120f, day / 3);
+        var beforeSunset = Math.Min(150f, day / 3);
+        var dusk = beforeSunset * 0.3f;
+        return
         [.. new[]
             {
-                Night with { Minute = Wrap(sunrise - 45) },
+                Night with { Minute = Wrap(sunrise - beforeDawn) },
                 Dawn with { Minute = sunrise },
-                Day with { Minute = Wrap(sunrise + 120) },
-                Day with { Minute = Wrap(sunset - 150) },
-                Dusk with { Minute = Wrap(sunset - 45) },
+                Day with { Minute = Wrap(sunrise + intoDay) },
+                Day with { Minute = Wrap(sunset - beforeSunset) },
+                Dusk with { Minute = Wrap(sunset - dusk) },
                 Night with { Minute = sunset },
             }
             .OrderBy(key => key.Minute)];
+    }
 
     private static float Wrap(float minute) => ((minute % MinutesPerDay) + MinutesPerDay) % MinutesPerDay;
 

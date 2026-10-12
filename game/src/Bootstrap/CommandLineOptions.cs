@@ -198,6 +198,11 @@ public sealed record CommandLineOptions
             throw new ArgumentException("--benchmark cannot be combined with --smoke or --screenshot.");
         }
 
+        if (options.Hour is not null && !options.Play && options.LoadSlot is null)
+        {
+            throw new ArgumentException("--hour needs --play or --load: it runs a game until that hour.");
+        }
+
         if (options.Show == "save" && !options.Play && options.LoadSlot is null)
         {
             throw new ArgumentException("--show save needs --play or --load: it opens over a game.");

@@ -54,6 +54,7 @@ En orden:
   - `--hour <h>` lleva la partida hasta esa hora para capturas.
   - 4 claves nuevas en es y en. Capturas revisadas a las 6, 12, 20 y 0, y Opciones en inglés.
   - Huellas nuevas del smoke por el balance del descanso (ver Estado actual).
+- Avance 4: segunda ronda de revisión, 10 hallazgos, 7 corregidos y 3 que son lo que pide la spec (detalle en `IP2.md`). Mismas huellas.
 - Avance 3 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: `nightThreshold` pasa a 10 000 para que nadie quede despierto de noche, y la luz ya no salta al amanecer. Documentación y `main` adelantado a H2.2. 429 tests.
 
 ### 2026-10-11: planificación de IP2

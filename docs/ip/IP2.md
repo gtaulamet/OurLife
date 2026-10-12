@@ -150,3 +150,12 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - `--hour` avanza de una vez hasta el primer tick a esa hora o después, sin riesgo de no terminar.
 - El registro no crece con las líneas de fecha.
 - El ciclo no reescribe la luz si no cambió el minuto ni la opción.
+
+**Segunda ronda de revisión:** 10 hallazgos, 7 corregidos.
+
+- `DayNightCycle` libera su referencia al ambiente al borrarse, no al salir del árbol; usa `TimeSettings.MinutesPerDay`; y con un día o una noche cortos achica las transiciones para que no se crucen.
+- La vista toma la noche de `ColonyRules`, sin horas de respaldo en el código.
+- `JobSystem` calcula la noche una vez por tick.
+- El registro guarda sólo los mensajes que entran con su línea de fecha.
+- `--hour` sin `--play` ni `--load` falla con código 2.
+- Quedan como están, porque es lo que pide la spec: de día el umbral bajo no lleva a dormir; a las 21 todos dejan el trabajo, aunque les falte poco; y quien vuelve a la cama de madrugada se levanta con el descanso lleno, aunque sea pasadas las 6.

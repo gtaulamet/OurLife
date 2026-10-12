@@ -51,9 +51,10 @@ public partial class EventLog : PanelContainer
         if (added)
         {
             // Only the last ones are ever shown: the log does not grow with the game.
-            if (_entries.Count > Shown)
+            // One line goes to the date at least, so at most Shown - 1 messages ever show.
+            if (_entries.Count > Shown - 1)
             {
-                _entries.RemoveRange(0, _entries.Count - Shown);
+                _entries.RemoveRange(0, _entries.Count - (Shown - 1));
             }
 
             Refresh();
