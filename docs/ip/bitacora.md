@@ -14,7 +14,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas |
 | En curso | Ninguno: falta crear la rama de H2.6 |
-| Validación | `dotnet build` sin advertencias, 475 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 471 tests en verde, smoke con código 0 |
 | Huella del smoke | `AC38B78A13976F40` con `--seed 1 --ticks 5000`; `5AB2EE5C863DA876` con `--seed 42 --ticks 5000` (H2.5: casa amueblada y resto de las necesidades en centésimas). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -60,7 +60,7 @@ En orden:
   - Inspector: "Silla de madera", el dueño de una cama o "Libre", y en el colono "Duerme en su cama" o "Sin cama".
   - La casa del smoke se amuebla con los muebles del contenido en sus rincones; el smoke informa muebles y camas tomadas. Opción `--inspect-furniture`.
   - Capturas revisadas: la casa amueblada en es (cama, mesa y silla) y de noche en en, con un colono en la cama.
-- Avance 4 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: almacenes que saltean planos de muebles, el índice de almacenes al perderse un cofre, la cama se toma sólo con camino, el resto de las necesidades en centésimas y la marca `TileFlags.Furniture`. 475 tests. `main` adelantado a H2.5.
+- Avance 4 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: almacenes que saltean planos de muebles, el índice de almacenes al perderse un cofre, la cama se toma sólo con camino, el resto de las necesidades en centésimas y la marca `TileFlags.Furniture`. 471 tests. `main` adelantado a H2.5.
 
 ### 2026-10-12: H2.4 Construcción
 

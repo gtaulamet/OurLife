@@ -241,7 +241,7 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 **Verificación**
 
 - `FurnitureTests`: descanso en cama contra suelo, tomar la cama libre, cama libre al morir el dueño, cofre que recibe troncos y se desmonta, giro, reglas de colocación, almacén y Cancelar con muebles. Validaciones de defs. La continuidad del guardado incluye cama, cofre y una mesa por construir.
-- 475 tests en verde; smoke con código 0, con la casa amueblada y una cama tomada con la semilla 42. Huellas: `AC38B78A13976F40` con la semilla 1 y `5AB2EE5C863DA876` con la 42.
+- 471 tests en verde; smoke con código 0, con la casa amueblada y una cama tomada con la semilla 42. Huellas: `AC38B78A13976F40` con la semilla 1 y `5AB2EE5C863DA876` con la 42.
 - Capturas revisadas: la casa amueblada en es y, de noche, un colono en su cama en en.
 
 **Revisión de código:** 9 hallazgos, todos corregidos.
