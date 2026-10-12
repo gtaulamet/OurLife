@@ -112,6 +112,7 @@ public sealed class JobSystem : ISimSystem
             var carried = world.Get<Carried>(colonist);
             world.Remove<Carried>(colonist);
             ItemPiles.Drop(simulation, carried.Def, carried.Count, world.Get<Position>(colonist).Cell);
+            _storage.Invalidate();
             simulation.Events.Emit(new EntityChangedEvent(colonist));
         }
     }
@@ -338,8 +339,8 @@ public sealed class JobSystem : ISimSystem
 
     /// <summary>
     /// Lifts from the pile what fits at the destination and sets off there. True, ending the job
-    /// with nothing lifted, if nothing fits any more or there is no way to the destination; then
-    /// the colonist leaves the pile alone for a while, so it does not try again at once.
+    /// with nothing lifted, if nothing fits any more or there is no way to the destination; in the
+    /// second case the colonist leaves that cell alone for a while, so it does not choose it again at once.
     /// </summary>
     private bool PickUp(Simulation simulation, EntityId colonist, Job job)
     {
@@ -359,14 +360,15 @@ public sealed class JobSystem : ISimSystem
         {
             world.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget
             {
-                Entity = job.Target,
-                Cell = job.Cell,
+                Entity = EntityId.None,
+                Cell = job.Destination,
                 UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
             });
             return true;
         }
 
         ItemPiles.Take(simulation, job.Target, count);
+        _storage.Invalidate();
         world.Add(colonist, new Carried { Def = item, Count = count });
         simulation.Events.Emit(new EntityChangedEvent(colonist));
         job.Stage = JobStage.Carrying;
@@ -392,17 +394,20 @@ public sealed class JobSystem : ISimSystem
 
         var carried = world.Get<Carried>(colonist);
         var count = Math.Min(carried.Count, Storage(simulation).SpaceFor(simulation, carried.Def, job.Destination));
-        if (count > 0)
+        if (count == 0)
         {
-            ItemPiles.Drop(simulation, carried.Def, count, job.Destination);
-            carried.Count -= count;
+            return true;
         }
 
+        ItemPiles.Drop(simulation, carried.Def, count, job.Destination);
+        _storage.Invalidate();
+        carried.Count -= count;
         if (carried.Count == 0)
         {
             world.Remove<Carried>(colonist);
-            simulation.Events.Emit(new EntityChangedEvent(colonist));
         }
+
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
 
         return true;
     }

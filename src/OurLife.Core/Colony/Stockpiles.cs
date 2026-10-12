@@ -62,6 +62,19 @@ public static class Stockpiles
         return EntityId.None;
     }
 
+    /// <summary>
+    /// Units of items stored: in piles kept by a zone cell that accepts them. Loose piles on the
+    /// zones do not count. Builds its own index: for reports, not for every tick.
+    /// </summary>
+    public static int StoredItems(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var storage = new StorageIndex().Fresh(simulation);
+        var piles = new List<EntityId>();
+        simulation.World.Query<ItemStack, Position>(piles);
+        return piles.Where(pile => storage.IsStored(simulation, pile)).Sum(pile => simulation.World.Get<ItemStack>(pile).Count);
+    }
+
     /// <summary>A new zone, accepting every category, with the free floors of the box that nobody blocks and no zone holds.</summary>
     internal static void Mark(Simulation simulation, TileCoord min, TileCoord max)
     {
@@ -156,7 +169,8 @@ public static class Stockpiles
 /// <summary>
 /// What the stockpiles hold, for the colony systems: which zone each cell belongs to and what lies
 /// on each zone cell. Derived from the state (ADR-011): the decision and job systems share one,
-/// rebuilt the first time a tick needs it; only looked up, never iterated.
+/// rebuilt the first time a tick needs it, and again after a hauler moves a pile
+/// (<see cref="Invalidate"/>); only looked up, never iterated.
 /// </summary>
 /// <remarks>
 /// A cell keeps one pile: the one with the lowest id. Any other pile on it, put there by a load
@@ -184,6 +198,9 @@ internal sealed class StorageIndex
 
         return this;
     }
+
+    /// <summary>Piles changed in this tick: the next question rebuilds the index.</summary>
+    public void Invalidate() => _builtTick = -1;
 
     private void Rebuild(Simulation simulation)
     {

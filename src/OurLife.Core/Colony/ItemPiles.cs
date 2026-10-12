@@ -12,7 +12,8 @@ public static class ItemPiles
     /// <summary>
     /// Leaves <paramref name="count"/> units of an item on a cell: first on the piles of the same
     /// item already there, by ascending id, then on new piles. Returns the first pile that got units.
-    /// Finding the piles of the cell looks at every pile: drops happen only when a job ends.
+    /// Finding the piles of the cell looks at every pile: drops happen only when a job ends or a
+    /// hauler delivers, a few times per tick at most.
     /// </summary>
     public static EntityId Drop(Simulation simulation, string item, int count, TileCoord cell)
     {

@@ -4,17 +4,17 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-11.*
+*Actualizado el 2026-10-12.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-3-almacenes`, creada desde `main` (H2.2) |
-| `main` | En el cierre de IP1, con el tag `v0.1.0`, también en `origin` |
+| Rama de trabajo | `ip2/h2-3-almacenes`, creada desde `main` (H2.2). Siguiente: H2.4 Construcción |
+| `main` | En H2.3, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño |
-| En curso | H2.3 Almacenes y acarreo |
-| Validación | `dotnet build` sin advertencias, 436 tests en verde, smoke con código 0 |
+| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo |
+| En curso | Ninguno: falta crear la rama de H2.4 |
+| Validación | `dotnet build` sin advertencias, 439 tests en verde, smoke con código 0 |
 | Huella del smoke | `70636FFDB3474767` con `--seed 1 --ticks 5000`; `0988439535AF5339` con `--seed 42 --ticks 5000`. Cambiaron en H2.3 porque las órdenes del smoke incluyen un almacén |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -23,8 +23,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
-2. **H2.3** (`docs/gdd/almacenes.md`):
-   1. Revisión de código, documentación (`overview.md`, `IP2.md`) y cierre.
+2. **H2.4 Construcción** (`docs/ip/IP2.md`): crear la rama `ip2/h2-4-construccion` desde `main` y empezar por la spec. Probar en el editor los almacenes de H2.3 (dibujar una zona, filtrar y ver el acarreo).
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -41,7 +40,7 @@ En orden:
 
 ## Historial
 
-### 2026-10-11: H2.3 Almacenes y acarreo (en curso)
+### 2026-10-11: H2.3 Almacenes y acarreo
 
 - Rama `ip2/h2-3-almacenes` desde `main`. Spec `docs/gdd/almacenes.md`.
 - Avance 1 (Core):
@@ -51,6 +50,7 @@ En orden:
   - Acarreo: el colono elige la pila suelta más cercana con destino; el destino es la celda de almacén más cercana a la pila que acepta el objeto y tiene lugar. Reserva la pila y la celda. Levanta lo que entra, lo lleva y lo deja. Si deja el trabajo con algo en las manos, lo suelta donde está; si muere, también.
   - Tests: `StockpileTests` (troncos apilados en el almacén, filtro de comida, el que tiene hambre suelta la carga y después se guarda, dos acarreadores nunca comparten pila ni destino, Cancelar y celdas ocupadas o no pisables). La continuidad del guardado incluye un almacén, un filtro y un colono cargando, en Core y con el contenido real. 435 tests.
 - Avance 3 (revisión): 10 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: una celda de almacén guarda una sola pila y las demás quedan sueltas, y las reservas de celdas se cuentan. 436 tests.
+- Avance 4 (2026-10-12): segunda ronda de revisión, 8 hallazgos, 7 corregidos (detalle en `IP2.md`): nadie come de una pila que alguien acarrea, las pilas sin destino no gastan intentos, sin camino se deja de lado la celda de destino y no la pila, el índice se rearma tras mover pilas y las categorías de un almacén se validan al cargar. 439 tests, mismas huellas. H2.3 cerrado y `main` adelantado.
 - Avance 2 (Godot):
   - Herramienta Almacén (Z): sale sola de `DesignationKind`, con su tecla. Las celdas de almacén se pintan de azul, finas y sobre el suelo.
   - El inspector de una celda de almacén lista las categorías con un botón Sí/No que manda `SetStockpileFilterCommand`; el de un colono dice qué lleva. El colono muestra el objeto en las manos.

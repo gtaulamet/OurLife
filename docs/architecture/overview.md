@@ -70,7 +70,7 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 
 - `SaveGame` (`OurLife.Core.Save`) escribe y lee una partida en un `Stream`: un ZIP con `header.json` (lo que muestra una ranura) y `state.json` (todo el estado de la huella). Formato y motivos en ADR-010; pantallas y ranuras en `docs/gdd/guardado.md`.
 - Cargar devuelve una simulación sin sistemas: quien la carga agrega los de siempre (`ColonySystems.AddTo`). Los derivados de ADR-011 se reconstruyen solos.
-- Un componente o comando nuevo se registra en `SaveTypes` con un nombre estable. Una propiedad con el id de un def lleva `[DefRef(typeof(...))]` para que la carga compruebe que existe.
+- Un componente o comando nuevo se registra en `SaveTypes` con un nombre estable. Una propiedad con el id de un def, o con una lista de ids, lleva `[DefRef(typeof(...))]` para que la carga compruebe que existe.
 - Si un cambio deja las partidas viejas sin poder leerse, sube `SaveGame.FormatVersion`.
 - La presentación maneja los archivos con `SaveSlots` (`user://saves`, escritura en un temporal que después reemplaza la ranura) y autoguarda en `GameScreen` al empezar cada día del juego.
 - Test de continuidad: guardar a mitad, cargar y seguir da la misma huella que no cortar (`SaveGameTests` en Core y en Content). El smoke lo comprueba también.
@@ -78,7 +78,7 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 ## Tick de simulación
 
 1. Aplicar los comandos encolados en orden de llegada.
-2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento y crecimiento de las plantas (`ColonySystems.AddTo`). La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado y armado una vez por tick.
+2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento y crecimiento de las plantas (`ColonySystems.AddTo`). La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado: se arma la primera vez que un tick lo consulta y de nuevo si un acarreador mueve una pila.
 3. La conectividad se pone al día al consultarla después de un cambio: se unen regiones en el lugar si el cambio sólo abrió caminos, y se calcula de nuevo si no (ADR-011).
 4. Publicar los eventos y avanzar el contador.
 

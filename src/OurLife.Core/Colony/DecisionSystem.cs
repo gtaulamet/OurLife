@@ -52,6 +52,12 @@ public sealed class DecisionSystem : ISimSystem
     private readonly Dictionary<int, int> _reservedCells = [];
     private readonly Dictionary<EntityId, int> _entityUses = [];
 
+    // Piles a hauler is going to lift: nobody goes to eat from them, since the hauler may take them whole.
+    private readonly HashSet<EntityId> _hauledPiles = [];
+
+    // Items with no stockpile cell to go to in this search, so the other piles of them are skipped.
+    private readonly HashSet<string> _noDestination = new(StringComparer.Ordinal);
+
     public DecisionSystem(ColonyRules rules)
         : this(rules, new StorageIndex())
     {
@@ -147,6 +153,7 @@ public sealed class DecisionSystem : ISimSystem
     {
         _reservedCells.Clear();
         _entityUses.Clear();
+        _hauledPiles.Clear();
         foreach (var colonist in _colonists)
         {
             if (simulation.World.TryGet<Job>(colonist, out var job))
@@ -167,6 +174,10 @@ public sealed class DecisionSystem : ISimSystem
         if (HeldEntity(job) is { IsNone: false } held)
         {
             _entityUses[held] = _entityUses.GetValueOrDefault(held) + 1;
+            if (job.Kind == JobKind.Haul)
+            {
+                _hauledPiles.Add(held);
+            }
         }
         else if (job.Kind is JobKind.Mine or JobKind.DigStairs)
         {
@@ -190,6 +201,11 @@ public sealed class DecisionSystem : ISimSystem
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
+            if (job.Kind == JobKind.Haul)
+            {
+                _hauledPiles.Remove(held);
+            }
+
             var uses = _entityUses.GetValueOrDefault(held) - 1;
             if (uses > 0)
             {
@@ -520,7 +536,7 @@ public sealed class DecisionSystem : ISimSystem
         foreach (var pile in _entities)
         {
             var stack = world.Get<ItemStack>(pile);
-            if (simulation.Content.Get<ItemDef>(stack.Def).Kind == ItemKind.Food)
+            if (simulation.Content.Get<ItemDef>(stack.Def).Kind == ItemKind.Food && !_hauledPiles.Contains(pile))
             {
                 // A pile feeds as many colonists at once as it has units.
                 AddEntity(simulation, JobKind.Eat, pile, capacity: stack.Count);
@@ -590,14 +606,18 @@ public sealed class DecisionSystem : ISimSystem
             return order != 0 ? order : a.Candidate.Target.CompareTo(b.Candidate.Target);
         });
 
-        for (var i = 0; i < reachable.Count && i < PathAttempts; i++)
+        // Only searches for a path count as attempts: a pile with nowhere to go is skipped for free.
+        _noDestination.Clear();
+        for (int i = 0, attempts = 0; i < reachable.Count && attempts < PathAttempts; i++)
         {
             var candidate = reachable[i].Candidate;
             var destination = default(TileCoord);
-            if (candidate.Kind == JobKind.Haul && !TryDestination(simulation, candidate, region, out destination))
+            if (candidate.Kind == JobKind.Haul && !TryDestination(simulation, person, candidate, region, out destination))
             {
                 continue;
             }
+
+            attempts++;
 
             WorkSites.Find(map, candidate.Kind, candidate.Cell, _sites);
             KeepInRegion(_sites, connectivity, region);
@@ -630,15 +650,22 @@ public sealed class DecisionSystem : ISimSystem
 
     /// <summary>
     /// The stockpile cell nearest the pile, in the colonist's region, that accepts its item, has
-    /// room and nobody else carries to. Ties go to the lowest cell index.
+    /// room, nobody else carries to and the colonist has not failed to reach. Ties go to the lowest
+    /// cell index. Whether an item has somewhere to go does not depend on which pile it is in (the
+    /// pile's own cell has no room for it), so a failure is remembered for the rest of the search.
     /// </summary>
-    private bool TryDestination(Simulation simulation, Candidate candidate, int region, out TileCoord destination)
+    private bool TryDestination(Simulation simulation, Colonist person, Candidate candidate, int region, out TileCoord destination)
     {
         var storage = Storage(simulation);
         var map = simulation.Map;
         var connectivity = simulation.Connectivity;
         var item = simulation.World.Get<ItemStack>(candidate.Target).Def;
         destination = default;
+        if (_noDestination.Contains(item))
+        {
+            return false;
+        }
+
         var best = int.MaxValue;
         var bestIndex = int.MaxValue;
         foreach (var zone in storage.Zones)
@@ -646,7 +673,7 @@ public sealed class DecisionSystem : ISimSystem
             foreach (var cell in simulation.World.Get<Stockpile>(zone).Cells)
             {
                 if (cell == candidate.Cell || IsReserved(map, cell) || storage.SpaceFor(simulation, item, cell) == 0
-                    || connectivity.RegionAt(cell) != region)
+                    || connectivity.RegionAt(cell) != region || IsIgnored(person, EntityId.None, cell))
                 {
                     continue;
                 }
@@ -660,7 +687,13 @@ public sealed class DecisionSystem : ISimSystem
             }
         }
 
-        return best != int.MaxValue;
+        if (best == int.MaxValue)
+        {
+            _noDestination.Add(item);
+            return false;
+        }
+
+        return true;
     }
 
     private void Wander(Simulation simulation, EntityId colonist)

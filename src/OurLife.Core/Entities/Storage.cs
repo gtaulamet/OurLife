@@ -12,6 +12,7 @@ public sealed class Stockpile
     public List<TileCoord> Cells { get; set; } = [];
 
     /// <summary>Ids of the <see cref="ItemCategoryDef"/>s allowed in the zone.</summary>
+    [DefRef(typeof(ItemCategoryDef))]
     public List<string> Categories { get; set; } = [];
 }
 

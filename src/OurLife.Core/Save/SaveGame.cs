@@ -361,10 +361,18 @@ public static class SaveGame
 
             if (property.DefType is { } defType)
             {
-                var id = (string)child;
-                if (!defIds.Contains((defType, id)))
+                IEnumerable<string> ids = child is string single ? [single] : (IEnumerable<string>)child;
+                foreach (var id in ids)
                 {
-                    throw new SaveLoadException(SaveLoadError.MissingContent, id);
+                    if (id is null)
+                    {
+                        throw Corrupt($"the list {value.GetType().Name}.{property.Info.Name} holds a null");
+                    }
+
+                    if (!defIds.Contains((defType, id)))
+                    {
+                        throw new SaveLoadException(SaveLoadError.MissingContent, id);
+                    }
                 }
             }
             else if (child is IEnumerable items)
@@ -389,12 +397,12 @@ public static class SaveGame
         }
     }
 
-    /// <summary>The properties to check: marked strings, cells, Core classes and lists.</summary>
+    /// <summary>The properties to check: marked strings and lists of strings, cells, Core classes and lists.</summary>
     private static CheckedProperty[] FindCheckedProperties(Type type) =>
         [.. type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.GetIndexParameters().Length == 0)
             .Where(property =>
-                (property.PropertyType == typeof(string) && property.IsDefined(typeof(DefRefAttribute)))
+                ((property.PropertyType == typeof(string) || property.PropertyType == typeof(List<string>)) && property.IsDefined(typeof(DefRefAttribute)))
                 || (property.PropertyType != typeof(string) && IsCoreClassOrList(property.PropertyType)))
             .Select(property => new CheckedProperty(property, property.GetCustomAttribute<DefRefAttribute>()?.DefType))];
 

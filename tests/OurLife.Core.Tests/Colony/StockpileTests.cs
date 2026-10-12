@@ -107,6 +107,65 @@ public class StockpileTests
     }
 
     [Fact]
+    public void Nobody_goes_to_eat_from_a_pile_a_hauler_is_about_to_lift()
+    {
+        var bed = ColonyTestBed.Flat(16);
+        bed.AddItems("berries", 10, 2, 2, 1);
+        MarkStockpile(bed, new TileCoord(13, 13, 1), new TileCoord(13, 13, 1));
+        var hauler = bed.AddColonist(9, 2, 1, name: "Hauler");
+        var eater = bed.AddColonist(2, 5, 1, hunger: 1000, name: "Eater");
+        bed.Simulation.Tick();
+        bed.JobOf(hauler)!.Kind.ShouldBe(JobKind.Haul);
+        var pile = bed.JobOf(hauler)!.Target;
+
+        for (var tick = 0; tick < 300 && bed.World.IsAlive(pile); tick++)
+        {
+            bed.Simulation.Tick();
+            if (bed.JobOf(eater) is { Kind: JobKind.Eat } meal)
+            {
+                meal.Target.ShouldNotBe(pile);
+            }
+        }
+
+        bed.World.IsAlive(pile).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Piles_with_nowhere_to_go_do_not_keep_a_hauler_from_a_farther_one_that_has()
+    {
+        // The only cell for food is walled in: berries have room somewhere, but not within reach.
+        var floor = ColonyTestBed.Level(16, 16, '.').ToCharArray();
+        foreach (var (x, y) in new[] { (13, 13), (14, 13), (15, 13), (13, 14), (15, 14), (13, 15), (14, 15), (15, 15) })
+        {
+            floor[(y * 17) + x] = '#';
+        }
+
+        var bed = new ColonyTestBed(ColonyTestBed.Level(16, 16, '#'), new string(floor));
+        var pantry = MarkStockpile(bed, new TileCoord(14, 14, 1), new TileCoord(14, 14, 1));
+        var shed = MarkStockpile(bed, new TileCoord(8, 8, 1), new TileCoord(8, 8, 1));
+        foreach (var category in new[] { "misc", "stone", "wood" })
+        {
+            bed.Simulation.Commands.Enqueue(new SetStockpileFilterCommand(pantry, category, Allowed: false));
+        }
+
+        bed.Simulation.Commands.Enqueue(new SetStockpileFilterCommand(shed, "food", Allowed: false));
+        bed.Simulation.ApplyCommandsNow();
+        bed.AddItems("berries", 3, 2, 1, 1);
+        bed.AddItems("berries", 3, 1, 2, 1);
+        bed.AddItems("berries", 3, 2, 2, 1);
+        bed.AddItems("log", 5, 6, 6, 1);
+        var colonist = bed.AddColonist(1, 1, 1);
+
+        bed.Simulation.Tick();
+
+        var job = bed.JobOf(colonist);
+        job.ShouldNotBeNull();
+        job.Kind.ShouldBe(JobKind.Haul);
+        job.Cell.ShouldBe(new TileCoord(6, 6, 1));
+        job.Destination.ShouldBe(new TileCoord(8, 8, 1));
+    }
+
+    [Fact]
     public void A_second_pile_on_a_stockpile_cell_is_loose_and_moves_to_a_cell_of_its_own()
     {
         // Like a load that fell on a stockpile cell when its carrier got hungry.

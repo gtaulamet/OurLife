@@ -785,9 +785,7 @@ public partial class GameRoot : Node
         var zones = new List<EntityId>();
         world.Query<Stockpile>(zones);
         var stockpileCells = zones.SelectMany(zone => world.Get<Stockpile>(zone).Cells).ToHashSet();
-        var stored = piles
-            .Where(pile => world.Has<Position>(pile) && stockpileCells.Contains(world.Get<Position>(pile).Cell))
-            .Sum(pile => world.Get<ItemStack>(pile).Count);
+        var stored = Stockpiles.StoredItems(simulation);
         GD.Print($"[smoke] colony: {zones.Count} stockpiles, {stockpileCells.Count} cells, {stored} items stored, {world.Store<Carried>().Count} colonists carrying");
 
         var map = simulation.Map;

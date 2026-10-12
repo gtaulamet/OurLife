@@ -188,3 +188,15 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - Antes de levantar se busca el camino al destino; si no hay, la pila se deja de lado un rato y no se repite el intento en cada tick.
 - Un solo índice de almacenes por tick para los dos sistemas.
 - `DesignateCommand` con `Stockpile` no recorre las plantas; el inspector reutiliza su lista al buscar la zona; documentación de `SelectCell` y `SelectColonist` en su lugar.
+
+**Segunda ronda de revisión:** 8 hallazgos, 7 corregidos.
+
+- Un colono con hambre podía ir a comer de una pila que un acarreador estaba por levantar entera, y llegar para nada. Nadie va a comer de una pila que alguien acarrea.
+- Las pilas sin destino gastaban los intentos de buscar camino: varias pilas cercanas de comida sin lugar alcanzable dejaban sin acarrear una pila de troncos más lejana que sí lo tenía. Sólo cuenta como intento la búsqueda de un camino, y un objeto sin destino se descarta para el resto de la búsqueda.
+- Sin camino al destino, el colono deja de lado esa celda un rato, no la pila: puede llevarla a otra.
+- El índice de almacenes se vuelve a armar en el mismo tick cuando un acarreador levanta, entrega o suelta algo.
+- Una entrega parcial avisa a la vista, que mostraba la carga vieja.
+- Los ids de categoría de un almacén se validan al cargar: `[DefRef]` admite listas de ids.
+- El smoke cuenta como guardado sólo lo que el almacén acepta y conserva (`Stockpiles.StoredItems`).
+- Queda como está: `ItemPiles.Drop` recorre todas las pilas para encontrar las de una celda; pasa pocas veces por tick. Se corrigió su comentario.
+- 439 tests en verde; smoke con código 0 y las mismas huellas.

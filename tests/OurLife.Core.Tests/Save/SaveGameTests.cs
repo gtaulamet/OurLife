@@ -234,6 +234,15 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_stockpile_category_the_content_lacks_is_named()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace(
+            "\"Categories\":[\"food\"", "\"Categories\":[\"ghost_category\"", StringComparison.Ordinal));
+
+        LoadFails(file).Detail.ShouldBe("ghost_category");
+    }
+
+    [Fact]
     public void A_material_the_content_lacks_is_named()
     {
         var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace(
