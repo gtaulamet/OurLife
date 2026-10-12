@@ -335,6 +335,11 @@ public class SaveGameTests
         var zones = new List<EntityId>();
         bed.World.Query<Stockpile>(zones);
         bed.Simulation.Commands.Enqueue(new SetStockpileFilterCommand(zones[0], "food", Allowed: false));
+
+        // Priorities of their own: one colonist hauls first, another never chops.
+        var colonists = bed.Colonists();
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(colonists[0], "hauling", 1));
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(colonists[1], "woodcutting", 0));
         return bed;
     }
 

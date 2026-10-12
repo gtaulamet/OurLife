@@ -33,6 +33,12 @@ public sealed class AiConfigDef : Def
     /// <summary>Share of a buildable's cost that taking it down gives back, in percent (see <c>docs/gdd/construccion.md</c>).</summary>
     public required int DeconstructRefundPercent { get; init; }
 
+    /// <summary>Priority of a work type for a colonist who has none of its own, from 1 (highest) to 4 (see <c>docs/gdd/gestion.md</c>).</summary>
+    public required int DefaultWorkPriority { get; init; }
+
+    /// <summary>Hours a colonist wanders with nothing to do before the player is told.</summary>
+    public required int IdleAlertHours { get; init; }
+
     /// <summary>True from <see cref="NightStartHour"/> until just before <see cref="NightEndHour"/>.</summary>
     public bool IsNight(int hour) =>
         NightStartHour < NightEndHour
@@ -78,6 +84,16 @@ public sealed class AiConfigDef : Def
         if (DeconstructRefundPercent is < 0 or > 100)
         {
             yield return "deconstructRefundPercent must be between 0 and 100.";
+        }
+
+        if (DefaultWorkPriority is < WorkPriorityLevels.Highest or > WorkPriorityLevels.Lowest)
+        {
+            yield return "defaultWorkPriority must be from 1 to 4.";
+        }
+
+        if (IdleAlertHours <= 0)
+        {
+            yield return "idleAlertHours must be positive.";
         }
     }
 }

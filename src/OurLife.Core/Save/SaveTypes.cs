@@ -32,10 +32,12 @@ public static class SaveTypes
         Component<Blueprint>("blueprint");
         Component<Furniture>("furniture");
         Component<Bed>("bed");
+        Component<WorkPriorities>("work_priorities");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");
         Command<PlaceBlueprintCommand>("place_blueprint");
+        Command<SetWorkPriorityCommand>("set_work_priority");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

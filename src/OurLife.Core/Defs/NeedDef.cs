@@ -43,6 +43,9 @@ public sealed class NeedDef : Def
     /// <summary>The value below which, at night, the need comes before any work.</summary>
     public int NightThresholdOrLow => NightThreshold ?? LowThreshold;
 
+    /// <summary>Falling below the critical threshold alerts the player (see <c>docs/gdd/gestion.md</c>).</summary>
+    public bool AlertWhenCritical { get; init; }
+
     internal override IEnumerable<string> Validate()
     {
         if (Max <= 0)

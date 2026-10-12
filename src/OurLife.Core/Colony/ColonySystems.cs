@@ -16,5 +16,6 @@ public static class ColonySystems
         simulation.AddSystem(new JobSystem(rules, storage));
         simulation.AddSystem(new MovementSystem());
         simulation.AddSystem(new PlantGrowthSystem());
+        simulation.AddSystem(new AlertSystem(rules));
     }
 }

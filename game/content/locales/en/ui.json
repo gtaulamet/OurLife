@@ -131,5 +131,14 @@
   "ui.inspector.bed_owner": "{name}'s bed",
   "ui.inspector.bed_free": "Free",
   "ui.inspector.has_bed": "Sleeps in their bed",
-  "ui.inspector.no_bed": "No bed"
+  "ui.inspector.no_bed": "No bed",
+  "alert.idle": "{colonist}: idle",
+  "alert.need.hunger": "{colonist}: starving",
+  "ui.colony.button": "Colony (P)",
+  "ui.colony.title": "Colony",
+  "ui.colony.help": "Click: raise the priority; right-click: lower it. 1 is the highest; No, never",
+  "ui.colony.name": "Colonist",
+  "ui.colony.activity": "Activity",
+  "ui.colony.priority": "{priority}",
+  "ui.colony.priority_off": "No"
 }

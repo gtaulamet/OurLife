@@ -70,7 +70,7 @@ Dos condiciones avisan al jugador. Cada una manda **un mensaje al registro** cua
 | `ui.colony.priority` | {priority} | {priority} |
 | `ui.colony.priority_off` | No | No |
 | `event.colonist.idle` | {colonist} no tiene nada que hacer. | {colonist} has nothing to do. |
-| `event.need.hunger.critical` | {colonist} está {colonist_gender, select, female {hambrienta} other {hambriento}}. | {colonist} is starving. |
+| `event.need.hunger.critical` | {colonist} tiene mucha hambre. | {colonist} is starving. |
 | `alert.idle` | {colonist}: sin tarea | {colonist}: idle |
 | `alert.need.hunger` | {colonist}: hambre crítica | {colonist}: starving |
 

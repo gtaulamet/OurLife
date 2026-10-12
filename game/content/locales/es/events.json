@@ -1,5 +1,7 @@
 {
   "event.colony.arrived": "{count, plural, one {Llega # colono} other {Llegan # colonos}} al valle.",
   "event.need.hunger.death": "{colonist} murió de hambre.",
-  "event.colony.lost": "Ya no queda nadie en la aldea. La partida terminó."
+  "event.colony.lost": "Ya no queda nadie en la aldea. La partida terminó.",
+  "event.colonist.idle": "{colonist} no tiene nada que hacer.",
+  "event.need.hunger.critical": "{colonist} tiene mucha hambre."
 }

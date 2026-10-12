@@ -546,32 +546,46 @@ public sealed class DecisionSystem : ISimSystem
         return best;
     }
 
+    /// <summary>
+    /// Looks for work by the colonist's priorities, from the highest (see <c>docs/gdd/gestion.md</c>):
+    /// at each one, its work types of that priority in the order of the defs. A work type it never
+    /// does is skipped.
+    /// </summary>
     private bool TryWork(Simulation simulation, EntityId colonist)
     {
-        foreach (var jobs in _rules.WorkJobs)
+        for (var priority = WorkPriorityLevels.Highest; priority <= WorkPriorityLevels.Lowest; priority++)
         {
-            _candidates.Clear();
-            _cellJobs.Clear();
-            foreach (var kind in jobs)
+            for (var type = 0; type < _rules.WorkTypes.Count; type++)
             {
-                if (IsCellOrder(kind))
+                if (WorkPriorityRules.Of(simulation.World, colonist, _rules.WorkTypes[type].Id, _rules.Ai.DefaultWorkPriority) == priority
+                    && TryWorkType(simulation, colonist, _rules.WorkJobs[type]))
                 {
-                    _cellJobs.Add(kind);
+                    return true;
                 }
-                else
-                {
-                    AddWork(simulation, kind);
-                }
-            }
-
-            AddOrderedCells(simulation, _cellJobs);
-            if (TryCandidates(simulation, colonist))
-            {
-                return true;
             }
         }
 
         return false;
+    }
+
+    private bool TryWorkType(Simulation simulation, EntityId colonist, IReadOnlyList<JobKind> jobs)
+    {
+        _candidates.Clear();
+        _cellJobs.Clear();
+        foreach (var kind in jobs)
+        {
+            if (IsCellOrder(kind))
+            {
+                _cellJobs.Add(kind);
+            }
+            else
+            {
+                AddWork(simulation, kind);
+            }
+        }
+
+        AddOrderedCells(simulation, _cellJobs);
+        return TryCandidates(simulation, colonist);
     }
 
     private void AddWork(Simulation simulation, JobKind kind)

@@ -131,5 +131,14 @@
   "ui.inspector.bed_owner": "Cama de {name}",
   "ui.inspector.bed_free": "Libre",
   "ui.inspector.has_bed": "Duerme en su cama",
-  "ui.inspector.no_bed": "Sin cama"
+  "ui.inspector.no_bed": "Sin cama",
+  "alert.idle": "{colonist}: sin tarea",
+  "alert.need.hunger": "{colonist}: hambre crítica",
+  "ui.colony.button": "Colonia (P)",
+  "ui.colony.title": "Colonia",
+  "ui.colony.help": "Clic: sube la prioridad; clic derecho: la baja. 1 es la más alta; No, nunca",
+  "ui.colony.name": "Colono",
+  "ui.colony.activity": "Actividad",
+  "ui.colony.priority": "{priority}",
+  "ui.colony.priority_off": "No"
 }

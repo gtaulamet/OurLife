@@ -127,6 +127,8 @@ public class NightSleepTests
             NightStartHour = start,
             NightEndHour = end,
             DeconstructRefundPercent = ai.DeconstructRefundPercent,
+            DefaultWorkPriority = ai.DefaultWorkPriority,
+            IdleAlertHours = ai.IdleAlertHours,
         };
 
         config.IsNight(hour).ShouldBe(night);

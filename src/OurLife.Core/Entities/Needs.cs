@@ -36,4 +36,7 @@ public sealed class NeedState
 
     /// <summary>Game minutes the need has spent at zero in a row.</summary>
     public int MinutesAtZero { get; set; }
+
+    /// <summary>The player was told the need went critical; cleared when it is back at its low threshold.</summary>
+    public bool CriticalAlerted { get; set; }
 }

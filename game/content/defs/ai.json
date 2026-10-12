@@ -10,6 +10,8 @@
     "recheckTicks": 30,
     "nightStartHour": 21,
     "nightEndHour": 6,
-    "deconstructRefundPercent": 50
+    "deconstructRefundPercent": 50,
+    "defaultWorkPriority": 3,
+    "idleAlertHours": 2
   }
 ]

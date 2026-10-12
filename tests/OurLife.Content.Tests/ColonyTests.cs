@@ -44,6 +44,26 @@ public class ColonyTests
         }
     }
 
+    [Fact]
+    public void Every_alert_has_its_texts_in_every_language()
+    {
+        var keys = GameContent.Defs.All<NeedDef>()
+            .Where(need => need.AlertWhenCritical)
+            .SelectMany(need => new[] { ColonyAlerts.CriticalEventKey(need), ColonyAlerts.CriticalAlertKey(need) })
+            .Append(ColonyAlerts.IdleEventKey)
+            .Append(ColonyAlerts.IdleAlertKey)
+            .ToList();
+        keys.Count.ShouldBeGreaterThan(2);
+        foreach (var key in keys)
+        {
+            foreach (var catalog in GameContent.Catalogs.Values)
+            {
+                catalog.Messages.ContainsKey(key).ShouldBeTrue($"{catalog.Locale}: missing {key}");
+                catalog.Messages[key].ArgumentNames.ShouldContain("colonist");
+            }
+        }
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(42)]

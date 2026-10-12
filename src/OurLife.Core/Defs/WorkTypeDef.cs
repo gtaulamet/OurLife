@@ -46,3 +46,14 @@ public sealed class WorkTypeDef : Def
         }
     }
 }
+
+/// <summary>The range of the work priorities of a colonist (see <c>docs/gdd/gestion.md</c>).</summary>
+public static class WorkPriorityLevels
+{
+    /// <summary>The colonist never does this work.</summary>
+    public const int Never = 0;
+
+    public const int Highest = 1;
+
+    public const int Lowest = 4;
+}

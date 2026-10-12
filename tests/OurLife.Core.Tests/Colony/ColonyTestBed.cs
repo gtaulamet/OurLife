@@ -42,7 +42,7 @@ internal sealed class ColonyTestBed
           { "type": "Plant", "id": "fruit_tree", "visual": "plant.fruit_tree", "blocksMovement": true,
             "harvest": { "item": "berries", "count": 8, "workTicks": 30 }, "regrowDays": 4 },
           { "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 200, "lowThreshold": 4000,
-            "criticalThreshold": 1500, "deathAfterHoursAtZero": 72, "satisfiedBy": "eating" },
+            "criticalThreshold": 1500, "deathAfterHoursAtZero": 72, "satisfiedBy": "eating", "alertWhenCritical": true },
           { "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 500, "lowThreshold": 3000,
             "criticalThreshold": 1000, "satisfiedBy": "sleeping", "recoveryPerHour": 1200, "nightThreshold": 10000 },
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo", "Sancho", "Pedro"], "female": ["Elvira", "Urraca", "Jimena"] },
@@ -55,7 +55,7 @@ internal sealed class ColonyTestBed
           { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"] },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
-            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50 },
+            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 7000,
             "items": [{ "item": "provisions", "count": 30 }] }
         ]
@@ -139,6 +139,15 @@ internal sealed class ColonyTestBed
         var piles = new List<EntityId>();
         World.Query<ItemStack>(piles);
         return piles.Select(World.Get<ItemStack>).Where(stack => stack.Def == def).Sum(stack => stack.Count);
+    }
+
+    /// <summary>Units of an item lying on one cell.</summary>
+    public int CountItemsAt(string def, TileCoord cell)
+    {
+        var piles = new List<EntityId>();
+        World.Query<ItemStack, Position>(piles);
+        return piles.Where(pile => World.Get<Position>(pile).Cell == cell)
+            .Select(World.Get<ItemStack>).Where(stack => stack.Def == def).Sum(stack => stack.Count);
     }
 
     public List<EntityId> Colonists()
