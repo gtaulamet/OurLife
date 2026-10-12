@@ -14,7 +14,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas |
 | En curso | H2.6 Gestión de la colonia |
-| Validación | `dotnet build` sin advertencias, 478 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 479 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000` (H2.6: estado de las alertas en la huella). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -28,8 +28,7 @@ En orden:
 4. **Probar en el editor** los muebles de H2.5: poner una cama girada con G, ver a un colono dormir en ella y llenar un cofre.
 5. **H2.7 suma la versión para macOS (Apple Silicon)**, junto a la de Windows: ver "Pendientes de IP1 que entran en IP2" en `IP2.md`. Hace falta una Mac para probarla.
 6. **H2.6** (`docs/gdd/gestion.md`):
-   1. Godot: argumentos de entidad en `TextResolver` y registro que fija nombres; panel Colonia (P); lista de alertas del HUD; capturas.
-   2. Revisión de código y cierre.
+   1. Revisión de código y cierre.
 7. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -56,6 +55,11 @@ En orden:
   - `AlertSystem`, último del tick: ocioso si pasea o está sin trabajo `idleAlertHours` seguidas (entre paseo y paseo hay un tick sin trabajo); hambre crítica hasta volver al umbral bajo. Estado en `Colonist.IdleSinceTick`, `Colonist.IdleAlerted` y `NeedState.CriticalAlerted`. Mensajes con el colono como `EntityId`. `ColonyAlerts.Active` para el HUD.
   - Textos de eventos y alertas en es y en (`event.need.hunger.critical` sin concordancia de género: el inglés no la usa y la paridad de argumentos lo exige). Test de contenido de las claves de alertas.
   - Tests: `ManagementTests` (prioridad alta primero en los dos sentidos, acarreo en No y en 4, comando que limpia el valor por defecto e ignora lo inválido, alerta de ocioso que avisa una vez y vuelve a avisar, hambre crítica que termina al comer). La continuidad del guardado incluye prioridades. 478 tests.
+- Avance 3 (Godot):
+  - `ColonyText.Freeze` (Core) cambia un colono de un texto por su nombre y su género (`<arg>_gender`); `TextResolver.Resolve(texto, mundo)` lo usa, y el registro fija los nombres al recibir cada mensaje. Test con un colono que muere después.
+  - Panel Colonia (P, y botón en la barra de arriba): fila por colono con nombre (clic: lo selecciona), actividad y un botón de prioridad por tipo de trabajo; clic pasa a la siguiente (1, 2, 3, 4, No) y clic derecho a la anterior. Texto de ayuda aclarado en la spec.
+  - Lista de alertas bajo la barra de arriba: amarillo los avisos, rojo los peligros, clic selecciona; se rehace cuando cambian las alertas (también al cambiar el tick, porque terminan sin mensaje).
+  - El smoke abre el panel; opción `--colony` para capturas. Capturas revisadas en es y en: cinco alertas de ocioso, el panel y los mensajes con nombres en el registro.
 
 ### 2026-10-12: H2.5 Muebles y camas
 

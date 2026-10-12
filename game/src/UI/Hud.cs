@@ -1,6 +1,7 @@
 using Godot;
 using OurLife.Core.Colony;
 using OurLife.Core.Defs;
+using OurLife.Core.Ecs;
 using OurLife.Core.Sim;
 using OurLife.Game.Bootstrap;
 using OurLife.Game.Input;
@@ -13,7 +14,8 @@ namespace OurLife.Game.UI;
 /// The HUD of a game, drawn over the 3D view (see "HUD de la partida" in
 /// <c>docs/gdd/interfaz-ip1.md</c>): date and clock, time buttons and level on top; the inspector
 /// on the right; the event log, the order hint, the build bar (<c>docs/gdd/construccion.md</c>)
-/// and the orders bar at the bottom. Buttons whose
+/// and the orders bar at the bottom; under the top bar, the alerts under way and the colony panel
+/// (<c>docs/gdd/gestion.md</c>). Buttons whose
 /// text is a key are translated by Godot; texts with arguments are formatted here again when the
 /// language changes. Empty space lets the mouse through to the world.
 /// </summary>
@@ -21,6 +23,10 @@ public partial class Hud : CanvasLayer
 {
     private const int Margin = 12;
     private const int Gap = 8;
+
+    // Colours of the alerts: a warning and a danger.
+    private static readonly Color WarningColor = new(1f, 0.85f, 0.3f);
+    private static readonly Color DangerColor = new(1f, 0.4f, 0.35f);
 
     private readonly Dictionary<DesignationKind, Button> _orderButtons = [];
     private readonly List<(int Speed, Button Button)> _speedButtons = [];
@@ -32,6 +38,8 @@ public partial class Hud : CanvasLayer
     private Label _level = null!;
     private Label _hint = null!;
     private HBoxContainer _buildRow = null!;
+    private VBoxContainer _alerts = null!;
+    private List<(EntityId Colonist, string Key)> _shownAlerts = [];
     private Button _buildButton = null!;
     private Button _pause = null!;
     private long _shownTick = -1;
@@ -39,6 +47,8 @@ public partial class Hud : CanvasLayer
     public InspectorPanel Inspector { get; private set; } = null!;
 
     public EventLog Log { get; private set; } = null!;
+
+    public ColonyPanel Colony { get; private set; } = null!;
 
     public static Hud Create(GameServices services, GameSession session, GameInput input, WorldView view, string colonyName)
     {
@@ -55,6 +65,15 @@ public partial class Hud : CanvasLayer
 
         root.AddChild(hud.BuildTopBar(colonyName));
         root.AddChild(hud.BuildBottom());
+
+        // Under the top bar on the left: the alerts, and the colony panel when it is open.
+        var left = new VBoxContainer { Name = "Left", MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(Margin, 56) };
+        left.AddThemeConstantOverride("separation", Gap);
+        root.AddChild(left);
+        hud._alerts = new VBoxContainer { Name = "Alerts", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        left.AddChild(hud._alerts);
+        hud.Colony = ColonyPanel.Create(services, session, input);
+        left.AddChild(hud.Colony);
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
@@ -78,18 +97,27 @@ public partial class Hud : CanvasLayer
     /// <summary>Follows the events of a frame: new messages for the log, and news for the inspector.</summary>
     public void Apply(IReadOnlyList<ISimEvent> events)
     {
-        Log.Apply(events, _session.Simulation.Calendar);
+        Log.Apply(events, _session.Simulation.Calendar, _session.Simulation.World);
         Inspector.NoteChange();
+        RefreshAlerts(force: false);
     }
 
     public override void _Process(double delta)
     {
+        if (Godot.Input.IsActionJustPressed(InputActions.ToggleColony))
+        {
+            Colony.Toggle();
+        }
+
         // The clock only changes with a tick: no need to format it every frame.
         var tick = _session.Simulation.CurrentTick;
         if (tick != _shownTick)
         {
             _shownTick = tick;
             RefreshDate();
+
+            // An alert also ends without a message, like an idle colonist that took work.
+            RefreshAlerts(force: false);
         }
     }
 
@@ -124,6 +152,10 @@ public partial class Hud : CanvasLayer
             time.AddChild(button);
             _speedButtons.Add((speed, button));
         }
+
+        var colony = new Button { Text = "ui.colony.button", FocusMode = Control.FocusModeEnum.None };
+        colony.Pressed += () => Colony.Toggle();
+        row.AddChild(colony);
 
         _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(120, 0), HorizontalAlignment = HorizontalAlignment.Right };
         row.AddChild(_level);
@@ -180,6 +212,46 @@ public partial class Hud : CanvasLayer
     {
         RefreshAll();
         RefreshBuildBar();
+        RefreshAlerts(force: true);
+    }
+
+    /// <summary>
+    /// One line per alert under way, yellow for a warning and red for a danger; a click selects the
+    /// colonist. The lines are built again only when the alerts change, or with <paramref name="force"/>.
+    /// </summary>
+    private void RefreshAlerts(bool force)
+    {
+        var simulation = _session.Simulation;
+        var alerts = ColonyAlerts.Active(simulation);
+        var shown = alerts.Select(alert => (alert.Colonist, alert.Text.Key)).ToList();
+        if (!force && shown.SequenceEqual(_shownAlerts))
+        {
+            return;
+        }
+
+        _shownAlerts = shown;
+        foreach (var child in _alerts.GetChildren())
+        {
+            _alerts.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        foreach (var alert in alerts)
+        {
+            var line = new Button
+            {
+                Text = _services.Text.Resolve(alert.Text, simulation.World),
+                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled,
+                FocusMode = Control.FocusModeEnum.None,
+                Alignment = HorizontalAlignment.Left,
+            };
+            line.AddThemeColorOverride("font_color", alert.Severity == NotificationSeverity.Danger ? DangerColor : WarningColor);
+            var colonist = alert.Colonist;
+            line.Pressed += () => _input.SelectColonist(colonist);
+            _alerts.AddChild(line);
+        }
+
+        _alerts.Visible = alerts.Count > 0;
     }
 
     private void OnBuildChanged(BuildChoice? build)

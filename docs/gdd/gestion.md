@@ -14,9 +14,9 @@ Spec de H2.6 de IP2: prioridades de trabajo por colono, una lista de la colonia 
 
 - Un panel, **Colonia (P)**, abre y cierra con la tecla P o con su botón en la barra de arriba.
 - Una fila por colono, por nombre: el nombre, lo que hace ("Talando un árbol", "Sin tarea") y un botón por tipo de trabajo con su prioridad ("1" a "4" o "No").
-- Un clic en el botón de prioridad la sube: 1 → 2 → 3 → 4 → No → 1. Clic derecho la baja en sentido inverso. Cada cambio manda un `SetWorkPriorityCommand`; con el tiempo en pausa se aplica en el acto, como las órdenes.
+- Un clic en el botón de prioridad pasa a la siguiente: 1 → 2 → 3 → 4 → No → 1. Clic derecho vuelve a la anterior. Cada cambio manda un `SetWorkPriorityCommand`; con el tiempo en pausa se aplica en el acto, como las órdenes.
 - Un clic en el nombre selecciona al colono y la cámara no se mueve.
-- El encabezado tiene el nombre de cada tipo de trabajo y una línea de ayuda: "Clic: sube la prioridad; clic derecho: la baja. 1 es la más alta; No, nunca".
+- El encabezado tiene el nombre de cada tipo de trabajo, y abajo hay una línea de ayuda.
 
 ## Alertas
 
@@ -64,7 +64,7 @@ Dos condiciones avisan al jugador. Cada una manda **un mensaje al registro** cua
 |---|---|---|
 | `ui.colony.button` | Colonia (P) | Colony (P) |
 | `ui.colony.title` | Colonia | Colony |
-| `ui.colony.help` | Clic: sube la prioridad; clic derecho: la baja. 1 es la más alta; No, nunca | Click: raise the priority; right-click: lower it. 1 is the highest; No, never |
+| `ui.colony.help` | Clic: la prioridad siguiente (1, 2, 3, 4, No); clic derecho: la anterior. 1 es la más alta; No, nunca | Click: next priority (1, 2, 3, 4, No); right-click: the previous one. 1 is the highest; No, never |
 | `ui.colony.name` | Colono | Colonist |
 | `ui.colony.activity` | Actividad | Activity |
 | `ui.colony.priority` | {priority} | {priority} |

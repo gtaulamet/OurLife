@@ -194,3 +194,33 @@ public static class ColonyAlerts
         return alerts;
     }
 }
+
+/// <summary>Texts that name colonists (see "Argumentos con referencias" in <c>docs/i18n.md</c>).</summary>
+public static class ColonyText
+{
+    /// <summary>
+    /// The text with each colonist argument replaced by its name, plus its gender in
+    /// <c>&lt;argument&gt;_gender</c> (<c>female</c> or <c>male</c>): language-independent, so it can be
+    /// translated again after the colonist is gone. Other entities, or colonists no longer alive,
+    /// stay as they are; nested texts are fixed too.
+    /// </summary>
+    public static LocalizedText Freeze(LocalizedText text, World world)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(world);
+        var frozen = text;
+        foreach (var (name, value) in text.Args)
+        {
+            if (value is EntityId entity && world.IsAlive(entity) && world.TryGet<Colonist>(entity, out var colonist))
+            {
+                frozen = frozen.With(name, colonist.Name).With($"{name}_gender", colonist.Gender == Gender.Female ? "female" : "male");
+            }
+            else if (value is LocalizedText nested)
+            {
+                frozen = frozen.With(name, Freeze(nested, world));
+            }
+        }
+
+        return frozen;
+    }
+}

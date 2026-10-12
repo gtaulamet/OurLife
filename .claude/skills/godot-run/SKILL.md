@@ -99,6 +99,7 @@ Van después de `--`:
 | `--inspect-stockpile` | Con `--play` o `--load`, selecciona la primera celda del primer almacén para ver sus filtros en el inspector | H2.3 |
 | `--inspect-blueprint` | Con `--play` o `--load`, selecciona la celda del primer plano para verlo en el inspector | H2.4 |
 | `--build` | Con `--play` o `--load`, enciende la herramienta de construcción para ver su barra | H2.4 |
+| `--colony` | Con `--play` o `--load`, abre el panel Colonia | H2.6 |
 | `--inspect-furniture` | Con `--play` o `--load`, selecciona la celda del primer mueble para verlo en el inspector | H2.5 |
 | `--hour <h>` | Con `--play` o `--load`, después de `--ticks`, lleva la partida hasta esa hora, para capturas del ciclo de día y noche | H2.2 |
 | `--saves <carpeta>` | Carpeta de las partidas guardadas en lugar de `user://saves`, relativa a `game/`. Las capturas y el benchmark sólo guardan y autoguardan si se da | H2.1 |

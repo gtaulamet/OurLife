@@ -136,7 +136,7 @@
   "alert.need.hunger": "{colonist}: hambre crítica",
   "ui.colony.button": "Colonia (P)",
   "ui.colony.title": "Colonia",
-  "ui.colony.help": "Clic: sube la prioridad; clic derecho: la baja. 1 es la más alta; No, nunca",
+  "ui.colony.help": "Clic: la prioridad siguiente (1, 2, 3, 4, No); clic derecho: la anterior. 1 es la más alta; No, nunca",
   "ui.colony.name": "Colono",
   "ui.colony.activity": "Actividad",
   "ui.colony.priority": "{priority}",

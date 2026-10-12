@@ -52,6 +52,9 @@ public sealed record CommandLineOptions
     /// <summary>Select the cell of the first piece of furniture, to see it in the inspector in screenshots (milestone H2.5).</summary>
     public bool InspectFurniture { get; init; }
 
+    /// <summary>Open the colony panel, to see it in screenshots (milestone H2.6).</summary>
+    public bool Colony { get; init; }
+
     /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
     public bool Build { get; init; }
 
@@ -159,6 +162,9 @@ public sealed record CommandLineOptions
                 case "--inspect-furniture":
                     options = options with { InspectFurniture = true };
                     break;
+                case "--colony":
+                    options = options with { Colony = true };
+                    break;
                 case "--build":
                     options = options with { Build = true };
                     break;
@@ -241,7 +247,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}";

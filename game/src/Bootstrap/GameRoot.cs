@@ -424,6 +424,11 @@ public partial class GameRoot : Node
             screen.Input.SelectCell(simulation.World.Get<Position>(pieces[0]).Cell);
         }
 
+        if (options.Colony)
+        {
+            screen.Hud.Colony.Toggle();
+        }
+
         if (options.Build)
         {
             screen.Input.ToggleBuild();
@@ -677,6 +682,8 @@ public partial class GameRoot : Node
             GD.Print("[smoke] a click on a colonist selects it");
         }
 
+        // The colony panel, with a row per colonist and its priorities.
+        screen.Hud.Colony.Toggle();
         screen.Advance(10);
         screen.OpenPauseMenu();
         screen.OpenOptions();
@@ -687,7 +694,7 @@ public partial class GameRoot : Node
         ShowLoadGame();
         ShowLoadError(new SaveLoadException(SaveLoadError.MissingContent, "smoke_def"));
         ShowMainMenu();
-        GD.Print("[smoke] menus built: main, new game, options, pause, save, load, error");
+        GD.Print("[smoke] menus built: main, new game, options, pause, save, load, error, colony");
         _screen?.QueueFree();
         _screen = null;
     }

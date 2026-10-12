@@ -1,4 +1,6 @@
 using System.Globalization;
+using OurLife.Core.Colony;
+using OurLife.Core.Ecs;
 using OurLife.Core.Sim;
 using OurLife.Core.Text;
 using OurLife.Localization;
@@ -7,8 +9,9 @@ namespace OurLife.Game.Localization;
 
 /// <summary>
 /// Turns what the simulation says into text in the current language. Nested
-/// <see cref="LocalizedText"/> arguments are resolved first. Entity and def arguments arrive with
-/// the first text that needs them (see "Argumentos con referencias" in <c>docs/i18n.md</c>).
+/// <see cref="LocalizedText"/> arguments are resolved first. A colonist argument becomes its name,
+/// with its gender in <c>&lt;name&gt;_gender</c> (see "Argumentos con referencias" in
+/// <c>docs/i18n.md</c>); def arguments arrive with the first text that needs them.
 /// </summary>
 public sealed class TextResolver
 {
@@ -18,6 +21,9 @@ public sealed class TextResolver
     {
         _localizer = localizer;
     }
+
+    /// <summary>The text in the current language, with its colonists looked up in <paramref name="world"/> (<see cref="ColonyText.Freeze"/>).</summary>
+    public string Resolve(LocalizedText text, World world) => Resolve(ColonyText.Freeze(text, world));
 
     public string Resolve(LocalizedText text)
     {

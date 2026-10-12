@@ -1,4 +1,5 @@
 using Godot;
+using OurLife.Core.Ecs;
 using OurLife.Core.Sim;
 using OurLife.Core.Text;
 using OurLife.Game.Bootstrap;
@@ -9,7 +10,9 @@ namespace OurLife.Game.UI;
 /// The last messages of the game, newest at the bottom, each with its time, and a line with the
 /// date before the first message of each day (see "HUD de la partida" in
 /// <c>docs/gdd/interfaz-ip1.md</c> and <c>docs/gdd/dia-y-noche.md</c>). It keeps the
-/// <see cref="LocalizedText"/>, not the text, so changing the language translates the whole history.
+/// <see cref="LocalizedText"/>, not the text, so changing the language translates the whole history;
+/// the colonists it names are fixed on arrival (<see cref="Core.Colony.ColonyText.Freeze"/>), so a
+/// colonist who dies later keeps its name in the log.
 /// </summary>
 public partial class EventLog : PanelContainer
 {
@@ -33,17 +36,18 @@ public partial class EventLog : PanelContainer
 
     public override void _ExitTree() => _services.Localizer.LocaleChanged -= OnLocaleChanged;
 
-    /// <summary>Adds the notifications among the events of a frame.</summary>
-    public void Apply(IReadOnlyList<ISimEvent> events, Calendar calendar)
+    /// <summary>Adds the notifications among the events of a frame, with the colonists they name looked up in <paramref name="world"/>.</summary>
+    public void Apply(IReadOnlyList<ISimEvent> events, Calendar calendar, World world)
     {
         ArgumentNullException.ThrowIfNull(events);
         ArgumentNullException.ThrowIfNull(calendar);
+        ArgumentNullException.ThrowIfNull(world);
         var added = false;
         foreach (var simEvent in events)
         {
             if (simEvent is NotificationEvent notification)
             {
-                _entries.Add((calendar.DateAt(notification.Tick), notification.Text));
+                _entries.Add((calendar.DateAt(notification.Tick), Core.Colony.ColonyText.Freeze(notification.Text, world)));
                 added = true;
             }
         }

@@ -111,6 +111,22 @@ public class ManagementTests
         ColonyAlerts.Active(bed.Simulation).ShouldBeEmpty();
     }
 
+    [Fact]
+    public void A_text_fixes_a_colonists_name_and_gender_and_keeps_it_after_the_colonist_is_gone()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var colonist = bed.AddColonist(2, 2, 1, name: "Jimena");
+        var text = Core.Text.LocalizedText.Of("event.colonist.idle").With("colonist", colonist).With("count", 3);
+
+        var frozen = ColonyText.Freeze(text, bed.World);
+        bed.World.DestroyEntity(colonist);
+
+        frozen.Args["colonist"].ShouldBe("Jimena");
+        frozen.Args["colonist_gender"].ShouldBe("female");
+        frozen.Args["count"].ShouldBe(3);
+        ColonyText.Freeze(text, bed.World).Args["colonist"].ShouldBe(colonist);
+    }
+
     /// <summary>Notifications that a colonist is idle, among the events since the last call.</summary>
     private static int IdleAlerts(ColonyTestBed bed) =>
         bed.DrainEvents().OfType<NotificationEvent>().Count(alert => alert.Text.Key == ColonyAlerts.IdleEventKey);
