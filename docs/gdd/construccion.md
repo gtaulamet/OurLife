@@ -131,9 +131,9 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 
 El i18n-specialist ajusta los textos finales; la tabla fija claves y argumentos.
 
-## Pendiente que se evalúa aquí
+## Relieve del valle
 
-- `terrainAmplitude` en `worldgen.json`: se mira con capturas del valle al final del hito si conviene un fondo más parejo para construir. Cambiarlo cambia las huellas.
+- `terrainAmplitude` en `worldgen.json` baja de 3 a 2. Con 3, en la semilla 42 no había un sitio llano de 5 × 5 cerca de la llegada para una casa; con 2 lo hay en las semillas 1, 7 y 42. Cambió las huellas.
 
 ## Criterios de aceptación
 

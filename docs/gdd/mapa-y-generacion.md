@@ -55,7 +55,7 @@ Todo sale del RNG de la simulación, con un flujo por capa (`worldgen.terrain`, 
 | `valleyFloor` | 14 | Deja de 9 a 14 niveles de roca debajo y aire de sobra arriba |
 | `hillHeight` | 9 | Colinas que se ven desde el fondo del valle |
 | `valleyHalfWidth` y `valleyMeander` | 14 y 8 celdas | Un fondo llano de unas 28 celdas que serpentea |
-| `terrainAmplitude` | 3 niveles | Relieve sin terrazas excesivas |
+| `terrainAmplitude` | 2 niveles | Relieve sin terrazas excesivas, con sitios llanos para construir (bajó de 3 en H2.4) |
 | Tierra | De 2 a 5 niveles | Como pide la IP1 |
 | `rockExposureElevation` y `rockExposureWobble` | 7 y 2 niveles | Las cimas muestran roca con un borde irregular |
 | Estratos de abajo hacia arriba, con `strataWobble` 1 | Granito de 6 niveles, caliza de 4, arenisca hasta la tierra | Al cavar desde el fondo del valle se cruzan arenisca y caliza, y el granito aparece unos 8 niveles más abajo |
