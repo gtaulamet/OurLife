@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.4 hechos; sigue H2.5.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.4 hechos; H2.5 en curso.
 
 ## Estado de los hitos
 
@@ -14,7 +14,7 @@
 | H2.2 Día, noche y sueño | Hecho | `ip2/h2-2-dia-noche` | La aldea duerme de 21 a 6, el sol cruza el cielo y el registro muestra el día |
 | H2.3 Almacenes y acarreo | Hecho | `ip2/h2-3-almacenes` | Zonas con filtros por categoría, acarreo con reservas y la carga en las manos |
 | H2.4 Construcción | Hecho | `ip2/h2-4-construccion` | Planos de muro, suelo, puerta, rampa y escalera con material; desmontar y canalizar; `terrainAmplitude` 2 |
-| H2.5 Muebles y camas | Pendiente | `ip2/h2-5-muebles-camas` | |
+| H2.5 Muebles y camas | En curso | `ip2/h2-5-muebles-camas` | Spec `docs/gdd/muebles-y-camas.md` |
 | H2.6 Gestión de la colonia | Pendiente | `ip2/h2-6-gestion` | |
 | H2.7 Integración | Pendiente | `ip2/h2-7-integracion` | |
 

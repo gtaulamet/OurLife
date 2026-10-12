@@ -80,6 +80,7 @@ Revisado en H1.7, el 11 de octubre de 2026:
 | Aldeanos | Provisional: un solo `character-male-a` de Mini Characters, a escala 2 y sin animación (pose de T) | Entre 4 y 6 variantes del mismo kit y una animación de caminar, en H1.8 o en el backlog |
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
+| Muebles (H2.5) | Cama, mesa y silla del Furniture Kit (`bedSingle`, `table`, `chair`); cofre del Survival Kit (`chest`). Estética moderna en la cama y la silla | Variantes medievales propias o de otro kit, en el backlog |
 
 ## Fuente tipográfica
 
