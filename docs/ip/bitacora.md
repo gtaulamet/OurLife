@@ -15,7 +15,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Hitos de IP2 hechos | H2.1 Guardado y carga |
 | En curso | H2.2 Día, noche y sueño |
 | Validación | `dotnet build` sin advertencias, 409 tests en verde, smoke con código 0 con la comprobación de guardado y carga |
-| Huella del smoke | `580DB895C5F5B361` con `--seed 1 --ticks 5000`; `25578FB766A30761` con `--seed 42 --ticks 5000`. Cambiaron en H2.1 porque el nombre de la aldea entra en el estado |
+| Huella del smoke | `19A91FF3BCECB119` con `--seed 1 --ticks 5000`; `9D2B68F847F36435` con `--seed 42 --ticks 5000`. Cambiaron en H2.2 por el sueño nocturno y el balance del descanso |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -23,9 +23,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H2.2** (`docs/gdd/dia-y-noche.md`):
-   1. Ciclo visual de luz, ambiente y cielo en `WorldView`, con la opción en Opciones (guardada en `Settings`) y `--hour` para capturas.
-   2. El día en el registro de eventos (`ui.log.day`).
-   3. Textos es y en, capturas al amanecer, mediodía, atardecer y noche, smoke, revisión de código y cierre.
+   1. Revisión de código, documentación (`overview.md`, skill `godot-run`, `IP2.md`) y cierre.
 2. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1.
 3. Después: H2.3 Almacenes y acarreo.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
@@ -50,7 +48,14 @@ En orden:
 - Avance 1 (Core):
   - `AiConfig` tiene `nightStartHour` y `nightEndHour` (21 a 6 en el contenido; la noche puede cruzar la medianoche). `NeedDef.nightThreshold` (9000 para el descanso): de noche, un colono con el descanso por debajo se acuesta antes que cualquier trabajo. De día sólo duerme con el descanso crítico, y de noche no se levanta aunque esté lleno.
   - Balance: el descanso baja 500 por hora (antes 600) y sube 1200 durmiendo (antes 900): 15 h despierto y 9 h dormido se compensan.
-  - Tests: `NightSleepTests` (se acuestan a las 21 y se levantan a las 6, de día no se acuestan cansados pero sí agotados, siguen durmiendo llenos hasta las 6, noches que cruzan o no la medianoche), validación de los defs y, con el contenido real, la aldea duerme entera a las 2 y nadie duerme al mediodía durante tres días. Los tests del invierno siguen en verde. 418 tests.
+  - Tests: `NightSleepTests` (se acuestan a las 21 y se levantan a las 6, de día no se acuestan cansados pero sí agotados, siguen durmiendo llenos hasta las 6, noches que cruzan o no la medianoche), validación de los defs y, con el contenido real, la aldea duerme entera a las 2 y nadie duerme al mediodía durante tres días. Los tests del invierno siguen en verde. 427 tests.
+- Avance 2 (Godot):
+  - `DayNightCycle` dentro de `WorldView`: el sol cruza el cielo de 6 a 21 y una luna fría hace el mismo arco de noche; luz, ambiente y cielo se mezclan entre amanecer, día, atardecer y noche. Apagado, la luz es la del mediodía de IP1.
+  - Opción "Ciclo de día y noche: Sí | No" en Opciones, guardada en `settings.cfg`.
+  - El registro agrega una línea con la fecha antes del primer mensaje de cada día.
+  - `--hour <h>` lleva la partida hasta esa hora para capturas.
+  - 4 claves nuevas en es y en. Capturas revisadas a las 6, 12, 20 y 0, y Opciones en inglés.
+  - Huellas nuevas del smoke por el balance del descanso (ver Estado actual).
 
 ### 2026-10-11: planificación de IP2
 

@@ -76,7 +76,7 @@ public partial class GameScreen : Node
         {
             screen.Session = GameSession.Create(simulation);
             screen.AddChild(screen.Session);
-            screen.View = WorldView.Create(simulation, catalog, level, distance);
+            screen.View = WorldView.Create(simulation, catalog, () => services.Settings.DayNightCycle, level, distance);
             screen.AddChild(screen.View);
             screen.Session.EventsRead += screen.View.Apply;
             screen.Input = GameInput.Create(screen.Session, screen.View);

@@ -74,6 +74,12 @@ public sealed record CommandLineOptions
     /// </summary>
     public string? Show { get; init; }
 
+    /// <summary>
+    /// Run a game of <c>--play</c> or <c>--load</c>, after <c>--ticks</c>, until this hour, for
+    /// captures of the day and night cycle (milestone H2.2).
+    /// </summary>
+    public int? Hour { get; init; }
+
     /// <summary>The screens <c>--show</c> knows.</summary>
     public static readonly IReadOnlyList<string> Screens = ["load", "save", "error"];
 
@@ -156,6 +162,15 @@ public sealed record CommandLineOptions
                 case "--licenses":
                     options = options with { LicensesPath = ValueAfter(args, ref i) };
                     break;
+                case "--hour":
+                    var hour = NumberAfter<int>(args, ref i);
+                    if (hour is < 0 or > 23)
+                    {
+                        throw new ArgumentException("--hour must be from 0 to 23.");
+                    }
+
+                    options = options with { Hour = hour };
+                    break;
                 case "--saves":
                     options = options with { SavesPath = ValueAfter(args, ref i) };
                     break;
@@ -199,7 +214,8 @@ public sealed record CommandLineOptions
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
         $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
-        $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}";
+        $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
+        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

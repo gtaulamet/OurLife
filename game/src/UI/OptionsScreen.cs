@@ -4,14 +4,15 @@ using OurLife.Game.Bootstrap;
 namespace OurLife.Game.UI;
 
 /// <summary>
-/// Options, from the main menu or the pause menu: the language, applied live, and the fullscreen
-/// mode. Both are saved at once.
+/// Options, from the main menu or the pause menu: the language, applied live, the fullscreen
+/// mode and the day and night cycle. All are saved at once.
 /// </summary>
 public partial class OptionsScreen : Control
 {
     private GameServices _services = null!;
     private readonly List<(string Locale, Button Button)> _languages = [];
     private readonly List<(bool Fullscreen, Button Button)> _modes = [];
+    private readonly List<(bool On, Button Button)> _cycle = [];
 
     public event Action? Closed;
 
@@ -53,9 +54,23 @@ public partial class OptionsScreen : Control
             screen._modes.Add((fullscreen, button));
         }
 
+        column.AddChild(UiBuilder.Caption("ui.options.day_night"));
+        var cycle = new HBoxContainer();
+        cycle.AddThemeConstantOverride("separation", UiBuilder.Gap);
+        column.AddChild(cycle);
+        foreach (var (key, on) in new[] { ("ui.common.on", true), ("ui.common.off", false) })
+        {
+            var button = new Button { Text = key, ToggleMode = true };
+            button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
+            button.Pressed += () => screen.ChooseDayNight(on);
+            cycle.AddChild(button);
+            screen._cycle.Add((on, button));
+        }
+
         column.AddChild(UiBuilder.MenuButton("ui.common.back", () => screen.Closed?.Invoke()));
         screen.RefreshLanguages();
         screen.RefreshModes();
+        screen.RefreshCycle();
         return screen;
     }
 
@@ -87,6 +102,20 @@ public partial class OptionsScreen : Control
         _services.Settings.SetFullscreen(fullscreen);
         _services.Settings.ApplyWindowMode();
         RefreshModes();
+    }
+
+    private void ChooseDayNight(bool on)
+    {
+        _services.Settings.SetDayNightCycle(on);
+        RefreshCycle();
+    }
+
+    private void RefreshCycle()
+    {
+        foreach (var (on, button) in _cycle)
+        {
+            button.SetPressedNoSignal(on == _services.Settings.DayNightCycle);
+        }
     }
 
     private void RefreshModes()

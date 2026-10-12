@@ -6,9 +6,10 @@ using OurLife.Game.Bootstrap;
 namespace OurLife.Game.UI;
 
 /// <summary>
-/// The last messages of the game, newest at the bottom, each with its time (see "HUD de la
-/// partida" in <c>docs/gdd/interfaz-ip1.md</c>). It keeps the <see cref="LocalizedText"/>, not the
-/// text, so changing the language translates the whole history.
+/// The last messages of the game, newest at the bottom, each with its time, and a line with the
+/// date before the first message of each day (see "HUD de la partida" in
+/// <c>docs/gdd/interfaz-ip1.md</c> and <c>docs/gdd/dia-y-noche.md</c>). It keeps the
+/// <see cref="LocalizedText"/>, not the text, so changing the language translates the whole history.
 /// </summary>
 public partial class EventLog : PanelContainer
 {
@@ -63,9 +64,21 @@ public partial class EventLog : PanelContainer
     private void Refresh()
     {
         var text = _services.Text;
-        _text.Text = string.Join(
-            "\n",
-            _entries.Select(entry => text.Format("ui.log.entry", ("clock", text.Clock(entry.Date)), ("text", text.Resolve(entry.Text)))));
+        var lines = new List<string>();
+        (int Year, int Season, int Day)? shownDay = null;
+        foreach (var (date, message) in _entries)
+        {
+            var day = (date.Year, date.SeasonIndex, date.Day);
+            if (day != shownDay)
+            {
+                lines.Add(text.Format("ui.log.day", ("date", text.Date(date))));
+                shownDay = day;
+            }
+
+            lines.Add(text.Format("ui.log.entry", ("clock", text.Clock(date)), ("text", text.Resolve(message))));
+        }
+
+        _text.Text = string.Join("\n", lines);
         Visible = _entries.Count > 0;
     }
 }

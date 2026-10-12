@@ -350,8 +350,8 @@ public partial class GameRoot : Node
     /// <summary>
     /// <c>--play</c>: a game straight away, for screenshots and tests, or <c>--load</c>: the game
     /// of a slot. <c>--orders</c> gives the smoke's orders, <c>--ticks</c> runs time at once,
-    /// <c>--inspect</c> selects the first colonist, <c>--options</c> opens the options over the
-    /// game and <c>--show save</c> the save screen. <c>--benchmark</c> plays the game with the
+    /// <c>--hour</c> runs on until that hour, <c>--inspect</c> selects the first colonist,
+    /// <c>--options</c> opens the options over the game and <c>--show save</c> the save screen. <c>--benchmark</c> plays the game with the
     /// orders and measures it.
     /// </summary>
     private void PlayFromCommandLine(CommandLineOptions options)
@@ -389,6 +389,15 @@ public partial class GameRoot : Node
         }
 
         screen.Advance(options.Ticks ?? 0);
+        if (options.Hour is { } hour)
+        {
+            // Tick by tick, so the clock stops on the hour.
+            while (simulation.CurrentDate.Hour != hour || simulation.CurrentDate.Minute != 0)
+            {
+                screen.Advance(1);
+            }
+        }
+
         if (options.Inspect && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
         {
             screen.Input.SelectColonist(colonists[0]);

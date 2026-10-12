@@ -6,7 +6,8 @@ using OurLife.Game.Input;
 namespace OurLife.Game.Rendering;
 
 /// <summary>
-/// The 3D view of a game (ADR-009): sky colour, light, terrain, entities, order marks and camera.
+/// The 3D view of a game (ADR-009): sky colour and light, which follow the hour with the
+/// <see cref="DayNightCycle"/>, terrain, entities, order marks and camera.
 /// It starts at the highest surface of the map, so the whole valley shows, unless a level is
 /// given. <see cref="Apply"/> follows the events of the simulation.
 /// </summary>
@@ -27,7 +28,8 @@ public partial class WorldView : Node3D
     public event Action<int>? ViewLevelChanged;
 
     /// <summary>Builds the view of a simulation whose world is already generated.</summary>
-    public static WorldView Create(Simulation simulation, VisualCatalog catalog, int? level, int? distance = null)
+    /// <param name="dayNight">Whether the day and night cycle is on; read every frame.</param>
+    public static WorldView Create(Simulation simulation, VisualCatalog catalog, Func<bool> dayNight, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -37,14 +39,11 @@ public partial class WorldView : Node3D
         var view = new WorldView { Name = nameof(WorldView) };
         try
         {
-            view.AddChild(CreateEnvironment());
-            view.AddChild(new DirectionalLight3D
-            {
-                Name = "Sun",
-                RotationDegrees = new Vector3(-50f, 30f, 0f),
-                LightEnergy = 0.9f,
-                ShadowEnabled = true,
-            });
+            var environment = CreateEnvironment();
+            view.AddChild(environment);
+            var sun = new DirectionalLight3D { Name = "Sun", ShadowEnabled = true };
+            view.AddChild(sun);
+            view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, dayNight));
 
             view._map = MapRenderer.Create(map, catalog, viewLevel);
             view.AddChild(view._map);
@@ -98,13 +97,11 @@ public partial class WorldView : Node3D
 
     private static WorldEnvironment CreateEnvironment()
     {
+        // Colours and energies come from the DayNightCycle.
         using var environment = new Godot.Environment
         {
             BackgroundMode = Godot.Environment.BGMode.Color,
-            BackgroundColor = new Color(0.62f, 0.76f, 0.86f),
             AmbientLightSource = Godot.Environment.AmbientSource.Color,
-            AmbientLightColor = new Color(0.85f, 0.88f, 0.95f),
-            AmbientLightEnergy = 0.35f,
         };
 
         // The node keeps its own reference; the C# one is released (see MapRenderer.Fill).
