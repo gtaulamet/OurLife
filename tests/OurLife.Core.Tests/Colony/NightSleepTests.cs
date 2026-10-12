@@ -126,6 +126,7 @@ public class NightSleepTests
             RecheckTicks = ai.RecheckTicks,
             NightStartHour = start,
             NightEndHour = end,
+            DeconstructRefundPercent = ai.DeconstructRefundPercent,
         };
 
         config.IsNight(hour).ShouldBe(night);

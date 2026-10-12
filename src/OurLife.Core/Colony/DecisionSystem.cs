@@ -58,6 +58,16 @@ public sealed class DecisionSystem : ISimSystem
     // Items with no stockpile cell to go to in this search, so the other piles of them are skipped.
     private readonly HashSet<string> _noDestination = new(StringComparer.Ordinal);
 
+    // Blueprints that lack materials and nobody supplies, by ascending id, with the item they lack;
+    // and the items any of them lacks. Found when a work type with deliveries is searched.
+    private readonly List<(EntityId Blueprint, string Item)> _supplyNeeded = [];
+    private readonly HashSet<string> _neededItems = new(StringComparer.Ordinal);
+
+    // Items no blueprint can take from the colonist in this search.
+    private readonly HashSet<string> _noRecipient = new(StringComparer.Ordinal);
+    private readonly List<TileCoord> _recipientSites = [];
+    private readonly List<JobKind> _cellJobs = [];
+
     public DecisionSystem(ColonyRules rules)
         : this(rules, new StorageIndex())
     {
@@ -165,26 +175,31 @@ public sealed class DecisionSystem : ISimSystem
 
     private void Reserve(GameMap map, Job job)
     {
-        // A hauler holds both the pile and the stockpile cell it carries to.
+        // A hauler holds both the pile and the stockpile cell it carries to; a deliverer, the
+        // pile and the blueprint.
         if (job.Kind == JobKind.Haul)
         {
             ReserveCell(map, job.Destination);
+        }
+        else if (job.Kind == JobKind.Deliver)
+        {
+            _entityUses[job.Recipient] = _entityUses.GetValueOrDefault(job.Recipient) + 1;
         }
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
             _entityUses[held] = _entityUses.GetValueOrDefault(held) + 1;
-            if (job.Kind == JobKind.Haul)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver)
             {
                 _hauledPiles.Add(held);
             }
         }
-        else if (job.Kind is JobKind.Mine or JobKind.DigStairs)
+        else if (IsCellOrder(job.Kind))
         {
             ReserveCell(map, job.Cell);
 
-            // Stairs also dig out the cell below, which may have its own order to dig.
-            if (job.Kind == JobKind.DigStairs)
+            // Stairs and channels also dig out the cell below, which may have its own order to dig.
+            if (DigsBelow(job.Kind))
             {
                 ReserveCell(map, job.Cell with { Z = job.Cell.Z - 1 });
             }
@@ -198,31 +213,46 @@ public sealed class DecisionSystem : ISimSystem
         {
             UnreserveCell(map, job.Destination);
         }
+        else if (job.Kind == JobKind.Deliver)
+        {
+            ReleaseEntity(job.Recipient);
+        }
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
-            if (job.Kind == JobKind.Haul)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver)
             {
                 _hauledPiles.Remove(held);
             }
 
-            var uses = _entityUses.GetValueOrDefault(held) - 1;
-            if (uses > 0)
-            {
-                _entityUses[held] = uses;
-            }
-            else
-            {
-                _entityUses.Remove(held);
-            }
+            ReleaseEntity(held);
         }
-        else if (job.Kind is JobKind.Mine or JobKind.DigStairs)
+        else if (IsCellOrder(job.Kind))
         {
             UnreserveCell(map, job.Cell);
-            if (job.Kind == JobKind.DigStairs)
+            if (DigsBelow(job.Kind))
             {
                 UnreserveCell(map, job.Cell with { Z = job.Cell.Z - 1 });
             }
+        }
+    }
+
+    /// <summary>Jobs on cells the player ordered, gathered in one pass by <see cref="AddOrderedCells"/>.</summary>
+    private static bool IsCellOrder(JobKind kind) => kind is JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Deconstruct;
+
+    /// <summary>Jobs that also dig out the cell below theirs.</summary>
+    private static bool DigsBelow(JobKind kind) => kind is JobKind.DigStairs or JobKind.Channel;
+
+    private void ReleaseEntity(EntityId entity)
+    {
+        var uses = _entityUses.GetValueOrDefault(entity) - 1;
+        if (uses > 0)
+        {
+            _entityUses[entity] = uses;
+        }
+        else
+        {
+            _entityUses.Remove(entity);
         }
     }
 
@@ -248,9 +278,12 @@ public sealed class DecisionSystem : ISimSystem
         }
     }
 
-    /// <summary>The entity a job holds: none for a hauler that already lifted its load, which leaves the rest of the pile free.</summary>
+    /// <summary>
+    /// The entity a job holds: none for a hauler or deliverer that already lifted its load, which
+    /// leaves the rest of the pile free.
+    /// </summary>
     private static EntityId HeldEntity(Job job) =>
-        job.Kind == JobKind.Haul && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
+        job.Kind is JobKind.Haul or JobKind.Deliver && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
 
     /// <summary>
     /// A colonist with a job drops it only for something more urgent. It checks every
@@ -394,15 +427,20 @@ public sealed class DecisionSystem : ISimSystem
         foreach (var jobs in _rules.WorkJobs)
         {
             _candidates.Clear();
-            bool mine = false, stairs = false;
+            _cellJobs.Clear();
             foreach (var kind in jobs)
             {
-                mine |= kind == JobKind.Mine;
-                stairs |= kind == JobKind.DigStairs;
-                AddWork(simulation, kind);
+                if (IsCellOrder(kind))
+                {
+                    _cellJobs.Add(kind);
+                }
+                else
+                {
+                    AddWork(simulation, kind);
+                }
             }
 
-            AddOrderedCells(simulation, mine, stairs);
+            AddOrderedCells(simulation, _cellJobs);
             if (TryCandidates(simulation, colonist))
             {
                 return true;
@@ -418,10 +456,6 @@ public sealed class DecisionSystem : ISimSystem
         var map = simulation.Map;
         switch (kind)
         {
-            case JobKind.Mine:
-            case JobKind.DigStairs:
-                // Orders on cells are gathered in one pass by AddOrderedCells.
-                break;
             case JobKind.Chop:
                 world.Query<ChopOrder, Position>(_entities);
                 foreach (var plant in _entities)
@@ -459,15 +493,44 @@ public sealed class DecisionSystem : ISimSystem
                 }
 
                 break;
+            case JobKind.Deliver:
+                // Piles of what some blueprint lacks, stored or not; the blueprint is chosen with the pile.
+                FindSupplyNeeded(simulation);
+                if (_neededItems.Count == 0)
+                {
+                    break;
+                }
+
+                world.Query<ItemStack, Position>(_entities);
+                foreach (var pile in _entities)
+                {
+                    if (_neededItems.Contains(world.Get<ItemStack>(pile).Def))
+                    {
+                        AddEntity(simulation, kind, pile, capacity: 1);
+                    }
+                }
+
+                break;
+            case JobKind.Build:
+                world.Query<Blueprint, Position>(_entities);
+                foreach (var blueprint in _entities)
+                {
+                    if (Construction.Needs(simulation, world.Get<Blueprint>(blueprint)).Missing == 0)
+                    {
+                        AddEntity(simulation, kind, blueprint, capacity: 1);
+                    }
+                }
+
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
         }
     }
 
-    /// <summary>The cells with orders to dig walls or stairs that nobody has taken.</summary>
-    private void AddOrderedCells(Simulation simulation, bool mine, bool stairs)
+    /// <summary>The cells with orders of the given jobs that nobody has taken.</summary>
+    private void AddOrderedCells(Simulation simulation, List<JobKind> jobs)
     {
-        if (!mine && !stairs)
+        if (jobs.Count == 0)
         {
             return;
         }
@@ -476,9 +539,8 @@ public sealed class DecisionSystem : ISimSystem
         RefreshWorkableCells(simulation);
         foreach (var candidate in _workableCells)
         {
-            var wanted = candidate.Kind == JobKind.Mine
-                ? mine && !IsReserved(map, candidate.Cell)
-                : stairs && !IsReserved(map, candidate.Cell) && !IsReserved(map, new TileCoord(candidate.Cell.X, candidate.Cell.Y, candidate.Cell.Z - 1));
+            var wanted = jobs.Contains(candidate.Kind) && !IsReserved(map, candidate.Cell)
+                         && !(DigsBelow(candidate.Kind) && IsReserved(map, candidate.Cell with { Z = candidate.Cell.Z - 1 }));
             if (wanted)
             {
                 _candidates.Add(candidate);
@@ -505,28 +567,46 @@ public sealed class DecisionSystem : ISimSystem
         {
             var cell = map.Size.CoordOf(index);
             var flags = map.FlagsAt(cell);
-            JobKind kind;
-            if ((flags & TileFlags.MineDesignation) != 0 && map.ShapeAt(cell) == TileShape.Wall)
-            {
-                kind = JobKind.Mine;
-            }
-            else if ((flags & TileFlags.StairsDesignation) != 0 && Designations.CanDigStairs(map, cell))
-            {
-                kind = JobKind.DigStairs;
-            }
-            else
-            {
-                continue;
-            }
-
-            WorkSites.Find(map, kind, cell, _sites);
-            if (_sites.Count > 0)
-            {
-                _workableCells.Add(new Candidate(kind, EntityId.None, cell));
-            }
+            AddWorkableCell(map, cell, JobKind.Mine, (flags & TileFlags.MineDesignation) != 0 && Designations.CanMine(map, cell));
+            AddWorkableCell(map, cell, JobKind.DigStairs, (flags & TileFlags.StairsDesignation) != 0 && Designations.CanDigStairs(map, cell));
+            AddWorkableCell(map, cell, JobKind.Channel, (flags & TileFlags.ChannelDesignation) != 0 && Construction.CanChannel(map, cell));
+            AddWorkableCell(
+                map, cell, JobKind.Deconstruct, (flags & TileFlags.DeconstructDesignation) != 0 && Construction.CanDeconstruct(simulation.Content, map, cell));
         }
 
         _workableCellsVersion = version;
+    }
+
+    private void AddWorkableCell(GameMap map, TileCoord cell, JobKind kind, bool ordered)
+    {
+        if (!ordered)
+        {
+            return;
+        }
+
+        WorkSites.Find(map, kind, cell, _sites);
+        if (_sites.Count > 0)
+        {
+            _workableCells.Add(new Candidate(kind, EntityId.None, cell));
+        }
+    }
+
+    /// <summary>The blueprints that lack materials and nobody supplies, and the items they lack.</summary>
+    private void FindSupplyNeeded(Simulation simulation)
+    {
+        var world = simulation.World;
+        _supplyNeeded.Clear();
+        _neededItems.Clear();
+        world.Query<Blueprint, Position>(_entities);
+        foreach (var blueprint in _entities)
+        {
+            var (item, missing) = Construction.Needs(simulation, world.Get<Blueprint>(blueprint));
+            if (missing > 0 && _entityUses.GetValueOrDefault(blueprint) == 0)
+            {
+                _supplyNeeded.Add((blueprint, item));
+                _neededItems.Add(item);
+            }
+        }
     }
 
     private void AddFoodPiles(Simulation simulation)
@@ -608,11 +688,14 @@ public sealed class DecisionSystem : ISimSystem
 
         // Only searches for a path count as attempts: a pile with nowhere to go is skipped for free.
         _noDestination.Clear();
+        _noRecipient.Clear();
         for (int i = 0, attempts = 0; i < reachable.Count && attempts < PathAttempts; i++)
         {
             var candidate = reachable[i].Candidate;
             var destination = default(TileCoord);
-            if (candidate.Kind == JobKind.Haul && !TryDestination(simulation, person, candidate, region, out destination))
+            var recipient = EntityId.None;
+            if ((candidate.Kind == JobKind.Haul && !TryDestination(simulation, person, candidate, region, out destination))
+                || (candidate.Kind == JobKind.Deliver && !TryRecipient(simulation, person, candidate, region, out recipient, out destination)))
             {
                 continue;
             }
@@ -630,6 +713,7 @@ public sealed class DecisionSystem : ISimSystem
                     Cell = candidate.Cell,
                     ForFood = forFood,
                     Destination = destination,
+                    Recipient = recipient,
                 };
                 Assign(simulation, colonist, job, _path);
                 return true;
@@ -690,6 +774,53 @@ public sealed class DecisionSystem : ISimSystem
         if (best == int.MaxValue)
         {
             _noDestination.Add(item);
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// The blueprint nearest the pile that lacks its item, that nobody supplies, the colonist has
+    /// not failed to reach and that can be worked on from the colonist's region. Ties go to the
+    /// lowest id. As with <see cref="TryDestination"/>, a failure holds for every pile of the item.
+    /// </summary>
+    private bool TryRecipient(Simulation simulation, Colonist person, Candidate candidate, int region, out EntityId recipient, out TileCoord destination)
+    {
+        var world = simulation.World;
+        var item = world.Get<ItemStack>(candidate.Target).Def;
+        recipient = EntityId.None;
+        destination = default;
+        if (_noRecipient.Contains(item))
+        {
+            return false;
+        }
+
+        var best = int.MaxValue;
+        foreach (var (blueprint, needed) in _supplyNeeded)
+        {
+            if (needed != item || _entityUses.GetValueOrDefault(blueprint) > 0 || IsIgnored(person, blueprint, default))
+            {
+                continue;
+            }
+
+            var cell = world.Get<Position>(blueprint).Cell;
+            var distance = PathFinder.Estimate(candidate.Cell, cell);
+            if (distance >= best)
+            {
+                continue;
+            }
+
+            WorkSites.Find(simulation.Map, JobKind.Build, cell, _recipientSites);
+            if (AnyInRegion(_recipientSites, simulation.Connectivity, region))
+            {
+                (best, recipient, destination) = (distance, blueprint, cell);
+            }
+        }
+
+        if (recipient.IsNone)
+        {
+            _noRecipient.Add(item);
             return false;
         }
 

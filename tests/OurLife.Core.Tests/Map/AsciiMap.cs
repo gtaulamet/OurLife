@@ -14,13 +14,17 @@ internal static class AsciiMap
     public static GameMap Parse(params string[] levels) => ParseWith([], levels);
 
     /// <summary>Same as <see cref="Parse"/>, but every cell that is not air is made of the first material.</summary>
-    public static GameMap ParseWith(IReadOnlyList<MaterialDef> materials, params string[] levels)
+    public static GameMap ParseWith(IReadOnlyList<MaterialDef> materials, params string[] levels) =>
+        ParseFilled(materials, materials.Count > 0 ? (ushort)0 : GameMap.NoMaterial, levels);
+
+    /// <summary>Same as <see cref="Parse"/>, but every cell that is not air is made of the material at <paramref name="fill"/>.</summary>
+    public static GameMap ParseFilled(IReadOnlyList<MaterialDef> materials, ushort fill, params string[] levels)
     {
         var rows = levels.Select(level => level.Replace("\r", string.Empty).Split('\n')).ToArray();
         var height = rows.Max(level => level.Length);
         var width = rows.SelectMany(level => level).Max(row => row.Length);
         var map = new GameMap(new MapSize(width, height, levels.Length), materials);
-        var material = materials.Count > 0 ? (ushort)0 : GameMap.NoMaterial;
+        var material = fill;
 
         for (var z = 0; z < rows.Length; z++)
         {

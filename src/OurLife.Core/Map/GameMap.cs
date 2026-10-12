@@ -15,7 +15,8 @@ public sealed class GameMap
     public const ushort NoMaterial = ushort.MaxValue;
 
     /// <summary>The flags of the player's orders on cells.</summary>
-    public const TileFlags OrderFlags = TileFlags.MineDesignation | TileFlags.StairsDesignation;
+    public const TileFlags OrderFlags =
+        TileFlags.MineDesignation | TileFlags.StairsDesignation | TileFlags.DeconstructDesignation | TileFlags.ChannelDesignation;
 
     // Beyond this many changes between two reads, connectivity is cheaper to compute again.
     private const int MaxTrackedNavigationChanges = 1024;

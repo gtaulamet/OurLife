@@ -9,6 +9,7 @@
     "unreachableCooldownTicks": 600,
     "recheckTicks": 30,
     "nightStartHour": 21,
-    "nightEndHour": 6
+    "nightEndHour": 6,
+    "deconstructRefundPercent": 50
   }
 ]

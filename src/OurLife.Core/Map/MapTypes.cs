@@ -18,6 +18,9 @@ public enum TileShape : byte
     StairUp,
     StairDown,
     StairUpDown,
+
+    /// <summary>A built door: walked through like a floor (see <c>docs/gdd/construccion.md</c>).</summary>
+    Door,
 }
 
 /// <summary>Ids of the tile shapes, so the presentation keeps no list of its own.</summary>
@@ -33,6 +36,7 @@ public static class TileShapes
         TileShape.StairUp => "stair_up",
         TileShape.StairDown => "stair_down",
         TileShape.StairUpDown => "stair_updown",
+        TileShape.Door => "door",
         _ => throw new ArgumentOutOfRangeException(nameof(shape), shape, null),
     };
 }
@@ -54,6 +58,12 @@ public enum TileFlags : byte
 
     /// <summary>The player ordered to dig stairs down from this cell.</summary>
     StairsDesignation = 8,
+
+    /// <summary>The player ordered to take down what was built on this cell.</summary>
+    DeconstructDesignation = 16,
+
+    /// <summary>The player ordered to dig a channel: open this floor down to the level below.</summary>
+    ChannelDesignation = 32,
 }
 
 /// <summary>A cell of the map. <c>Z</c> grows upwards: 0 is the deepest level.</summary>

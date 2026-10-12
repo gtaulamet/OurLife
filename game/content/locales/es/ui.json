@@ -111,5 +111,16 @@
   "job.eat.report": "Comiendo",
   "job.sleep.report": "Durmiendo",
   "job.wander.report": "Paseando",
-  "job.haul.report": "Acarreando"
+  "job.haul.report": "Acarreando",
+  "job.deliver.report": "Entregando materiales",
+  "job.build.report": "Construyendo",
+  "job.deconstruct.report": "Desmontando",
+  "job.channel.report": "Canalizando",
+  "ui.inspector.shape.door": "puerta",
+  "ui.inspector.order.deconstruct": "Marcado para desmontar",
+  "ui.inspector.order.channel": "Marcado para canalizar",
+  "ui.orders.deconstruct": "Desmontar (V)",
+  "ui.orders.channel": "Canalizar (H)",
+  "ui.orders.name.deconstruct": "Desmontar",
+  "ui.orders.name.channel": "Canalizar"
 }

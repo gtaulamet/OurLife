@@ -26,7 +26,7 @@ public class DefLoaderTests
             "items": [{ "item": "berries", "count": 10 }] },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
-            "nightStartHour": 21, "nightEndHour": 6 }
+            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50 }
         ]
         """;
 
@@ -103,9 +103,9 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "WorkType", "id": "cooking", "order": 0, "jobs": ["cook"] }]""", "'cook' is not a job")]
     [InlineData("""[{ "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "mine"] }]""", "jobs cannot repeat")]
     [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "dwarf", "colonists": 5, "startNeedsMin": 0 }]""", "creature points to 'dwarf'")]
-    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 300, "wanderWaitMax": 60, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 6 }]""", "wander waits")]
-    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 21 }]""", "the night must last")]
-    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 24, "nightEndHour": 6 }]""", "hours from 0 to 23")]
+    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 300, "wanderWaitMax": 60, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50 }]""", "wander waits")]
+    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 21, "deconstructRefundPercent": 50 }]""", "the night must last")]
+    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 24, "nightEndHour": 6, "deconstructRefundPercent": 50 }]""", "hours from 0 to 23")]
     [InlineData("""[{ "type": "Need", "id": "hunger", "max": 100, "decayPerHour": 1, "lowThreshold": 40, "criticalThreshold": 10, "satisfiedBy": "eating", "nightThreshold": 50 }]""", "only needs satisfied by sleeping have nightThreshold")]
     [InlineData("""[{ "type": "Need", "id": "rest", "max": 100, "decayPerHour": 1, "lowThreshold": 40, "criticalThreshold": 10, "satisfiedBy": "sleeping", "recoveryPerHour": 5, "nightThreshold": 20 }]""", "lowThreshold <= nightThreshold <= max")]
     [InlineData("""[{ "type": "Item", "id": "Log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 10 }]""", "invalid id")]
@@ -115,6 +115,12 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Item", "id": "berries", "category": "food", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["winter", "winter"] }]""", "repeats a season")]
     [InlineData("""[{ "type": "Plant", "id": "oak", "visual": "plant.oak", "dormantSeasons": ["winter"] }]""", "only makes sense for a plant that can be gathered")]
     [InlineData("""[{ "type": "Item", "id": "berries", "category": "food", "kind": "food", "visual": "item.berries", "stackLimit": 50, "nutrition": 800 }, { "type": "Plant", "id": "bush", "visual": "plant.bush", "harvest": { "item": "berries", "count": 5, "workTicks": 60 }, "regrowDays": 4, "dormantSeasons": ["spring", "summer", "autumn", "winter"] }]""", "lists every season")]
+    [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 120 }]""", "deconstructRefundPercent must be between")]
+    [InlineData("""[{ "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 10 }, { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 1, "builtFrom": "log", "minedItem": "log", "minedItemChance": 100 }]""", "cannot have a minedItem")]
+    [InlineData("""[{ "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 10 }, { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 1, "builtFrom": "log" }, { "type": "Material", "id": "planks", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 1, "builtFrom": "log" }]""", "are all built from 'log'")]
+    [InlineData("""[{ "type": "Material", "id": "granite", "kind": "stone", "color": "#8A7F7A", "mineWorkTicks": 120 }, { "type": "Buildable", "id": "wall", "shape": "wall", "materials": ["granite"], "cost": 2, "workTicks": 10 }]""", "which has no builtFrom")]
+    [InlineData("""[{ "type": "Buildable", "id": "wall", "shape": "wall", "materials": ["adobe"], "cost": 2, "workTicks": 10 }]""", "materials points to 'adobe'")]
+    [InlineData("""[{ "type": "Buildable", "id": "wall", "shape": "wall", "materials": [], "cost": 0, "workTicks": 10 }]""", "cost must be at least 1")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

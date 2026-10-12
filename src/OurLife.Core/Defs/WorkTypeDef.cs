@@ -9,7 +9,11 @@ namespace OurLife.Core.Defs;
 public sealed class WorkTypeDef : Def
 {
     /// <summary>Jobs done as work, for the player's orders or for the stockpiles, which work types group.</summary>
-    public static readonly IReadOnlyList<JobKind> OrderJobs = [JobKind.Mine, JobKind.DigStairs, JobKind.Chop, JobKind.Harvest, JobKind.Haul];
+    public static readonly IReadOnlyList<JobKind> OrderJobs =
+    [
+        JobKind.Mine, JobKind.DigStairs, JobKind.Channel, JobKind.Chop, JobKind.Harvest,
+        JobKind.Deliver, JobKind.Build, JobKind.Deconstruct, JobKind.Haul,
+    ];
 
     public required int Order { get; init; }
 

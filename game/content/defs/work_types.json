@@ -1,6 +1,7 @@
 [
-  { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs"] },
+  { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs", "channel"] },
   { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"] },
   { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
-  { "type": "WorkType", "id": "hauling", "order": 3, "jobs": ["haul"] }
+  { "type": "WorkType", "id": "construction", "order": 3, "jobs": ["deliver", "build", "deconstruct"] },
+  { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"] }
 ]

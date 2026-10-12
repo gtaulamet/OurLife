@@ -17,7 +17,13 @@ public enum DesignationKind
     /// <summary>Marks a stockpile zone (see <c>docs/gdd/almacenes.md</c>).</summary>
     Stockpile,
 
-    /// <summary>Removes every order in the area, and its cells from the stockpiles.</summary>
+    /// <summary>Takes down what was built (see <c>docs/gdd/construccion.md</c>).</summary>
+    Deconstruct,
+
+    /// <summary>Opens floors down to the level below.</summary>
+    Channel,
+
+    /// <summary>Removes every order and blueprint in the area, and its cells from the stockpiles.</summary>
     Cancel,
 }
 
@@ -32,6 +38,8 @@ public static class DesignationKinds
         DesignationKind.Chop => "chop",
         DesignationKind.Harvest => "harvest",
         DesignationKind.Stockpile => "stockpile",
+        DesignationKind.Deconstruct => "deconstruct",
+        DesignationKind.Channel => "channel",
         DesignationKind.Cancel => "cancel",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
@@ -46,15 +54,7 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
     public void Apply(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        var map = simulation.Map;
-        var size = map.Size;
-        var min = new TileCoord(
-            Math.Max(0, Math.Min(From.X, To.X)), Math.Max(0, Math.Min(From.Y, To.Y)), Math.Max(0, Math.Min(From.Z, To.Z)));
-        var max = new TileCoord(
-            Math.Min(size.Width - 1, Math.Max(From.X, To.X)),
-            Math.Min(size.Height - 1, Math.Max(From.Y, To.Y)),
-            Math.Min(size.Depth - 1, Math.Max(From.Z, To.Z)));
-        if (min.X > max.X || min.Y > max.Y || min.Z > max.Z)
+        if (!Designations.TryClampBox(simulation.Map, From, To, out var min, out var max))
         {
             return;
         }
@@ -70,6 +70,8 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
         {
             case DesignationKind.Mine:
             case DesignationKind.Stairs:
+            case DesignationKind.Deconstruct:
+            case DesignationKind.Channel:
                 MarkCells(simulation, plants, min, max);
                 break;
             case DesignationKind.Chop:
@@ -79,6 +81,7 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
             case DesignationKind.Cancel:
                 Cancel(simulation, plants, min, max);
                 Stockpiles.Unmark(simulation, min, max);
+                Construction.Cancel(simulation, min, max);
                 break;
             default:
                 throw new InvalidOperationException($"Unknown designation {Kind}.");
@@ -108,6 +111,7 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
     {
         var map = simulation.Map;
         var plantCells = plants.Select(plant => plant.Cell).ToHashSet();
+        var planned = Construction.OccupiedCells(simulation);
         for (var z = min.Z; z <= max.Z; z++)
         {
             for (var y = min.Y; y <= max.Y; y++)
@@ -115,14 +119,19 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
                 for (var x = min.X; x <= max.X; x++)
                 {
                     var cell = new TileCoord(x, y, z);
-                    var flags = map.FlagsAt(cell);
-                    if (Kind == DesignationKind.Mine && map.ShapeAt(cell) == TileShape.Wall)
+                    var order = Kind switch
                     {
-                        map.SetFlags(x, y, z, flags | TileFlags.MineDesignation);
-                    }
-                    else if (Kind == DesignationKind.Stairs && Designations.CanOrderStairs(map, cell, plantCells))
+                        DesignationKind.Mine when Designations.CanMine(map, cell) => TileFlags.MineDesignation,
+                        DesignationKind.Stairs when Designations.CanOrderStairs(map, cell, plantCells) => TileFlags.StairsDesignation,
+                        DesignationKind.Deconstruct when Construction.CanDeconstruct(simulation.Content, map, cell) => TileFlags.DeconstructDesignation,
+                        DesignationKind.Channel when !plantCells.Contains(cell) && Construction.CanChannel(map, cell) => TileFlags.ChannelDesignation,
+                        _ => TileFlags.None,
+                    };
+
+                    // Planned cells take no orders to dig: the blueprint would lose its place.
+                    if (order != TileFlags.None && (order == TileFlags.DeconstructDesignation || !planned.Contains(cell)))
                     {
-                        map.SetFlags(x, y, z, flags | TileFlags.StairsDesignation);
+                        map.SetFlags(x, y, z, map.FlagsAt(cell) | order);
                     }
                 }
             }
@@ -176,6 +185,29 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
 /// <summary>Rules about where orders make sense, shared by the command and the colonists' jobs.</summary>
 public static class Designations
 {
+    /// <summary>
+    /// The box between two corners, in any order, cut to the map. False if it lies wholly outside.
+    /// </summary>
+    public static bool TryClampBox(GameMap map, TileCoord from, TileCoord to, out TileCoord min, out TileCoord max)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        var size = map.Size;
+        min = new TileCoord(
+            Math.Max(0, Math.Min(from.X, to.X)), Math.Max(0, Math.Min(from.Y, to.Y)), Math.Max(0, Math.Min(from.Z, to.Z)));
+        max = new TileCoord(
+            Math.Min(size.Width - 1, Math.Max(from.X, to.X)),
+            Math.Min(size.Height - 1, Math.Max(from.Y, to.Y)),
+            Math.Min(size.Depth - 1, Math.Max(from.Z, to.Z)));
+        return min.X <= max.X && min.Y <= max.Y && min.Z <= max.Z;
+    }
+
+    /// <summary>A wall can be dug out: a natural one. What was built is taken down instead.</summary>
+    public static bool CanMine(GameMap map, TileCoord cell)
+    {
+        ArgumentNullException.ThrowIfNull(map);
+        return map.ShapeAt(cell) == TileShape.Wall && !Construction.IsBuilt(map, cell);
+    }
+
     /// <summary>The cells that hold a plant, for the rules that keep orders and arrivals off them.</summary>
     public static HashSet<TileCoord> PlantCells(Simulation simulation)
     {
@@ -197,7 +229,8 @@ public static class Designations
 
     /// <summary>
     /// Stairs down can start on a floor or on stairs up, above the deepest level, over a wall, a
-    /// floor or stairs down. Neither the cell nor the one below can be blocked, by a tree for example.
+    /// floor or stairs down. Neither the cell nor the one below can be blocked, by a tree for
+    /// example, or built: what was built is taken down, not dug.
     /// </summary>
     public static bool CanDigStairs(GameMap map, TileCoord cell)
     {
@@ -209,7 +242,8 @@ public static class Designations
         }
 
         var below = map.ShapeAt(cell.X, cell.Y, cell.Z - 1);
-        return map.ShapeAt(cell) is TileShape.Floor or TileShape.StairUp
+        return !Construction.IsBuilt(map, cell) && !Construction.IsBuilt(map, cell with { Z = cell.Z - 1 })
+               && map.ShapeAt(cell) is TileShape.Floor or TileShape.StairUp
                && below is TileShape.Wall or TileShape.Floor or TileShape.StairDown;
     }
 }

@@ -1,0 +1,7 @@
+[
+  { "type": "Buildable", "id": "wall", "shape": "wall", "materials": ["timber", "masonry"], "cost": 2, "workTicks": 150, "outline": true },
+  { "type": "Buildable", "id": "floor", "shape": "floor", "materials": ["timber", "masonry"], "cost": 1, "workTicks": 60 },
+  { "type": "Buildable", "id": "door", "shape": "door", "materials": ["timber"], "cost": 3, "workTicks": 180 },
+  { "type": "Buildable", "id": "ramp", "shape": "ramp", "materials": ["timber", "masonry"], "cost": 2, "workTicks": 120 },
+  { "type": "Buildable", "id": "stairs", "shape": "stairs", "materials": ["timber", "masonry"], "cost": 3, "workTicks": 200 }
+]

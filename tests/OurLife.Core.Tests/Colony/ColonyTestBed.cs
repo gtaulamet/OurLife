@@ -19,6 +19,13 @@ internal sealed class ColonyTestBed
         [
           { "type": "Material", "id": "rock", "kind": "stone", "color": "#8C7F7D", "mineWorkTicks": 30,
             "minedItem": "stone", "minedItemChance": 10000 },
+          { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 30, "builtFrom": "log" },
+          { "type": "Material", "id": "masonry", "kind": "stone", "color": "#9E9A92", "mineWorkTicks": 30, "builtFrom": "stone" },
+          { "type": "Buildable", "id": "wall", "shape": "wall", "materials": ["timber", "masonry"], "cost": 2, "workTicks": 40, "outline": true },
+          { "type": "Buildable", "id": "floor", "shape": "floor", "materials": ["timber", "masonry"], "cost": 1, "workTicks": 20 },
+          { "type": "Buildable", "id": "door", "shape": "door", "materials": ["timber"], "cost": 3, "workTicks": 40 },
+          { "type": "Buildable", "id": "ramp", "shape": "ramp", "materials": ["timber", "masonry"], "cost": 2, "workTicks": 30 },
+          { "type": "Buildable", "id": "stairs", "shape": "stairs", "materials": ["timber", "masonry"], "cost": 3, "workTicks": 40 },
           { "type": "Item", "id": "stone", "category": "stone", "kind": "raw", "visual": "item.stone", "stackLimit": 25 },
           { "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
           { "type": "Item", "id": "berries", "category": "food", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },
@@ -36,13 +43,14 @@ internal sealed class ColonyTestBed
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo", "Sancho", "Pedro"], "female": ["Elvira", "Urraca", "Jimena"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
-          { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs"] },
+          { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs", "channel"] },
           { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"] },
           { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
-          { "type": "WorkType", "id": "hauling", "order": 3, "jobs": ["haul"] },
+          { "type": "WorkType", "id": "construction", "order": 3, "jobs": ["deliver", "build", "deconstruct"] },
+          { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"] },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
-            "nightStartHour": 21, "nightEndHour": 6 },
+            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50 },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 7000,
             "items": [{ "item": "provisions", "count": 30 }] }
         ]
@@ -58,7 +66,7 @@ internal sealed class ColonyTestBed
     public ColonyTestBed(ulong seed, params string[] levels)
     {
         Simulation = new Simulation(seed, Content);
-        Map = AsciiMap.ParseWith(Content.All<MaterialDef>(), levels);
+        Map = AsciiMap.ParseFilled(Content.All<MaterialDef>(), (ushort)Content.IndexOf<MaterialDef>("rock"), levels);
         Simulation.AttachMap(Map);
         ColonySystems.AddTo(Simulation);
     }

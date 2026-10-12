@@ -19,6 +19,7 @@ public static class WorkSites
         {
             case JobKind.Eat:
             case JobKind.Haul:
+            case JobKind.Deliver:
             case JobKind.Sleep:
             case JobKind.Wander:
                 if (map.IsStandable(target))
@@ -28,6 +29,10 @@ public static class WorkSites
 
                 return;
             case JobKind.Mine:
+            case JobKind.Channel:
+            case JobKind.Build:
+            case JobKind.Deconstruct:
+                // The cell changes shape under the work, or nobody can stand on it yet.
                 AddAround(map, target, sites);
                 return;
             case JobKind.DigStairs:
@@ -69,8 +74,8 @@ public static class WorkSites
 
         return kind switch
         {
-            JobKind.Eat or JobKind.Haul => dx == 0 && dy == 0,
-            JobKind.Mine => Math.Max(dx, dy) == 1,
+            JobKind.Eat or JobKind.Haul or JobKind.Deliver => dx == 0 && dy == 0,
+            JobKind.Mine or JobKind.Channel or JobKind.Build or JobKind.Deconstruct => Math.Max(dx, dy) == 1,
             _ => Math.Max(dx, dy) <= 1,
         };
     }

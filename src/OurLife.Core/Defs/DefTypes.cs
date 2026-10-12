@@ -12,6 +12,7 @@ internal static class DefTypes
         ("Plant", typeof(PlantDef), "plant"),
         ("ItemCategory", typeof(ItemCategoryDef), "item_category"),
         ("Item", typeof(ItemDef), "item"),
+        ("Buildable", typeof(BuildableDef), "buildable"),
         ("Need", typeof(NeedDef), "need"),
         ("Creature", typeof(CreatureDef), "creature"),
         ("NameList", typeof(NameListDef), null),

@@ -111,5 +111,16 @@
   "job.eat.report": "Eating",
   "job.sleep.report": "Sleeping",
   "job.wander.report": "Wandering",
-  "job.haul.report": "Hauling"
+  "job.haul.report": "Hauling",
+  "job.deliver.report": "Delivering materials",
+  "job.build.report": "Building",
+  "job.deconstruct.report": "Deconstructing",
+  "job.channel.report": "Channeling",
+  "ui.inspector.shape.door": "door",
+  "ui.inspector.order.deconstruct": "Marked for deconstruction",
+  "ui.inspector.order.channel": "Marked for a channel",
+  "ui.orders.deconstruct": "Deconstruct (V)",
+  "ui.orders.channel": "Channel (H)",
+  "ui.orders.name.deconstruct": "Deconstruct",
+  "ui.orders.name.channel": "Channel"
 }

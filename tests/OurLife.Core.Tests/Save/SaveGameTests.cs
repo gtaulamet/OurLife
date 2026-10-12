@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Text;
 using OurLife.Core.Colony;
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
@@ -246,7 +247,7 @@ public class SaveGameTests
     public void A_material_the_content_lacks_is_named()
     {
         var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace(
-            "\"Materials\":[\"rock\"]", "\"Materials\":[\"ghost_rock\"]", StringComparison.Ordinal));
+            "\"Materials\":[\"masonry\",\"rock\"", "\"Materials\":[\"masonry\",\"ghost_rock\"", StringComparison.Ordinal));
 
         LoadFails(file).Detail.ShouldBe("ghost_rock");
     }
@@ -311,6 +312,12 @@ public class SaveGameTests
 
         // A stockpile for wood and stone, so colonists haul what they dig and chop.
         bed.Designate(DesignationKind.Stockpile, new TileCoord(9, 14, 1), new TileCoord(12, 15, 1));
+
+        // Walls to build from the logs, a channel to dig and a timber wall to take down.
+        bed.Simulation.Commands.Enqueue(new PlaceBlueprintCommand("wall", "timber", new TileCoord(13, 7, 1), new TileCoord(13, 9, 1)));
+        bed.Designate(DesignationKind.Channel, new TileCoord(0, 14, 1), new TileCoord(1, 15, 1));
+        bed.Map.SetTile(15, 0, 1, TileShape.Wall, (ushort)bed.Simulation.Content.IndexOf<MaterialDef>("timber"), TileFlags.None);
+        bed.Designate(DesignationKind.Deconstruct, new TileCoord(15, 0, 1), new TileCoord(15, 0, 1));
         bed.Simulation.Run(1);
         var zones = new List<EntityId>();
         bed.World.Query<Stockpile>(zones);

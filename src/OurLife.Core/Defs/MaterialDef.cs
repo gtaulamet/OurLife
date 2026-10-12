@@ -6,9 +6,13 @@ public enum MaterialKind
 {
     Soil,
     Stone,
+    Wood,
 }
 
-/// <summary>What a tile of the map is made of: soil or a kind of stone.</summary>
+/// <summary>
+/// What a tile of the map is made of: soil or a kind of stone, or a construction material when it
+/// has <see cref="BuiltFrom"/> (see <c>docs/gdd/construccion.md</c>).
+/// </summary>
 public sealed partial class MaterialDef : Def
 {
     public required MaterialKind Kind { get; init; }
@@ -25,9 +29,16 @@ public sealed partial class MaterialDef : Def
     /// <summary>Chance of leaving <see cref="MinedItem"/>, in basis points: 10 000 means always.</summary>
     public int MinedItemChance { get; init; }
 
+    /// <summary>Item that tiles of this material are built from; null for the natural materials of the valley.</summary>
+    public string? BuiltFrom { get; init; }
+
+    /// <summary>Tiles of this material were built, not found: they are taken down, not dug.</summary>
+    public bool IsBuilt => BuiltFrom is not null;
+
     internal override IEnumerable<DefReference> References()
     {
         yield return new DefReference(typeof(ItemDef), MinedItem, "minedItem");
+        yield return new DefReference(typeof(ItemDef), BuiltFrom, "builtFrom");
     }
 
     internal override IEnumerable<string> Validate()
@@ -50,6 +61,11 @@ public sealed partial class MaterialDef : Def
         if (MinedItem is null && MinedItemChance > 0)
         {
             yield return "minedItemChance needs a minedItem.";
+        }
+
+        if (IsBuilt && MinedItem is not null)
+        {
+            yield return "a built material is taken down, not dug: it cannot have a minedItem.";
         }
     }
 

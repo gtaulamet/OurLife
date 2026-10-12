@@ -30,6 +30,9 @@ public sealed class AiConfigDef : Def
     /// <summary>Hour the night ends. It may be smaller than the start: the night then crosses midnight.</summary>
     public required int NightEndHour { get; init; }
 
+    /// <summary>Share of a buildable's cost that taking it down gives back, in percent (see <c>docs/gdd/construccion.md</c>).</summary>
+    public required int DeconstructRefundPercent { get; init; }
+
     /// <summary>True from <see cref="NightStartHour"/> until just before <see cref="NightEndHour"/>.</summary>
     public bool IsNight(int hour) =>
         NightStartHour < NightEndHour
@@ -70,6 +73,11 @@ public sealed class AiConfigDef : Def
         else if (NightStartHour == NightEndHour)
         {
             yield return "the night must last: nightStartHour and nightEndHour must differ.";
+        }
+
+        if (DeconstructRefundPercent is < 0 or > 100)
+        {
+            yield return "deconstructRefundPercent must be between 0 and 100.";
         }
     }
 }

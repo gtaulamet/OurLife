@@ -29,9 +29,11 @@ public static class SaveTypes
         Component<Harvested>("harvested");
         Component<Stockpile>("stockpile");
         Component<Carried>("carried");
+        Component<Blueprint>("blueprint");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");
+        Command<PlaceBlueprintCommand>("place_blueprint");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

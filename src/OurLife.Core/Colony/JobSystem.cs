@@ -22,6 +22,8 @@ public sealed class JobSystem : ISimSystem
     private readonly List<EntityId> _colonists = [];
     private readonly List<TileCoord> _path = [];
     private readonly List<TileCoord> _goal = [];
+    private readonly List<EntityId> _blueprints = [];
+    private int? _blueprintsCheckedAt;
 
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
     private bool _night;
@@ -60,6 +62,7 @@ public sealed class JobSystem : ISimSystem
         ArgumentNullException.ThrowIfNull(simulation);
         _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
         var world = simulation.World;
+        RemoveSenselessBlueprints(simulation);
         DropLoadsOfOtherJobs(simulation);
         world.Query<Job, Position>(_colonists);
         foreach (var colonist in _colonists)
@@ -95,8 +98,25 @@ public sealed class JobSystem : ISimSystem
     }
 
     /// <summary>
-    /// A colonist who carries something but is no longer taking it to a stockpile, because its
-    /// job ended or something more urgent came, leaves it where it stands.
+    /// Blueprints whose place changed so that their shape no longer fits go away, with what they
+    /// had (see <see cref="Construction.RemoveSenseless"/>). Only the terrain can make them
+    /// senseless, so they are checked only after it changed.
+    /// </summary>
+    private void RemoveSenselessBlueprints(Simulation simulation)
+    {
+        var version = simulation.Map.NavigationVersion;
+        if (_blueprintsCheckedAt == version)
+        {
+            return;
+        }
+
+        Construction.RemoveSenseless(simulation, _blueprints);
+        _blueprintsCheckedAt = simulation.Map.NavigationVersion;
+    }
+
+    /// <summary>
+    /// A colonist who carries something but is no longer taking it to a stockpile or a blueprint,
+    /// because its job ended or something more urgent came, leaves it where it stands.
     /// </summary>
     private void DropLoadsOfOtherJobs(Simulation simulation)
     {
@@ -104,7 +124,7 @@ public sealed class JobSystem : ISimSystem
         world.Query<Carried, Position>(_carriers);
         foreach (var colonist in _carriers)
         {
-            if (world.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Haul && job.Stage == JobStage.Carrying)
+            if (world.TryGet<Job>(colonist, out var job) && job.Kind is JobKind.Haul or JobKind.Deliver && job.Stage == JobStage.Carrying)
             {
                 continue;
             }
@@ -141,6 +161,18 @@ public sealed class JobSystem : ISimSystem
                 // destination is checked on arrival.
                 return job.Stage == JobStage.Carrying
                        || (world.IsAlive(job.Target) && world.Has<ItemStack>(job.Target) && !Storage(simulation).IsStored(simulation, job.Target));
+            case JobKind.Deliver:
+                // The blueprint must be there and, before lifting, still lack something; and so must the pile.
+                return world.IsAlive(job.Recipient) && world.TryGet<Blueprint>(job.Recipient, out var plan)
+                       && (job.Stage == JobStage.Carrying
+                           || (world.IsAlive(job.Target) && world.Has<ItemStack>(job.Target) && Construction.Needs(simulation, plan).Missing > 0));
+            case JobKind.Build:
+                return world.IsAlive(job.Target) && world.TryGet<Blueprint>(job.Target, out var built)
+                       && Construction.Needs(simulation, built).Missing == 0;
+            case JobKind.Deconstruct:
+                return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation.Content, map, job.Cell));
+            case JobKind.Channel:
+                return StillOrdered(simulation, job.Cell, TileFlags.ChannelDesignation, Construction.CanChannel(map, job.Cell));
             default:
                 return true;
         }
@@ -223,9 +255,117 @@ public sealed class JobSystem : ISimSystem
                 return simulation.CurrentTick >= job.UntilTick;
             case JobKind.Haul:
                 return job.Stage == JobStage.Carrying ? Deliver(simulation, colonist, job) : PickUp(simulation, colonist, job);
+            case JobKind.Deliver:
+                return job.Stage == JobStage.Carrying ? Supply(simulation, colonist, job) : PickUp(simulation, colonist, job);
+            case JobKind.Build:
+                return Build(simulation, colonist, job);
+            case JobKind.Deconstruct:
+                return Deconstruct(simulation, colonist, job);
+            case JobKind.Channel:
+                if (AnyColonistOn(simulation, job.Cell))
+                {
+                    return false;
+                }
+
+                var under = simulation.Map.ShapeAt(job.Cell with { Z = job.Cell.Z - 1 }) == TileShape.Wall ? job.Cell with { Z = job.Cell.Z - 1 } : job.Cell;
+                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(under))))
+                {
+                    return false;
+                }
+
+                DigChannel(simulation, job.Cell, simulation.World.Get<Position>(colonist).Cell);
+                return true;
             default:
                 throw new InvalidOperationException($"Unknown job {job.Kind}.");
         }
+    }
+
+    /// <summary>
+    /// Builds a blueprint with all its materials. A wall does not rise over a colonist: the work
+    /// waits while someone stands on the cell.
+    /// </summary>
+    private bool Build(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        var buildable = simulation.Content.Get<BuildableDef>(world.Get<Blueprint>(job.Target).Buildable);
+        if (buildable.Shape == BuildShape.Wall && AnyColonistOn(simulation, world.Get<Position>(job.Target).Cell))
+        {
+            return false;
+        }
+
+        if (!Advance(job, buildable.WorkTicks))
+        {
+            return false;
+        }
+
+        Construction.Finish(simulation, job.Target, world.Get<Position>(colonist).Cell);
+        _storage.Invalidate();
+        return true;
+    }
+
+    /// <summary>
+    /// Takes down what was built, in half the time it took to build. A floor that turns into air
+    /// waits while someone stands on it.
+    /// </summary>
+    private bool Deconstruct(Simulation simulation, EntityId colonist, Job job)
+    {
+        var map = simulation.Map;
+        if (map.ShapeAt(job.Cell) == TileShape.Floor && AnyColonistOn(simulation, job.Cell))
+        {
+            return false;
+        }
+
+        var buildable = Construction.BuildableFor(simulation.Content, map.ShapeAt(job.Cell))!;
+        if (!Advance(job, Math.Max(1, buildable.WorkTicks / 2)))
+        {
+            return false;
+        }
+
+        Construction.TakeDown(simulation, job.Cell, simulation.World.Get<Position>(colonist).Cell, _rules.Ai.DeconstructRefundPercent);
+        _storage.Invalidate();
+        return true;
+    }
+
+    /// <summary>
+    /// Opens the floor to the level below: the cell turns into air and a wall below into a ramp,
+    /// which may leave what digging it would. Piles on the cell fall below if there is ground to
+    /// land on, or else on the worker's cell.
+    /// </summary>
+    private static void DigChannel(Simulation simulation, TileCoord cell, TileCoord worker)
+    {
+        var map = simulation.Map;
+        var below = cell with { Z = cell.Z - 1 };
+        const TileFlags cleared = TileFlags.ChannelDesignation | TileFlags.StairsDesignation | TileFlags.Grass;
+        map.SetTile(cell.X, cell.Y, cell.Z, TileShape.Empty, GameMap.NoMaterial, map.FlagsAt(cell) & ~cleared);
+        var material = map.MaterialAt(below);
+        var dugWall = map.ShapeAt(below) == TileShape.Wall;
+        if (dugWall)
+        {
+            map.SetTile(below.X, below.Y, below.Z, TileShape.Ramp, map.MaterialIndexAt(below.X, below.Y, below.Z), map.FlagsAt(below) & ~TileFlags.MineDesignation);
+        }
+
+        simulation.Events.Emit(new DesignationsChangedEvent(below, cell));
+        Construction.MovePiles(simulation, cell, map.IsStandable(below) ? below : worker);
+        if (dugWall)
+        {
+            DropMinedItem(simulation, material, below);
+        }
+    }
+
+    /// <summary>True if some colonist stands on the cell.</summary>
+    private bool AnyColonistOn(Simulation simulation, TileCoord cell)
+    {
+        var world = simulation.World;
+        world.Query<Colonist, Position>(_blueprints);
+        foreach (var colonist in _blueprints)
+        {
+            if (world.Get<Position>(colonist).Cell == cell)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool Advance(Job job, int workTicks)
@@ -338,16 +478,21 @@ public sealed class JobSystem : ISimSystem
     }
 
     /// <summary>
-    /// Lifts from the pile what fits at the destination and sets off there. True, ending the job
-    /// with nothing lifted, if nothing fits any more or there is no way to the destination; in the
-    /// second case the colonist leaves that cell alone for a while, so it does not choose it again at once.
+    /// Lifts from the pile what fits at the destination, or what the blueprint lacks, and sets off
+    /// there. True, ending the job with nothing lifted, if nothing fits any more or there is no way
+    /// to the destination; in the second case the colonist leaves that cell, or that blueprint,
+    /// alone for a while, so it does not choose it again at once.
     /// </summary>
     private bool PickUp(Simulation simulation, EntityId colonist, Job job)
     {
         var world = simulation.World;
         var stack = world.Get<ItemStack>(job.Target);
         var item = stack.Def;
-        var count = Math.Min(stack.Count, Storage(simulation).SpaceFor(simulation, item, job.Destination));
+        var supplying = job.Kind == JobKind.Deliver;
+        var wanted = supplying
+            ? Construction.Needs(simulation, world.Get<Blueprint>(job.Recipient)).Missing
+            : Storage(simulation).SpaceFor(simulation, item, job.Destination);
+        var count = Math.Min(stack.Count, wanted);
         if (count <= 0)
         {
             return true;
@@ -355,12 +500,21 @@ public sealed class JobSystem : ISimSystem
 
         var from = world.Get<Position>(colonist).Cell;
         _goal.Clear();
-        _goal.Add(job.Destination);
-        if (!simulation.Connectivity.AreConnected(from, job.Destination) || !_paths.TryFind(simulation.Map, from, _goal, _path))
+        if (supplying)
+        {
+            WorkSites.Find(simulation.Map, JobKind.Build, job.Destination, _goal);
+        }
+        else
+        {
+            _goal.Add(job.Destination);
+        }
+
+        _goal.RemoveAll(cell => !simulation.Connectivity.AreConnected(from, cell));
+        if (_goal.Count == 0 || !_paths.TryFind(simulation.Map, from, _goal, _path))
         {
             world.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget
             {
-                Entity = EntityId.None,
+                Entity = supplying ? job.Recipient : EntityId.None,
                 Cell = job.Destination,
                 UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
             });
@@ -377,6 +531,38 @@ public sealed class JobSystem : ISimSystem
         movement.Stop();
         movement.Path.AddRange(_path);
         return false;
+    }
+
+    /// <summary>
+    /// Next to the blueprint, hands over what it lacks. Anything left over stays carried and falls
+    /// where the colonist stands when the job ends.
+    /// </summary>
+    private static bool Supply(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        if (!WorkSites.IsSite(simulation.Map, JobKind.Build, job.Destination, world.Get<Position>(colonist).Cell))
+        {
+            return true;
+        }
+
+        var plan = world.Get<Blueprint>(job.Recipient);
+        var carried = world.Get<Carried>(colonist);
+        var count = Math.Min(carried.Count, Construction.Needs(simulation, plan).Missing);
+        if (count == 0)
+        {
+            return true;
+        }
+
+        plan.Delivered += count;
+        carried.Count -= count;
+        if (carried.Count == 0)
+        {
+            world.Remove<Carried>(colonist);
+        }
+
+        simulation.Events.Emit(new EntityChangedEvent(job.Recipient));
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
+        return true;
     }
 
     /// <summary>

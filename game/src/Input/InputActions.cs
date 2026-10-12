@@ -50,6 +50,8 @@ public static class InputActions
         DesignationKind.Chop => Key.T,
         DesignationKind.Harvest => Key.R,
         DesignationKind.Stockpile => Key.Z,
+        DesignationKind.Deconstruct => Key.V,
+        DesignationKind.Channel => Key.H,
         DesignationKind.Cancel => Key.X,
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "The order has no key."),
     };

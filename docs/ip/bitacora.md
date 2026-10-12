@@ -14,8 +14,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo |
 | En curso | H2.4 Construcción |
-| Validación | `dotnet build` sin advertencias, 439 tests en verde, smoke con código 0 |
-| Huella del smoke | `70636FFDB3474767` con `--seed 1 --ticks 5000`; `0988439535AF5339` con `--seed 42 --ticks 5000`. Cambiaron en H2.3 porque las órdenes del smoke incluyen un almacén |
+| Validación | `dotnet build` sin advertencias, 458 tests en verde, smoke con código 0 |
+| Huella del smoke | `83ED688C1E308AF2` con `--seed 1 --ticks 5000`; `241213DFAECB759E` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: el mapa lista los materiales de construcción y el trabajo tiene `Recipient` |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
 ## Pendientes
@@ -25,9 +25,8 @@ En orden:
 1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
 3. **H2.4** (`docs/gdd/construccion.md`):
-   1. Core: materiales de construcción, def `Buildable`, forma `door`, planos, entregar, construir, desmontar, canalizar, guardado y tests.
-   2. Godot: barra de construcción con material, planos transparentes, pieza de la puerta, órdenes nuevas e inspector.
-   3. Textos es y en, capturas, `terrainAmplitude`, revisión de código y cierre.
+   1. Godot: barra de construcción con material, planos transparentes, pieza de la puerta, órdenes nuevas e inspector.
+   2. Textos de la UI de construcción (`ui.orders.build`, `ui.inspector.blueprint`), capturas, `terrainAmplitude`, revisión de código y cierre.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -48,6 +47,13 @@ En orden:
 
 - Rama `ip2/h2-4-construccion` desde `main`.
 - Avance 1: spec `docs/gdd/construccion.md`. Decisiones: los materiales de construcción son defs `Material` con `builtFrom` (madera desde troncos, mampostería desde piedra) y una celda es construida si su material lo tiene; def `Buildable` con forma, materiales, costo, trabajo y `outline` (el muro marca el borde de la caja); la puerta es una forma nueva del mapa, pisable; los planos son entidades; trabajos `deliver` y `build` en el tipo nuevo `construction` (antes del acarreo), `deconstruct` y `channel` (este en minería); la escalera construida ocupa dos niveles. Atajos: Construir (C), Desmontar (V), Canalizar (H), porque B y D ya están en uso.
+- Avance 2 (Core):
+  - `MaterialDef.builtFrom` y `MaterialKind.Wood`; materiales `timber` y `masonry`. Def `Buildable` (`buildables.json`): muro, suelo, puerta, rampa y escalera. `AiConfig.deconstructRefundPercent` (50). Validaciones: un objeto construye un solo material, un construible sólo usa materiales de construcción y uno construido no tiene `minedItem`.
+  - Forma `Door` del mapa; marcas `DeconstructDesignation` y `ChannelDesignation`. `DesignationKind` suma Desmontar y Canalizar (antes de Cancelar); Excavar y las escaleras sólo toman celdas naturales; Cancelar quita planos y deja lo entregado.
+  - `PlaceBlueprintCommand` y el componente `Blueprint`, registrados en `SaveTypes`. `Construction` reúne las reglas: dónde va cada forma, terminar, desmontar, cancelar y quitar planos que perdieron su lugar (se revisa cuando cambia `NavigationVersion`).
+  - Trabajos `deliver`, `build` y `deconstruct` en el tipo nuevo `construction` (orden 3; acarreo pasa a 4) y `channel` en minería. Entregar funciona como acarrear: la pila más cercana de lo que falta y el plano más cercano a la pila (`Job.Recipient`). Nadie come de una pila que alguien entrega.
+  - Los materiales del contenido se ordenan por id: el banco de pruebas rellena el mapa con `rock` explícitamente (`AsciiMap.ParseFilled`).
+  - Tests: `ConstructionTests` (muro de troncos del almacén, plano que espera material, el muro no sube sobre un colono, borde de la caja, casa de cuatro muros con puerta, canal con rampa, desmontar, escalera de dos niveles, rampa junto a un muro, cancelar, plano que pierde su lugar, órdenes y planos que se excluyen) y validaciones de defs. La continuidad del guardado incluye planos, un canal y un muro por desmontar. 458 tests.
 
 ### 2026-10-11: H2.3 Almacenes y acarreo
 

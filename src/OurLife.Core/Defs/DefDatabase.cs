@@ -151,6 +151,25 @@ public sealed partial class DefDatabase
             }
         }
 
+        var materials = byType.TryGetValue(typeof(MaterialDef), out var materialDefs)
+            ? materialDefs.Values.Cast<MaterialDef>().ToDictionary(material => material.Id, StringComparer.Ordinal)
+            : [];
+        foreach (var clash in materials.Values.Where(material => material.IsBuilt).GroupBy(material => material.BuiltFrom).Where(group => group.Count() > 1))
+        {
+            errors.Add($"Materials {string.Join(", ", clash.Select(material => material.Id))} are all built from '{clash.Key}'; an item builds one material.");
+        }
+
+        if (byType.TryGetValue(typeof(BuildableDef), out var buildableDefs))
+        {
+            foreach (var buildable in buildableDefs.Values.Cast<BuildableDef>())
+            {
+                foreach (var id in buildable.Materials.Where(id => materials.TryGetValue(id, out var material) && !material.IsBuilt))
+                {
+                    errors.Add($"{Describe(buildable)}: materials names '{id}', which has no builtFrom.");
+                }
+            }
+        }
+
         if (errors.Count > 0)
         {
             throw new DefValidationException(errors);
