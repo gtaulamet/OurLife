@@ -14,7 +14,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción |
 | En curso | H2.5 Muebles y camas |
-| Validación | `dotnet build` sin advertencias, 461 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 471 tests en verde, smoke con código 0 |
 | Huella del smoke | `7D097C8EDD26F1AC` con `--seed 1 --ticks 5000`; `B1F8CEE707B258FC` con `--seed 42 --ticks 5000`. Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -26,9 +26,8 @@ En orden:
 2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
 3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
 4. **H2.5** (`docs/gdd/muebles-y-camas.md`):
-   1. Core: `shape: furniture` en `Buildable` con `visual`, `restRecoveryPercent` y `storage`; giro en los planos; `Furniture`, `Bed` y el cofre como almacén; camas en el sueño; desmontar muebles; tests.
-   2. Godot: modelos de muebles girados, tecla G, inspector; la casa del smoke amueblada; capturas.
-   3. Revisión de código y cierre.
+   1. Godot: modelos de muebles girados, tecla G, inspector; la casa del smoke amueblada; capturas.
+   2. Revisión de código y cierre.
 5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
@@ -49,6 +48,13 @@ En orden:
 
 - Rama `ip2/h2-5-muebles-camas` desde `main`.
 - Avance 1: spec `docs/gdd/muebles-y-camas.md`. Los muebles son `Buildable` con `shape: furniture` y reusan planos, entrega, construcción y desmontaje de H2.4. Giro de 0 a 3 con la tecla G. La cama tiene dueño (la toma quien se acuesta sin cama) y da `restRecoveryPercent` 150; el cofre es un almacén de una celda; mesa y silla son decorativas. Modelos: `bedSingle`, `table` y `chair` del Furniture Kit y `chest` del Survival Kit de Kenney (CC0), descargados de kenney.nl.
+- Avance 2 (Core):
+  - `BuildShape.Furniture` con `visual`, `restRecoveryPercent` y `storage` en `Buildable`; `IHasVisual.Visual` admite nulo para los construibles del terreno. Cama, mesa, silla y cofre en `buildables.json` (`order` 10 a 13).
+  - `PlaceBlueprintCommand` lleva `Rotation` (0 a 3), que guardan el plano y el mueble. Componentes `Furniture` y `Bed`, en `SaveTypes`. Al terminarse, la cama suma `Bed` y el cofre un `Stockpile` de su celda.
+  - Reglas: un mueble va en suelo firme, fuera de almacenes y de otros muebles; nada se planea sobre un mueble; un almacén nuevo saltea los muebles y Cancelar no quita un cofre. Desmontar sobre un mueble desmonta el mueble; un mueble que pierde el suelo firme se pierde y deja su reintegro.
+  - Dormir: el colono va a su cama o toma la libre más cercana a la que llega; una cama con dueño muerto está libre. En su cama recupera a `restRecoveryPercent` (150).
+  - Modelos copiados a `game/assets/models/kenney_furniture-kit` y `kenney_survival-kit`, en el catálogo y en `CREDITS.md`.
+  - Tests: `FurnitureTests` (descanso en cama, tomar la cama libre, cama libre al morir el dueño, cofre que recibe troncos y se desmonta, giro, reglas de colocación, almacén y Cancelar con muebles) y validaciones de defs. La continuidad del guardado incluye cama, cofre y una mesa por construir. 471 tests.
 
 ### 2026-10-12: H2.4 Construcción
 

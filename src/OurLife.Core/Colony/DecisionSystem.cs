@@ -289,7 +289,7 @@ public sealed class DecisionSystem : ISimSystem
 
             if ((flags & TileFlags.DeconstructDesignation) != 0)
             {
-                _closingCells.UnionWith(Construction.CellsLeftOpen(map, cell));
+                _closingCells.UnionWith(Construction.CellsLeftOpen(simulation, cell));
             }
         }
     }
@@ -464,8 +464,7 @@ public sealed class DecisionSystem : ISimSystem
         switch (need.SatisfiedBy)
         {
             case NeedSatisfaction.Sleeping:
-                var cell = simulation.World.Get<Position>(colonist).Cell;
-                Assign(simulation, colonist, new Job { Kind = JobKind.Sleep, Cell = cell }, []);
+                GoToSleep(simulation, colonist);
                 return true;
             case NeedSatisfaction.Eating:
                 _candidates.Clear();
@@ -481,6 +480,68 @@ public sealed class DecisionSystem : ISimSystem
             default:
                 return false;
         }
+    }
+
+    /// <summary>
+    /// Sleeps in the colonist's bed, after taking the nearest free one it can reach if it has none
+    /// (see <c>docs/gdd/muebles-y-camas.md</c>); on the ground where it stands if there is no bed
+    /// or no way to it.
+    /// </summary>
+    private void GoToSleep(Simulation simulation, EntityId colonist)
+    {
+        var world = simulation.World;
+        var from = world.Get<Position>(colonist).Cell;
+        if (BedOf(simulation, colonist, from) is { IsNone: false } bed)
+        {
+            var cell = world.Get<Position>(bed).Cell;
+            _goal.Clear();
+            _goal.Add(cell);
+            if (cell == from || _paths.TryFind(simulation.Map, from, _goal, _path))
+            {
+                Assign(simulation, colonist, new Job { Kind = JobKind.Sleep, Target = bed, Cell = cell }, cell == from ? [] : _path);
+                return;
+            }
+        }
+
+        Assign(simulation, colonist, new Job { Kind = JobKind.Sleep, Cell = from }, []);
+    }
+
+    /// <summary>
+    /// The colonist's bed if it can reach it; else the nearest free bed it can reach, which becomes
+    /// its own (ties to the lowest id); else none. A bed whose owner is gone is free.
+    /// </summary>
+    private EntityId BedOf(Simulation simulation, EntityId colonist, TileCoord from)
+    {
+        var world = simulation.World;
+        var connectivity = simulation.Connectivity;
+        world.Query<Bed, Position>(_entities);
+        var owned = _entities.Find(bed => world.Get<Bed>(bed).Owner == colonist);
+        if (!owned.IsNone)
+        {
+            return connectivity.AreConnected(from, world.Get<Position>(owned).Cell) ? owned : EntityId.None;
+        }
+
+        var best = EntityId.None;
+        var bestDistance = int.MaxValue;
+        foreach (var bed in _entities)
+        {
+            var owner = world.Get<Bed>(bed).Owner;
+            var cell = world.Get<Position>(bed).Cell;
+            var distance = PathFinder.Estimate(from, cell);
+            if ((owner.IsNone || !world.IsAlive(owner) || !world.Has<Colonist>(owner)) && distance < bestDistance
+                && connectivity.AreConnected(from, cell))
+            {
+                (best, bestDistance) = (bed, distance);
+            }
+        }
+
+        if (!best.IsNone)
+        {
+            world.Get<Bed>(best).Owner = colonist;
+            simulation.Events.Emit(new EntityChangedEvent(best));
+        }
+
+        return best;
     }
 
     private bool TryWork(Simulation simulation, EntityId colonist)
@@ -632,7 +693,7 @@ public sealed class DecisionSystem : ISimSystem
             AddWorkableCell(map, cell, JobKind.DigStairs, (flags & TileFlags.StairsDesignation) != 0 && Designations.CanDigStairs(map, cell));
             AddWorkableCell(map, cell, JobKind.Channel, (flags & TileFlags.ChannelDesignation) != 0 && Construction.CanChannel(map, cell));
             AddWorkableCell(
-                map, cell, JobKind.Deconstruct, (flags & TileFlags.DeconstructDesignation) != 0 && Construction.CanDeconstruct(simulation.Content, map, cell));
+                map, cell, JobKind.Deconstruct, (flags & TileFlags.DeconstructDesignation) != 0 && Construction.CanDeconstruct(simulation, cell));
         }
 
         _workableCellsVersion = version;

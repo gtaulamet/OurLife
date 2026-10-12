@@ -94,5 +94,17 @@
   "def.buildable.stairs.gender": "female",
   "def.work_type.construction.name": "construcción",
   "def.work_type.construction.desc": "Traer materiales a los planos, construir y desmontar.",
-  "def.work_type.construction.gender": "female"
+  "def.work_type.construction.gender": "female",
+  "def.buildable.bed.name": "cama",
+  "def.buildable.bed.desc": "Un lecho de madera: quien duerme en él descansa más rápido.",
+  "def.buildable.bed.gender": "female",
+  "def.buildable.table.name": "mesa",
+  "def.buildable.table.desc": "Una mesa de madera para la casa.",
+  "def.buildable.table.gender": "female",
+  "def.buildable.chair.name": "silla",
+  "def.buildable.chair.desc": "Una silla de madera.",
+  "def.buildable.chair.gender": "female",
+  "def.buildable.chest.name": "cofre",
+  "def.buildable.chest.desc": "Guarda una pila de objetos, como una celda de almacén.",
+  "def.buildable.chest.gender": "male"
 }

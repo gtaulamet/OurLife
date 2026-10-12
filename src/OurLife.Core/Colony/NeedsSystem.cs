@@ -28,11 +28,12 @@ public sealed class NeedsSystem : ISimSystem
         foreach (var colonist in _colonists)
         {
             var asleep = world.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Sleep && job.Stage == JobStage.Working;
+            var bedPercent = asleep ? BedRecoveryPercent(simulation, colonist, job!) : 100;
             NeedDef? killer = null;
             foreach (var state in world.Get<Needs>(colonist).Values)
             {
                 var need = simulation.Content.Get<NeedDef>(state.Need);
-                var perHour = asleep && need.SatisfiedBy == NeedSatisfaction.Sleeping ? need.RecoveryPerHour : -need.DecayPerHour;
+                var perHour = asleep && need.SatisfiedBy == NeedSatisfaction.Sleeping ? need.RecoveryPerHour * bedPercent / 100 : -need.DecayPerHour;
                 state.Remainder += perHour * minutes;
                 var whole = state.Remainder / MinutesPerHour;
                 state.Remainder -= whole * MinutesPerHour;
@@ -63,6 +64,22 @@ public sealed class NeedsSystem : ISimSystem
     {
         ArgumentNullException.ThrowIfNull(need);
         return $"event.need.{need.Id}.death";
+    }
+
+    /// <summary>
+    /// The rate a sleeper recovers at, in percent: the bed's when it lies on the bed its job is
+    /// for, else the usual 100 (see <c>docs/gdd/muebles-y-camas.md</c>).
+    /// </summary>
+    private static int BedRecoveryPercent(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        if (job.Target.IsNone || !world.IsAlive(job.Target) || !world.TryGet<Furniture>(job.Target, out var furniture)
+            || world.Get<Position>(job.Target).Cell != world.Get<Position>(colonist).Cell)
+        {
+            return 100;
+        }
+
+        return simulation.Content.Get<BuildableDef>(furniture.Buildable).RestRecoveryPercent ?? 100;
     }
 
     private static void Die(Simulation simulation, EntityId colonist, NeedDef need)

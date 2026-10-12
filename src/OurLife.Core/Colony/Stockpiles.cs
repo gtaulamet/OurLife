@@ -75,11 +75,22 @@ public static class Stockpiles
         return piles.Where(pile => storage.IsStored(simulation, pile)).Sum(pile => simulation.World.Get<ItemStack>(pile).Count);
     }
 
-    /// <summary>A new zone, accepting every category, with the free floors of the box that nobody blocks and no zone holds.</summary>
+    /// <summary>
+    /// A new zone, accepting every category, with the free floors of the box that nobody blocks, no
+    /// zone holds and no furniture stands on.
+    /// </summary>
     internal static void Mark(Simulation simulation, TileCoord min, TileCoord max)
     {
         var map = simulation.Map;
         var taken = TakenCells(simulation);
+        var pieces = new List<EntityId>();
+        simulation.World.Query<Furniture, Position>(pieces);
+        foreach (var piece in pieces)
+        {
+            var cell = simulation.World.Get<Position>(piece).Cell;
+            taken.Add(map.Size.IndexOf(cell.X, cell.Y, cell.Z));
+        }
+
         var cells = new List<TileCoord>();
         for (var z = min.Z; z <= max.Z; z++)
         {
@@ -111,7 +122,10 @@ public static class Stockpiles
         simulation.Events.Emit(new StockpilesChangedEvent());
     }
 
-    /// <summary>Takes the cells of the box out of every zone; a zone left without cells is removed.</summary>
+    /// <summary>
+    /// Takes the cells of the box out of every zone; a zone left without cells is removed. A chest is
+    /// furniture: it is taken down, not cancelled.
+    /// </summary>
     internal static void Unmark(Simulation simulation, TileCoord min, TileCoord max)
     {
         var world = simulation.World;
@@ -120,6 +134,11 @@ public static class Stockpiles
         var changed = false;
         foreach (var zone in zones)
         {
+            if (world.Has<Furniture>(zone))
+            {
+                continue;
+            }
+
             var stockpile = world.Get<Stockpile>(zone);
             var removed = stockpile.Cells.RemoveAll(cell =>
                 cell.X >= min.X && cell.X <= max.X && cell.Y >= min.Y && cell.Y <= max.Y && cell.Z >= min.Z && cell.Z <= max.Z);
@@ -141,7 +160,8 @@ public static class Stockpiles
         }
     }
 
-    private static HashSet<int> TakenCells(Simulation simulation)
+    /// <summary>The map indexes of every cell of a zone, chests included.</summary>
+    internal static HashSet<int> TakenCells(Simulation simulation)
     {
         var zones = new List<EntityId>();
         simulation.World.Query<Stockpile>(zones);

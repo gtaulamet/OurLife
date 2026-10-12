@@ -125,5 +125,11 @@
   "ui.orders.name.channel": "Channel",
   "ui.orders.build": "Build (C)",
   "ui.orders.name.build": "Build {material} {buildable}",
-  "ui.inspector.blueprint": "{material} {buildable} blueprint: {delivered} of {cost}"
+  "ui.inspector.blueprint": "{material} {buildable} blueprint: {delivered} of {cost}",
+  "ui.orders.rotate_hint": "G rotates ({quarter} of 4)",
+  "ui.inspector.furniture": "{material} {buildable}",
+  "ui.inspector.bed_owner": "{name}'s bed",
+  "ui.inspector.bed_free": "Free",
+  "ui.inspector.has_bed": "Sleeps in their bed",
+  "ui.inspector.no_bed": "No bed"
 }

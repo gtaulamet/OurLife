@@ -1,4 +1,5 @@
 using OurLife.Core.Defs;
+using OurLife.Core.Ecs;
 
 namespace OurLife.Core.Entities;
 
@@ -15,4 +16,30 @@ public sealed class Blueprint
     public string Material { get; set; } = string.Empty;
 
     public int Delivered { get; set; }
+
+    /// <summary>Quarter turns of a piece of furniture, from 0 to 3, kept when it is built.</summary>
+    public int Rotation { get; set; }
+}
+
+/// <summary>
+/// A piece of furniture on its cell (see <c>docs/gdd/muebles-y-camas.md</c>), turned
+/// <see cref="Rotation"/> quarters. A bed also has <see cref="Bed"/>; a chest, a
+/// <see cref="Stockpile"/> of its one cell.
+/// </summary>
+public sealed class Furniture
+{
+    [DefRef(typeof(BuildableDef))]
+    public string Buildable { get; set; } = string.Empty;
+
+    [DefRef(typeof(MaterialDef))]
+    public string Material { get; set; } = string.Empty;
+
+    /// <summary>Quarter turns, from 0 to 3; only the presentation uses them.</summary>
+    public int Rotation { get; set; }
+}
+
+/// <summary>A bed and the colonist it belongs to; none, or a colonist no longer alive, means it is free.</summary>
+public sealed class Bed
+{
+    public EntityId Owner { get; set; }
 }

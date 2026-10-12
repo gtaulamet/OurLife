@@ -318,6 +318,19 @@ public class SaveGameTests
         bed.Designate(DesignationKind.Channel, new TileCoord(0, 14, 1), new TileCoord(1, 15, 1));
         bed.Map.SetTile(15, 0, 1, TileShape.Wall, (ushort)bed.Simulation.Content.IndexOf<MaterialDef>("timber"), TileFlags.None);
         bed.Designate(DesignationKind.Deconstruct, new TileCoord(15, 0, 1), new TileCoord(15, 0, 1));
+
+        // A finished bed and chest, which a colonist takes and the haulers fill, and a table to build.
+        foreach (var (furniture, x) in new[] { ("bed", 15), ("chest", 14) })
+        {
+            var cell = new TileCoord(x, 10, 1);
+            bed.Simulation.Commands.Enqueue(new PlaceBlueprintCommand(furniture, "timber", cell, cell, Rotation: 1));
+            bed.Simulation.ApplyCommandsNow();
+            var blueprints = new List<EntityId>();
+            bed.World.Query<Blueprint, Position>(blueprints);
+            Construction.Finish(bed.Simulation, blueprints.Single(entity => bed.World.Get<Position>(entity).Cell == cell), cell);
+        }
+
+        bed.Simulation.Commands.Enqueue(new PlaceBlueprintCommand("table", "timber", new TileCoord(15, 11, 1), new TileCoord(15, 11, 1)));
         bed.Simulation.Run(1);
         var zones = new List<EntityId>();
         bed.World.Query<Stockpile>(zones);

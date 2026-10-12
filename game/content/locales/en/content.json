@@ -94,5 +94,17 @@
   "def.buildable.stairs.gender": "other",
   "def.work_type.construction.name": "construction",
   "def.work_type.construction.desc": "Bringing materials to blueprints, building and taking down.",
-  "def.work_type.construction.gender": "other"
+  "def.work_type.construction.gender": "other",
+  "def.buildable.bed.name": "bed",
+  "def.buildable.bed.desc": "A wooden bed: whoever sleeps in it rests faster.",
+  "def.buildable.bed.gender": "other",
+  "def.buildable.table.name": "table",
+  "def.buildable.table.desc": "A wooden table for the house.",
+  "def.buildable.table.gender": "other",
+  "def.buildable.chair.name": "chair",
+  "def.buildable.chair.desc": "A wooden chair.",
+  "def.buildable.chair.gender": "other",
+  "def.buildable.chest.name": "chest",
+  "def.buildable.chest.desc": "Holds one pile of items, like a stockpile cell.",
+  "def.buildable.chest.gender": "other"
 }

@@ -30,6 +30,8 @@ public static class SaveTypes
         Component<Stockpile>("stockpile");
         Component<Carried>("carried");
         Component<Blueprint>("blueprint");
+        Component<Furniture>("furniture");
+        Component<Bed>("bed");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");

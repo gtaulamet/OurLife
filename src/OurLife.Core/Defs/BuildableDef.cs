@@ -10,10 +10,16 @@ public enum BuildShape
 
     /// <summary>Stairs up on the cell and stairs down on the one above.</summary>
     Stairs,
+
+    /// <summary>A piece of furniture: an entity with a model on the cell (see <c>docs/gdd/muebles-y-camas.md</c>).</summary>
+    Furniture,
 }
 
-/// <summary>Something colonists build from a blueprint: a wall, a floor, a door, a ramp or stairs.</summary>
-public sealed class BuildableDef : Def
+/// <summary>
+/// Something colonists build from a blueprint: a wall, a floor, a door, a ramp, stairs, or a piece
+/// of furniture.
+/// </summary>
+public sealed class BuildableDef : Def, IHasVisual
 {
     public required BuildShape Shape { get; init; }
 
@@ -31,6 +37,19 @@ public sealed class BuildableDef : Def
 
     /// <summary>Place in the build bar: lowest first, then by id.</summary>
     public int Order { get; init; }
+
+    /// <summary>The model of a piece of furniture; null for what is part of the terrain.</summary>
+    public string? Visual { get; init; }
+
+    /// <summary>
+    /// The furniture is a bed: whoever sleeps on it recovers rest at this percent of the usual rate.
+    /// </summary>
+    public int? RestRecoveryPercent { get; init; }
+
+    /// <summary>The furniture is a chest: a stockpile of one cell.</summary>
+    public bool Storage { get; init; }
+
+    public bool IsFurniture => Shape == BuildShape.Furniture;
 
     internal override IEnumerable<DefReference> References() =>
         Materials.Select(material => new DefReference(typeof(MaterialDef), material, "materials"));
@@ -55,6 +74,26 @@ public sealed class BuildableDef : Def
         if (WorkTicks < 1)
         {
             yield return "workTicks must be at least 1.";
+        }
+
+        if (IsFurniture != (Visual is not null))
+        {
+            yield return "furniture needs a visual, and only furniture has one.";
+        }
+
+        if (!IsFurniture && (RestRecoveryPercent is not null || Storage))
+        {
+            yield return "only furniture can be a bed (restRecoveryPercent) or a chest (storage).";
+        }
+
+        if (RestRecoveryPercent is <= 0)
+        {
+            yield return "restRecoveryPercent must be positive.";
+        }
+
+        if (RestRecoveryPercent is not null && Storage)
+        {
+            yield return "a piece of furniture is a bed or a chest, not both.";
         }
     }
 }

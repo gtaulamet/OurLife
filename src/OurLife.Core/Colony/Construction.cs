@@ -9,13 +9,15 @@ namespace OurLife.Core.Colony;
 /// <summary>
 /// Places blueprints of a buildable, of one of its materials, on the valid cells of a box, corners
 /// included; only on its border if the buildable is drawn as an outline. Unknown defs, or a
-/// material the buildable does not allow, are ignored.
+/// material the buildable does not allow, are ignored. <paramref name="Rotation"/> turns furniture
+/// by quarters (see <c>docs/gdd/muebles-y-camas.md</c>).
 /// </summary>
 public sealed record PlaceBlueprintCommand(
     [property: DefRef(typeof(BuildableDef))] string Buildable,
     [property: DefRef(typeof(MaterialDef))] string Material,
     TileCoord From,
-    TileCoord To) : ISimCommand
+    TileCoord To,
+    int Rotation = 0) : ISimCommand
 {
     public void Apply(Simulation simulation)
     {
@@ -28,6 +30,10 @@ public sealed record PlaceBlueprintCommand(
 
         var plantCells = Designations.PlantCells(simulation);
         var occupied = Construction.OccupiedCells(simulation);
+
+        // Furniture stays off the stockpiles: piles and furniture would share the cell.
+        var zoneCells = buildable.IsFurniture ? Stockpiles.TakenCells(simulation) : [];
+        var rotation = ((Rotation % 4) + 4) % 4;
         for (var z = min.Z; z <= max.Z; z++)
         {
             for (var y = min.Y; y <= max.Y; y++)
@@ -36,14 +42,15 @@ public sealed record PlaceBlueprintCommand(
                 {
                     var onBorder = x == min.X || x == max.X || y == min.Y || y == max.Y;
                     var cell = new TileCoord(x, y, z);
-                    if ((buildable.Outline && !onBorder) || !Construction.CanPlace(simulation.Map, buildable, cell, plantCells, occupied))
+                    if ((buildable.Outline && !onBorder) || !Construction.CanPlace(simulation.Map, buildable, cell, plantCells, occupied)
+                        || zoneCells.Contains(simulation.Map.Size.IndexOf(x, y, z)))
                     {
                         continue;
                     }
 
                     var blueprint = simulation.World.CreateEntity();
                     simulation.World.Add(blueprint, new Position { X = x, Y = y, Z = z });
-                    simulation.World.Add(blueprint, new Blueprint { Buildable = buildable.Id, Material = Material });
+                    simulation.World.Add(blueprint, new Blueprint { Buildable = buildable.Id, Material = Material, Rotation = rotation });
                     simulation.Events.Emit(new EntitySpawnedEvent(blueprint));
                     foreach (var taken in Construction.CellsOf(buildable.Shape, cell))
                     {
@@ -55,7 +62,10 @@ public sealed record PlaceBlueprintCommand(
     }
 }
 
-/// <summary>The rules of building, taking down and of blueprints (see <c>docs/gdd/construccion.md</c>).</summary>
+/// <summary>
+/// The rules of building, taking down and of blueprints (see <c>docs/gdd/construccion.md</c>), and
+/// of furniture (<c>docs/gdd/muebles-y-camas.md</c>).
+/// </summary>
 public static class Construction
 {
     /// <summary>The cell was built, not found: its material is a construction material.</summary>
@@ -98,21 +108,37 @@ public static class Construction
         }
     }
 
-    /// <summary>The cells the blueprints take, so no other blueprint goes on them.</summary>
+    /// <summary>The cells the blueprints and the furniture take, so no other blueprint goes on them.</summary>
     public static HashSet<TileCoord> OccupiedCells(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
-        var blueprints = new List<EntityId>();
-        world.Query<Blueprint, Position>(blueprints);
+        var entities = new List<EntityId>();
+        world.Query<Blueprint, Position>(entities);
         var cells = new HashSet<TileCoord>();
-        foreach (var blueprint in blueprints)
+        foreach (var blueprint in entities)
         {
             var shape = simulation.Content.Get<BuildableDef>(world.Get<Blueprint>(blueprint).Buildable).Shape;
             cells.UnionWith(CellsOf(shape, world.Get<Position>(blueprint).Cell));
         }
 
+        world.Query<Furniture, Position>(entities);
+        foreach (var furniture in entities)
+        {
+            cells.Add(world.Get<Position>(furniture).Cell);
+        }
+
         return cells;
+    }
+
+    /// <summary>The piece of furniture on the cell, or none. Looks at every piece: for orders and work that end, not for every tick.</summary>
+    public static EntityId FurnitureAt(Simulation simulation, TileCoord cell)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        var pieces = new List<EntityId>();
+        world.Query<Furniture, Position>(pieces);
+        return pieces.Find(piece => world.Get<Position>(piece).Cell == cell);
     }
 
     /// <summary>
@@ -148,6 +174,7 @@ public static class Construction
             BuildShape.Ramp => IsGround(map, cell) && map.ShapeOrEmpty(cell.X, cell.Y, cell.Z + 1) != TileShape.Wall && RampDirection(map, cell),
             BuildShape.Stairs => IsGround(map, cell) && map.ShapeOrEmpty(cell.X, cell.Y, cell.Z + 1) == TileShape.Empty
                                  && cell.Z + 1 < map.Size.Depth,
+            BuildShape.Furniture => IsGround(map, cell),
             _ => false,
         };
     }
@@ -174,10 +201,18 @@ public static class Construction
         return other is { } partner && map.Size.Contains(partner.X, partner.Y, partner.Z) && IsBuilt(map, partner) ? partner : null;
     }
 
-    /// <summary>The cells that taking down what was built on the cell turns into air: a floor, or the upper half of stairs.</summary>
-    public static IEnumerable<TileCoord> CellsLeftOpen(GameMap map, TileCoord cell)
+    /// <summary>
+    /// The cells that taking down what was built on the cell turns into air: a floor, or the upper
+    /// half of stairs. None when a piece of furniture is what goes.
+    /// </summary>
+    public static IEnumerable<TileCoord> CellsLeftOpen(Simulation simulation, TileCoord cell)
     {
-        ArgumentNullException.ThrowIfNull(map);
+        ArgumentNullException.ThrowIfNull(simulation);
+        return FurnitureAt(simulation, cell).IsNone ? TerrainLeftOpen(simulation.Map, cell) : [];
+    }
+
+    private static IEnumerable<TileCoord> TerrainLeftOpen(GameMap map, TileCoord cell)
+    {
         var shape = map.ShapeAt(cell);
         if (shape == TileShape.Floor)
         {
@@ -194,14 +229,25 @@ public static class Construction
     }
 
     /// <summary>
-    /// What was built on the cell can be taken down: it is not air, its material is a construction
-    /// material and some buildable makes its shape.
+    /// What was built on the cell can be taken down: a piece of furniture, or else the cell if it
+    /// is not air, its material is a construction material and some buildable makes its shape.
     /// </summary>
-    public static bool CanDeconstruct(DefDatabase content, GameMap map, TileCoord cell)
+    public static bool CanDeconstruct(Simulation simulation, TileCoord cell)
     {
-        ArgumentNullException.ThrowIfNull(map);
-        return map.Size.Contains(cell.X, cell.Y, cell.Z) && map.ShapeAt(cell) != TileShape.Empty && IsBuilt(map, cell)
-               && BuildableFor(content, map.ShapeAt(cell)) is not null;
+        ArgumentNullException.ThrowIfNull(simulation);
+        var map = simulation.Map;
+        return map.Size.Contains(cell.X, cell.Y, cell.Z)
+               && (!FurnitureAt(simulation, cell).IsNone
+                   || (map.ShapeAt(cell) != TileShape.Empty && IsBuilt(map, cell) && BuildableFor(simulation.Content, map.ShapeAt(cell)) is not null));
+    }
+
+    /// <summary>What taking down the cell's furniture, or else the cell, takes: the buildable that made it.</summary>
+    internal static BuildableDef BuildableToTakeDown(Simulation simulation, TileCoord cell)
+    {
+        var furniture = FurnitureAt(simulation, cell);
+        return furniture.IsNone
+            ? BuildableFor(simulation.Content, simulation.Map.ShapeAt(cell))!
+            : simulation.Content.Get<BuildableDef>(simulation.World.Get<Furniture>(furniture).Buildable);
     }
 
     /// <summary>
@@ -235,10 +281,16 @@ public static class Construction
         var world = simulation.World;
         var map = simulation.Map;
         var plan = world.Get<Blueprint>(blueprint);
-        var shape = simulation.Content.Get<BuildableDef>(plan.Buildable).Shape;
+        var buildable = simulation.Content.Get<BuildableDef>(plan.Buildable);
+        var shape = buildable.Shape;
         var material = (ushort)simulation.Content.IndexOf<MaterialDef>(plan.Material);
         var cell = world.Get<Position>(blueprint).Cell;
         Remove(simulation, blueprint, dropDelivered: false);
+        if (buildable.IsFurniture)
+        {
+            AddFurniture(simulation, buildable, plan, cell);
+            return;
+        }
 
         var result = shape switch
         {
@@ -269,9 +321,21 @@ public static class Construction
     internal static void TakeDown(Simulation simulation, TileCoord cell, TileCoord worker, int refundPercent)
     {
         var map = simulation.Map;
+        if (FurnitureAt(simulation, cell) is { IsNone: false } furniture)
+        {
+            RemoveFurniture(simulation, furniture, refundPercent);
+            if ((map.FlagsAt(cell) & TileFlags.DeconstructDesignation) != 0)
+            {
+                map.SetFlags(cell.X, cell.Y, cell.Z, map.FlagsAt(cell) & ~TileFlags.DeconstructDesignation);
+                simulation.Events.Emit(new DesignationsChangedEvent(cell, cell));
+            }
+
+            return;
+        }
+
         var material = map.MaterialAt(cell)!;
         var buildable = BuildableFor(simulation.Content, map.ShapeAt(cell))!;
-        var leftOpen = CellsLeftOpen(map, cell).ToList();
+        var leftOpen = TerrainLeftOpen(map, cell).ToList();
         switch (map.ShapeAt(cell))
         {
             case TileShape.Wall:
@@ -308,7 +372,7 @@ public static class Construction
                 break;
         }
 
-        var refund = ((buildable.Cost * refundPercent) + 99) / 100;
+        var refund = Refund(buildable, refundPercent);
         if (refund > 0)
         {
             ItemPiles.Drop(simulation, material.BuiltFrom!, refund, map.IsStandable(cell) ? cell : worker);
@@ -338,9 +402,10 @@ public static class Construction
 
     /// <summary>
     /// Takes away the blueprints that stopped making sense because the terrain changed, dropping
-    /// what they had. Only the terrain counts here: orders and plants are kept off planned cells.
+    /// what they had, and the furniture left without firm ground, dropping what taking it down
+    /// would give. Only the terrain counts here: orders and plants are kept off planned cells.
     /// </summary>
-    internal static void RemoveSenseless(Simulation simulation, List<EntityId> buffer)
+    internal static void RemoveSenseless(Simulation simulation, List<EntityId> buffer, int refundPercent)
     {
         var world = simulation.World;
         world.Query<Blueprint, Position>(buffer);
@@ -353,6 +418,72 @@ public static class Construction
             {
                 Remove(simulation, blueprint, dropDelivered: true);
             }
+        }
+
+        world.Query<Furniture, Position>(buffer);
+        foreach (var furniture in buffer)
+        {
+            if (!IsGround(simulation.Map, world.Get<Position>(furniture).Cell))
+            {
+                RemoveFurniture(simulation, furniture, refundPercent);
+            }
+        }
+    }
+
+    /// <summary>Units taking down a buildable gives back: its cost at the percent, rounded up.</summary>
+    private static int Refund(BuildableDef buildable, int refundPercent) => ((buildable.Cost * refundPercent) + 99) / 100;
+
+    /// <summary>
+    /// A finished piece of furniture on the cell: a bed starts free, and a chest is a stockpile of
+    /// its cell that accepts every category.
+    /// </summary>
+    private static void AddFurniture(Simulation simulation, BuildableDef buildable, Blueprint plan, TileCoord cell)
+    {
+        var world = simulation.World;
+        var piece = world.CreateEntity();
+        world.Add(piece, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
+        world.Add(piece, new Furniture { Buildable = buildable.Id, Material = plan.Material, Rotation = plan.Rotation });
+        if (buildable.RestRecoveryPercent is not null)
+        {
+            world.Add(piece, new Bed());
+        }
+
+        if (buildable.Storage)
+        {
+            world.Add(piece, new Stockpile
+            {
+                Cells = [cell],
+                Categories = [.. simulation.Content.All<ItemCategoryDef>().Select(category => category.Id)],
+            });
+            simulation.Events.Emit(new StockpilesChangedEvent());
+        }
+
+        simulation.Events.Emit(new EntitySpawnedEvent(piece));
+    }
+
+    /// <summary>
+    /// Takes a piece of furniture away and gives back part of its cost on its cell, or by it if
+    /// nobody can stand there. What a chest held stays on the cell, loose.
+    /// </summary>
+    private static void RemoveFurniture(Simulation simulation, EntityId piece, int refundPercent)
+    {
+        var world = simulation.World;
+        var furniture = world.Get<Furniture>(piece);
+        var buildable = simulation.Content.Get<BuildableDef>(furniture.Buildable);
+        var cell = world.Get<Position>(piece).Cell;
+        var item = simulation.Content.Get<MaterialDef>(furniture.Material).BuiltFrom!;
+        var wasChest = world.Has<Stockpile>(piece);
+        simulation.Events.Emit(new EntityRemovedEvent(piece));
+        world.DestroyEntity(piece);
+        if (wasChest)
+        {
+            simulation.Events.Emit(new StockpilesChangedEvent());
+        }
+
+        var refund = Refund(buildable, refundPercent);
+        if (refund > 0)
+        {
+            ItemPiles.Drop(simulation, item, refund, StandableNear(simulation.Map, cell));
         }
     }
 

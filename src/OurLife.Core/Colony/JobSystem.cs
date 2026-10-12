@@ -111,7 +111,7 @@ public sealed class JobSystem : ISimSystem
             return;
         }
 
-        Construction.RemoveSenseless(simulation, _blueprints);
+        Construction.RemoveSenseless(simulation, _blueprints, _rules.Ai.DeconstructRefundPercent);
         _blueprintsCheckedAt = simulation.Map.NavigationVersion;
     }
 
@@ -171,7 +171,7 @@ public sealed class JobSystem : ISimSystem
                 return world.IsAlive(job.Target) && world.TryGet<Blueprint>(job.Target, out var built)
                        && Construction.Needs(simulation, built).Missing == 0;
             case JobKind.Deconstruct:
-                return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation.Content, map, job.Cell));
+                return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
                 return StillOrdered(simulation, job.Cell, TileFlags.ChannelDesignation, Construction.CanChannel(map, job.Cell));
             default:
@@ -311,8 +311,7 @@ public sealed class JobSystem : ISimSystem
     /// </summary>
     private bool Deconstruct(Simulation simulation, EntityId colonist, Job job)
     {
-        var map = simulation.Map;
-        foreach (var open in Construction.CellsLeftOpen(map, job.Cell))
+        foreach (var open in Construction.CellsLeftOpen(simulation, job.Cell))
         {
             if (AnyColonistOn(simulation, open))
             {
@@ -320,7 +319,7 @@ public sealed class JobSystem : ISimSystem
             }
         }
 
-        var buildable = Construction.BuildableFor(simulation.Content, map.ShapeAt(job.Cell))!;
+        var buildable = Construction.BuildableToTakeDown(simulation, job.Cell);
         if (!Advance(job, Math.Max(1, buildable.WorkTicks / 2)))
         {
             return false;

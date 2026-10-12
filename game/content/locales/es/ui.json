@@ -125,5 +125,11 @@
   "ui.orders.name.channel": "Canalizar",
   "ui.orders.build": "Construir (C)",
   "ui.orders.name.build": "Construir {buildable} de {material}",
-  "ui.inspector.blueprint": "Plano de {buildable} de {material}: {delivered} de {cost}"
+  "ui.inspector.blueprint": "Plano de {buildable} de {material}: {delivered} de {cost}",
+  "ui.orders.rotate_hint": "G gira ({quarter} de 4)",
+  "ui.inspector.furniture": "{buildable} de {material}",
+  "ui.inspector.bed_owner": "Cama de {name}",
+  "ui.inspector.bed_free": "Libre",
+  "ui.inspector.has_bed": "Duerme en su cama",
+  "ui.inspector.no_bed": "Sin cama"
 }

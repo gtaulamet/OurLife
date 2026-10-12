@@ -123,7 +123,7 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
                     {
                         DesignationKind.Mine when Designations.CanMine(map, cell) => TileFlags.MineDesignation,
                         DesignationKind.Stairs when Designations.CanOrderStairs(map, cell, plantCells) => TileFlags.StairsDesignation,
-                        DesignationKind.Deconstruct when Construction.CanDeconstruct(simulation.Content, map, cell) => TileFlags.DeconstructDesignation,
+                        DesignationKind.Deconstruct when Construction.CanDeconstruct(simulation, cell) => TileFlags.DeconstructDesignation,
                         DesignationKind.Channel when !plantCells.Contains(cell) && Construction.CanChannel(map, cell) => TileFlags.ChannelDesignation,
                         _ => TileFlags.None,
                     };
