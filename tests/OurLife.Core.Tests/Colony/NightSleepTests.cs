@@ -75,6 +75,34 @@ public class NightSleepTests
         bed.JobOf(colonist)?.Kind.ShouldNotBe(JobKind.Sleep);
     }
 
+    [Fact]
+    public void At_night_a_nearly_rested_colonist_goes_to_bed_too()
+    {
+        // Like one who slept by day, exhausted, and woke up at dusk.
+        var bed = RockToDig();
+        bed.Simulation.Run(NightStarts);
+        var colonist = bed.AddColonist(1, 1, 1, rest: 9500);
+
+        bed.Simulation.Run(Recheck);
+
+        bed.JobOf(colonist)!.Kind.ShouldBe(JobKind.Sleep);
+    }
+
+    [Fact]
+    public void A_colonist_woken_by_hunger_at_night_goes_back_to_bed()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        bed.Simulation.Run(NightStarts + 60);
+        var colonist = bed.AddColonist(2, 2, 1, hunger: 1400, rest: 10_000);
+        bed.AddItems("provisions", 5, 4, 4, 1);
+
+        bed.Simulation.Run(Recheck);
+        bed.JobOf(colonist)!.Kind.ShouldBe(JobKind.Eat);
+
+        bed.Simulation.Run(3 * 60);
+        bed.JobOf(colonist)!.Kind.ShouldBe(JobKind.Sleep);
+    }
+
     [Theory]
     [InlineData(21, 6, 20, false)]
     [InlineData(21, 6, 21, true)]

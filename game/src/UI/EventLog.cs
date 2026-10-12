@@ -13,7 +13,8 @@ namespace OurLife.Game.UI;
 /// </summary>
 public partial class EventLog : PanelContainer
 {
-    private const int Shown = 6;
+    // Lines of the panel, day lines included.
+    private const int Shown = 7;
 
     private readonly List<(GameDate Date, LocalizedText Text)> _entries = [];
     private GameServices _services = null!;
@@ -61,21 +62,36 @@ public partial class EventLog : PanelContainer
 
     private void OnLocaleChanged(string locale) => Refresh();
 
+    private static bool SameDay(GameDate a, GameDate b) => a.Year == b.Year && a.SeasonIndex == b.SeasonIndex && a.Day == b.Day;
+
     private void Refresh()
     {
+        // From the newest back, day by day, until the lines fill the panel: each day shows its
+        // date and its newest messages, and the panel never grows past its lines.
         var text = _services.Text;
         var lines = new List<string>();
-        (int Year, int Season, int Day)? shownDay = null;
-        foreach (var (date, message) in _entries)
+        var end = _entries.Count;
+        while (end > 0 && lines.Count + 2 <= Shown)
         {
-            var day = (date.Year, date.SeasonIndex, date.Day);
-            if (day != shownDay)
+            var date = _entries[end - 1].Date;
+            var start = end;
+            while (start > 0 && SameDay(_entries[start - 1].Date, date) && lines.Count + 1 + (end - start + 1) <= Shown)
             {
-                lines.Add(text.Format("ui.log.day", ("date", text.Date(date))));
-                shownDay = day;
+                start--;
             }
 
-            lines.Add(text.Format("ui.log.entry", ("clock", text.Clock(date)), ("text", text.Resolve(message))));
+            var block = new List<string> { text.Format("ui.log.day", ("date", text.Date(date))) };
+            for (var i = start; i < end; i++)
+            {
+                block.Add(text.Format("ui.log.entry", ("clock", text.Clock(_entries[i].Date)), ("text", text.Resolve(_entries[i].Text))));
+            }
+
+            lines.InsertRange(0, block);
+            end = start;
+            while (end > 0 && SameDay(_entries[end - 1].Date, date))
+            {
+                end--;
+            }
         }
 
         _text.Text = string.Join("\n", lines);

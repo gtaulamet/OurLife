@@ -107,7 +107,7 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 21 }]""", "the night must last")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 24, "nightEndHour": 6 }]""", "hours from 0 to 23")]
     [InlineData("""[{ "type": "Need", "id": "hunger", "max": 100, "decayPerHour": 1, "lowThreshold": 40, "criticalThreshold": 10, "satisfiedBy": "eating", "nightThreshold": 50 }]""", "only needs satisfied by sleeping have nightThreshold")]
-    [InlineData("""[{ "type": "Need", "id": "rest", "max": 100, "decayPerHour": 1, "lowThreshold": 40, "criticalThreshold": 10, "satisfiedBy": "sleeping", "recoveryPerHour": 5, "nightThreshold": 5 }]""", "criticalThreshold < nightThreshold <= max")]
+    [InlineData("""[{ "type": "Need", "id": "rest", "max": 100, "decayPerHour": 1, "lowThreshold": 40, "criticalThreshold": 10, "satisfiedBy": "sleeping", "recoveryPerHour": 5, "nightThreshold": 20 }]""", "lowThreshold <= nightThreshold <= max")]
     [InlineData("""[{ "type": "Item", "id": "Log", "kind": "raw", "visual": "item.log", "stackLimit": 10 }]""", "invalid id")]
     [InlineData("""[{ "type": "Era", "id": "second_age", "order": 0 }]""", "share order 0")]
     [InlineData("""[{ "type": "TimeConfig", "id": "other_time", "ticksPerSecond": 10, "minutesPerTick": 1, "daysPerSeason": 15, "seasons": ["spring"], "startYear": 1200, "startHour": 6 }]""", "exactly one TimeConfig")]

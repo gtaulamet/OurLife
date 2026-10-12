@@ -391,11 +391,11 @@ public partial class GameRoot : Node
         screen.Advance(options.Ticks ?? 0);
         if (options.Hour is { } hour)
         {
-            // Tick by tick, so the clock stops on the hour.
-            while (simulation.CurrentDate.Hour != hour || simulation.CurrentDate.Minute != 0)
-            {
-                screen.Advance(1);
-            }
+            // The first tick at or after that hour; within the next day.
+            var date = simulation.CurrentDate;
+            var minutes = ((hour * 60) - ((date.Hour * 60) + date.Minute) + TimeSettings.MinutesPerDay) % TimeSettings.MinutesPerDay;
+            var perTick = simulation.Time.MinutesPerTick;
+            screen.Advance((minutes + perTick - 1) / perTick);
         }
 
         if (options.Inspect && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))

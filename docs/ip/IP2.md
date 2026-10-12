@@ -4,14 +4,14 @@
 
 **Estimación:** 77 a 101 h, igual que `plan-maestro.md` (sección 7.3). **Versión al cerrar:** `v0.2.0`.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 hecho; sigue H2.2 o H2.3, que pueden ir en paralelo.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 y H2.2 hechos; sigue H2.3.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | H2.1 Guardado y carga | Hecho | `ip2/h2-1-guardado` | Partidas en ZIP con JSON, ranuras, autoguardado diario y pantalla de error; continuidad probada en tres semillas |
-| H2.2 Día, noche y sueño | Pendiente | `ip2/h2-2-dia-noche` | |
+| H2.2 Día, noche y sueño | Hecho | `ip2/h2-2-dia-noche` | La aldea duerme de 21 a 6, el sol cruza el cielo y el registro muestra el día |
 | H2.3 Almacenes y acarreo | Pendiente | `ip2/h2-3-almacenes` | |
 | H2.4 Construcción | Pendiente | `ip2/h2-4-construccion` | |
 | H2.5 Muebles y camas | Pendiente | `ip2/h2-5-muebles-camas` | |
@@ -123,3 +123,30 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - `--show save` falla sin `--saves`, o sin `--play` ni `--load`.
 - La caché de propiedades guarda también el tipo de def de `[DefRef]`.
 - Quedan como están: el tirón del autoguardado (backlog) y la repetición de "cargar y agregar los sistemas" en el smoke, que carga en memoria y no desde una ranura.
+
+## Registro de H2.2: Día, noche y sueño
+
+**Entregado**
+
+- Spec `docs/gdd/dia-y-noche.md`.
+- `AiConfig.nightStartHour` y `nightEndHour` (21 a 6) y `NeedDef.nightThreshold` (10 000 en el descanso). De noche se acuesta antes que cualquier trabajo todo colono que no esté del todo descansado, y no se levanta hasta las 6. De día sólo duerme si está agotado.
+- Balance: el descanso baja 500 por hora y sube 1200 durmiendo. Las huellas del smoke cambiaron: `19A91FF3BCECB119` con la semilla 1 y `9D2B68F847F36435` con la 42 (5000 ticks).
+- `DayNightCycle`: el sol sale y se pone con la noche de los colonos (leída del `AiConfig`), una luna fría hace el arco de vuelta de noche, y luz, ambiente y cielo se mezclan entre amanecer, día, atardecer y noche. Opción "Ciclo de día y noche" en Opciones, guardada.
+- El registro muestra la fecha antes de los mensajes de cada día, sin pasar de 7 líneas.
+- `--hour <h>` para capturas.
+
+**Verificación**
+
+- `NightSleepTests`: a las 21 dejan el trabajo y duermen hasta las 6; de día no duermen cansados y sí agotados; siguen durmiendo llenos hasta las 6; vuelven a la cama después de comer de noche; noches que cruzan o no la medianoche. Con el contenido real, la aldea entera duerme a las 2 y nadie al mediodía durante tres días, en las semillas 1 y 42.
+- Los tests del invierno de `ColonyTests` siguen en verde con el balance nuevo, y la continuidad del guardado también.
+- 431 tests en verde; smoke con código 0.
+- Capturas revisadas a las 6, 12, 20, 22 y 0, y Opciones en inglés. El ciclo vive en la presentación: no toca la simulación.
+
+**Revisión de código:** 9 hallazgos, todos corregidos.
+
+- Un colono despierto de noche con el descanso alto (por ejemplo, después de dormir de día por agotamiento) se quedaba despierto toda la noche, y uno que se levantaba a comer no volvía a la cama. `nightThreshold` pasa de 9000 a 10 000, y su validación exige que no sea menor que el umbral bajo.
+- La luz saltaba de lado al amanecer y al anochecer: la luna ahora hace el arco de vuelta.
+- El sol sale y se pone con las horas del `AiConfig`, no con horas fijas en el código.
+- `--hour` avanza de una vez hasta el primer tick a esa hora o después, sin riesgo de no terminar.
+- El registro no crece con las líneas de fecha.
+- El ciclo no reescribe la luz si no cambió el minuto ni la opción.

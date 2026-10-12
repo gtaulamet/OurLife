@@ -59,6 +59,8 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 # La partida de cerca, con órdenes, el inspector y el registro; y las opciones sobre ella
 & $env:GODOT_BIN --path game -- --screenshot out/partida.png --locale es --seed 42 --play --level 14 --zoom 22 --ticks 200 --orders --inspect
 & $env:GODOT_BIN --path game -- --screenshot out/pausa.png --locale en --seed 42 --play --options
+# Ciclo de día y noche: amanecer, mediodía, atardecer y noche
+& $env:GODOT_BIN --path game -- --screenshot out/noche.png --seed 42 --play --level 14 --zoom 30 --orders --hour 0
 # Partidas guardadas: --ticks 1500 pasa la medianoche y autoguarda en out/saves
 & $env:GODOT_BIN --path game -- --screenshot out/partida.png --seed 42 --play --ticks 1500 --saves out/saves
 & $env:GODOT_BIN --path game -- --screenshot out/cargar.png --locale es --saves out/saves --show load
@@ -94,6 +96,7 @@ Van después de `--`:
 | `--inspect` | Con `--play`, selecciona al primer colono para ver el inspector | H1.7 |
 | `--zoom <n>` | Distancia de la cámara a lo que mira; menos es más cerca (por defecto 85) | H1.7 |
 | `--licenses <archivo>` | Escribe los avisos de licencia del motor y de .NET que viajan con el juego exportado, y sale. Lo usa `tools/package-windows.ps1` | H1.8 |
+| `--hour <h>` | Con `--play` o `--load`, después de `--ticks`, lleva la partida hasta esa hora, para capturas del ciclo de día y noche | H2.2 |
 | `--saves <carpeta>` | Carpeta de las partidas guardadas en lugar de `user://saves`, relativa a `game/`. Las capturas y el benchmark sólo guardan y autoguardan si se da | H2.1 |
 | `--load <ranura>` | Carga la partida de esa ranura (el nombre del archivo sin `.olsave`) en lugar del menú. Si no carga, sale con 1 | H2.1 |
 | `--show <load\|save\|error>` | Abre Cargar partida en lugar del menú; Guardar partida sobre la partida de `--play` o `--load`; o el error de una partida dañada | H2.1 |

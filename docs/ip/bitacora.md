@@ -8,13 +8,13 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-2-dia-noche`, creada desde `main` (H2.1) |
+| Rama de trabajo | `ip2/h2-2-dia-noche`, terminada y ya en `main` |
 | `main` | En el cierre de IP1, con el tag `v0.1.0`, también en `origin` |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Hitos de IP2 hechos | H2.1 Guardado y carga |
-| En curso | H2.2 Día, noche y sueño |
-| Validación | `dotnet build` sin advertencias, 409 tests en verde, smoke con código 0 con la comprobación de guardado y carga |
+| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño |
+| Siguiente | H2.3 Almacenes y acarreo |
+| Validación | `dotnet build` sin advertencias, 431 tests en verde, smoke con código 0 |
 | Huella del smoke | `19A91FF3BCECB119` con `--seed 1 --ticks 5000`; `9D2B68F847F36435` con `--seed 42 --ticks 5000`. Cambiaron en H2.2 por el sueño nocturno y el balance del descanso |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -22,11 +22,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H2.2** (`docs/gdd/dia-y-noche.md`):
-   1. Revisión de código, documentación (`overview.md`, skill `godot-run`, `IP2.md`) y cierre.
-2. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1.
-3. Después: H2.3 Almacenes y acarreo.
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
+2. **H2.3 Almacenes y acarreo** (`IP2.md`), en la rama `ip2/h2-3-almacenes` desde `main`.
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
@@ -42,7 +40,7 @@ En orden:
 
 ## Historial
 
-### 2026-10-11: H2.2 Día, noche y sueño (en curso)
+### 2026-10-11: H2.2 Día, noche y sueño
 
 - Rama `ip2/h2-2-dia-noche` desde `main`. Spec `docs/gdd/dia-y-noche.md`.
 - Avance 1 (Core):
@@ -56,6 +54,7 @@ En orden:
   - `--hour <h>` lleva la partida hasta esa hora para capturas.
   - 4 claves nuevas en es y en. Capturas revisadas a las 6, 12, 20 y 0, y Opciones en inglés.
   - Huellas nuevas del smoke por el balance del descanso (ver Estado actual).
+- Avance 3 (revisión y cierre): 9 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: `nightThreshold` pasa a 10 000 para que nadie quede despierto de noche, y la luz ya no salta al amanecer. Documentación y `main` adelantado a H2.2. 431 tests.
 
 ### 2026-10-11: planificación de IP2
 

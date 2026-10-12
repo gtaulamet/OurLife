@@ -10,12 +10,14 @@ Hoy un colono duerme cuando el descanso baja del umbral bajo y no tiene trabajo,
 
 | Momento | Cuándo se acuesta un colono | Cuándo se levanta |
 |---|---|---|
-| Noche | Si su descanso está por debajo del umbral nocturno de la necesidad (`nightThreshold` en `needs.json`: 9000 de 10 000), antes que cualquier trabajo | Cuando termina la noche y el descanso está lleno |
+| Noche | Si su descanso está por debajo del umbral nocturno de la necesidad (`nightThreshold` en `needs.json`), antes que cualquier trabajo. En el contenido vale 10 000, el máximo: de noche se acuesta todo colono que no esté del todo descansado | Cuando termina la noche y el descanso está lleno |
 | Día | Sólo si el descanso está por debajo del umbral crítico: un colono agotado duerme igual | Con el descanso lleno |
 
 - De día el umbral bajo del descanso ya no lleva a dormir: así nadie duerme la siesta y se desvela.
 - Un colono que se llena antes del amanecer sigue durmiendo hasta que termine la noche.
-- El hambre crítica sigue despertando a un colono que duerme, como en IP1.
+- El hambre crítica sigue despertando a un colono que duerme, como en IP1. Después de comer vuelve a acostarse, porque su descanso ya no está lleno.
+- Un colono que durmió de día por agotamiento y despertó lleno al atardecer también se acuesta a la noche: así el horario se recupera solo.
+- `nightThreshold` va del umbral bajo al máximo; si es menor que el bajo, la noche no tendría efecto.
 - Una necesidad que se satisface durmiendo sin `nightThreshold` usa su umbral bajo de noche.
 - Un tramo que cruza la medianoche (21 → 6) y uno que no (1 → 5) valen los dos. Inicio y fin iguales es un error del def.
 

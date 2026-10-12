@@ -18,6 +18,6 @@
     "criticalThreshold": 1000,
     "satisfiedBy": "sleeping",
     "recoveryPerHour": 1200,
-    "nightThreshold": 9000
+    "nightThreshold": 10000
   }
 ]

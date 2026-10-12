@@ -137,6 +137,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | Pathfinding, IA, trabajos, necesidades (`docs/gdd/colonos-e-ia.md`) | H1.6 | Hecho |
 | Partida en tiempo real, entrada, HUD, inspector, menús (`docs/gdd/interfaz-ip1.md`) | H1.7 | Hecho |
 | Guardado y carga, ranuras, autoguardado, pantalla de error (`docs/gdd/guardado.md`, ADR-010) | H2.1 | Hecho |
+| Sueño nocturno, ciclo visual de día y noche, el día en el registro (`docs/gdd/dia-y-noche.md`) | H2.2 | Hecho |
 
 ## Decisiones
 

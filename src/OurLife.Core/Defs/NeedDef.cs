@@ -80,9 +80,9 @@ public sealed class NeedDef : Def
             yield return "only needs satisfied by sleeping have nightThreshold.";
         }
 
-        if (NightThreshold is { } night && !(night > CriticalThreshold && night <= Max))
+        if (NightThreshold is { } night && !(night >= LowThreshold && night <= Max))
         {
-            yield return "nightThreshold must satisfy criticalThreshold < nightThreshold <= max.";
+            yield return "nightThreshold must satisfy lowThreshold <= nightThreshold <= max.";
         }
     }
 }
