@@ -75,7 +75,15 @@ El script exporta `OurLife.app`, le agrega `LICENSES.txt` y `CREDITS.md` sin toc
 
 **En la Mac:**
 
-- La app va con firma ad hoc, sin notarizar: macOS la bloquea la primera vez. Se abre con clic derecho > Abrir, o desde la terminal con `xattr -cr OurLife.app`.
+- La app va con firma ad hoc, sin notarizar, y la firma que genera Godot desde Windows no la acepta macOS en Apple Silicon: Gatekeeper la bloquea y, aun abierta desde la terminal, el sistema mata el proceso. Hay que firmarla de nuevo en la Mac, una vez, desde la Terminal en la carpeta donde se descomprimió:
+
+  ```bash
+  codesign --force --deep --sign - OurLife.app
+  xattr -cr OurLife.app
+  open OurLife.app
+  ```
+
+  Probado en una M1 con macOS Tahoe 26.6.2. Sin esos pasos, "Abrir de todos modos" en Privacidad y seguridad no alcanza.
 - Smoke: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`. Tiene que terminar con `[smoke] OK` y dar la misma huella que en Windows (la que figura en `docs/ip/bitacora.md`).
 - El juego guarda sus preferencias y partidas en `~/Library/Application Support/OurLife`.
 

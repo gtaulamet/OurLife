@@ -22,7 +22,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **La versión de macOS no abre** en la Mac del usuario (hallazgo 1 de `docs/ip/playtest-ip2.md`). Falta el diagnóstico: qué mensaje da, la salida de la terminal y `~/Library/Application Support/OurLife/logs/godot.log`. El playtest de Windows está aprobado (13/10/2026).
+1. **macOS:** la app arranca en la M1 del usuario (Tahoe 26.6.2) después de firmarla de nuevo en la Mac (`codesign --force --deep --sign -` y `xattr -cr`): macOS rechaza al ejecutar la firma ad hoc que Godot genera desde Windows. Instrucciones en el README. Falta que el usuario corra el smoke en la Mac (misma huella que en Windows) y pruebe el resto de la sección macOS del checklist. El playtest de Windows está aprobado (13/10/2026).
 2. Con el playtest aprobado: revisión de código de H2.7, `main` adelantado, tag `v0.2.0` y release de GitHub con los dos zips.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -52,6 +52,7 @@ En orden:
 - Versión 0.2.0 en `project.godot` y en el preset de Windows. Paquete de Windows armado; el smoke del exportado pasa.
 - Versión para macOS: plantilla `macos.zip` del `.tpz` oficial (1,2 GB) instalada; preset "macOS" universal (la plantilla sólo trae binarios universales), identificador `com.gtaulamet.ourlife` y firma ad hoc; `import_etc2_astc` activado en el proyecto, como pide Godot para Apple Silicon. Exportar C# a macOS desde Windows funciona. `tools/package-macos.ps1` agrega `LICENSES.txt` y `CREDITS.md` al zip sin perder el permiso de ejecución del binario. README con la sección de macOS.
 - La exportación quedaba colgada por los nodos de MSBuild (ver Notas prácticas): arreglado en los dos scripts y verificado con los nodos vivos.
+- Playtest humano: Windows aprobado entero. macOS no abría: Gatekeeper la bloqueaba y, desde la terminal, el sistema mataba el proceso aunque `codesign --verify` daba la firma por válida. Firmada de nuevo en la Mac, arranca. Pasos en el README y en el hallazgo 1 de `playtest-ip2.md`.
 
 ### 2026-10-12: H2.6 Gestión de la colonia
 

@@ -96,7 +96,7 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 | # | Qué pasó | Pasos para reproducirlo | Gravedad (bloquea `v0.2.0` o no) |
 |---|---|---|---|
-| 1 | La versión de macOS no abre en una M1 con macOS Tahoe 26.6.2. Finder: "La aplicación OurLife.app no se puede abrir". En Privacidad y seguridad: "Se bloqueó OurLife.app para proteger tu Mac"; "Abrir de todos modos" no hace nada. `xattr -cr` no lo resuelve. Desde Windows se comprobó que el ejecutable y las 28 bibliotecas de .NET traen firma ad hoc; falta saber si macOS la acepta (`codesign --verify`) y qué permisos pide | Descomprimir `OurLife-v0.2.0-macos-universal.zip` y abrir `OurLife.app` | Bloquea la versión de Mac; Windows aprobado |
+| 1 | La versión de macOS no abre en una M1 con macOS Tahoe 26.6.2. Finder: "La aplicación OurLife.app no se puede abrir". En Privacidad y seguridad: "Se bloqueó OurLife.app para proteger tu Mac"; "Abrir de todos modos" no hace nada. `xattr -cr` no lo resuelve. Desde Windows se comprobó que el ejecutable y las 28 bibliotecas de .NET traen firma ad hoc. En la Mac, `codesign --verify --deep --strict` la da por válida y los permisos son los de .NET (JIT, memoria ejecutable sin firmar, sin validación de bibliotecas), pero al arrancar el sistema mata el proceso (`killed`). **Causa:** macOS rechaza al ejecutar la firma ad hoc que Godot genera desde Windows. **Solución comprobada:** volver a firmar en la Mac con `codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`; así arranca | Descomprimir `OurLife-v0.2.0-macos-universal.zip` y abrir `OurLife.app` | Bloquea la versión de Mac; Windows aprobado |
 
 ## Resultado
 
