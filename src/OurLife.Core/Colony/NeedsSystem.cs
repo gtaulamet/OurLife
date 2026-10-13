@@ -89,10 +89,9 @@ public sealed class NeedsSystem : ISimSystem
     private static void Die(Simulation simulation, EntityId colonist, NeedDef need)
     {
         // The entity is gone once the message is read, so it carries the name and gender itself.
-        var person = simulation.World.Get<Colonist>(colonist);
         simulation.Events.Emit(new NotificationEvent(
             simulation.CurrentTick,
-            LocalizedText.Of(DeathKey(need)).With("colonist", person.Name).With("colonist_gender", person.Gender),
+            ColonyText.Freeze(LocalizedText.Of(DeathKey(need)).With("colonist", colonist), simulation.World),
             NotificationSeverity.Danger));
         if (simulation.World.TryGet<Carried>(colonist, out var carried))
         {

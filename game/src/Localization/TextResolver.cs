@@ -56,6 +56,15 @@ public sealed class TextResolver
         return culture.TextInfo.ToUpper(text[0]) + text[1..];
     }
 
+    /// <summary>What a colonist is doing, like "Talando un árbol", or that it has nothing to do.</summary>
+    public string Activity(World world, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        return world.TryGet<OurLife.Core.Entities.Job>(colonist, out var job)
+            ? Format(OurLife.Core.Entities.JobKinds.ReportKey(job.Kind))
+            : Format("ui.inspector.idle");
+    }
+
     /// <summary>Calendar date, like "Día 3 de primavera de 1200".</summary>
     public string Date(GameDate date) =>
         Format("time.date", ("day", date.Day), ("season", _localizer.Format($"time.season.{date.SeasonId}")), ("year", date.Year));

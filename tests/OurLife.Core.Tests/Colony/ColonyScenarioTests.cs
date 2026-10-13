@@ -189,7 +189,7 @@ public class ColonyScenarioTests
         var death = events.OfType<NotificationEvent>().First();
         death.Text.Key.ShouldBe("event.need.hunger.death");
         death.Text.Args["colonist"].ShouldBe("Elvira");
-        death.Text.Args["colonist_gender"].ShouldBe(Gender.Female);
+        death.Text.Args["colonist_gender"].ShouldBe("female");
         events.OfType<NotificationEvent>().Select(e => e.Text.Key).ShouldContain("event.colony.lost");
         events.OfType<ColonyLostEvent>().Count().ShouldBe(1);
         events.OfType<EntityRemovedEvent>().Single().Entity.ShouldBe(colonist);

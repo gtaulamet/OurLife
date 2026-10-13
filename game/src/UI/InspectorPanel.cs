@@ -116,7 +116,7 @@ public partial class InspectorPanel : PanelContainer
         var world = _simulation.World;
         var text = _services.Text;
         _lines.Add(world.Get<Colonist>(colonist).Name);
-        _lines.Add(world.TryGet<Job>(colonist, out var job) ? text.Format(JobKinds.ReportKey(job.Kind)) : text.Format("ui.inspector.idle"));
+        _lines.Add(text.Activity(world, colonist));
         if (world.TryGet<Carried>(colonist, out var carried))
         {
             var item = NameOf(_simulation.Content.Get<ItemDef>(carried.Def), carried.Count);

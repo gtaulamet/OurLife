@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h según `plan-maestro.md` (sección 7.3), más 3 o 4 h por la versión para macOS que se sumó a H2.7. **Versión al cerrar:** `v0.2.0`, para Windows y macOS.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.5 hechos; H2.6 en curso.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.6 hechos; sigue H2.7.
 
 ## Estado de los hitos
 
@@ -15,7 +15,7 @@
 | H2.3 Almacenes y acarreo | Hecho | `ip2/h2-3-almacenes` | Zonas con filtros por categoría, acarreo con reservas y la carga en las manos |
 | H2.4 Construcción | Hecho | `ip2/h2-4-construccion` | Planos de muro, suelo, puerta, rampa y escalera con material; desmontar y canalizar; `terrainAmplitude` 2 |
 | H2.5 Muebles y camas | Hecho | `ip2/h2-5-muebles-camas` | Cama, mesa, silla y cofre con giro; camas con dueño que descansan al 150 %; el cofre es un almacén |
-| H2.6 Gestión de la colonia | En curso | `ip2/h2-6-gestion` | Spec `docs/gdd/gestion.md` |
+| H2.6 Gestión de la colonia | Hecho | `ip2/h2-6-gestion` | Prioridades de 1 a 4 o No por colono, panel Colonia (P), alertas de ocioso y hambre crítica con el nombre del colono |
 | H2.7 Integración | Pendiente | `ip2/h2-7-integracion` | |
 
 **Ruta crítica:** H2.1 → (H2.2 ∥ H2.3) → H2.4 → H2.5 → H2.6 → H2.7.
@@ -254,4 +254,27 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - Buscar el mueble de una celda recorría todos los muebles: la marca `Furniture` lo evita en las celdas sin mueble.
 - Centrar un modelo conserva el desplazamiento propio de su raíz.
 - `IHasVisual` vuelve a exigir visual; `DefVisuals.Of` reúne los visuales de los defs, incluidos los muebles.
+
+## Registro de H2.6: Gestión de la colonia
+
+**Entregado**
+
+- Spec `docs/gdd/gestion.md`.
+- Prioridades por colono y tipo de trabajo, de 1 a 4 o No (`WorkPriorities`, `SetWorkPriorityCommand`, `AiConfig.defaultWorkPriority`). La decisión recorre las prioridades de la más alta a la más baja y, en cada una, los tipos en su orden.
+- `AlertSystem`: colono ocioso tras `idleAlertHours` (2) paseando o sin trabajo, y necesidades con `alertWhenCritical` (hambre) bajo su umbral crítico; un mensaje al empezar, estado guardado. `ColonyAlerts.Active` para el HUD.
+- Textos con colonos: `ColonyText.Freeze` los cambia por nombre y género; los mensajes salen del Core ya fijados.
+- Godot: panel Colonia (P) con actividad y prioridades (clic adelante, clic derecho atrás), lista de alertas en el HUD (amarillo y rojo, clic selecciona), registro con nombres. `--colony` para capturas; el smoke abre el panel.
+
+**Verificación**
+
+- `ManagementTests`: prioridad alta primero en los dos sentidos, acarreo en No y en 4, el comando limpia el valor por defecto e ignora lo inválido, sin componente con todo por defecto, alertas de ocioso y de hambre, nombre fijado de un colono que muere. Test de contenido de las claves de alertas. La continuidad del guardado incluye prioridades.
+- 480 tests en verde; smoke con código 0. Huellas: `889B6049962A78AD` con la semilla 1 y `974758E0263469A3` con la 42.
+- Capturas revisadas en es y en: alertas, panel y registro.
+
+**Revisión de código:** 10 hallazgos, todos corregidos.
+
+- Un colono que recibía una alerta y moría en el mismo lote de ticks quedaba en el registro sin nombre: las alertas y la muerte salen del Core con el nombre fijado y el género como texto (`ColonyText.GenderId`).
+- Dos clics rápidos con el tiempo corriendo perdían el segundo: el panel recuerda lo pedido hasta el próximo tick.
+- La tecla P funcionaba con un menú abierto: ahora pasa por `GameInput`, como las demás.
+- El comando no crea componentes vacíos ni reconstruye las reglas; la decisión busca cada prioridad una vez; la lista de alertas se rehace una vez por cuadro como mucho; la actividad de un colono se arma en un solo lugar (`TextResolver.Activity`); tabla de `docs/i18n.md` arreglada.
 

@@ -65,6 +65,22 @@ public class ManagementTests
     }
 
     [Fact]
+    public void A_colonist_whose_priorities_are_all_the_default_has_no_component()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var colonist = bed.AddColonist(2, 2, 1);
+
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(colonist, "mining", 3));
+        bed.Simulation.ApplyCommandsNow();
+        bed.World.Has<WorkPriorities>(colonist).ShouldBeFalse();
+
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(colonist, "mining", 2));
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(colonist, "mining", 3));
+        bed.Simulation.ApplyCommandsNow();
+        bed.World.Has<WorkPriorities>(colonist).ShouldBeFalse();
+    }
+
+    [Fact]
     public void An_idle_colonist_alerts_once_and_again_after_it_worked()
     {
         var bed = ColonyTestBed.Flat(16);
@@ -100,7 +116,8 @@ public class ManagementTests
         var alerts = bed.DrainEvents().OfType<NotificationEvent>().Where(alert => alert.Text.Key == "event.need.hunger.critical").ToList();
         alerts.Count.ShouldBe(1);
         alerts[0].Severity.ShouldBe(NotificationSeverity.Danger);
-        alerts[0].Text.Args["colonist"].ShouldBe(colonist);
+        alerts[0].Text.Args["colonist"].ShouldBe("Elvira");
+        alerts[0].Text.Args["colonist_gender"].ShouldBe("female");
         ColonyAlerts.Active(bed.Simulation).Single().Text.Key.ShouldBe("alert.need.hunger");
 
         bed.AddItems("provisions", 5, 6, 6, 1);

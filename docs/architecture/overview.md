@@ -78,7 +78,7 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 ## Tick de simulación
 
 1. Aplicar los comandos encolados en orden de llegada.
-2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento y crecimiento de las plantas (`ColonySystems.AddTo`). La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado: se arma la primera vez que un tick lo consulta y de nuevo si un acarreador mueve una pila. Los trabajos quitan al empezar los planos que perdieron su lugar, sólo si cambió `NavigationVersion`. Lo construido se reconoce por su material (`MaterialDef.builtFrom`), sin estado aparte en el mapa. Los muebles son entidades; la marca `TileFlags.Furniture` dice qué celdas tienen uno, para no buscarlo en las demás.
+2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento, crecimiento de las plantas y alertas (`ColonySystems.AddTo`). La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado: se arma la primera vez que un tick lo consulta y de nuevo si un acarreador mueve una pila. Los trabajos quitan al empezar los planos que perdieron su lugar, sólo si cambió `NavigationVersion`. Lo construido se reconoce por su material (`MaterialDef.builtFrom`), sin estado aparte en el mapa. Los muebles son entidades; la marca `TileFlags.Furniture` dice qué celdas tienen uno, para no buscarlo en las demás.
 3. La conectividad se pone al día al consultarla después de un cambio: se unen regiones en el lugar si el cambio sólo abrió caminos, y se calcula de nuevo si no (ADR-011).
 4. Publicar los eventos y avanzar el contador.
 
@@ -141,6 +141,7 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 | Almacenes con filtros por categoría y acarreo (`docs/gdd/almacenes.md`) | H2.3 | Hecho |
 | Construcción por planos, desmontar y canalizar (`docs/gdd/construccion.md`) | H2.4 | Hecho |
 | Muebles con giro, camas con dueño y cofres como almacén (`docs/gdd/muebles-y-camas.md`) | H2.5 | Hecho |
+| Prioridades de trabajo, panel Colonia y alertas (`docs/gdd/gestion.md`) | H2.6 | Hecho |
 
 ## Decisiones
 

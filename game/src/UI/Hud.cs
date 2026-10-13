@@ -40,6 +40,7 @@ public partial class Hud : CanvasLayer
     private HBoxContainer _buildRow = null!;
     private VBoxContainer _alerts = null!;
     private List<(EntityId Colonist, string Key)> _shownAlerts = [];
+    private bool _alertsChanged;
     private Button _buildButton = null!;
     private Button _pause = null!;
     private long _shownTick = -1;
@@ -84,6 +85,7 @@ public partial class Hud : CanvasLayer
         input.SelectionChanged += hud.Inspector.Inspect;
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
+        input.ColonyPanelRequested += hud.Colony.Toggle;
         session.ClockChanged += hud.RefreshTimeButtons;
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
@@ -99,15 +101,11 @@ public partial class Hud : CanvasLayer
     {
         Log.Apply(events, _session.Simulation.Calendar, _session.Simulation.World);
         Inspector.NoteChange();
-        RefreshAlerts(force: false);
+        _alertsChanged = true;
     }
 
     public override void _Process(double delta)
     {
-        if (Godot.Input.IsActionJustPressed(InputActions.ToggleColony))
-        {
-            Colony.Toggle();
-        }
 
         // The clock only changes with a tick: no need to format it every frame.
         var tick = _session.Simulation.CurrentTick;
@@ -117,6 +115,13 @@ public partial class Hud : CanvasLayer
             RefreshDate();
 
             // An alert also ends without a message, like an idle colonist that took work.
+            _alertsChanged = true;
+        }
+
+        // Once per frame at most, after the events and the tick of the frame.
+        if (_alertsChanged)
+        {
+            _alertsChanged = false;
             RefreshAlerts(force: false);
         }
     }

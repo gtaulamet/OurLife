@@ -8,13 +8,13 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-6-gestion`, creada desde `main` (H2.5) |
-| `main` | En H2.5, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
+| Rama de trabajo | `ip2/h2-6-gestion`, creada desde `main` (H2.5). Siguiente: H2.7 Integración |
+| `main` | En H2.6, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas |
-| En curso | H2.6 Gestión de la colonia |
-| Validación | `dotnet build` sin advertencias, 479 tests en verde, smoke con código 0 |
+| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas, H2.6 Gestión de la colonia |
+| En curso | Ninguno: falta crear la rama de H2.7 |
+| Validación | `dotnet build` sin advertencias, 480 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000` (H2.6: estado de las alertas en la huella). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
 | Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
 
@@ -27,9 +27,9 @@ En orden:
 3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
 4. **Probar en el editor** los muebles de H2.5: poner una cama girada con G, ver a un colono dormir en ella y llenar un cofre.
 5. **H2.7 suma la versión para macOS (Apple Silicon)**, junto a la de Windows: ver "Pendientes de IP1 que entran en IP2" en `IP2.md`. Hace falta una Mac para probarla.
-6. **H2.6** (`docs/gdd/gestion.md`):
-   1. Revisión de código y cierre.
-7. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+6. **Probar en el editor** el panel Colonia (P) de H2.6: cambiar prioridades y ver las alertas.
+7. **H2.7 Integración** (`docs/ip/IP2.md`): rama `ip2/h2-7-integracion` desde `main`; playtest con checklist, balance, rendimiento (`--benchmark`), versión para macOS y release `v0.2.0`.
+8. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
 
 ## Notas prácticas
 
@@ -45,7 +45,7 @@ En orden:
 
 ## Historial
 
-### 2026-10-12: H2.6 Gestión de la colonia (en curso)
+### 2026-10-12: H2.6 Gestión de la colonia
 
 - Rama `ip2/h2-6-gestion` desde `main`.
 - Avance 1: spec `docs/gdd/gestion.md`. Prioridades de 1 a 4 o No por colono y tipo de trabajo (por defecto 3, en `AiConfig`); la elección recorre las prioridades y, dentro de cada una, el orden de los tipos. Panel Colonia (P) con la lista de colonos, su actividad y los botones de prioridad. Alertas de colono ocioso (2 horas paseando) y de hambre crítica (`Need.alertWhenCritical`): un mensaje al empezar y una línea en el HUD mientras duran, con estado guardado. `TextResolver` expande colonos en nombre y género, y el registro fija el nombre al recibir el mensaje.
@@ -60,6 +60,7 @@ En orden:
   - Panel Colonia (P, y botón en la barra de arriba): fila por colono con nombre (clic: lo selecciona), actividad y un botón de prioridad por tipo de trabajo; clic pasa a la siguiente (1, 2, 3, 4, No) y clic derecho a la anterior. Texto de ayuda aclarado en la spec.
   - Lista de alertas bajo la barra de arriba: amarillo los avisos, rojo los peligros, clic selecciona; se rehace cuando cambian las alertas (también al cambiar el tick, porque terminan sin mensaje).
   - El smoke abre el panel; opción `--colony` para capturas. Capturas revisadas en es y en: cinco alertas de ocioso, el panel y los mensajes con nombres en el registro.
+- Avance 4 (2026-10-13, revisión y cierre): 10 hallazgos, todos corregidos (detalle en `IP2.md`). Lo principal: los mensajes salen del Core con el nombre fijado, el panel no pierde clics rápidos y P no funciona con un menú abierto. 480 tests, mismas huellas. `main` adelantado a H2.6.
 
 ### 2026-10-12: H2.5 Muebles y camas
 

@@ -27,6 +27,10 @@ public partial class ColonyPanel : PanelContainer
     private GameInput _input = null!;
     private GridContainer _grid = null!;
     private ColonyRules _rules = null!;
+
+    // Priorities asked in the current tick, before their orders apply.
+    private readonly Dictionary<(EntityId Colonist, string WorkType), int> _pending = [];
+    private long _pendingTick = -1;
     private double _sinceRefresh;
 
     public static ColonyPanel Create(GameServices services, GameSession session, GameInput input)
@@ -175,7 +179,6 @@ public partial class ColonyPanel : PanelContainer
     {
         var world = _session.Simulation.World;
         var text = _services.Text;
-        var defaultPriority = _rules.Ai.DefaultWorkPriority;
         foreach (var (colonist, activity, priorities) in _rows)
         {
             if (!world.IsAlive(colonist))
@@ -183,10 +186,10 @@ public partial class ColonyPanel : PanelContainer
                 continue;
             }
 
-            activity.Text = world.TryGet<Job>(colonist, out var job) ? text.Format(JobKinds.ReportKey(job.Kind)) : text.Format("ui.inspector.idle");
+            activity.Text = text.Activity(world, colonist);
             foreach (var (workType, button) in priorities)
             {
-                var priority = WorkPriorityRules.Of(world, colonist, workType, defaultPriority);
+                var priority = PriorityOf(colonist, workType);
                 button.Text = priority == WorkPriorityLevels.Never
                     ? text.Format("ui.colony.priority_off")
                     : text.Format("ui.colony.priority", ("priority", priority));
@@ -206,8 +209,7 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
-        var defaultPriority = _rules.Ai.DefaultWorkPriority;
-        var current = WorkPriorityRules.Of(world, colonist, workType, defaultPriority);
+        var current = PriorityOf(colonist, workType);
 
         // The ring in order: 1, 2, 3, 4, then 0 (No).
         const int Steps = WorkPriorityLevels.Lowest + 1;
@@ -215,6 +217,29 @@ public partial class ColonyPanel : PanelContainer
         position = (position + (forward ? 1 : Steps - 1)) % Steps;
         var next = position == WorkPriorityLevels.Lowest ? WorkPriorityLevels.Never : position + 1;
         _session.Enqueue(new SetWorkPriorityCommand(colonist, workType, next));
+
+        // With time running the order applies on the next tick: until then the panel shows, and
+        // steps from, what was asked, so quick clicks add up.
+        if (_pendingTick != _session.Simulation.CurrentTick)
+        {
+            _pending.Clear();
+            _pendingTick = _session.Simulation.CurrentTick;
+        }
+
+        _pending[(colonist, workType)] = next;
         RefreshRows();
+    }
+
+    /// <summary>A colonist's priority as the player last set it: an order not yet applied, or else the world's.</summary>
+    private int PriorityOf(EntityId colonist, string workType)
+    {
+        if (_pendingTick != _session.Simulation.CurrentTick)
+        {
+            _pending.Clear();
+        }
+
+        return _pending.TryGetValue((colonist, workType), out var pending)
+            ? pending
+            : WorkPriorityRules.Of(_session.Simulation.World, colonist, workType, _rules.Ai.DefaultWorkPriority);
     }
 }

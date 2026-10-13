@@ -72,6 +72,7 @@ public sealed class DecisionSystem : ISimSystem
     private readonly HashSet<string> _noRecipient = new(StringComparer.Ordinal);
     private readonly List<TileCoord> _recipientSites = [];
     private readonly List<JobKind> _cellJobs = [];
+    private int[] _priorities = [];
 
     public DecisionSystem(ColonyRules rules)
         : this(rules, new StorageIndex())
@@ -553,12 +554,23 @@ public sealed class DecisionSystem : ISimSystem
     /// </summary>
     private bool TryWork(Simulation simulation, EntityId colonist)
     {
+        // Each type's priority is looked up once, then the levels are walked.
+        var types = _rules.WorkTypes.Count;
+        if (_priorities.Length < types)
+        {
+            _priorities = new int[types];
+        }
+
+        for (var type = 0; type < types; type++)
+        {
+            _priorities[type] = WorkPriorityRules.Of(simulation.World, colonist, _rules.WorkTypes[type].Id, _rules.Ai.DefaultWorkPriority);
+        }
+
         for (var priority = WorkPriorityLevels.Highest; priority <= WorkPriorityLevels.Lowest; priority++)
         {
-            for (var type = 0; type < _rules.WorkTypes.Count; type++)
+            for (var type = 0; type < types; type++)
             {
-                if (WorkPriorityRules.Of(simulation.World, colonist, _rules.WorkTypes[type].Id, _rules.Ai.DefaultWorkPriority) == priority
-                    && TryWorkType(simulation, colonist, _rules.WorkJobs[type]))
+                if (_priorities[type] == priority && TryWorkType(simulation, colonist, _rules.WorkJobs[type]))
                 {
                     return true;
                 }

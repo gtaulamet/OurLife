@@ -20,34 +20,44 @@ public sealed record SetWorkPriorityCommand(
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
-        if (!world.IsAlive(Colonist) || !world.Has<Colonist>(Colonist) || !simulation.Content.TryGet<WorkTypeDef>(WorkType, out _)
+        var config = simulation.Content.All<AiConfigDef>().FirstOrDefault();
+        if (config is null || !world.IsAlive(Colonist) || !world.Has<Colonist>(Colonist) || !simulation.Content.TryGet<WorkTypeDef>(WorkType, out _)
             || Priority is < WorkPriorityLevels.Never or > WorkPriorityLevels.Lowest)
         {
             return;
         }
 
-        if (!world.TryGet<WorkPriorities>(Colonist, out var priorities))
-        {
-            priorities = new WorkPriorities();
-            world.Add(Colonist, priorities);
-        }
-
-        // Only priorities that differ from the default are kept, sorted by work type.
-        var entries = priorities.Entries;
-        var index = entries.FindIndex(entry => entry.WorkType == WorkType);
-        var isDefault = Priority == ColonyRules.From(simulation.Content).Ai.DefaultWorkPriority;
+        // Only priorities that differ from the default are kept, sorted by work type: a colonist
+        // with none has no component.
+        var isDefault = Priority == config.DefaultWorkPriority;
+        var entries = world.TryGet<WorkPriorities>(Colonist, out var priorities) ? priorities.Entries : null;
+        var index = entries?.FindIndex(entry => entry.WorkType == WorkType) ?? -1;
         if (index >= 0 && isDefault)
         {
-            entries.RemoveAt(index);
+            entries!.RemoveAt(index);
+            if (entries.Count == 0)
+            {
+                world.Remove<WorkPriorities>(Colonist);
+            }
         }
-        else if (index >= 0)
+        else if (index >= 0 && entries![index].Priority != Priority)
         {
             entries[index].Priority = Priority;
         }
-        else if (!isDefault)
+        else if (index < 0 && !isDefault)
         {
+            if (entries is null)
+            {
+                entries = [];
+                world.Add(Colonist, new WorkPriorities { Entries = entries });
+            }
+
             var at = entries.FindIndex(entry => string.CompareOrdinal(entry.WorkType, WorkType) > 0);
             entries.Insert(at < 0 ? entries.Count : at, new WorkPriority { WorkType = WorkType, Priority = Priority });
+        }
+        else
+        {
+            return;
         }
 
         simulation.Events.Emit(new EntityChangedEvent(Colonist));
@@ -141,8 +151,10 @@ public sealed class AlertSystem : ISimSystem
         }
     }
 
+    /// <summary>The message names the colonist already: it may die before the message is read.</summary>
     private static void Notify(Simulation simulation, string key, EntityId colonist, NotificationSeverity severity) =>
-        simulation.Events.Emit(new NotificationEvent(simulation.CurrentTick, LocalizedText.Of(key).With("colonist", colonist), severity));
+        simulation.Events.Emit(new NotificationEvent(
+            simulation.CurrentTick, ColonyText.Freeze(LocalizedText.Of(key).With("colonist", colonist), simulation.World), severity));
 }
 
 /// <summary>An alert under way: whom it is about, its line for the HUD and how serious it is.</summary>
@@ -213,7 +225,7 @@ public static class ColonyText
         {
             if (value is EntityId entity && world.IsAlive(entity) && world.TryGet<Colonist>(entity, out var colonist))
             {
-                frozen = frozen.With(name, colonist.Name).With($"{name}_gender", colonist.Gender == Gender.Female ? "female" : "male");
+                frozen = frozen.With(name, colonist.Name).With($"{name}_gender", GenderId(colonist.Gender));
             }
             else if (value is LocalizedText nested)
             {
@@ -223,4 +235,12 @@ public static class ColonyText
 
         return frozen;
     }
+
+    /// <summary>The gender of a colonist as texts select on it: <c>female</c> or <c>male</c>.</summary>
+    public static string GenderId(Gender gender) => gender switch
+    {
+        Gender.Female => "female",
+        Gender.Male => "male",
+        _ => throw new ArgumentOutOfRangeException(nameof(gender), gender, null),
+    };
 }
