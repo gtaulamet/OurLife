@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h según `plan-maestro.md` (sección 7.3), más 3 o 4 h por la versión para macOS que se sumó a H2.7. **Versión al cerrar:** `v0.2.0`, para Windows y macOS.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.6 hechos; sigue H2.7.
+**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.6 hechos; H2.7 en curso.
 
 ## Estado de los hitos
 
@@ -16,7 +16,7 @@
 | H2.4 Construcción | Hecho | `ip2/h2-4-construccion` | Planos de muro, suelo, puerta, rampa y escalera con material; desmontar y canalizar; `terrainAmplitude` 2 |
 | H2.5 Muebles y camas | Hecho | `ip2/h2-5-muebles-camas` | Cama, mesa, silla y cofre con giro; camas con dueño que descansan al 150 %; el cofre es un almacén |
 | H2.6 Gestión de la colonia | Hecho | `ip2/h2-6-gestion` | Prioridades de 1 a 4 o No por colono, panel Colonia (P), alertas de ocioso y hambre crítica con el nombre del colono |
-| H2.7 Integración | Pendiente | `ip2/h2-7-integracion` | |
+| H2.7 Integración | En curso | `ip2/h2-7-integracion` | Checklist `docs/ip/playtest-ip2.md`; paquetes de Windows y macOS armados; falta el playtest humano y la prueba en una Mac |
 
 **Ruta crítica:** H2.1 → (H2.2 ∥ H2.3) → H2.4 → H2.5 → H2.6 → H2.7.
 

@@ -8,30 +8,28 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-6-gestion`, creada desde `main` (H2.5). Siguiente: H2.7 Integración |
+| Rama de trabajo | `ip2/h2-7-integracion`, creada desde `main` (H2.6) |
 | `main` | En H2.6, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
 | Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
 | IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
 | Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas, H2.6 Gestión de la colonia |
-| En curso | Ninguno: falta crear la rama de H2.7 |
+| En curso | H2.7 Integración |
 | Validación | `dotnet build` sin advertencias, 480 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000` (H2.6: estado de las alertas en la huella). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
-| Versión | `v0.1.0`, publicada como release de GitHub con el zip: https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0. `./tools/package-windows.ps1` vuelve a armar el zip (no se versiona) |
+| Versión | `v0.1.0` publicada (https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0). `config/version` ya está en `0.2.0`: `./tools/package-windows.ps1` y `./tools/package-macos.ps1` arman los zips de `v0.2.0` en `builds/` (no se versionan) |
 
 ## Pendientes
 
 En orden:
 
-1. **Probar en el editor** (lo puede hacer el usuario): guardar, cargar y el autoguardado de H2.1; ver pasar un día entero con el ciclo de H2.2 y apagarlo en Opciones.
-2. **Probar en el editor** los almacenes de H2.3: dibujar una zona, filtrar y ver el acarreo.
-3. **Probar en el editor** la construcción de H2.4: una casa con la barra Construir (C), desmontar un muro y canalizar.
-4. **Probar en el editor** los muebles de H2.5: poner una cama girada con G, ver a un colono dormir en ella y llenar un cofre.
-5. **H2.7 suma la versión para macOS (Apple Silicon)**, junto a la de Windows: ver "Pendientes de IP1 que entran en IP2" en `IP2.md`. Hace falta una Mac para probarla.
-6. **Probar en el editor** el panel Colonia (P) de H2.6: cambiar prioridades y ver las alertas.
-7. **H2.7 Integración** (`docs/ip/IP2.md`): rama `ip2/h2-7-integracion` desde `main`; playtest con checklist, balance, rendimiento (`--benchmark`), versión para macOS y release `v0.2.0`.
-8. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README, "Exportar para Windows").
+1. **Playtest humano de IP2** con el ejecutable exportado de Windows: `docs/ip/playtest-ip2.md`. Armar el zip con `./tools/package-windows.ps1`.
+2. **Probar la versión de macOS en una Mac** (sección macOS del checklist): abrirla, correr el smoke con la semilla 42 y comparar la huella con la de Windows.
+3. Con el playtest aprobado: revisión de código de H2.7, `main` adelantado, tag `v0.2.0` y release de GitHub con los dos zips.
+4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
+
+- **Exportar se colgaba:** los nodos de MSBuild y el servidor del compilador que quedan vivos después de compilar retienen la consola del lanzador de Godot, y la exportación nunca termina. Los scripts de empaquetado exportan con `MSBUILDDISABLENODEREUSE=1`, `DOTNET_CLI_USE_MSBUILD_SERVER=0` y `UseSharedCompilation=false`. A mano: `dotnet build-server shutdown`.
 
 - **`GODOT_BIN`** está definida como variable de usuario, pero la sesión de PowerShell de Claude Code no la hereda. Leerla con `[System.Environment]::GetEnvironmentVariable('GODOT_BIN','User')`.
 - **Mensajes de commit:** en PowerShell, `git commit -F -` con un here-string no funciona porque el texto llega como argumento. Escribir el mensaje en un archivo del scratchpad y usar `git commit -F <archivo>`.
@@ -44,6 +42,17 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-13: H2.7 Integración (en curso)
+
+- El usuario probó en el editor H2.1 a H2.6: todo bien.
+- Rama `ip2/h2-7-integracion` desde `main`.
+- Playtest automático: smoke de 30 días en las semillas 1, 42 y 7, con los 5 colonos vivos y la casa construida (entera en la 42; en la 1 y la 7 se acaban los troncos del radio de 8 celdas que tala el smoke). Al año y medio la colonia muere en el invierno porque el smoke recolecta una sola vez, como en IP1; el test del contenido real que recolecta en otoño sigue pasando el invierno.
+- `--benchmark 20 --seed 42 --ticks 5000` con la casa construida: 406 FPS de media, 360 en el 1 % más lento, 0,027 ms por tick.
+- Checklist `docs/ip/playtest-ip2.md`, con la pasada automática.
+- Versión 0.2.0 en `project.godot` y en el preset de Windows. Paquete de Windows armado; el smoke del exportado pasa.
+- Versión para macOS: plantilla `macos.zip` del `.tpz` oficial (1,2 GB) instalada; preset "macOS" universal (la plantilla sólo trae binarios universales), identificador `com.gtaulamet.ourlife` y firma ad hoc; `import_etc2_astc` activado en el proyecto, como pide Godot para Apple Silicon. Exportar C# a macOS desde Windows funciona. `tools/package-macos.ps1` agrega `LICENSES.txt` y `CREDITS.md` al zip sin perder el permiso de ejecución del binario. README con la sección de macOS.
+- La exportación quedaba colgada por los nodos de MSBuild (ver Notas prácticas): arreglado en los dos scripts y verificado con los nodos vivos.
 
 ### 2026-10-12: H2.6 Gestión de la colonia
 

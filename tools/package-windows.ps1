@@ -30,6 +30,12 @@ $zip = Join-Path $root "builds/OurLife-v$version-windows-x86_64.zip"
 if (Test-Path $out) { Remove-Item $out -Recurse -Force }
 New-Item -ItemType Directory -Force $out | Out-Null
 
+# MSBuild nodes and the compiler server outlive the build and keep the console of Godot's
+# launcher open, so the export would never return: the export builds without them.
+$env:MSBUILDDISABLENODEREUSE = '1'
+$env:DOTNET_CLI_USE_MSBUILD_SERVER = '0'
+$env:UseSharedCompilation = 'false'
+
 Write-Host "Exporting OurLife $version..."
 & $Godot --headless --path (Join-Path $root 'game') --export-release 'Windows Desktop' $exe
 if ($LASTEXITCODE -ne 0) { throw "The export failed with code $LASTEXITCODE." }

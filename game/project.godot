@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="OurLife"
-config/version="0.1.0"
+config/version="0.2.0"
 run/main_scene="res://scenes/Main.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="OurLife"
@@ -36,3 +36,4 @@ locale/fallback="es"
 textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
