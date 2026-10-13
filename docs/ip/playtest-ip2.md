@@ -22,62 +22,62 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 
 ### Guardado y carga (H2.1)
 
-- [ ] Guardar desde la pausa con un nombre; "Partida guardada" al volver. Salir al menú: "Cargar partida" está habilitado y la lista muestra la ranura con su fecha.
-- [ ] Cargar la ranura: la aldea, el reloj, las órdenes, los almacenes, las construcciones, los muebles y las prioridades siguen como estaban.
-- [ ] Jugar hasta pasar la medianoche: aparece el autoguardado en la lista.
-- [ ] Una ranura borrada desaparece de la lista; la confirmación de Sí/No se cierra con Esc.
+- [✅] Guardar desde la pausa con un nombre; "Partida guardada" al volver. Salir al menú: "Cargar partida" está habilitado y la lista muestra la ranura con su fecha.
+- [✅] Cargar la ranura: la aldea, el reloj, las órdenes, los almacenes, las construcciones, los muebles y las prioridades siguen como estaban.
+- [✅] Jugar hasta pasar la medianoche: aparece el autoguardado en la lista.
+- [✅] Una ranura borrada desaparece de la lista; la confirmación de Sí/No se cierra con Esc.
 
 ### Día, noche y sueño (H2.2)
 
-- [ ] El sol cruza el cielo; a las 21 la luz baja y la aldea se acuesta; a las 6 se levanta.
-- [ ] Opciones > Ciclo de día y noche: No deja la luz del mediodía; la elección persiste al reiniciar.
-- [ ] El registro muestra la fecha antes de los mensajes de cada día.
+- [✅] El sol cruza el cielo; a las 21 la luz baja y la aldea se acuesta; a las 6 se levanta.
+- [✅] Opciones > Ciclo de día y noche: No deja la luz del mediodía; la elección persiste al reiniciar.
+- [✅] El registro muestra la fecha antes de los mensajes de cada día.
 
 ### Almacenes (H2.3)
 
-- [ ] Almacén (Z): arrastrar una zona; los colonos llevan ahí troncos y piedras sueltas, una pila por celda.
-- [ ] En el inspector de una celda del almacén, quitar una categoría: lo que no acepta deja de llegar, y lo que estaba se lleva a otro almacén si lo hay.
-- [ ] Un colono que acarrea muestra la carga en las manos y el inspector dice qué lleva.
+- [✅] Almacén (Z): arrastrar una zona; los colonos llevan ahí troncos y piedras sueltas, una pila por celda.
+- [✅] En el inspector de una celda del almacén, quitar una categoría: lo que no acepta deja de llegar, y lo que estaba se lleva a otro almacén si lo hay.
+- [✅] Un colono que acarrea muestra la carga en las manos y el inspector dice qué lleva.
 
 ### Construcción (H2.4)
 
-- [ ] Construir (C): una casa de muros de madera arrastrando la caja (sólo el borde), con una puerta; los colonos traen los troncos, construyen y entran por la puerta.
-- [ ] Muros de mampostería con piedras del almacén.
-- [ ] Suelo sobre un hueco, rampa junto a un muro y escalera hacia arriba: se construyen y se pueden recorrer.
-- [ ] Desmontar (V) un muro devuelve un tronco; Canalizar (H) abre un hueco con rampa abajo.
-- [ ] Cancelar un plano con material entregado deja el material en el suelo.
+- [✅] Construir (C): una casa de muros de madera arrastrando la caja (sólo el borde), con una puerta; los colonos traen los troncos, construyen y entran por la puerta.
+- [✅] Muros de mampostería con piedras del almacén.
+- [✅] Suelo sobre un hueco, rampa junto a un muro y escalera hacia arriba: se construyen y se pueden recorrer.
+- [✅] Desmontar (V) un muro devuelve un tronco; Canalizar (H) abre un hueco con rampa abajo.
+- [✅] Cancelar un plano con material entregado deja el material en el suelo.
 
 ### Muebles y camas (H2.5)
 
-- [ ] Cama, mesa, silla y cofre se colocan dentro de la casa; G los gira antes de colocarlos.
-- [ ] De noche, un colono duerme en la cama, acostado y a lo largo de ella; el inspector de la cama dice de quién es, y el del colono, "Duerme en su cama".
-- [ ] El cofre recibe objetos como un almacén y sus filtros se cambian desde el inspector.
+- [✅] Cama, mesa, silla y cofre se colocan dentro de la casa; G los gira antes de colocarlos.
+- [✅] De noche, un colono duerme en la cama, acostado y a lo largo de ella; el inspector de la cama dice de quién es, y el del colono, "Duerme en su cama".
+- [✅] El cofre recibe objetos como un almacén y sus filtros se cambian desde el inspector.
 
 ### Gestión (H2.6)
 
-- [ ] Colonia (P): cambiar la prioridad de un colono (por ejemplo, Acarreo en 1 y Tala en No) cambia lo que hace.
-- [ ] Un colono sin nada que hacer aparece como alerta amarilla y en el registro; con hambre crítica, en rojo. Un clic en la alerta lo selecciona.
+- [✅] Colonia (P): cambiar la prioridad de un colono (por ejemplo, Acarreo en 1 y Tala en No) cambia lo que hace.
+- [✅] Un colono sin nada que hacer aparece como alerta amarilla y en el registro; con hambre crítica, en rojo. Un clic en la alerta lo selecciona.
 
 ### Partida larga: definición de hecho de IP2
 
-- [ ] Sin tocar código, construir una casa con muros, puerta, camas y un almacén.
-- [ ] Con `--ticks 43200`, recolectar en otoño los arbustos alrededor de la aldea y llevar la partida a 4× hasta la primavera: la colonia pasa el invierno.
-- [ ] Guardar a mitad del invierno, salir, cargar y seguir: todo continúa igual.
+- [✅] Sin tocar código, construir una casa con muros, puerta, camas y un almacén.
+- [✅] Con `--ticks 43200`, recolectar en otoño los arbustos alrededor de la aldea y llevar la partida a 4× hasta la primavera: la colonia pasa el invierno.
+- [✅] Guardar a mitad del invierno, salir, cargar y seguir: todo continúa igual.
 
 ### Textos
 
-- [ ] En español y en inglés, ningún texto cortado, superpuesto ni como clave cruda; el cambio de idioma traduce también el registro y el panel Colonia.
+- [✅] En español y en inglés, ningún texto cortado, superpuesto ni como clave cruda; el cambio de idioma traduce también el registro y el panel Colonia.
 
 ### macOS (en una Mac con Apple Silicon)
 
-- [ ] Descomprimir `OurLife-v0.2.0-macos-universal.zip`; la primera vez se abre con clic derecho > Abrir (o `xattr -cr OurLife.app`).
-- [ ] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la misma huella que en Windows.
-- [ ] El menú y una partida se ven bien en es y en; guardar, salir, volver a abrir y cargar.
+- [❌] Descomprimir `OurLife-v0.2.0-macos-universal.zip`; la primera vez se abre con clic derecho > Abrir (o `xattr -cr OurLife.app`).
+- [❌] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la misma huella que en Windows.
+- [❌] El menú y una partida se ven bien en es y en; guardar, salir, volver a abrir y cargar.
 
 ### Rendimiento
 
-- [ ] `.\OurLife.exe -- --benchmark 20 --seed 42 --ticks 5000` termina con "within the budget" en `%APPDATA%\OurLife\logs\godot.log`.
-- [ ] Jugando a 4× con la aldea construida no hay tirones visibles.
+- [✅] `.\OurLife.exe -- --benchmark 20 --seed 42 --ticks 5000` termina con "within the budget" en `%APPDATA%\OurLife\logs\godot.log`.
+- [✅] Jugando a 4× con la aldea construida no hay tirones visibles.
 
 ## Pasada automática
 
@@ -99,6 +99,6 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 ## Resultado
 
-- Fecha y PC:
-- Quién jugó:
-- ¿Se puede publicar `v0.2.0`?
+- Fecha y PC: 13/10/2026
+- Quién jugó: Gustavo
+- ¿Se puede publicar `v0.2.0`? No, no corre en mac os
