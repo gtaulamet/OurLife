@@ -70,7 +70,7 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 
 ### macOS (en una Mac con Apple Silicon)
 
-- [❌] Descomprimir `OurLife-v0.2.0-macos-universal.zip`; la primera vez se abre con clic derecho > Abrir (o `xattr -cr OurLife.app`).
+- [❌] Descomprimir `OurLife-v0.2.0-macos-universal.zip` y abrir la app. No alcanza con clic derecho > Abrir ni con `xattr -cr`: hay que firmarla de nuevo en la Mac, con los pasos del README (hallazgo 1).
 - [❌] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la misma huella que en Windows.
 - [❌] El menú y una partida se ven bien en es y en; guardar, salir, volver a abrir y cargar.
 

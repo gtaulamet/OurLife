@@ -4,7 +4,7 @@
 
 **Estimación:** 77 a 101 h según `plan-maestro.md` (sección 7.3), más 3 o 4 h por la versión para macOS que se sumó a H2.7. **Versión al cerrar:** `v0.2.0`, para Windows y macOS.
 
-**Estado:** planificada el 11 de octubre de 2026. H2.1 a H2.6 hechos; H2.7 en curso.
+**Estado:** cerrada el 13 de octubre de 2026 con `v0.2.0`, para Windows y macOS. La evidencia está en los registros de H2.1 a H2.7 y en `docs/ip/playtest-ip2.md`.
 
 ## Estado de los hitos
 
@@ -16,7 +16,7 @@
 | H2.4 Construcción | Hecho | `ip2/h2-4-construccion` | Planos de muro, suelo, puerta, rampa y escalera con material; desmontar y canalizar; `terrainAmplitude` 2 |
 | H2.5 Muebles y camas | Hecho | `ip2/h2-5-muebles-camas` | Cama, mesa, silla y cofre con giro; camas con dueño que descansan al 150 %; el cofre es un almacén |
 | H2.6 Gestión de la colonia | Hecho | `ip2/h2-6-gestion` | Prioridades de 1 a 4 o No por colono, panel Colonia (P), alertas de ocioso y hambre crítica con el nombre del colono |
-| H2.7 Integración | En curso | `ip2/h2-7-integracion` | Checklist `docs/ip/playtest-ip2.md`; paquetes de Windows y macOS armados; falta el playtest humano y la prueba en una Mac |
+| H2.7 Integración | Hecho | `ip2/h2-7-integracion` | Playtest humano aprobado en Windows; versión para macOS con firma a rehacer en la Mac; `v0.2.0` publicada para Windows y macOS |
 
 **Ruta crítica:** H2.1 → (H2.2 ∥ H2.3) → H2.4 → H2.5 → H2.6 → H2.7.
 
@@ -277,4 +277,32 @@ Quedan en el backlog: variantes de aldeanos y animación de caminar, el arbusto 
 - Dos clics rápidos con el tiempo corriendo perdían el segundo: el panel recuerda lo pedido hasta el próximo tick.
 - La tecla P funcionaba con un menú abierto: ahora pasa por `GameInput`, como las demás.
 - El comando no crea componentes vacíos ni reconstruye las reglas; la decisión busca cada prioridad una vez; la lista de alertas se rehace una vez por cuadro como mucho; la actividad de un colono se arma en un solo lugar (`TextResolver.Activity`); tabla de `docs/i18n.md` arreglada.
+
+## Registro de H2.7: Integración
+
+**Entregado**
+
+- Checklist del playtest en `docs/ip/playtest-ip2.md`, con la pasada automática.
+- Versión 0.2.0 en `config/version`; los presets la toman de ahí.
+- Versión para macOS: preset "macOS" universal (Apple Silicon e Intel; la plantilla sólo trae binarios universales), identificador `com.gtaulamet.ourlife`, firma ad hoc y texturas ETC2/ASTC activadas en el proyecto. Se exporta desde Windows; `tools/package-macos.ps1` agrega las licencias y los créditos sin perder el permiso de ejecución.
+- Los dos scripts de empaquetado comparten `tools/common.ps1` y exportan sin los nodos de MSBuild, que dejaban la exportación colgada.
+- README de `v0.2.0`: controles nuevos y sección de macOS.
+
+**Validación**
+
+- Playtest automático: smoke de 30 días en las semillas 1, 42 y 7 con los 5 colonos vivos y la casa construida; el invierno, con los tests del contenido real.
+- `--benchmark 20 --seed 42 --ticks 5000`, con la casa construida: 406 FPS de media, 360 en el 1 % más lento, 0,027 ms por tick (RTX 4090 de portátil).
+- Smoke sobre el ejecutable exportado de Windows con código 0.
+- Playtest humano del usuario el 13 de octubre de 2026: todo el checklist aprobado en Windows.
+- macOS (M1, Tahoe 26.6.2): la app no abría. `codesign --verify` daba la firma por válida, pero el sistema mataba el proceso al arrancar: macOS rechaza la firma ad hoc que Godot genera desde Windows. Firmada de nuevo en la Mac (`codesign --force --deep --sign -` y `xattr -cr`), arranca; los pasos están en el README y en las notas de la release. El smoke en la Mac no se corrió.
+- 480 tests en verde; smoke con código 0 y las huellas de H2.6.
+
+**Revisión de código:** 9 hallazgos, 5 corregidos y 4 que quedan como están.
+
+- El checklist todavía decía que la app abría con clic derecho > Abrir.
+- Los scripts dejaban puestas las variables de MSBuild en la sesión: ahora las restauran.
+- La versión estaba repetida en los presets: quedan vacíos y Godot usa `config/version` (comprobado en el `.exe` y en el `Info.plist`).
+- La fila de H2.7 no decía el resultado del playtest.
+- Los dos scripts repetían su preparación: `tools/common.ps1`.
+- Quedan como están: la firma ad hoc desde Windows, con el arreglo documentado y la notarización en el backlog, por decisión del usuario; el comando de firma del README, que es el probado (la notarización necesitará `--options runtime` y los permisos de .NET); agregar archivos al zip en memoria, con 127 MB; y las licencias generadas con el Godot de Windows, que es el mismo motor y el mismo runtime.
 

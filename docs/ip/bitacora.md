@@ -4,26 +4,24 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-12.*
+*Actualizado el 2026-10-13.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2/h2-7-integracion`, creada desde `main` (H2.6) |
-| `main` | En H2.6, también en `origin`. El tag `v0.1.0` marca el cierre de IP1 |
-| Hitos hechos | IP1 completa: H1.1 a H1.8. Cerrada el 2026-10-11 |
-| IP en curso | IP2 "Asentamiento", planificada en `docs/ip/IP2.md`: siete hitos, 77 a 101 h |
-| Hitos de IP2 hechos | H2.1 Guardado y carga, H2.2 Día, noche y sueño, H2.3 Almacenes y acarreo, H2.4 Construcción, H2.5 Muebles y camas, H2.6 Gestión de la colonia |
-| En curso | H2.7 Integración |
+| Rama de trabajo | Ninguna en curso. La última, `ip2/h2-7-integracion`, está en `main` |
+| `main` | En el cierre de IP2, con el tag `v0.2.0`, también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
+| IP en curso | Ninguna. Lo siguiente es planificar IP3 según `docs/plan-maestro.md` y `docs/ip/backlog.md` |
 | Validación | `dotnet build` sin advertencias, 480 tests en verde, smoke con código 0 |
-| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000` (H2.6: estado de las alertas en la huella). Cambiaron en H2.4: materiales de construcción, `terrainAmplitude` 2 y una casa en las órdenes del smoke |
-| Versión | `v0.1.0` publicada (https://github.com/gtaulamet/OurLife/releases/tag/v0.1.0). `config/version` ya está en `0.2.0`: `./tools/package-windows.ps1` y `./tools/package-macos.ps1` arman los zips de `v0.2.0` en `builds/` (no se versionan) |
+| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000` |
+| Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
 
 ## Pendientes
 
 En orden:
 
-1. **macOS:** la app arranca en la M1 del usuario (Tahoe 26.6.2) después de firmarla de nuevo en la Mac (`codesign --force --deep --sign -` y `xattr -cr`): macOS rechaza al ejecutar la firma ad hoc que Godot genera desde Windows. Instrucciones en el README. Falta que el usuario corra el smoke en la Mac (misma huella que en Windows) y pruebe el resto de la sección macOS del checklist. El playtest de Windows está aprobado (13/10/2026).
-2. Con el playtest aprobado: revisión de código de H2.7, `main` adelantado, tag `v0.2.0` y release de GitHub con los dos zips.
+1. **Planificar IP3** (`docs/plan-maestro.md`): escribir `docs/ip/IP3.md` con sus hitos y revisar el backlog.
+2. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -42,7 +40,7 @@ En orden:
 
 ## Historial
 
-### 2026-10-13: H2.7 Integración (en curso)
+### 2026-10-13: H2.7 Integración
 
 - El usuario probó en el editor H2.1 a H2.6: todo bien.
 - Rama `ip2/h2-7-integracion` desde `main`.
@@ -53,6 +51,8 @@ En orden:
 - Versión para macOS: plantilla `macos.zip` del `.tpz` oficial (1,2 GB) instalada; preset "macOS" universal (la plantilla sólo trae binarios universales), identificador `com.gtaulamet.ourlife` y firma ad hoc; `import_etc2_astc` activado en el proyecto, como pide Godot para Apple Silicon. Exportar C# a macOS desde Windows funciona. `tools/package-macos.ps1` agrega `LICENSES.txt` y `CREDITS.md` al zip sin perder el permiso de ejecución del binario. README con la sección de macOS.
 - La exportación quedaba colgada por los nodos de MSBuild (ver Notas prácticas): arreglado en los dos scripts y verificado con los nodos vivos.
 - Playtest humano: Windows aprobado entero. macOS no abría: Gatekeeper la bloqueaba y, desde la terminal, el sistema mataba el proceso aunque `codesign --verify` daba la firma por válida. Firmada de nuevo en la Mac, arranca. Pasos en el README y en el hallazgo 1 de `playtest-ip2.md`.
+- Revisión de código: 9 hallazgos, 5 corregidos y 4 que quedan como están (detalle en `IP2.md`). `tools/common.ps1`, presets sin versión propia y scripts que restauran la sesión. Notarización de macOS y muebles medievales al backlog.
+- Cierre: `main` adelantado, tag `v0.2.0` y release de GitHub con los zips de Windows y macOS. IP2 cerrada.
 
 ### 2026-10-12: H2.6 Gestión de la colonia
 

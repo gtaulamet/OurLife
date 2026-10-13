@@ -8,6 +8,7 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 - Correr el smoke test de Godot en la CI, instalando Godot en el runner.
 - Biblioteca compartida de utilidades para tests: raíz del repositorio y mapas ASCII.
 - Autoguardado sin tirón: hoy el guardado corre en el hilo principal entre dos cuadros (unos 30 ms con el valle de IP1). Capturar el estado en el hilo principal y escribir el archivo en segundo plano, si con mapas más grandes se nota. Hallazgo de la revisión de H2.1.
+- macOS sin Terminal: firmar con una cuenta de Apple Developer (99 USD por año) y notarizar, desde una Mac, para que la app abra con doble clic. Hoy la firma ad hoc que Godot genera desde Windows no la acepta macOS en Apple Silicon, y quien juega tiene que volver a firmarla con `codesign` (README). Alternativa sin cuenta: hacer la firma ad hoc en una Mac al empaquetar. Hallazgo del playtest de H2.7.
 - Separador de miles en español según CLDR, que pide al menos dos dígitos de agrupación: "1234" y "12.345". .NET escribe "1.234".
 
 ## Interfaz
@@ -15,6 +16,7 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 - Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
 - Un arbusto que muestre las bayas: hoy con y sin frutos se distinguen sólo por la forma.
 - Que `EntityRenderer` cambie los modelos cuando cambie la época. Llega con la segunda época.
+- Muebles con estética medieval: la cama y la silla del Furniture Kit son modernas (`docs/art.md`).
 
 ## Diseño
 

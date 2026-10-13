@@ -10,40 +10,30 @@ CREDITS.md to a copy of the zip: builds/OurLife-v<version>-macos-universal.zip. 
 added to the zip as it is, so the app keeps the execute permissions Godot gave it. The version
 comes from config/version in game/project.godot.
 
-The app cannot be run here: the smoke test is run on a Mac (see docs/ip/playtest-ip2.md).
+The app cannot be run here: the smoke test is run on a Mac. Godot's ad hoc signature from
+Windows is not accepted on Apple Silicon: the README says how to sign the app again on the Mac.
 
 Needs Godot 4.7.2 .NET (GODOT_BIN) and its macOS export template (macos.zip).
 #>
 param(
-    [string]$Godot = $(if ($env:GODOT_BIN) { $env:GODOT_BIN } else { [System.Environment]::GetEnvironmentVariable('GODOT_BIN', 'User') })
+    [string]$Godot
 )
 
 $ErrorActionPreference = 'Stop'
-if (-not $Godot -or -not (Test-Path $Godot)) {
-    throw "Godot was not found. Set GODOT_BIN to the console executable of Godot 4.7.2 .NET."
-}
-
+. (Join-Path $PSScriptRoot 'common.ps1')
+$Godot = Resolve-Godot $Godot
 $root = Split-Path $PSScriptRoot -Parent
-$version = (Select-String -Path (Join-Path $root 'game/project.godot') -Pattern '^config/version="(.+)"').Matches[0].Groups[1].Value
+$version = Get-GameVersion $root
 $out = Join-Path $root 'builds/macos'
 $export = Join-Path $out 'OurLife.zip'
 $licenses = Join-Path $out 'LICENSES.txt'
 $zip = Join-Path $root "builds/OurLife-v$version-macos-universal.zip"
 
-# A clean folder, so the zip carries nothing left from another export.
-if (Test-Path $out) { Remove-Item $out -Recurse -Force }
-New-Item -ItemType Directory -Force $out | Out-Null
-
-# MSBuild nodes and the compiler server outlive the build and keep the console of Godot's
-# launcher open, so the export would never return: the export builds without them.
-$env:MSBUILDDISABLENODEREUSE = '1'
-$env:DOTNET_CLI_USE_MSBUILD_SERVER = '0'
-$env:UseSharedCompilation = 'false'
-
+Reset-Folder $out
 Write-Host "Exporting OurLife $version for macOS..."
-& $Godot --headless --path (Join-Path $root 'game') --export-release 'macOS' $export
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path $export)) { throw "The export failed with code $LASTEXITCODE." }
+Invoke-GodotExport $Godot $root 'macOS' $export
 
+# The engine and the runtime of this machine's Godot are those of the export: same notices.
 & $Godot --headless --path (Join-Path $root 'game') -- --licenses $licenses
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path $licenses)) { throw "The license notices could not be written: code $LASTEXITCODE." }
 
