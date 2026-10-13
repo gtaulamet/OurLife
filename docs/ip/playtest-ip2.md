@@ -96,6 +96,7 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 | # | Qué pasó | Pasos para reproducirlo | Gravedad (bloquea `v0.2.0` o no) |
 |---|---|---|---|
+| 1 | La versión de macOS no abre: falla desde el primer paso del checklist. Falta el detalle (mensaje, salida de la terminal, registro) | Descomprimir `OurLife-v0.2.0-macos-universal.zip` y abrir `OurLife.app` | Bloquea la versión de Mac; Windows aprobado |
 
 ## Resultado
 

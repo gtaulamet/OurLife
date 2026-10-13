@@ -22,10 +22,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Playtest humano de IP2** con el ejecutable exportado de Windows: `docs/ip/playtest-ip2.md`. Armar el zip con `./tools/package-windows.ps1`.
-2. **Probar la versión de macOS en una Mac** (sección macOS del checklist): abrirla, correr el smoke con la semilla 42 y comparar la huella con la de Windows.
-3. Con el playtest aprobado: revisión de código de H2.7, `main` adelantado, tag `v0.2.0` y release de GitHub con los dos zips.
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **La versión de macOS no abre** en la Mac del usuario (hallazgo 1 de `docs/ip/playtest-ip2.md`). Falta el diagnóstico: qué mensaje da, la salida de la terminal y `~/Library/Application Support/OurLife/logs/godot.log`. El playtest de Windows está aprobado (13/10/2026).
+2. Con el playtest aprobado: revisión de código de H2.7, `main` adelantado, tag `v0.2.0` y release de GitHub con los dos zips.
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
