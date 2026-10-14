@@ -24,6 +24,9 @@ public partial class GameSession : Node
     /// <summary>Speed while not paused: 1, 2 or 4.</summary>
     public int Speed { get; private set; } = 1;
 
+    /// <summary>How fast the game really runs: <see cref="Speed"/>, or 0 while paused or held under a menu.</summary>
+    public int EffectiveSpeed => Paused || Held ? 0 : Speed;
+
     public bool Paused { get; private set; }
 
     /// <summary>True while a menu or the end screen holds the game: time stops and the player cannot pause it off.</summary>
@@ -128,7 +131,7 @@ public partial class GameSession : Node
 
     private void UpdatePacer()
     {
-        _pacer.Speed = Paused || Held ? 0 : Speed;
+        _pacer.Speed = EffectiveSpeed;
         ClockChanged?.Invoke();
     }
 }

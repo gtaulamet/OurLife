@@ -41,8 +41,9 @@ public partial class EntityRenderer : Node3D
     private const string Hold = "holding-both";
     private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold];
 
-    // The animation libraries whose animations were already set to loop: they are shared by every instance.
-    private readonly HashSet<AnimationLibrary> _looped = [];
+    // The animation libraries whose animations were already set to loop, by their Godot id: they
+    // are shared by every instance, and their C# wrappers are released after each use.
+    private readonly HashSet<ulong> _looped = [];
     private Func<float> _animationSpeed = () => 1f;
 
     private readonly Dictionary<EntityId, EntityView> _views = [];
@@ -195,7 +196,13 @@ public partial class EntityRenderer : Node3D
         }
 
         AddChild(node);
-        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node)) { HalfHeight = halfHeight, Animator = AnimatorOf(node) };
+        var animator = AnimatorOf(node);
+        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node))
+        {
+            HalfHeight = halfHeight,
+            Animator = animator,
+            Animations = animator is null ? [] : animator.GetAnimationList().ToHashSet(StringComparer.Ordinal),
+        };
         _views.Add(entity, view);
         if (moves)
         {
@@ -230,8 +237,9 @@ public partial class EntityRenderer : Node3D
             return;
         }
 
-        // A child of the carrier, so it walks and turns with it; sized against the carrier's scale.
-        var scale = view.Node.Scale.X == 0 ? 1f : view.Node.Scale.X;
+        // A child of the carrier, so it walks and turns with it; sized against the carrier's scale,
+        // the catalog's, as the node may be an unscaled holder.
+        var scale = view.Model.Scale;
         var load = _models.Instantiate(wanted);
         load.Scale *= LoadSize / scale;
         load.Position = LoadOffset / scale;
@@ -324,7 +332,11 @@ public partial class EntityRenderer : Node3D
             return null;
         }
 
-        var hash = unchecked((uint)entity.Index * 2654435761u);
+        // Mixed so that consecutive ids, and every other one, spread over all the files.
+        var hash = unchecked((uint)entity.Index * 0x9E3779B1u);
+        hash ^= hash >> 15;
+        hash = unchecked(hash * 0x85EBCA77u);
+        hash ^= hash >> 13;
         return files[(int)(hash % (uint)files.Count)];
     }
 
@@ -340,7 +352,7 @@ public partial class EntityRenderer : Node3D
         foreach (var name in animator.GetAnimationLibraryList())
         {
             using var library = animator.GetAnimationLibrary(name);
-            if (!_looped.Add(library))
+            if (!_looped.Add(library.GetInstanceId()))
             {
                 continue;
             }
@@ -394,18 +406,24 @@ public partial class EntityRenderer : Node3D
             : working && job!.Kind is JobKind.Harvest ? PickUp
             : world.Has<Carried>(entity) ? Hold
             : Idle;
-        if (!animator.HasAnimation(name))
+
+        // Godot is asked only when something changes: its calls cost on every frame.
+        if (!view.Animations.Contains(name))
         {
             name = Idle;
         }
 
-        if (view.Playing != name && animator.HasAnimation(name))
+        if (view.Playing != name && view.Animations.Contains(name))
         {
             animator.Play(name);
             view.Playing = name;
         }
 
-        animator.SpeedScale = speed;
+        if (view.Speed != speed)
+        {
+            animator.SpeedScale = speed;
+            view.Speed = speed;
+        }
     }
 
     /// <summary>
@@ -513,7 +531,12 @@ public partial class EntityRenderer : Node3D
         /// <summary>The player of the model's animations, for a colonist; null for a model without them.</summary>
         public AnimationPlayer? Animator { get; init; }
 
-        /// <summary>The animation it plays, so it is only started when it changes.</summary>
+        /// <summary>The names of the model's animations.</summary>
+        public IReadOnlySet<string> Animations { get; init; } = new HashSet<string>();
+
+        /// <summary>The animation it plays and how fast, so Godot is only told when they change.</summary>
         public string? Playing { get; set; }
+
+        public float Speed { get; set; } = -1f;
     }
 }

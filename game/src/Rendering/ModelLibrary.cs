@@ -12,7 +12,7 @@ namespace OurLife.Game.Rendering;
 public sealed class ModelLibrary : IDisposable
 {
     private readonly Dictionary<string, PackedScene> _scenes = new(StringComparer.Ordinal);
-    private readonly Dictionary<(Material Source, int Depth), Material> _shaded = [];
+    private readonly Dictionary<(Material Source, int Depth, bool SrgbAsLinear), Material> _shaded = [];
     private readonly Dictionary<(Material Source, Color? Color, float Alpha, bool OnTop), Material> _ghosts = [];
 
     public ModelLibrary(VisualCatalog catalog)
@@ -22,9 +22,6 @@ public sealed class ModelLibrary : IDisposable
     }
 
     public VisualCatalog Catalog { get; }
-
-    /// <summary>The scene of a model, or null if it cannot be loaded (for example, not imported yet).</summary>
-    public PackedScene? Load(VisualModel model) => Load(model.ModelPath);
 
     /// <summary>The scene of a model file, or null if it cannot be loaded, cached by its path.</summary>
     public PackedScene? Load(string path)
@@ -179,7 +176,7 @@ public sealed class ModelLibrary : IDisposable
     {
         // A source material appears once per depth, and an unconverted one is its own copy.
         var resources = new HashSet<Resource>(_scenes.Values);
-        foreach (var ((source, _), shaded) in _shaded)
+        foreach (var ((source, _, _), shaded) in _shaded)
         {
             resources.Add(source);
             resources.Add(shaded);
@@ -216,12 +213,12 @@ public sealed class ModelLibrary : IDisposable
     }
 
     /// <summary>
-    /// A lit copy of a material for a depth. A source material belongs to one model file, and so
-    /// to one kit, so the cache does not need the colour correction in its key.
+    /// A lit copy of a material for a depth and a colour correction. The same file may be drawn
+    /// alone and as a part of another model, so the correction is part of the cache's key.
     /// </summary>
     private Material ShadedCopy(Material source, int depth, bool srgbAsLinear)
     {
-        if (_shaded.TryGetValue((source, depth), out var cached))
+        if (_shaded.TryGetValue((source, depth, srgbAsLinear), out var cached))
         {
             return cached;
         }
@@ -244,7 +241,7 @@ public sealed class ModelLibrary : IDisposable
             };
         }
 
-        _shaded.Add((source, depth), shaded);
+        _shaded.Add((source, depth, srgbAsLinear), shaded);
         return shaded;
     }
 

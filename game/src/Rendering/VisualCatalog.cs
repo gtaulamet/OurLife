@@ -7,7 +7,7 @@ namespace OurLife.Game.Rendering;
 /// A model of the catalog: the scene to instance, how to fit it into a cell, and whether its kit
 /// stores sRGB colours in glTF's linear colour field, so they need correcting.
 /// </summary>
-/// <param name="Center">The model's origin is off its middle, as in the Furniture Kit: it is centred on the cell when instanced.</param>
+/// <param name="Center">The model's origin is off its middle, like a corner: it is centred on the cell when instanced.</param>
 /// <param name="Variants">
 /// Other files of the same model by a tag, like a colonist's gender: the renderer picks one of
 /// the tag's files per entity, and the plain <paramref name="ModelPath"/> without a tag.
@@ -77,6 +77,7 @@ public sealed class VisualCatalog
     public const string ResourcePath = "res://assets/models/visuals.json";
 
     private readonly Dictionary<string, VisualModel> _models;
+    private readonly List<string> _kits;
 
     private VisualCatalog(
         Dictionary<string, VisualModel> models,
@@ -84,9 +85,11 @@ public sealed class VisualCatalog
         GrassColors grass,
         string cutColor,
         Dictionary<string, TerrainPattern> patterns,
-        List<DecorationModel> decorations)
+        List<DecorationModel> decorations,
+        List<string> kits)
     {
         _models = models;
+        _kits = kits;
         Palette = palette;
         Grass = grass;
         CutColor = cutColor;
@@ -232,13 +235,16 @@ public sealed class VisualCatalog
                 }
             }
 
-            return new VisualCatalog(models, palette, grass, ColorField(terrain, "cutColor"), patterns, decorations);
+            return new VisualCatalog(models, palette, grass, ColorField(terrain, "cutColor"), patterns, decorations, kits);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or ArgumentException)
         {
             throw new FormatException($"Invalid visual catalog: {ex.Message}", ex);
         }
     }
+
+    /// <summary>Whether a model file comes from a kit that stores its colours in glTF's linear field (<c>srgbAsLinearKits</c>).</summary>
+    public bool NeedsColourCorrection(string path) => _kits.Exists(kit => path.StartsWith(kit, StringComparison.Ordinal));
 
     /// <summary>The model for an id in an era: the <c>id@era</c> variant if there is one, else the id.</summary>
     public bool TryResolve(string id, string? era, out VisualModel model)

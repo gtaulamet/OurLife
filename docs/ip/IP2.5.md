@@ -253,3 +253,16 @@ Pedido del usuario del 14 de octubre de 2026, después de cerrar V4, en la rama 
 - Capturas: la llegada con los colonos, el trabajo con poses distintas, la casa de día con los muebles de KayKit y de noche con un colono dormido en la cama, los arbustos con cerezas.
 - Vista previa de silla, cama y baúl en giro 0, y del baúl en giro 1: la flecha apunta al frente de cada modelo.
 - 507 tests en verde y mismas huellas.
+
+**Revisión de código:** 10 hallazgos, 8 corregidos.
+
+- La elección de variante era, en la práctica, `id % 6`: con colonos de géneros alternados sólo salían tres de las seis variantes de cada género. Ahora un hash mezcla los bits.
+- El registro de animaciones ya puestas en bucle comparaba envoltorios de C# que se liberan y crecía sin fin; ahora usa el id de Godot.
+- La caché de materiales distingue la corrección de color, y un test pide que todos los archivos de un modelo (variantes y partes) necesiten la misma.
+- La cama baja a escala 0,33 para no pasarse de su celda; el durmiente sigue acostado sobre ella.
+- La carga en las manos toma la escala del catálogo, no la del nodo, que con `turn` o `parts` es un contenedor sin escala.
+- Las animaciones no consultan Godot en cada cuadro: la lista de animaciones se guarda por modelo y la velocidad sólo se cambia si cambia.
+- `GameSession.EffectiveSpeed` es la regla de velocidad del reloj y de las animaciones.
+- Un test pide que las etiquetas de variantes sean géneros; se quitó una sobrecarga de `ModelLibrary.Load` sin uso y una mención vieja al Furniture Kit.
+- Quedan como están: cada modelo de KayKit trae su copia de la misma textura (unificarla pide editar los `.glb`; son 16 KB cada una) y la clave `texture` de la paleta, el nombre del único material de KayKit (anotado en `docs/art.md`).
+- 509 tests en verde y mismas huellas.

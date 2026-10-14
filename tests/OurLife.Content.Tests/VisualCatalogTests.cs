@@ -189,6 +189,30 @@ public class VisualCatalogTests
     }
 
     [Fact]
+    public void Every_file_of_a_model_needs_the_same_colour_correction()
+    {
+        // A model is shaded with one correction for all its files: its variants and its parts.
+        var mixed = Catalog.Models
+            .Where(model => model.Files.Any(file => Catalog.NeedsColourCorrection(file) != model.SrgbAsLinear))
+            .Select(model => model.Id)
+            .ToList();
+
+        mixed.ShouldBeEmpty(string.Join(Environment.NewLine, mixed));
+    }
+
+    [Fact]
+    public void Variant_tags_are_genders()
+    {
+        // A colonist takes the variants of its gender, by its name in lower case.
+        var genders = Enum.GetNames<OurLife.Core.Entities.Gender>().Select(name => name.ToLowerInvariant()).ToHashSet(StringComparer.Ordinal);
+        var unknown = Catalog.Models
+            .SelectMany(model => (model.Variants?.Keys ?? []).Where(tag => !genders.Contains(tag)).Select(tag => $"'{model.Id}': '{tag}'"))
+            .ToList();
+
+        unknown.ShouldBeEmpty(string.Join(Environment.NewLine, unknown));
+    }
+
+    [Fact]
     public void Decoration_models_have_no_textures()
     {
         // The decoration is baked with one colour per material: a texture would be lost (ADR-012).

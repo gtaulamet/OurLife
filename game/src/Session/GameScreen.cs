@@ -83,7 +83,7 @@ public partial class GameScreen : Node
                 catalog,
                 () => services.Settings.DayNightCycle,
                 services.Settings.Decoration,
-                () => session.Paused || session.Held ? 0f : session.Speed,
+                () => session.EffectiveSpeed,
                 level,
                 distance);
             screen.AddChild(screen.View);

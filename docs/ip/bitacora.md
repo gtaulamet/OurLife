@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v5-modelos`: V5 hecho, falta la revisión de código |
-| `main` | En el cierre de V4 de IP2.5, con la opción de decoración, también en `origin`. `v0.2.0` es la última versión |
+| Rama de trabajo | `ip2.5/v5-modelos`, cerrada y en `main`. Sigue V6 en `ip2.5/v6-integracion` |
+| `main` | En el cierre de V5 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
-| Validación | `dotnet build` sin advertencias, 507 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 509 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
 
@@ -20,8 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V5**: revisión de código, commit y adelantar `main`. El usuario puede mirar el antes y después de V4 en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD.
-2. **V6 Integración** según `IP2.5.md`. Después, planificar IP3.
+1. **V6 Integración** según `IP2.5.md`: checklist de playtest, capturas es/en, benchmark, paquetes de Windows y macOS, playtest humano y release `v0.2.5`. Después, planificar IP3.
 3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -47,6 +46,7 @@ En orden:
 - Muebles y provisiones de KayKit, con la madera entonada; bayas del Food Kit, sueltas y en los arbustos; los 12 aldeanos de Mini Characters con la ropa recoloreada y animaciones según lo que hacen, a la velocidad del juego.
 - El catálogo suma `variants`, `parts` y `turn`. El baúl de KayKit miraba a +X: `turn: 3`.
 - 507 tests, mismas huellas. Detalle en el registro de V5 de `IP2.5.md`.
+- Revisión de código: 10 hallazgos, 8 corregidos; lo principal, las variantes de aldeanos sólo usaban la mitad de los modelos. 509 tests. `main` adelantado.
 
 ### 2026-10-14: opción Decoración del pasto
 

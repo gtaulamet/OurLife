@@ -60,7 +60,7 @@
         "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]
       }
     },
-    "furniture.bed": { "model": "res://assets/models/kaykit_dungeon-remastered/bed_frame.glb", "scale": 0.36 },
+    "furniture.bed": { "model": "res://assets/models/kaykit_dungeon-remastered/bed_frame.glb", "scale": 0.33 },
     "furniture.table": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },
     "furniture.chair": { "model": "res://assets/models/kaykit_dungeon-remastered/chair.glb", "scale": 0.55 },
     "furniture.chest": { "model": "res://assets/models/kaykit_dungeon-remastered/trunk_medium_A.glb", "scale": 0.8, "turn": 3 }

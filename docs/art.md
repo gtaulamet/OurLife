@@ -11,7 +11,7 @@
 
 1. **[Nature Kit de Kenney](https://kenney.nl/assets/nature-kit)**, CC0: terreno, acantilados, árboles, arbustos, rocas y troncos para la superficie del valle. Al descargarlo hay que confirmar el contenido exacto y la licencia.
 2. Otros kits 3D CC0 de Kenney para lo que falte, sobre todo colonos y objetos. Conviene elegir kits con el mismo estilo low-poly. Los aldeanos son los 12 de Mini Characters, con la ropa recoloreada con tonos de la época (ADR-012).
-3. **[KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette` (material `texture`). No guarda sus colores como Kenney, así que no va en `srgbAsLinearKits`.
+3. **[KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette` (material `texture`, el nombre que KayKit da a su único material; otro kit con un material de ese nombre también se teñiría). No guarda sus colores como Kenney, así que no va en `srgbAsLinearKits`.
 4. Modelos propios simples: el bloque de estrato para teñir, las escaleras y los marcadores de designación.
 5. Otros assets CC0 o CC-BY, con atribución en `CREDITS.md`. Los modelos para épocas futuras pueden tener que encargarse o comprarse.
 
