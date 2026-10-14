@@ -6,7 +6,7 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1 a V5 hechos; falta V6.
+**Estado:** en curso. V1 a V5 hechos; V6 espera el playtest humano.
 
 ## Estado de los hitos
 
@@ -17,7 +17,7 @@
 | V3 Vista previa de muebles | Hecho | `ip2.5/v3-vista-previa` | Modelo translúcido girado con flecha al frente, rojo donde no va; planos de muebles con su modelo |
 | V4 Terreno y decoración | Hecho | `ip2.5/v4-terreno`, `ip2.5/v4-opcion-decoracion` | Sólo el estilo B; patrones, verdes y decoración en el catálogo; matas, flores, piedritas y hongos sobre el pasto, con la opción Decoración del pasto |
 | V5 Modelos y animaciones | Hecho | `ip2.5/v5-modelos` | Muebles y provisiones de KayKit, bayas del Food Kit, 12 aldeanos recoloreados con animaciones |
-| V6 Integración | Pendiente | `ip2.5/v6-integracion` | |
+| V6 Integración | En curso | `ip2.5/v6-integracion` | Paquetes de Windows y macOS armados y pasada automática hecha; falta el playtest humano (`docs/ip/playtest-ip2.5.md`) |
 
 Los hitos se llaman V (de visual) para no confundirlos con H2.5, "Muebles y camas", de IP2.
 
@@ -266,3 +266,11 @@ Pedido del usuario del 14 de octubre de 2026, después de cerrar V4, en la rama 
 - Un test pide que las etiquetas de variantes sean géneros; se quitó una sobrecarga de `ModelLibrary.Load` sin uso y una mención vieja al Furniture Kit.
 - Quedan como están: cada modelo de KayKit trae su copia de la misma textura (unificarla pide editar los `.glb`; son 16 KB cada una) y la clave `texture` de la paleta, el nombre del único material de KayKit (anotado en `docs/art.md`).
 - 509 tests en verde y mismas huellas.
+
+## Registro de V6: Integración
+
+**Hecho hasta ahora (14 de octubre de 2026)**
+
+- Versión 0.2.5 en `project.godot` (los presets la toman de ahí) y README al día.
+- Paquetes: `OurLife-v0.2.5-windows-x86_64.zip` (72,7 MB, con el smoke corrido sobre el ejecutable exportado) y `OurLife-v0.2.5-macos-universal.zip` (121,8 MB, firma ad hoc a rehacer en la Mac).
+- Checklist `docs/ip/playtest-ip2.5.md`, con la pasada automática: huellas iguales a las de v0.2.0, 509 tests, clic con la interfaz al 200 %, vista previa, decoración en vivo, benchmark dentro del presupuesto y capturas es/en a 1920×1080.

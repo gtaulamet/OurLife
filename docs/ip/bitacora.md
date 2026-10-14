@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v5-modelos`, cerrada y en `main`. Sigue V6 en `ip2.5/v6-integracion` |
+| Rama de trabajo | `ip2.5/v6-integracion`: paquetes y pasada automática hechos, falta el playtest humano |
 | `main` | En el cierre de V5 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
@@ -20,7 +20,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V6 Integración** según `IP2.5.md`: checklist de playtest, capturas es/en, benchmark, paquetes de Windows y macOS, playtest humano y release `v0.2.5`. Después, planificar IP3.
+1. **El usuario** juega con `builds/OurLife-v0.2.5-windows-x86_64.zip` (y en la Mac con el de macOS, vuelto a firmar) siguiendo `docs/ip/playtest-ip2.5.md`. Los zips no se versionan: en la otra PC se arman con `./tools/package-windows.ps1` y `./tools/package-macos.ps1`.
+2. Con el playtest aprobado: revisión de código de V6, adelantar `main`, tag `v0.2.5` y release de GitHub con los dos zips. Después, planificar IP3.
 3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -40,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: V6 Integración (primera parte)
+
+- Versión 0.2.5; paquetes de Windows y macOS armados, el de Windows con el smoke sobre el exportado.
+- Checklist `docs/ip/playtest-ip2.5.md` con la pasada automática; capturas es/en a 1080p; benchmark: 261 FPS de media, dentro del presupuesto.
+- Falta el playtest humano.
 
 ### 2026-10-14: V5 Modelos y animaciones
 
