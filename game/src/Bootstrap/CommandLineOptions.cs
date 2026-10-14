@@ -300,6 +300,16 @@ public sealed record CommandLineOptions
             throw new ArgumentException("--drag-to needs --point: the drag starts there.");
         }
 
+        if (options.Rotation is not null && options.Furniture is null)
+        {
+            throw new ArgumentException("--rotation needs --furniture: it turns that piece.");
+        }
+
+        if ((options.Furniture is not null || options.Point is not null) && !options.Play && options.LoadSlot is null)
+        {
+            throw new ArgumentException("--furniture and --point need --play or --load: they act on a game.");
+        }
+
         if (options.Show == "save" && !options.Play && options.LoadSlot is null)
         {
             throw new ArgumentException("--show save needs --play or --load: it opens over a game.");

@@ -86,12 +86,7 @@ public partial class FurnitureGhosts : Node3D
             used[ghost.Visual] = index + 1;
             var (node, meshes) = Take(ghost.Visual, model, index);
             var color = ghost.Look == GhostLook.Blocked ? BlockedColor : (Color?)null;
-            var alpha = ghost.Look switch
-            {
-                GhostLook.Planned => 0.45f,
-                GhostLook.Supplied => 0.75f,
-                _ => 0.75f,
-            };
+            var alpha = ghost.Look == GhostLook.Planned ? 0.45f : 0.75f;
 
             // A preview is a cursor: it shows through what is in front, over the cursor's frame.
             var preview = ghost.Look is GhostLook.Preview or GhostLook.Blocked;

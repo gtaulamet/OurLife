@@ -74,8 +74,8 @@ public partial class GameInput : Node3D
     private TileCoord? _pointed;
     private (TileCoord From, TileCoord To)? _pointedDrag;
 
-    // The furniture previews shown, so the view only changes when they do.
-    private List<Ghost> _previews = [];
+    // What the furniture previews shown were worked out for (see UpdatePreviews).
+    private ((TileCoord From, TileCoord To)? Box, BuildChoice? Build, long Tick, string? Era)? _previewKey;
 
     /// <summary>Raised when the player selects something or clears the selection.</summary>
     public event Action<Selection?>? SelectionChanged;
@@ -309,6 +309,13 @@ public partial class GameInput : Node3D
     /// <summary>Points at a cell as the mouse would, for captures and the smoke; the mouse no longer moves the frame.</summary>
     public void PointAt(TileCoord cell) => _pointed = cell;
 
+    /// <summary>The last thing chosen to build, which the build key brings back; the smoke puts it back after its check.</summary>
+    internal BuildChoice? LastBuild
+    {
+        get => _lastBuild;
+        set => _lastBuild = value;
+    }
+
     /// <summary>Gives the frame back to the mouse after <see cref="PointAt"/> or <see cref="PointAtDrag"/>.</summary>
     public void StopPointing()
     {
@@ -327,22 +334,42 @@ public partial class GameInput : Node3D
     /// With furniture to build, its translucent model where it would go, turned, with an arrow to
     /// its front, and red where it cannot (<c>docs/gdd/vista-previa-de-muebles.md</c>): on the cell
     /// under the mouse, or on every cell of the drag. The cells come from the same query the
-    /// command uses. Asked every frame, as blueprints and plants change under a still mouse, and
-    /// by the smoke.
+    /// command uses. Asked every frame, and by the smoke, but worked out again only when the box,
+    /// the choice, the tick or the era change, or after an order of this input: the query walks
+    /// every blueprint, plant and stockpile.
     /// </summary>
     internal void UpdatePreviews()
     {
-        var previews = new List<Ghost>();
-        var content = _session.Simulation.Content;
-        if (_build is { } build && content.Get<BuildableDef>(build.Buildable) is { Visual: { } visual } buildable
-            && PreviewBox() is { } box)
+        var simulation = _session.Simulation;
+        var box = _build is null ? null : PreviewBox();
+        var key = (box, _build, simulation.CurrentTick, simulation.Progress.CurrentEra);
+        if (_previewKey == key)
         {
-            var valid = Construction.CellsToPlan(_session.Simulation, buildable, box.From, box.To);
-            var cells = BoxCells(box.From, box.To);
-            if (cells.Count <= MaxPreviews)
+            return;
+        }
+
+        _previewKey = key;
+        var previews = new List<Ghost>();
+        if (_build is { } build && simulation.Content.Get<BuildableDef>(build.Buildable) is { Visual: { } visual } buildable
+            && box is { } corners && Designations.TryClampBox(simulation.Map, corners.From, corners.To, out var min, out var max))
+        {
+            var valid = Construction.CellsToPlan(simulation, buildable, min, max);
+            var size = (long)(max.X - min.X + 1) * (max.Y - min.Y + 1) * (max.Z - min.Z + 1);
+            if (size <= MaxPreviews)
             {
+                // Every cell of the box, in the order the command walks them: red where it puts nothing.
                 var placed = valid.ToHashSet();
-                previews.AddRange(cells.Select(cell => new Ghost(cell, visual, build.Rotation, placed.Contains(cell) ? GhostLook.Preview : GhostLook.Blocked)));
+                for (var z = min.Z; z <= max.Z; z++)
+                {
+                    for (var y = min.Y; y <= max.Y; y++)
+                    {
+                        for (var x = min.X; x <= max.X; x++)
+                        {
+                            var cell = new TileCoord(x, y, z);
+                            previews.Add(new Ghost(cell, visual, build.Rotation, placed.Contains(cell) ? GhostLook.Preview : GhostLook.Blocked));
+                        }
+                    }
+                }
             }
             else
             {
@@ -350,11 +377,7 @@ public partial class GameInput : Node3D
             }
         }
 
-        if (!previews.SequenceEqual(_previews))
-        {
-            _previews = previews;
-            _view.Previews.Show(previews, _session.Simulation.Progress.CurrentEra);
-        }
+        _view.Previews.Show(previews, simulation.Progress.CurrentEra);
     }
 
     /// <summary>The box a preview covers: the drag under way, or the cell pointed at, or nothing.</summary>
@@ -372,25 +395,6 @@ public partial class GameInput : Node3D
 
         var hover = _pointed ?? _hoverCell;
         return hover is { } cell ? (cell, cell) : null;
-    }
-
-    /// <summary>The cells of a box inside the map, in the order the command walks them.</summary>
-    private List<TileCoord> BoxCells(TileCoord a, TileCoord b)
-    {
-        var size = _session.Simulation.Map.Size;
-        var cells = new List<TileCoord>();
-        for (var z = Math.Max(0, Math.Min(a.Z, b.Z)); z <= Math.Min(size.Depth - 1, Math.Max(a.Z, b.Z)); z++)
-        {
-            for (var y = Math.Max(0, Math.Min(a.Y, b.Y)); y <= Math.Min(size.Height - 1, Math.Max(a.Y, b.Y)); y++)
-            {
-                for (var x = Math.Max(0, Math.Min(a.X, b.X)); x <= Math.Min(size.Width - 1, Math.Max(a.X, b.X)); x++)
-                {
-                    cells.Add(new TileCoord(x, y, z));
-                }
-            }
-        }
-
-        return cells;
     }
 
     /// <summary>Frames the cell under the point, or nothing without one, and stretches the drag box to it.</summary>
@@ -467,6 +471,8 @@ public partial class GameInput : Node3D
             if (start is { } first && end is { } last)
             {
                 var (from, to) = Box(_order, first, last);
+                // The blueprints change what the preview shows, even with the time stopped.
+                _previewKey = null;
                 _session.Enqueue(_build is { } build
                     ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to, build.Rotation)
                     : new DesignateCommand(_order!.Value, from, to));

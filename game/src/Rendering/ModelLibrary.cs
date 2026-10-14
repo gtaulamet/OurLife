@@ -96,27 +96,8 @@ public sealed class ModelLibrary : IDisposable
     }
 
     /// <summary>Gives every surface of the meshes of an instance of a model its lit material for that depth.</summary>
-    public void Shade(VisualModel model, IReadOnlyList<MeshInstance3D> meshes, int depth)
-    {
-        foreach (var meshInstance in meshes)
-        {
-            // The node keeps the mesh; the materials are released in Dispose.
-            using var mesh = meshInstance.Mesh;
-            if (mesh is null)
-            {
-                continue;
-            }
-
-            for (var surface = 0; surface < mesh.GetSurfaceCount(); surface++)
-            {
-                var source = mesh.SurfaceGetMaterial(surface);
-                if (source is not null)
-                {
-                    meshInstance.SetSurfaceOverrideMaterial(surface, ShadedCopy(source, depth, model.SrgbAsLinear));
-                }
-            }
-        }
-    }
+    public void Shade(VisualModel model, IReadOnlyList<MeshInstance3D> meshes, int depth) =>
+        Override(meshes, source => ShadedCopy(source, depth, model.SrgbAsLinear));
 
     /// <summary>
     /// Gives every surface of an instance a translucent copy of its material, for the previews and
@@ -125,7 +106,11 @@ public sealed class ModelLibrary : IDisposable
     /// <paramref name="onTop"/> is drawn over everything, after the frame of the cursor, which
     /// would otherwise wash it out.
     /// </summary>
-    public void ShadeGhost(VisualModel model, IReadOnlyList<MeshInstance3D> meshes, Color? color, float alpha, bool onTop)
+    public void ShadeGhost(VisualModel model, IReadOnlyList<MeshInstance3D> meshes, Color? color, float alpha, bool onTop) =>
+        Override(meshes, source => GhostCopy(source, model.SrgbAsLinear, color, alpha, onTop));
+
+    /// <summary>Gives every surface of the meshes the material <paramref name="copyOf"/> makes from its own.</summary>
+    private static void Override(IReadOnlyList<MeshInstance3D> meshes, Func<Material, Material> copyOf)
     {
         foreach (var meshInstance in meshes)
         {
@@ -141,7 +126,7 @@ public sealed class ModelLibrary : IDisposable
                 var source = mesh.SurfaceGetMaterial(surface);
                 if (source is not null)
                 {
-                    meshInstance.SetSurfaceOverrideMaterial(surface, GhostCopy(source, model.SrgbAsLinear, color, alpha, onTop));
+                    meshInstance.SetSurfaceOverrideMaterial(surface, copyOf(source));
                 }
             }
         }

@@ -822,6 +822,7 @@ public partial class GameRoot : Node
         var piece = Construction.BuildablesInOrder(screen.Session.Simulation.Content).FirstOrDefault(buildable => buildable.IsFurniture);
         if (piece is not null && colonists.Count > 0 && screen.Session.Simulation.World.IsAlive(colonists[0]))
         {
+            var lastBuild = screen.Input.LastBuild;
             screen.Input.Build = new BuildChoice(piece.Id, piece.Materials[0], 1);
             screen.Input.PointAt(screen.Session.Simulation.World.Get<Position>(colonists[0]).Cell);
             screen.Input.UpdatePreviews();
@@ -832,6 +833,7 @@ public partial class GameRoot : Node
 
             screen.Input.StopPointing();
             screen.Input.Build = null;
+            screen.Input.LastBuild = lastBuild;
             screen.Input.UpdatePreviews();
             GD.Print($"[smoke] the preview of a {piece.Id} shows where it would go");
         }

@@ -8,8 +8,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v3-vista-previa`: V3 hecho, falta la revisión de código |
-| `main` | En el cierre de V2 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
+| Rama de trabajo | `ip2.5/v3-vista-previa`, cerrada y en `main`. Sigue V4 en `ip2.5/v4-terreno` |
+| `main` | En el cierre de V3 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
 | Validación | `dotnet build` sin advertencias, 495 tests en verde, smoke con código 0 |
@@ -20,9 +20,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V3**: revisión de código, commit y adelantar `main`.
-2. **V4 Terreno y decoración**: implementar limpio el estilo B, llevar al catálogo los patrones por material y los colores del pasto (con test), quitar los otros estilos y el cuadro de 100 ms al compilar el shader.
-3. **V5 y V6** según `IP2.5.md`. Después, planificar IP3.
+1. **V4 Terreno y decoración**: implementar limpio el estilo B, llevar al catálogo los patrones por material y los colores del pasto (con test), quitar los otros estilos y el cuadro de 100 ms al compilar el shader.
+2. **V5 y V6** según `IP2.5.md`. Después, planificar IP3.
 4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -47,6 +46,7 @@ En orden:
 - Al colocar un mueble se ve su modelo translúcido y girado dentro del cubo, con una flecha hacia el frente; rojo donde no se puede. En un arrastre, en cada celda. Los planos de muebles se dibujan con su modelo.
 - `Construction.CellsToPlan` en Core, que usan el comando y la vista previa. Opciones de captura `--furniture`, `--rotation`, `--point` y `--drag-to`.
 - 495 tests, mismas huellas. Detalle en el registro de V3 de `IP2.5.md`.
+- Revisión de código: 10 hallazgos, 9 corregidos; lo principal, la vista previa ya no recorre el mundo en cada cuadro. `main` adelantado al cierre de V3.
 
 ### 2026-10-14: V2 Tamaño de la interfaz
 

@@ -185,3 +185,13 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - El frente de los modelos, antes de girar, es +Z. Capturas de la silla y de la cama en los cuatro giros: la flecha apunta hacia donde mira la silla y hacia los pies de la cama en cada uno.
 - Capturas de una mesa sobre la silla de la casa (roja), de un arrastre de cofres sobre la casa (válidos en el piso, rojos sobre muros y muebles) y de los planos de la cama y la mesa a mitad de obra, girados.
 - 495 tests en verde y mismas huellas del smoke.
+
+**Revisión de código:** 10 hallazgos, 9 corregidos.
+
+- La vista previa se calcula de nuevo sólo cuando cambian la caja, el mueble, el tick o la época, o después de una orden de la entrada; antes recorría planos, plantas y almacenes en cada cuadro. Una caja grande ya no arma la lista de todas sus celdas: se cuentan con el recorte de Core (`Designations.TryClampBox`), el mismo del comando.
+- La vista previa y los planos de muebles siguen un cambio de época, que no tiene evento.
+- La comprobación del smoke deja el último construible elegido como estaba.
+- `--rotation` pide `--furniture`, y `--furniture` y `--point` piden `--play` o `--load`.
+- `ModelLibrary` recorre las superficies en un solo lugar para los dos tipos de copia; se quitaron una rama muerta y una sangría mal puesta.
+- Queda como está: cada grupo de fantasmas tiene su propia `ModelLibrary`. Los `PackedScene` son los mismos recursos de la caché de Godot y sólo se duplican diccionarios chicos; compartir la biblioteca complicaría quién la libera.
+- 495 tests en verde y mismas huellas.

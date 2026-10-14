@@ -49,6 +49,9 @@ public partial class OrderMarkers : Node3D
     private int _viewLevel;
     private bool _dirty = true;
 
+    // The era the models of the furniture blueprints were drawn for; no event says it changed.
+    private string? _era;
+
     public static OrderMarkers Create(Simulation simulation, VisualCatalog catalog, int viewLevel)
     {
         ArgumentNullException.ThrowIfNull(simulation);
@@ -93,7 +96,7 @@ public partial class OrderMarkers : Node3D
 
     public override void _Process(double delta)
     {
-        if (_dirty)
+        if (_dirty || _simulation.Progress.CurrentEra != _era)
         {
             Rebuild();
         }
@@ -221,7 +224,7 @@ public partial class OrderMarkers : Node3D
                 BuildShape.Door => new Vector3(0.6f, 0.9f, 0.6f),
                 BuildShape.Ramp => new Vector3(0.9f, 0.45f, 0.9f),
                 BuildShape.Stairs => new Vector3(0.6f, 1.8f, 0.6f),
-                    _ => Vector3.One,
+                _ => Vector3.One,
             };
 
             var color = Color.FromHtml(content.Get<MaterialDef>(plan.Material).Color);
@@ -230,7 +233,8 @@ public partial class OrderMarkers : Node3D
             _marks.Add((new Transform3D(Basis.Identity.Scaled(size), centre), color));
         }
 
-        _ghosts.Show(_furniture, _simulation.Progress.CurrentEra);
+        _era = _simulation.Progress.CurrentEra;
+        _ghosts.Show(_furniture, _era);
     }
 
     /// <summary>A floating marker over each plant with the order <typeparamref name="TOrder"/>.</summary>
