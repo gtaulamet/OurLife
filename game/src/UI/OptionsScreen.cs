@@ -5,7 +5,7 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// Options, from the main menu or the pause menu: the language, applied live, the fullscreen
-/// mode and the day and night cycle. All are saved at once.
+/// mode, the size of the interface and the day and night cycle. All are saved at once.
 /// </summary>
 public partial class OptionsScreen : Control
 {
@@ -13,6 +13,7 @@ public partial class OptionsScreen : Control
     private readonly List<(string Locale, Button Button)> _languages = [];
     private readonly List<(bool Fullscreen, Button Button)> _modes = [];
     private readonly List<(bool On, Button Button)> _cycle = [];
+    private readonly List<(int Setting, Button Button)> _sizes = [];
 
     public event Action? Closed;
 
@@ -54,6 +55,20 @@ public partial class OptionsScreen : Control
             screen._modes.Add((fullscreen, button));
         }
 
+        // The size buttons say a percentage, formatted for the language, so Godot does not translate them.
+        column.AddChild(UiBuilder.Caption("ui.options.ui_scale"));
+        var sizes = new HBoxContainer();
+        sizes.AddThemeConstantOverride("separation", UiBuilder.Gap);
+        column.AddChild(sizes);
+        foreach (var setting in UiScaleRules.Steps.Prepend(UiScaleRules.Auto))
+        {
+            var button = new Button { ToggleMode = true, AutoTranslateMode = AutoTranslateModeEnum.Disabled };
+            button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
+            button.Pressed += () => screen.ChooseUiScale(setting);
+            sizes.AddChild(button);
+            screen._sizes.Add((setting, button));
+        }
+
         column.AddChild(UiBuilder.Caption("ui.options.day_night"));
         var cycle = new HBoxContainer();
         cycle.AddThemeConstantOverride("separation", UiBuilder.Gap);
@@ -71,7 +86,20 @@ public partial class OptionsScreen : Control
         screen.RefreshLanguages();
         screen.RefreshModes();
         screen.RefreshCycle();
+        screen.RefreshSizes();
         return screen;
+    }
+
+    public override void _EnterTree()
+    {
+        _services.Localizer.LocaleChanged += OnLocaleChanged;
+        GetTree().Root.SizeChanged += RefreshSizes;
+    }
+
+    public override void _ExitTree()
+    {
+        _services.Localizer.LocaleChanged -= OnLocaleChanged;
+        GetTree().Root.SizeChanged -= RefreshSizes;
     }
 
     public override void _UnhandledInput(InputEvent @event)
@@ -102,6 +130,32 @@ public partial class OptionsScreen : Control
         _services.Settings.SetFullscreen(fullscreen);
         _services.Settings.ApplyWindowMode();
         RefreshModes();
+    }
+
+    private void OnLocaleChanged(string locale) => RefreshSizes();
+
+    private void ChooseUiScale(int setting)
+    {
+        _services.Settings.SetUiScale(setting);
+        RefreshSizes();
+    }
+
+    /// <summary>
+    /// The texts of the size buttons, which change with the language and, for Auto, with the
+    /// window; the sizes the window cannot hold are disabled.
+    /// </summary>
+    private void RefreshSizes()
+    {
+        // Also called before the screen enters the tree, where GetTree() is not available.
+        var window = ((SceneTree)Engine.GetMainLoop()).Root.Size;
+        foreach (var (setting, button) in _sizes)
+        {
+            button.Text = setting == UiScaleRules.Auto
+                ? _services.Text.Format("ui.options.ui_scale_auto", ("percent", UiScaleRules.AutoFor(window.X, window.Y)))
+                : _services.Text.Format("ui.options.ui_scale_percent", ("percent", setting));
+            button.Disabled = setting != UiScaleRules.Auto && !UiScaleRules.IsAvailable(setting, window.X, window.Y);
+            button.SetPressedNoSignal(setting == _services.Settings.UiScale);
+        }
     }
 
     private void ChooseDayNight(bool on)

@@ -28,7 +28,7 @@ Dos condiciones avisan al jugador. Cada una manda **un mensaje al registro** cua
 | Hambre crítica | Una necesidad con `alertWhenCritical` (el hambre) baja de su umbral crítico | Vuelve a su umbral bajo o más arriba | Peligro |
 
 - Un colono que muere deja de tener alertas.
-- **Lista del HUD:** debajo de la barra de arriba, a la izquierda, una línea por alerta activa ("Elvira: sin tarea", "Sancho: hambre crítica"), en amarillo los avisos y en rojo los peligros. Un clic en una línea selecciona al colono. Sin alertas, la lista no se ve.
+- **Lista del HUD:** debajo de la barra de arriba, a la izquierda, una línea por alerta activa ("Elvira: sin tarea", "Sancho: hambre crítica"), en amarillo los avisos y en rojo los peligros. Un clic en una línea selecciona al colono. Sin alertas, la lista no se ve. Con el panel Colonia abierto tampoco: el panel ya dice qué hace cada colono, y ocupa su lugar (desde V2 de IP2.5).
 - El estado de las alertas es parte de la simulación (se guarda y entra en la huella): el registro no repite un mensaje al cargar una partida.
 
 ## Textos con referencias

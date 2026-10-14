@@ -95,6 +95,12 @@ public sealed record CommandLineOptions
     /// </summary>
     public int? Hour { get; init; }
 
+    /// <summary>
+    /// Size of the interface for this session, in percent or <c>auto</c> (0), without saving it
+    /// (milestone V2, <c>docs/gdd/tamano-de-la-interfaz.md</c>).
+    /// </summary>
+    public int? UiScale { get; init; }
+
     /// <summary>Style of the terrain for the style test of IP2.5: flat, a, b or c (see <c>TerrainStyle</c>).</summary>
     public string? TerrainStyle { get; init; }
 
@@ -219,6 +225,17 @@ public sealed record CommandLineOptions
 
                     options = options with { Show = screen };
                     break;
+                case "--ui-scale":
+                    var uiScaleText = ValueAfter(args, ref i);
+                    var uiScale = uiScaleText == "auto" ? UI.UiScaleRules.Auto
+                        : int.TryParse(uiScaleText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var percent) ? percent : -1;
+                    if (!UI.UiScaleRules.IsValid(uiScale))
+                    {
+                        throw new ArgumentException($"--ui-scale must be auto or one of: {string.Join(", ", UI.UiScaleRules.Steps)}.");
+                    }
+
+                    options = options with { UiScale = uiScale };
+                    break;
                 case "--terrain-style":
                     var style = ValueAfter(args, ref i);
                     if (!Rendering.TerrainStyle.Names.ContainsKey(style))
@@ -262,7 +279,8 @@ public sealed record CommandLineOptions
         $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
-        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, terrain-style={TerrainStyle ?? "-"}";
+        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, terrain-style={TerrainStyle ?? "-"}, " +
+        $"ui-scale={UiScale?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

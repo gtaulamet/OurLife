@@ -6,14 +6,14 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1 hecho: terreno B, GL Compatibility y KayKit (ADR-012).
+**Estado:** en curso. V1 y V2 hechos.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | V1 Prueba de estilo | Hecho | `ip2.5/v1-prueba-estilo` | El usuario eligió terreno B, GL Compatibility y muebles de KayKit (ADR-012) |
-| V2 Tamaño de la interfaz | Pendiente | `ip2.5/v2-tamano-interfaz` | |
+| V2 Tamaño de la interfaz | Hecho | `ip2.5/v2-tamano-interfaz` | Opción en Opciones con Automático (100 % a 300 % según la ventana); clic probado con la UI al 200 % |
 | V3 Vista previa de muebles | Pendiente | `ip2.5/v3-vista-previa` | |
 | V4 Terreno y decoración | Pendiente | `ip2.5/v4-terreno` | |
 | V5 Modelos y animaciones | Pendiente | `ip2.5/v5-modelos` | |
@@ -140,3 +140,20 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - Quedan para V4, como prevé ADR-012: los colores del pasto fijos en el shader y los patrones por id de material en `TerrainStyle`, sin test. Pasan al catálogo de visuales con su test.
 - Queda como está: `CameraRig.Focus` centra la cámara en la columna del mueble sin cambiar el nivel. Es para capturas, que ya pasan `--level`.
 - 480 tests en verde y mismas huellas.
+
+## Registro de V2: Tamaño de la interfaz
+
+**Entregado**
+
+- Spec `docs/gdd/tamano-de-la-interfaz.md`.
+- `UiScaleRules`, sin Godot: Automático elige el mayor tamaño que deja un lienzo de 1280×720 (150 % en 1080p, 200 % en 1440p, 300 % en 4K); los fijos, hasta el que deja 960×540; si el elegido no entra, el mayor que entra.
+- `Settings.UiScale` (`ui_scale` en `settings.cfg`, Automático por defecto; un valor desconocido vuelve a Automático) y `ApplyUiScale`, que pone `Window.ContentScaleFactor` sin modo de estiramiento: escala la UI 2D y el 3D sigue a la resolución nativa. Se recalcula al cambiar la ventana o la preferencia.
+- Opciones: fila "Tamaño de la interfaz" con "Automático (150 %)" y los pasos; los que no entran, deshabilitados. Textos `ui.options.ui_scale`, `ui_scale_auto` y `ui_scale_percent` en es y en.
+- HUD: con el panel Colonia abierto se ocultan las alertas, y si el panel llega al inspector, el inspector baja debajo. En un lienzo de 960×540 se superponían.
+- `--ui-scale` para capturas y el smoke; las capturas a otra resolución usan `--resolution` de Godot (skill `godot-run`).
+- Smoke: con la UI al 200 %, un clic mandado a la ventana en el píxel del colono lo selecciona. Se comprobó que falla si el clic cae en otro lugar. En el smoke sin ventana, la raíz mide 64×64 y el HUD la tapa: la prueba le da 1280×720 mientras corre.
+
+**Verificación**
+
+- 14 tests nuevos de la regla (494 en total) y mismas huellas del smoke.
+- Capturas revisadas: Opciones a 1280×720 (es), 1920×1080 (en, Automático 150 %) y 2560×1440 (es, 200 %); partida con inspector y panel Colonia a 1280×720 (es), 1920×1080 (es, 150 % y 200 %) y 2560×1440 (en). La fuente se ve nítida al 150 % y al 200 %.

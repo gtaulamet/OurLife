@@ -24,6 +24,9 @@ public partial class Hud : CanvasLayer
     private const int Margin = 12;
     private const int Gap = 8;
 
+    // Under the top bar, where the left column and the inspector start.
+    private const int PanelsTop = 56;
+
     // Colours of the alerts: a warning and a danger.
     private static readonly Color WarningColor = new(1f, 0.85f, 0.3f);
     private static readonly Color DangerColor = new(1f, 0.4f, 0.35f);
@@ -67,18 +70,21 @@ public partial class Hud : CanvasLayer
         root.AddChild(hud.BuildTopBar(colonyName));
         root.AddChild(hud.BuildBottom());
 
-        // Under the top bar on the left: the alerts, and the colony panel when it is open.
-        var left = new VBoxContainer { Name = "Left", MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(Margin, 56) };
+        // Under the top bar on the left: the alerts, or the colony panel when it is open. The panel
+        // says what every colonist does, and with the alerts above it, it reached the event log on
+        // a small canvas (docs/gdd/tamano-de-la-interfaz.md).
+        var left = new VBoxContainer { Name = "Left", MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(Margin, PanelsTop) };
         left.AddThemeConstantOverride("separation", Gap);
         root.AddChild(left);
         hud._alerts = new VBoxContainer { Name = "Alerts", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
         left.AddChild(hud._alerts);
         hud.Colony = ColonyPanel.Create(services, session, input);
         left.AddChild(hud.Colony);
+        hud.Colony.VisibilityChanged += hud.ShowAlertsUnlessColony;
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
-        hud.Inspector.Position = new Vector2(-Margin, 56);
+        hud.Inspector.Position = new Vector2(-Margin, PanelsTop);
         hud.Inspector.GrowHorizontal = Control.GrowDirection.Begin;
         root.AddChild(hud.Inspector);
 
@@ -123,6 +129,30 @@ public partial class Hud : CanvasLayer
         {
             _alertsChanged = false;
             RefreshAlerts(force: false);
+        }
+
+        KeepInspectorClear();
+    }
+
+    /// <summary>
+    /// On a narrow canvas, as with a large interface (docs/gdd/tamano-de-la-interfaz.md), the open
+    /// colony panel reaches the inspector: the inspector then goes under the panel.
+    /// </summary>
+    private void KeepInspectorClear()
+    {
+        var top = (float)PanelsTop;
+        if (Colony.Visible && Inspector.Visible)
+        {
+            var panel = Colony.GetGlobalRect();
+            if (panel.End.X + Gap > Inspector.GetGlobalRect().Position.X)
+            {
+                top = panel.End.Y + Gap;
+            }
+        }
+
+        if (!Mathf.IsEqualApprox(Inspector.Position.Y, top))
+        {
+            Inspector.Position = new Vector2(Inspector.Position.X, top);
         }
     }
 
@@ -256,8 +286,10 @@ public partial class Hud : CanvasLayer
             _alerts.AddChild(line);
         }
 
-        _alerts.Visible = alerts.Count > 0;
+        ShowAlertsUnlessColony();
     }
+
+    private void ShowAlertsUnlessColony() => _alerts.Visible = _alerts.GetChildCount() > 0 && !Colony.Visible;
 
     private void OnBuildChanged(BuildChoice? build)
     {

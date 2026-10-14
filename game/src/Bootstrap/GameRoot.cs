@@ -106,6 +106,7 @@ public partial class GameRoot : Node
             var catalogs = LocaleCatalogs.Load(new GodotContentSource());
             var localizer = new Localizer(catalogs);
             var settings = Settings.Load();
+            settings.ApplyUiScale(GetTree().Root);
             if (localizer.IsAvailable(settings.Locale))
             {
                 localizer.SetLocale(settings.Locale);
@@ -164,6 +165,15 @@ public partial class GameRoot : Node
         var automated = options.Smoke || options.ScreenshotPath is not null || options.BenchmarkSeconds is not null;
         _interactive = !automated;
         _services = GameServices.Load(new GodotContentSource(), automated ? Settings.InMemory() : Settings.Load());
+        if (options.UiScale is { } uiScale)
+        {
+            _services.Settings.SetUiScale(uiScale, save: false);
+        }
+
+        // The interface size follows the setting and the size of the window (see docs/gdd/tamano-de-la-interfaz.md).
+        _services.Settings.ApplyUiScale(GetTree().Root);
+        _services.Settings.UiScaleChanged += ApplyUiScale;
+        GetTree().Root.SizeChanged += ApplyUiScale;
 
         // Automated runs never touch the player's saved games, unless told where to save.
         _slots = options.SavesPath is { } savesPath
@@ -238,9 +248,17 @@ public partial class GameRoot : Node
 
     public override void _ExitTree()
     {
+        if (_services is not null)
+        {
+            _services.Settings.UiScaleChanged -= ApplyUiScale;
+            GetTree().Root.SizeChanged -= ApplyUiScale;
+        }
+
         _bridge?.Dispose();
         _bridge = null;
     }
+
+    private void ApplyUiScale() => _services?.Settings.ApplyUiScale(GetTree().Root);
 
     /// <summary>Replaces the screen on show: menus, the game, or the language test.</summary>
     private void ShowScreen(Node screen)
@@ -648,6 +666,45 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
+    /// With the interface at 200 %, a click sent to the window where a colonist is drawn still
+    /// selects it, as the player's mouse would (<c>docs/gdd/tamano-de-la-interfaz.md</c>). The 3D
+    /// view ignores the interface size, so the colonist's pixel is the same at 100 %, and the
+    /// window turns the click into the coordinates of the scaled interface. A colonist under a
+    /// panel of the larger HUD cannot be clicked, so any drawn one will do.
+    /// </summary>
+    private void ClickColonistWithLargeInterface(GameScreen screen, IReadOnlyList<EntityId> drawn)
+    {
+        // Without a window the root is 64×64 pixels, all of it under the HUD: it gets the design size.
+        var root = GetTree().Root;
+        var (factor, size) = (root.ContentScaleFactor, root.Size);
+        root.Size = new Vector2I(1280, 720);
+        var camera = screen.View.Camera.Camera;
+        var pixels = drawn.Select(colonist => root.GetFinalTransform() * camera.UnprojectPosition(screen.View.DrawnBounds(colonist)!.Value.GetCenter())).ToList();
+        root.ContentScaleFactor = 2f;
+        try
+        {
+            foreach (var pixel in pixels)
+            {
+                screen.Input.ClearSelection();
+                root.PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = true, Position = pixel, GlobalPosition = pixel });
+                root.PushInput(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = false, Position = pixel, GlobalPosition = pixel });
+                if (screen.Input.Selected is { IsColonist: true })
+                {
+                    GD.Print("[smoke] with the interface at 200 %, a click on a colonist selects it");
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException($"With the interface at 200 %, a click on each of the {pixels.Count} drawn colonists selected none.");
+        }
+        finally
+        {
+            root.ContentScaleFactor = factor;
+            root.Size = size;
+        }
+    }
+
+    /// <summary>
     /// Builds every screen without a window and frees them: the game screen (3D view, input and HUD,
     /// with a colonist picked by a click and shown in the inspector) for the simulation that ran, so the view draws a
     /// world with work done in it, the menus over it, and the main, new game and options screens.
@@ -687,6 +744,7 @@ public partial class GameRoot : Node
             }
 
             GD.Print("[smoke] a click on a colonist selects it");
+            ClickColonistWithLargeInterface(screen, drawn);
         }
 
         // The colony panel, with a row per colonist and its priorities.

@@ -66,6 +66,12 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 & $env:GODOT_BIN --path game -- --screenshot out/cargar.png --locale es --saves out/saves --show load
 & $env:GODOT_BIN --path game -- --screenshot out/guardar.png --locale en --saves out/saves --load <ranura> --show save
 & $env:GODOT_BIN --path game -- --screenshot out/error.png --locale es --show error
+# Tamaño de la interfaz (IP2.5): otra resolución con --resolution de Godot, antes de "--"; --ui-scale auto|100|150|200|250|300
+& $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080.png --locale es --seed 42 --play --inspect --colony
+& $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080-200.png --locale en --ui-scale 200 --options
+# Estilo del terreno (provisorio hasta V4 de IP2.5): --terrain-style flat|a|b|c; b es el elegido
+# Una casa amueblada: --inspect-furniture centra la cámara en el primer mueble; --level a la altura de la casa
+& $env:GODOT_BIN --path game -- --screenshot out/casa.png --seed 42 --play --level 15 --zoom 9 --ticks 5000 --orders --hour 12 --inspect-furniture
 ```
 
 Las capturas necesitan ventana, así que se corren sin `--headless`. Una ruta relativa parte de `game/`, porque Godot arranca en esa carpeta: los ejemplos guardan en `game/out/`. Revisa las imágenes con Read. La carpeta `out/` no se versiona.
