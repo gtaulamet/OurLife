@@ -148,13 +148,17 @@ public partial class OptionsScreen : Control
     {
         // Also called before the screen enters the tree, where GetTree() is not available.
         var window = ((SceneTree)Engine.GetMainLoop()).Root.Size;
+        var chosen = _services.Settings.UiScale;
+
+        // A size the window cannot hold gives way to the largest that fits: that one shows pressed.
+        var shown = chosen == UiScaleRules.Auto ? chosen : UiScaleRules.Effective(chosen, window.X, window.Y);
         foreach (var (setting, button) in _sizes)
         {
             button.Text = setting == UiScaleRules.Auto
                 ? _services.Text.Format("ui.options.ui_scale_auto", ("percent", UiScaleRules.AutoFor(window.X, window.Y)))
                 : _services.Text.Format("ui.options.ui_scale_percent", ("percent", setting));
             button.Disabled = setting != UiScaleRules.Auto && !UiScaleRules.IsAvailable(setting, window.X, window.Y);
-            button.SetPressedNoSignal(setting == _services.Settings.UiScale);
+            button.SetPressedNoSignal(setting == shown);
         }
     }
 

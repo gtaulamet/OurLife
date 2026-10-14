@@ -45,6 +45,9 @@ public partial class GameRoot : Node
     private const string SmokeSlot = "smoke";
 
     private GameServices? _services;
+
+    // The settings of the startup error screen, shown before there are services.
+    private Settings? _errorSettings;
     private GodotLocalizationBridge? _bridge;
     private VisualCatalog? _catalog;
     private Node? _screen;
@@ -106,7 +109,9 @@ public partial class GameRoot : Node
             var catalogs = LocaleCatalogs.Load(new GodotContentSource());
             var localizer = new Localizer(catalogs);
             var settings = Settings.Load();
-            settings.ApplyUiScale(GetTree().Root);
+            _errorSettings = settings;
+            ApplyUiScale();
+            GetTree().Root.SizeChanged += ApplyUiScale;
             if (localizer.IsAvailable(settings.Locale))
             {
                 localizer.SetLocale(settings.Locale);
@@ -251,14 +256,16 @@ public partial class GameRoot : Node
         if (_services is not null)
         {
             _services.Settings.UiScaleChanged -= ApplyUiScale;
-            GetTree().Root.SizeChanged -= ApplyUiScale;
         }
+
+        GetTree().Root.SizeChanged -= ApplyUiScale;
 
         _bridge?.Dispose();
         _bridge = null;
     }
 
-    private void ApplyUiScale() => _services?.Settings.ApplyUiScale(GetTree().Root);
+    /// <summary>Draws the interface at the size of the settings, or of the startup error's settings before there are services.</summary>
+    private void ApplyUiScale() => (_services?.Settings ?? _errorSettings)?.ApplyUiScale(GetTree().Root);
 
     /// <summary>Replaces the screen on show: menus, the game, or the language test.</summary>
     private void ShowScreen(Node screen)
@@ -668,21 +675,31 @@ public partial class GameRoot : Node
     /// <summary>
     /// With the interface at 200 %, a click sent to the window where a colonist is drawn still
     /// selects it, as the player's mouse would (<c>docs/gdd/tamano-de-la-interfaz.md</c>). The 3D
-    /// view ignores the interface size, so the colonist's pixel is the same at 100 %, and the
-    /// window turns the click into the coordinates of the scaled interface. A colonist under a
-    /// panel of the larger HUD cannot be clicked, so any drawn one will do.
+    /// view ignores the interface size, so the colonist's pixel is taken at 100 %, and the window
+    /// turns the click into the coordinates of the scaled interface. A colonist under a panel of
+    /// the larger HUD cannot be clicked, so any drawn one will do. The size goes through the
+    /// settings, as the options set it: setting the window's factor alone would be undone at once
+    /// by the handler of SizeChanged.
     /// </summary>
     private void ClickColonistWithLargeInterface(GameScreen screen, IReadOnlyList<EntityId> drawn)
     {
-        // Without a window the root is 64×64 pixels, all of it under the HUD: it gets the design size.
+        // Without a window the root is 64×64 pixels, all of it under the HUD. At 1920×1080, 200 %
+        // leaves the smallest canvas a fixed size may leave.
         var root = GetTree().Root;
-        var (factor, size) = (root.ContentScaleFactor, root.Size);
-        root.Size = new Vector2I(1280, 720);
+        var settings = _services!.Settings;
+        var (setting, size) = (settings.UiScale, root.Size);
+        root.Size = new Vector2I(1920, 1080);
+        settings.SetUiScale(100, save: false);
         var camera = screen.View.Camera.Camera;
         var pixels = drawn.Select(colonist => root.GetFinalTransform() * camera.UnprojectPosition(screen.View.DrawnBounds(colonist)!.Value.GetCenter())).ToList();
-        root.ContentScaleFactor = 2f;
+        settings.SetUiScale(200, save: false);
         try
         {
+            if (!Mathf.IsEqualApprox(root.ContentScaleFactor, 2f))
+            {
+                throw new InvalidOperationException($"The interface should be at 200 %, and its factor is {root.ContentScaleFactor}.");
+            }
+
             foreach (var pixel in pixels)
             {
                 screen.Input.ClearSelection();
@@ -699,7 +716,7 @@ public partial class GameRoot : Node
         }
         finally
         {
-            root.ContentScaleFactor = factor;
+            settings.SetUiScale(setting, save: false);
             root.Size = size;
         }
     }

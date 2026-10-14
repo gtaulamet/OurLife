@@ -18,16 +18,16 @@ Spec de V2 de IP2.5: una opción para agrandar la interfaz según la resolución
 | 3840×2160 | 300 % |
 
 - Un **tamaño fijo** sólo se puede elegir si deja un lienzo de al menos 960×540; los demás botones se ven deshabilitados. El 100 % siempre se puede elegir.
-- Si la ventana se achica y el tamaño elegido ya no entra, se usa el mayor que entra, sin cambiar la preferencia: al agrandar la ventana vuelve el elegido.
+- Si la ventana se achica y el tamaño elegido ya no entra, se usa el mayor que entra, sin cambiar la preferencia: al agrandar la ventana vuelve el elegido. En Opciones se ve presionado el tamaño que se está usando.
 - El tamaño se recalcula al cambiar el tamaño de la ventana o al pasar a pantalla completa.
 - Los pasos de 50 % llevan la fuente Tiny5 a múltiplos de 8 px, donde se ve nítida. Si en las capturas algún paso se ve borroso, los pasos pasan a ser de 100 %.
 - La selección de celdas y de colonos con el ratón no cambia con el tamaño de la interfaz.
-- Con el panel Colonia abierto, la lista de alertas se oculta y el panel sube a su lugar: con cinco alertas, en un lienzo de 960×540 el panel tapaba el registro. El panel ya dice qué hace cada colono.
-- Si el panel Colonia llega hasta el inspector, como en español en un lienzo de 960×540, el inspector baja debajo del panel.
+- Con el panel Colonia abierto, la lista de alertas muestra sólo los peligros, y el panel sube: con cinco avisos de colono ocioso, en un lienzo de 960×540 el panel tapaba el registro. El panel ya dice qué hace cada colono.
+- Si el panel Colonia llega hasta el inspector, como en español en un lienzo de 960×540, el inspector baja debajo del panel si entra arriba de las barras de abajo; si no entra, se queda arriba.
 
 ## Línea de comandos
 
-- `--ui-scale auto|100|150|200|250|300` fija el tamaño para las capturas y el smoke, sin guardarlo.
+- `--ui-scale auto|100|150|200|250|300` fija el tamaño para las capturas y el smoke, sin guardarlo: aunque después se cambie otra opción, el archivo conserva el tamaño guardado.
 - Las capturas a otra resolución usan la opción de Godot `--resolution`, por ejemplo `--resolution 1920x1080`.
 
 ## Textos

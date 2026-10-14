@@ -149,7 +149,7 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - `UiScaleRules`, sin Godot: Automático elige el mayor tamaño que deja un lienzo de 1280×720 (150 % en 1080p, 200 % en 1440p, 300 % en 4K); los fijos, hasta el que deja 960×540; si el elegido no entra, el mayor que entra.
 - `Settings.UiScale` (`ui_scale` en `settings.cfg`, Automático por defecto; un valor desconocido vuelve a Automático) y `ApplyUiScale`, que pone `Window.ContentScaleFactor` sin modo de estiramiento: escala la UI 2D y el 3D sigue a la resolución nativa. Se recalcula al cambiar la ventana o la preferencia.
 - Opciones: fila "Tamaño de la interfaz" con "Automático (150 %)" y los pasos; los que no entran, deshabilitados. Textos `ui.options.ui_scale`, `ui_scale_auto` y `ui_scale_percent` en es y en.
-- HUD: con el panel Colonia abierto se ocultan las alertas, y si el panel llega al inspector, el inspector baja debajo. En un lienzo de 960×540 se superponían.
+- HUD: con el panel Colonia abierto, las alertas muestran sólo los peligros; si el panel llega al inspector, el inspector baja debajo cuando entra. En un lienzo de 960×540 se superponían.
 - `--ui-scale` para capturas y el smoke; las capturas a otra resolución usan `--resolution` de Godot (skill `godot-run`).
 - Smoke: con la UI al 200 %, un clic mandado a la ventana en el píxel del colono lo selecciona. Se comprobó que falla si el clic cae en otro lugar. En el smoke sin ventana, la raíz mide 64×64 y el HUD la tapa: la prueba le da 1280×720 mientras corre.
 
@@ -157,3 +157,13 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 
 - 14 tests nuevos de la regla (494 en total) y mismas huellas del smoke.
 - Capturas revisadas: Opciones a 1280×720 (es), 1920×1080 (en, Automático 150 %) y 2560×1440 (es, 200 %); partida con inspector y panel Colonia a 1280×720 (es), 1920×1080 (es, 150 % y 200 %) y 2560×1440 (en). La fuente se ve nítida al 150 % y al 200 %.
+
+**Revisión de código:** 8 hallazgos, todos corregidos.
+
+- La prueba del smoke no corría al 200 %: al cambiar el factor, `SizeChanged` lo devolvía a Automático. Ahora pone el tamaño por las preferencias, a 1920×1080, y comprueba que el factor sea 2 antes de hacer clic. Con el clic corrido a otro lugar, la prueba falla.
+- `--ui-scale` ya no termina guardado cuando se cambia otra opción: el tamaño de la sesión y el guardado van por separado. Elegir el mismo tamaño no vuelve a escribir el archivo.
+- El inspector baja debajo del panel Colonia sólo si entra arriba de las barras de abajo.
+- Con el panel abierto se ocultan sólo los avisos; los peligros, como el hambre crítica, siguen a la vista.
+- La pantalla de error del arranque sigue el tamaño de la ventana.
+- En Opciones se ve presionado el tamaño que se usa, no uno deshabilitado.
+- El registro de opciones muestra `ui-scale=auto`.

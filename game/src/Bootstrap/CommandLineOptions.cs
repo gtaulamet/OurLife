@@ -280,7 +280,7 @@ public sealed record CommandLineOptions
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, terrain-style={TerrainStyle ?? "-"}, " +
-        $"ui-scale={UiScale?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
+        $"ui-scale={(UiScale is null ? "-" : UiScale == UI.UiScaleRules.Auto ? "auto" : UiScale.Value.ToString(CultureInfo.InvariantCulture))}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

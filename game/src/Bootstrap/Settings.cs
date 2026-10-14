@@ -20,12 +20,16 @@ public sealed class Settings
 
     private readonly bool _persistent;
 
+    // The size written to the file; UiScale may differ for this session only (--ui-scale).
+    private int _savedUiScale;
+
     private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, bool persistent)
     {
         Locale = locale;
         Fullscreen = fullscreen;
         DayNightCycle = dayNight;
         UiScale = UiScaleRules.IsValid(uiScale) ? uiScale : UiScaleRules.Auto;
+        _savedUiScale = UiScale;
         _persistent = persistent;
     }
 
@@ -88,7 +92,7 @@ public sealed class Settings
     /// </summary>
     public void SetUiScale(int uiScale, bool save = true)
     {
-        if (!UiScaleRules.IsValid(uiScale))
+        if (!UiScaleRules.IsValid(uiScale) || (uiScale == UiScale && (!save || uiScale == _savedUiScale)))
         {
             return;
         }
@@ -96,6 +100,7 @@ public sealed class Settings
         UiScale = uiScale;
         if (save)
         {
+            _savedUiScale = uiScale;
             Save();
         }
 
@@ -130,7 +135,7 @@ public sealed class Settings
         config.SetValue(Section, LocaleKey, Locale);
         config.SetValue(Section, FullscreenKey, Fullscreen);
         config.SetValue(Section, DayNightKey, DayNightCycle);
-        config.SetValue(Section, UiScaleKey, UiScale);
+        config.SetValue(Section, UiScaleKey, _savedUiScale);
         var error = config.Save(FilePath);
         if (error != Error.Ok)
         {

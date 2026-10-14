@@ -42,6 +42,8 @@ public partial class Hud : CanvasLayer
     private Label _hint = null!;
     private HBoxContainer _buildRow = null!;
     private VBoxContainer _alerts = null!;
+    private readonly List<(Button Line, bool Danger)> _alertLines = [];
+    private Control _ordersBar = null!;
     private List<(EntityId Colonist, string Key)> _shownAlerts = [];
     private bool _alertsChanged;
     private Button _buildButton = null!;
@@ -136,7 +138,8 @@ public partial class Hud : CanvasLayer
 
     /// <summary>
     /// On a narrow canvas, as with a large interface (docs/gdd/tamano-de-la-interfaz.md), the open
-    /// colony panel reaches the inspector: the inspector then goes under the panel.
+    /// colony panel reaches the inspector: the inspector then goes under the panel, if it fits
+    /// above the bars at the bottom; if not, it stays at the top, over the panel, and not off the screen.
     /// </summary>
     private void KeepInspectorClear()
     {
@@ -144,9 +147,10 @@ public partial class Hud : CanvasLayer
         if (Colony.Visible && Inspector.Visible)
         {
             var panel = Colony.GetGlobalRect();
-            if (panel.End.X + Gap > Inspector.GetGlobalRect().Position.X)
+            var below = panel.End.Y + Gap;
+            if (panel.End.X + Gap > Inspector.GetGlobalRect().Position.X && below + Inspector.Size.Y + Gap <= BottomBarsTop())
             {
-                top = panel.End.Y + Gap;
+                top = below;
             }
         }
 
@@ -155,6 +159,10 @@ public partial class Hud : CanvasLayer
             Inspector.Position = new Vector2(Inspector.Position.X, top);
         }
     }
+
+    /// <summary>The top of the full-width rows at the bottom: the hint, the build bar and the orders. The log sits on the left.</summary>
+    private float BottomBarsTop() =>
+        new Control[] { _hint, _buildRow, _ordersBar }.Where(row => row.Visible).Min(row => row.GetGlobalRect().Position.Y);
 
     private Control BuildTopBar(string colonyName)
     {
@@ -222,6 +230,7 @@ public partial class Hud : CanvasLayer
         var orders = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         orders.AddThemeConstantOverride("separation", Gap / 2);
         column.AddChild(orders);
+        _ordersBar = orders;
         foreach (var kind in Enum.GetValues<DesignationKind>())
         {
             // Building sits among the orders, before Cancel, which closes the bar.
@@ -265,6 +274,7 @@ public partial class Hud : CanvasLayer
         }
 
         _shownAlerts = shown;
+        _alertLines.Clear();
         foreach (var child in _alerts.GetChildren())
         {
             _alerts.RemoveChild(child);
@@ -284,12 +294,27 @@ public partial class Hud : CanvasLayer
             var colonist = alert.Colonist;
             line.Pressed += () => _input.SelectColonist(colonist);
             _alerts.AddChild(line);
+            _alertLines.Add((line, alert.Severity == NotificationSeverity.Danger));
         }
 
         ShowAlertsUnlessColony();
     }
 
-    private void ShowAlertsUnlessColony() => _alerts.Visible = _alerts.GetChildCount() > 0 && !Colony.Visible;
+    /// <summary>
+    /// With the colony panel open, only dangers show: the panel already says which colonists are
+    /// idle, and the warnings above it pushed it onto the event log on a small canvas.
+    /// </summary>
+    private void ShowAlertsUnlessColony()
+    {
+        var any = false;
+        foreach (var (line, danger) in _alertLines)
+        {
+            line.Visible = danger || !Colony.Visible;
+            any |= line.Visible;
+        }
+
+        _alerts.Visible = any;
+    }
 
     private void OnBuildChanged(BuildChoice? build)
     {
