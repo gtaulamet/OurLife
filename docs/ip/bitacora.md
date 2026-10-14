@@ -22,8 +22,8 @@ En orden:
 
 1. **V4 Terreno y decoración**: implementar limpio el estilo B, llevar al catálogo los patrones por material y los colores del pasto (con test), quitar los otros estilos y el cuadro de 100 ms al compilar el shader.
 2. **V5 y V6** según `IP2.5.md`. Después, planificar IP3.
-4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
-5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
+4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
