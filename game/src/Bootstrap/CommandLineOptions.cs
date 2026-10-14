@@ -101,6 +101,21 @@ public sealed record CommandLineOptions
     /// </summary>
     public int? UiScale { get; init; }
 
+    /// <summary>
+    /// Turn the build tool on with this piece of furniture, of its first material, to see its
+    /// preview in screenshots (milestone V3, <c>docs/gdd/vista-previa-de-muebles.md</c>).
+    /// </summary>
+    public string? Furniture { get; init; }
+
+    /// <summary>Quarter turns of the furniture of <c>--furniture</c>, from 0 to 3 (milestone V3).</summary>
+    public int? Rotation { get; init; }
+
+    /// <summary>Point at the surface of this column, x and y, as the mouse would, for screenshots (milestone V3).</summary>
+    public (int X, int Y)? Point { get; init; }
+
+    /// <summary>With <c>--point</c>, show a drag from that cell to this column, on the same level, without placing anything (milestone V3).</summary>
+    public (int X, int Y)? DragTo { get; init; }
+
     /// <summary>Style of the terrain for the style test of IP2.5: flat, a, b or c (see <c>TerrainStyle</c>).</summary>
     public string? TerrainStyle { get; init; }
 
@@ -236,6 +251,24 @@ public sealed record CommandLineOptions
 
                     options = options with { UiScale = uiScale };
                     break;
+                case "--furniture":
+                    options = options with { Furniture = ValueAfter(args, ref i) };
+                    break;
+                case "--rotation":
+                    var rotation = NumberAfter<int>(args, ref i);
+                    if (rotation is < 0 or > 3)
+                    {
+                        throw new ArgumentException("--rotation must be from 0 to 3.");
+                    }
+
+                    options = options with { Rotation = rotation };
+                    break;
+                case "--point":
+                    options = options with { Point = ColumnAfter(args, ref i) };
+                    break;
+                case "--drag-to":
+                    options = options with { DragTo = ColumnAfter(args, ref i) };
+                    break;
                 case "--terrain-style":
                     var style = ValueAfter(args, ref i);
                     if (!Rendering.TerrainStyle.Names.ContainsKey(style))
@@ -262,6 +295,11 @@ public sealed record CommandLineOptions
             throw new ArgumentException("--hour needs --play or --load: it runs a game until that hour.");
         }
 
+        if (options.DragTo is not null && options.Point is null)
+        {
+            throw new ArgumentException("--drag-to needs --point: the drag starts there.");
+        }
+
         if (options.Show == "save" && !options.Play && options.LoadSlot is null)
         {
             throw new ArgumentException("--show save needs --play or --load: it opens over a game.");
@@ -280,7 +318,9 @@ public sealed record CommandLineOptions
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, terrain-style={TerrainStyle ?? "-"}, " +
-        $"ui-scale={(UiScale is null ? "-" : UiScale == UI.UiScaleRules.Auto ? "auto" : UiScale.Value.ToString(CultureInfo.InvariantCulture))}";
+        $"ui-scale={(UiScale is null ? "-" : UiScale == UI.UiScaleRules.Auto ? "auto" : UiScale.Value.ToString(CultureInfo.InvariantCulture))}, " +
+        $"furniture={Furniture ?? "-"}, rotation={Rotation?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
+        $"point={(Point is { } point ? $"{point.X},{point.Y}" : "-")}, drag-to={(DragTo is { } drag ? $"{drag.X},{drag.Y}" : "-")}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {
@@ -291,6 +331,23 @@ public sealed record CommandLineOptions
 
         i++;
         return args[i];
+    }
+
+    /// <summary>A column of the map written as "x,y".</summary>
+    private static (int X, int Y) ColumnAfter(IReadOnlyList<string> args, ref int i)
+    {
+        var name = args[i];
+        var raw = ValueAfter(args, ref i);
+        var parts = raw.Split(',');
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var x)
+            || !int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var y)
+            || x < 0 || y < 0)
+        {
+            throw new ArgumentException($"{name} must be a column of the map as x,y: '{raw}'.");
+        }
+
+        return (x, y);
     }
 
     private static T NumberAfter<T>(IReadOnlyList<string> args, ref int i)

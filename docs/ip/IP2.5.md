@@ -6,7 +6,7 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1 y V2 hechos.
+**Estado:** en curso. V1, V2 y V3 hechos.
 
 ## Estado de los hitos
 
@@ -14,7 +14,7 @@
 |---|---|---|---|
 | V1 Prueba de estilo | Hecho | `ip2.5/v1-prueba-estilo` | El usuario eligió terreno B, GL Compatibility y muebles de KayKit (ADR-012) |
 | V2 Tamaño de la interfaz | Hecho | `ip2.5/v2-tamano-interfaz` | Opción en Opciones con Automático (100 % a 300 % según la ventana); clic probado con la UI al 200 % |
-| V3 Vista previa de muebles | Pendiente | `ip2.5/v3-vista-previa` | |
+| V3 Vista previa de muebles | Hecho | `ip2.5/v3-vista-previa` | Modelo translúcido girado con flecha al frente, rojo donde no va; planos de muebles con su modelo |
 | V4 Terreno y decoración | Pendiente | `ip2.5/v4-terreno` | |
 | V5 Modelos y animaciones | Pendiente | `ip2.5/v5-modelos` | |
 | V6 Integración | Pendiente | `ip2.5/v6-integracion` | |
@@ -167,3 +167,21 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - La pantalla de error del arranque sigue el tamaño de la ventana.
 - En Opciones se ve presionado el tamaño que se usa, no uno deshabilitado.
 - El registro de opciones muestra `ui-scale=auto`.
+
+## Registro de V3: Vista previa de muebles
+
+**Entregado**
+
+- Spec `docs/gdd/vista-previa-de-muebles.md`.
+- Core: `Construction.CellsToPlan` devuelve, sin cambiar nada, las celdas donde `PlaceBlueprintCommand` pondría planos, en su orden; el comando la usa. Test: mismas celdas que el comando en una caja mixta, y la huella no cambia.
+- `FurnitureGhosts`: modelos translúcidos de muebles, girados, con un grupo de nodos por modelo que se reusa. La vista previa se dibuja por encima de todo (también del cubo del cursor, que la tapaba) con una flecha plana hacia el frente; lo que no se puede colocar, en rojo. `ModelLibrary.ShadeGhost` da las copias translúcidas de los materiales.
+- `GameInput` muestra la vista previa en la celda del cursor o en cada celda del arrastre (hasta 64, si no sólo las válidas), con la misma consulta que el comando.
+- `OrderMarkers` dibuja los planos de muebles con su modelo y su giro, más opacos con el material completo.
+- Capturas: `--furniture`, `--rotation`, `--point` (también centra la cámara) y `--drag-to`; el smoke muestra la vista previa de una cama donde está un colono.
+- Arreglo de V2: la salida ya no desconecta `SizeChanged` si el arranque falló antes de conectarla.
+
+**Verificación**
+
+- El frente de los modelos, antes de girar, es +Z. Capturas de la silla y de la cama en los cuatro giros: la flecha apunta hacia donde mira la silla y hacia los pies de la cama en cada uno.
+- Capturas de una mesa sobre la silla de la casa (roja), de un arrastre de cofres sobre la casa (válidos en el piso, rojos sobre muros y muebles) y de los planos de la cama y la mesa a mitad de obra, girados.
+- 495 tests en verde y mismas huellas del smoke.

@@ -13,6 +13,7 @@ public sealed class ModelLibrary : IDisposable
 {
     private readonly Dictionary<string, PackedScene> _scenes = new(StringComparer.Ordinal);
     private readonly Dictionary<(Material Source, int Depth), Material> _shaded = [];
+    private readonly Dictionary<(Material Source, Color? Color, float Alpha, bool OnTop), Material> _ghosts = [];
 
     public ModelLibrary(VisualCatalog catalog)
     {
@@ -118,6 +119,35 @@ public sealed class ModelLibrary : IDisposable
     }
 
     /// <summary>
+    /// Gives every surface of an instance a translucent copy of its material, for the previews and
+    /// blueprints of furniture (<c>docs/gdd/vista-previa-de-muebles.md</c>): its own colour and
+    /// texture, or a flat <paramref name="color"/> instead, with <paramref name="alpha"/>. One
+    /// <paramref name="onTop"/> is drawn over everything, after the frame of the cursor, which
+    /// would otherwise wash it out.
+    /// </summary>
+    public void ShadeGhost(VisualModel model, IReadOnlyList<MeshInstance3D> meshes, Color? color, float alpha, bool onTop)
+    {
+        foreach (var meshInstance in meshes)
+        {
+            // The node keeps the mesh; the materials are released in Dispose.
+            using var mesh = meshInstance.Mesh;
+            if (mesh is null)
+            {
+                continue;
+            }
+
+            for (var surface = 0; surface < mesh.GetSurfaceCount(); surface++)
+            {
+                var source = mesh.SurfaceGetMaterial(surface);
+                if (source is not null)
+                {
+                    meshInstance.SetSurfaceOverrideMaterial(surface, GhostCopy(source, model.SrgbAsLinear, color, alpha, onTop));
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Releases the C# references to the scenes and materials. Godot .NET crashes on exit if C#
     /// still holds references to resources; the nodes keep their own.
     /// </summary>
@@ -131,12 +161,19 @@ public sealed class ModelLibrary : IDisposable
             resources.Add(shaded);
         }
 
+        foreach (var ((source, _, _, _), ghost) in _ghosts)
+        {
+            resources.Add(source);
+            resources.Add(ghost);
+        }
+
         foreach (var resource in resources)
         {
             resource.Dispose();
         }
 
         _shaded.Clear();
+        _ghosts.Clear();
         _scenes.Clear();
     }
 
@@ -169,15 +206,10 @@ public sealed class ModelLibrary : IDisposable
         Material shaded = source;
         if (source is BaseMaterial3D original)
         {
-            // Some kits store their sRGB palette in glTF's linear colour field, and the importer
-            // converts it to sRGB once more, which washes it out: undo that conversion.
             using var texture = original.AlbedoTexture;
-            var color = Catalog.Palette.TryGetValue(source.ResourceName, out var replacement)
-                ? Color.FromHtml(replacement)
-                : srgbAsLinear ? original.AlbedoColor.SrgbToLinear() : original.AlbedoColor;
             shaded = new StandardMaterial3D
             {
-                AlbedoColor = color * new Color(brightness, brightness, brightness),
+                AlbedoColor = ColorOf(original, srgbAsLinear) * new Color(brightness, brightness, brightness),
                 AlbedoTexture = texture,
                 TextureFilter = original.TextureFilter,
                 Transparency = original.Transparency,
@@ -191,4 +223,47 @@ public sealed class ModelLibrary : IDisposable
         _shaded.Add((source, depth), shaded);
         return shaded;
     }
+
+    /// <summary>A translucent copy of a material, cached; one that is not a <see cref="BaseMaterial3D"/> stays as it is.</summary>
+    private Material GhostCopy(Material source, bool srgbAsLinear, Color? color, float alpha, bool onTop)
+    {
+        if (_ghosts.TryGetValue((source, color, alpha, onTop), out var cached))
+        {
+            return cached;
+        }
+
+        Material ghost = source;
+        if (source is BaseMaterial3D original)
+        {
+            // A flat colour, like the red of a cell where the piece cannot go, hides the texture.
+            using var texture = color is null ? original.AlbedoTexture : null;
+            var albedo = color ?? ColorOf(original, srgbAsLinear);
+            ghost = new StandardMaterial3D
+            {
+                AlbedoColor = new Color(albedo, alpha),
+                AlbedoTexture = texture,
+                TextureFilter = original.TextureFilter,
+                Transparency = BaseMaterial3D.TransparencyEnum.Alpha,
+                CullMode = original.CullMode,
+                Metallic = 0f,
+                Roughness = 1f,
+                ShadingMode = BaseMaterial3D.ShadingModeEnum.PerPixel,
+                NoDepthTest = onTop,
+                RenderPriority = onTop ? 1 : 0,
+            };
+        }
+
+        _ghosts.Add((source, color, alpha, onTop), ghost);
+        return ghost;
+    }
+
+    /// <summary>
+    /// The colour of a model's material: the catalog's palette for its name, or its own. Some kits
+    /// store their sRGB palette in glTF's linear colour field, and the importer converts it to sRGB
+    /// once more, which washes it out: that conversion is undone for them.
+    /// </summary>
+    private Color ColorOf(BaseMaterial3D original, bool srgbAsLinear) =>
+        Catalog.Palette.TryGetValue(original.ResourceName, out var replacement)
+            ? Color.FromHtml(replacement)
+            : srgbAsLinear ? original.AlbedoColor.SrgbToLinear() : original.AlbedoColor;
 }

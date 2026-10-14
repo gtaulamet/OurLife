@@ -14,7 +14,8 @@ namespace OurLife.Game.Rendering;
 /// (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>), and stockpile cells as a thin
 /// tinted floor (<c>docs/gdd/almacenes.md</c>). Blueprints are boxes of the rough shape of what
 /// they build, in their material's colour, fainter until every unit is there
-/// (<c>docs/gdd/construccion.md</c>). Only the levels the view shows are marked. Rebuilt when
+/// (<c>docs/gdd/construccion.md</c>); blueprints of furniture are its model, translucent and
+/// turned (<c>docs/gdd/vista-previa-de-muebles.md</c>). Only the levels the view shows are marked. Rebuilt when
 /// orders, stockpiles or blueprints change, when a marked plant is chopped or gathered, or when
 /// the view level changes.
 /// </summary>
@@ -41,15 +42,19 @@ public partial class OrderMarkers : Node3D
     // Blueprints drawn, whose deliveries and end come as entity events.
     private readonly HashSet<EntityId> _blueprints = [];
     private readonly List<EntityId> _plans = [];
+    private readonly List<Ghost> _furniture = [];
     private Simulation _simulation = null!;
     private MultiMeshInstance3D _instance = null!;
+    private FurnitureGhosts _ghosts = null!;
     private int _viewLevel;
     private bool _dirty = true;
 
-    public static OrderMarkers Create(Simulation simulation, int viewLevel)
+    public static OrderMarkers Create(Simulation simulation, VisualCatalog catalog, int viewLevel)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var markers = new OrderMarkers { Name = nameof(OrderMarkers), _simulation = simulation, _viewLevel = viewLevel };
+        markers._ghosts = FurnitureGhosts.Create(catalog, "Blueprints");
+        markers.AddChild(markers._ghosts);
         using var material = new StandardMaterial3D
         {
             ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
@@ -181,12 +186,16 @@ public partial class OrderMarkers : Node3D
         multimesh.Dispose();
     }
 
-    /// <summary>A translucent box per blueprint the view shows, of the rough size of what it builds.</summary>
+    /// <summary>
+    /// A translucent box per blueprint the view shows, of the rough size of what it builds, or the
+    /// translucent model of a piece of furniture, turned.
+    /// </summary>
     private void AddBlueprints()
     {
         var world = _simulation.World;
         var content = _simulation.Content;
         _blueprints.Clear();
+        _furniture.Clear();
         world.Query<Blueprint, Position>(_plans);
         foreach (var blueprint in _plans)
         {
@@ -199,6 +208,12 @@ public partial class OrderMarkers : Node3D
 
             var plan = world.Get<Blueprint>(blueprint);
             var buildable = content.Get<BuildableDef>(plan.Buildable);
+            if (buildable.Visual is { } visual)
+            {
+                _furniture.Add(new Ghost(cell, visual, plan.Rotation, plan.Delivered >= buildable.Cost ? GhostLook.Supplied : GhostLook.Planned));
+                continue;
+            }
+
             var size = buildable.Shape switch
             {
                 BuildShape.Wall => new Vector3(0.9f, 0.9f, 0.9f),
@@ -206,8 +221,7 @@ public partial class OrderMarkers : Node3D
                 BuildShape.Door => new Vector3(0.6f, 0.9f, 0.6f),
                 BuildShape.Ramp => new Vector3(0.9f, 0.45f, 0.9f),
                 BuildShape.Stairs => new Vector3(0.6f, 1.8f, 0.6f),
-                BuildShape.Furniture => new Vector3(0.7f, 0.4f, 0.7f),
-                _ => Vector3.One,
+                    _ => Vector3.One,
             };
 
             var color = Color.FromHtml(content.Get<MaterialDef>(plan.Material).Color);
@@ -215,6 +229,8 @@ public partial class OrderMarkers : Node3D
             var centre = new Vector3(cell.X + 0.5f, cell.Z + (size.Y / 2) + 0.01f, cell.Y + 0.5f);
             _marks.Add((new Transform3D(Basis.Identity.Scaled(size), centre), color));
         }
+
+        _ghosts.Show(_furniture, _simulation.Progress.CurrentEra);
     }
 
     /// <summary>A floating marker over each plant with the order <typeparamref name="TOrder"/>.</summary>

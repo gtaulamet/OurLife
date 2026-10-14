@@ -1,4 +1,5 @@
 using OurLife.Core.Colony;
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
@@ -114,6 +115,28 @@ public class FurnitureTests
         var blueprints = new List<EntityId>();
         bed.World.Query<Blueprint, Position>(blueprints);
         blueprints.Select(blueprint => bed.World.Get<Position>(blueprint).Cell).ShouldBe([new TileCoord(1, 1, 1)]);
+    }
+
+    [Fact]
+    public void The_cells_to_plan_are_the_ones_the_command_takes_and_asking_changes_nothing()
+    {
+        // A table, a stockpile, loose ground and walls leave a mixed box (docs/gdd/vista-previa-de-muebles.md).
+        var bed = new ColonyTestBed("#####\n##.##\n#####", ".....\n.....\n.....");
+        Furnish(bed, "table", new TileCoord(0, 0, 1));
+        bed.Designate(DesignationKind.Stockpile, new TileCoord(4, 0, 1), new TileCoord(4, 2, 1));
+        bed.Simulation.ApplyCommandsNow();
+        var hash = bed.Simulation.ComputeStateHash();
+        var (from, to) = (new TileCoord(0, 0, 1), new TileCoord(4, 2, 1));
+
+        var cells = Construction.CellsToPlan(bed.Simulation, bed.Simulation.Content.Get<BuildableDef>("bed"), from, to);
+
+        bed.Simulation.ComputeStateHash().ShouldBe(hash);
+        cells.Count.ShouldBe(10);
+        bed.Simulation.Commands.Enqueue(new PlaceBlueprintCommand("bed", "timber", from, to));
+        bed.Simulation.ApplyCommandsNow();
+        var blueprints = new List<EntityId>();
+        bed.World.Query<Blueprint, Position>(blueprints);
+        blueprints.Select(blueprint => bed.World.Get<Position>(blueprint).Cell).ShouldBe(cells);
     }
 
     [Fact]

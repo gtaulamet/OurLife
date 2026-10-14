@@ -9,6 +9,7 @@ using OurLife.Core.Map;
 using OurLife.Core.Save;
 using OurLife.Core.Sim;
 using OurLife.Game.Content;
+using OurLife.Game.Input;
 using OurLife.Game.Localization;
 using OurLife.Game.Rendering;
 using OurLife.Game.Session;
@@ -48,6 +49,9 @@ public partial class GameRoot : Node
 
     // The settings of the startup error screen, shown before there are services.
     private Settings? _errorSettings;
+
+    // Whether the interface size follows the window: a start that fails early never subscribes.
+    private bool _followsWindow;
     private GodotLocalizationBridge? _bridge;
     private VisualCatalog? _catalog;
     private Node? _screen;
@@ -111,7 +115,7 @@ public partial class GameRoot : Node
             var settings = Settings.Load();
             _errorSettings = settings;
             ApplyUiScale();
-            GetTree().Root.SizeChanged += ApplyUiScale;
+            FollowWindow();
             if (localizer.IsAvailable(settings.Locale))
             {
                 localizer.SetLocale(settings.Locale);
@@ -178,7 +182,7 @@ public partial class GameRoot : Node
         // The interface size follows the setting and the size of the window (see docs/gdd/tamano-de-la-interfaz.md).
         _services.Settings.ApplyUiScale(GetTree().Root);
         _services.Settings.UiScaleChanged += ApplyUiScale;
-        GetTree().Root.SizeChanged += ApplyUiScale;
+        FollowWindow();
 
         // Automated runs never touch the player's saved games, unless told where to save.
         _slots = options.SavesPath is { } savesPath
@@ -258,10 +262,24 @@ public partial class GameRoot : Node
             _services.Settings.UiScaleChanged -= ApplyUiScale;
         }
 
-        GetTree().Root.SizeChanged -= ApplyUiScale;
+        if (_followsWindow)
+        {
+            GetTree().Root.SizeChanged -= ApplyUiScale;
+            _followsWindow = false;
+        }
 
         _bridge?.Dispose();
         _bridge = null;
+    }
+
+    /// <summary>Applies the interface size again whenever the window changes size; once.</summary>
+    private void FollowWindow()
+    {
+        if (!_followsWindow)
+        {
+            GetTree().Root.SizeChanged += ApplyUiScale;
+            _followsWindow = true;
+        }
     }
 
     /// <summary>Draws the interface at the size of the settings, or of the startup error's settings before there are services.</summary>
@@ -464,6 +482,41 @@ public partial class GameRoot : Node
         if (options.Build)
         {
             screen.Input.ToggleBuild();
+        }
+
+        // The preview of a piece of furniture, for screenshots (docs/gdd/vista-previa-de-muebles.md).
+        if (options.Furniture is { } furniture)
+        {
+            if (!simulation.Content.TryGet<BuildableDef>(furniture, out var piece) || !piece.IsFurniture)
+            {
+                Fail($"--furniture: '{furniture}' is not a piece of furniture.", ExitBadArguments);
+                return;
+            }
+
+            screen.Input.Build = new BuildChoice(piece.Id, piece.Materials[0], options.Rotation ?? 0);
+        }
+
+        if (options.Point is { } column)
+        {
+            var map = simulation.Map;
+            if (!map.Size.Contains(column.X, column.Y, 0) || (options.DragTo is { } end && !map.Size.Contains(end.X, end.Y, 0)))
+            {
+                Fail("--point and --drag-to must be columns of the map.", ExitBadArguments);
+                return;
+            }
+
+            // The camera looks at the middle of what is pointed at.
+            var cell = new TileCoord(column.X, column.Y, map.SurfaceZ(column.X, column.Y));
+            var far = options.DragTo ?? column;
+            screen.View.Camera.Focus(new Vector2((column.X + far.X + 1) / 2f, (column.Y + far.Y + 1) / 2f));
+            if (options.DragTo is { } to)
+            {
+                screen.Input.PointAtDrag(cell, new TileCoord(to.X, to.Y, cell.Z));
+            }
+            else
+            {
+                screen.Input.PointAt(cell);
+            }
         }
 
         if (options.Options)
@@ -762,6 +815,25 @@ public partial class GameRoot : Node
 
             GD.Print("[smoke] a click on a colonist selects it");
             ClickColonistWithLargeInterface(screen, drawn);
+        }
+
+        // The preview of the first piece of furniture of the build bar, turned, where a colonist
+        // stands: shown, or red if the cell does not take it (docs/gdd/vista-previa-de-muebles.md).
+        var piece = Construction.BuildablesInOrder(screen.Session.Simulation.Content).FirstOrDefault(buildable => buildable.IsFurniture);
+        if (piece is not null && colonists.Count > 0 && screen.Session.Simulation.World.IsAlive(colonists[0]))
+        {
+            screen.Input.Build = new BuildChoice(piece.Id, piece.Materials[0], 1);
+            screen.Input.PointAt(screen.Session.Simulation.World.Get<Position>(colonists[0]).Cell);
+            screen.Input.UpdatePreviews();
+            if (screen.View.Previews.Shown != 1)
+            {
+                throw new InvalidOperationException($"The preview of a {piece.Id} on one cell showed {screen.View.Previews.Shown} pieces.");
+            }
+
+            screen.Input.StopPointing();
+            screen.Input.Build = null;
+            screen.Input.UpdatePreviews();
+            GD.Print($"[smoke] the preview of a {piece.Id} shows where it would go");
         }
 
         // The colony panel, with a row per colonist and its priorities.

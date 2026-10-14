@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v2-tamano-interfaz`, cerrada y en `main`. Sigue V3 en `ip2.5/v3-vista-previa` |
+| Rama de trabajo | `ip2.5/v3-vista-previa`: V3 hecho, falta la revisión de código |
 | `main` | En el cierre de V2 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
-| Validación | `dotnet build` sin advertencias, 494 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 495 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
 
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V3 Vista previa de muebles** (`docs/ip/IP2.5.md`).
+1. **V3**: revisión de código, commit y adelantar `main`.
 2. **V4 Terreno y decoración**: implementar limpio el estilo B, llevar al catálogo los patrones por material y los colores del pasto (con test), quitar los otros estilos y el cuadro de 100 ms al compilar el shader.
 3. **V5 y V6** según `IP2.5.md`. Después, planificar IP3.
 4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
@@ -41,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: V3 Vista previa de muebles
+
+- Al colocar un mueble se ve su modelo translúcido y girado dentro del cubo, con una flecha hacia el frente; rojo donde no se puede. En un arrastre, en cada celda. Los planos de muebles se dibujan con su modelo.
+- `Construction.CellsToPlan` en Core, que usan el comando y la vista previa. Opciones de captura `--furniture`, `--rotation`, `--point` y `--drag-to`.
+- 495 tests, mismas huellas. Detalle en el registro de V3 de `IP2.5.md`.
 
 ### 2026-10-14: V2 Tamaño de la interfaz
 

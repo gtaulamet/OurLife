@@ -72,6 +72,10 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 # Estilo del terreno (provisorio hasta V4 de IP2.5): --terrain-style flat|a|b|c; b es el elegido
 # Una casa amueblada: --inspect-furniture centra la cámara en el primer mueble; --level a la altura de la casa
 & $env:GODOT_BIN --path game -- --screenshot out/casa.png --seed 42 --play --level 15 --zoom 9 --ticks 5000 --orders --hour 12 --inspect-furniture
+# Vista previa de un mueble (IP2.5): --furniture, --rotation 0..3, --point x,y (centra la cámara) y --drag-to x,y.
+# En PowerShell, las columnas van entre comillas: "44,53"; sin comillas llegan como "44 53".
+& $env:GODOT_BIN --path game -- --screenshot out/silla.png --seed 42 --play --level 15 --zoom 8 --ticks 5000 --orders --hour 12 --furniture chair --rotation 1 --point "44,53"
+& $env:GODOT_BIN --path game -- --screenshot out/arrastre.png --seed 42 --play --level 15 --zoom 11 --ticks 5000 --orders --hour 12 --furniture chest --point "42,51" --drag-to "47,56"
 ```
 
 Las capturas necesitan ventana, así que se corren sin `--headless`. Una ruta relativa parte de `game/`, porque Godot arranca en esa carpeta: los ejemplos guardan en `game/out/`. Revisa las imágenes con Read. La carpeta `out/` no se versiona.

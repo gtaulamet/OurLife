@@ -22,42 +22,18 @@ public sealed record PlaceBlueprintCommand(
     public void Apply(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        if (!simulation.Content.TryGet<BuildableDef>(Buildable, out var buildable) || !buildable.Materials.Contains(Material)
-            || !Designations.TryClampBox(simulation.Map, From, To, out var min, out var max))
+        if (!simulation.Content.TryGet<BuildableDef>(Buildable, out var buildable) || !buildable.Materials.Contains(Material))
         {
             return;
         }
 
-        var plantCells = Designations.PlantCells(simulation);
-        var occupied = Construction.OccupiedCells(simulation);
-
-        // Furniture stays off the stockpiles: piles and furniture would share the cell.
-        var zoneCells = buildable.IsFurniture ? Stockpiles.TakenCells(simulation) : [];
         var rotation = ((Rotation % 4) + 4) % 4;
-        for (var z = min.Z; z <= max.Z; z++)
+        foreach (var cell in Construction.CellsToPlan(simulation, buildable, From, To))
         {
-            for (var y = min.Y; y <= max.Y; y++)
-            {
-                for (var x = min.X; x <= max.X; x++)
-                {
-                    var onBorder = x == min.X || x == max.X || y == min.Y || y == max.Y;
-                    var cell = new TileCoord(x, y, z);
-                    if ((buildable.Outline && !onBorder) || !Construction.CanPlace(simulation.Map, buildable, cell, plantCells, occupied)
-                        || zoneCells.Contains(simulation.Map.Size.IndexOf(x, y, z)))
-                    {
-                        continue;
-                    }
-
-                    var blueprint = simulation.World.CreateEntity();
-                    simulation.World.Add(blueprint, new Position { X = x, Y = y, Z = z });
-                    simulation.World.Add(blueprint, new Blueprint { Buildable = buildable.Id, Material = Material, Rotation = rotation });
-                    simulation.Events.Emit(new EntitySpawnedEvent(blueprint));
-                    foreach (var taken in Construction.CellsOf(buildable.Shape, cell))
-                    {
-                        occupied.Add(taken);
-                    }
-                }
-            }
+            var blueprint = simulation.World.CreateEntity();
+            simulation.World.Add(blueprint, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
+            simulation.World.Add(blueprint, new Blueprint { Buildable = buildable.Id, Material = Material, Rotation = rotation });
+            simulation.Events.Emit(new EntitySpawnedEvent(blueprint));
         }
     }
 }
@@ -106,6 +82,54 @@ public static class Construction
         {
             yield return cell with { Z = cell.Z + 1 };
         }
+    }
+
+    /// <summary>
+    /// The cells of the box between two corners where <see cref="PlaceBlueprintCommand"/> would put
+    /// a blueprint of <paramref name="buildable"/>, in the order it would, without changing
+    /// anything: the presentation shows them before the drag ends (<c>docs/gdd/vista-previa-de-muebles.md</c>).
+    /// An outline takes only the border of the box; a cell a blueprint of the box already takes,
+    /// like the top of stairs, is skipped; furniture stays off the stockpiles.
+    /// </summary>
+    public static IReadOnlyList<TileCoord> CellsToPlan(Simulation simulation, BuildableDef buildable, TileCoord from, TileCoord to)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        ArgumentNullException.ThrowIfNull(buildable);
+        var cells = new List<TileCoord>();
+        if (!Designations.TryClampBox(simulation.Map, from, to, out var min, out var max))
+        {
+            return cells;
+        }
+
+        var plantCells = Designations.PlantCells(simulation);
+        var occupied = OccupiedCells(simulation);
+
+        // Furniture stays off the stockpiles: piles and furniture would share the cell.
+        var zoneCells = buildable.IsFurniture ? Stockpiles.TakenCells(simulation) : [];
+        for (var z = min.Z; z <= max.Z; z++)
+        {
+            for (var y = min.Y; y <= max.Y; y++)
+            {
+                for (var x = min.X; x <= max.X; x++)
+                {
+                    var onBorder = x == min.X || x == max.X || y == min.Y || y == max.Y;
+                    var cell = new TileCoord(x, y, z);
+                    if ((buildable.Outline && !onBorder) || !CanPlace(simulation.Map, buildable, cell, plantCells, occupied)
+                        || zoneCells.Contains(simulation.Map.Size.IndexOf(x, y, z)))
+                    {
+                        continue;
+                    }
+
+                    cells.Add(cell);
+                    foreach (var taken in CellsOf(buildable.Shape, cell))
+                    {
+                        occupied.Add(taken);
+                    }
+                }
+            }
+        }
+
+        return cells;
     }
 
     /// <summary>The cells the blueprints and the furniture take, so no other blueprint goes on them.</summary>

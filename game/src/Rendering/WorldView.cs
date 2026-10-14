@@ -25,6 +25,9 @@ public partial class WorldView : Node3D
 
     public CameraRig Camera { get; private set; } = null!;
 
+    /// <summary>Where the furniture being placed would go (<c>docs/gdd/vista-previa-de-muebles.md</c>).</summary>
+    public FurnitureGhosts Previews { get; private set; } = null!;
+
     /// <summary>Raised when the player moves the view to another level.</summary>
     public event Action<int>? ViewLevelChanged;
 
@@ -53,8 +56,10 @@ public partial class WorldView : Node3D
 
             view._entities = EntityRenderer.Create(simulation, new ModelLibrary(catalog), viewLevel);
             view.AddChild(view._entities);
-            view._orders = OrderMarkers.Create(simulation, viewLevel);
+            view._orders = OrderMarkers.Create(simulation, catalog, viewLevel);
             view.AddChild(view._orders);
+            view.Previews = FurnitureGhosts.Create(catalog, "Previews");
+            view.AddChild(view.Previews);
             view.Camera = CameraRig.Create(new Vector2(map.Size.Width, map.Size.Height), viewLevel, map.Size.Depth - 1, distance ?? StartDistance);
             view.Camera.LevelChanged += view.OnLevelChanged;
             view.AddChild(view.Camera);

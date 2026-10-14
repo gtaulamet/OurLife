@@ -28,7 +28,7 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 
 - Un mueble ocupa una celda de suelo firme (como un muro, ver H2.4), sin otro mueble, sin plano, sin orden, sin planta y fuera de los almacenes. Un almacén nuevo saltea las celdas con muebles o con planos de muebles.
 - No bloquea el paso: se camina sobre él.
-- **Orientación:** el plano guarda un giro de 0 a 3 cuartos de vuelta. Con la herramienta Construir, **G** gira lo que se va a colocar; la pista de la barra lo dice. El giro es sólo de presentación: el mueble terminado lo conserva.
+- **Orientación:** el plano guarda un giro de 0 a 3 cuartos de vuelta. Con la herramienta Construir, **G** gira lo que se va a colocar; la pista de la barra lo dice. El giro es sólo de presentación: el mueble terminado lo conserva. Desde IP2.5, el mueble se ve en vista previa antes de colocarlo, con una flecha hacia su frente (`docs/gdd/vista-previa-de-muebles.md`).
 - Muros, escaleras, rampas, puertas y canales no se ponen sobre un mueble. Para cambiar la celda, primero se desmonta el mueble.
 
 ## Desmontar un mueble

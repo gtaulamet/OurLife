@@ -36,6 +36,9 @@ public partial class GameInput : Node3D
     private static readonly Color SelectionColor = new(1f, 0.95f, 0.4f, 0.45f);
     private static readonly Color BoxColor = new(1f, 0.7f, 0.2f, 0.3f);
 
+    // Most pieces a drag previews: a large box shows only where pieces would go.
+    private const int MaxPreviews = 64;
+
     // Keys 1 to 3 choose the speeds of GameSession.Speeds, in order.
     private static readonly string[] SpeedActions = [InputActions.Speed1, InputActions.Speed2, InputActions.Speed3];
 
@@ -66,6 +69,13 @@ public partial class GameInput : Node3D
 
     // The last thing chosen to build, which the build key brings back.
     private BuildChoice? _lastBuild;
+
+    // A cell, or a drag, pointed at in code for captures and the smoke, instead of the mouse.
+    private TileCoord? _pointed;
+    private (TileCoord From, TileCoord To)? _pointedDrag;
+
+    // The furniture previews shown, so the view only changes when they do.
+    private List<Ghost> _previews = [];
 
     /// <summary>Raised when the player selects something or clears the selection.</summary>
     public event Action<Selection?>? SelectionChanged;
@@ -179,6 +189,7 @@ public partial class GameInput : Node3D
         // HUD the mouse points at no cell.
         var overHud = GetViewport().GuiGetHoveredControl() is not null;
         Hover(overHud ? null : _mouse);
+        UpdatePreviews();
 
         // A button released over the HUD never reaches _UnhandledInput: the drag ends here.
         if (_pressed && !Godot.Input.IsMouseButtonPressed(MouseButton.Left))
@@ -295,10 +306,97 @@ public partial class GameInput : Node3D
     private TileCoord? PickAt(Vector2 screenPoint) =>
         CellPicker.Pick(_view.Camera.Camera, screenPoint, _session.Simulation.Map, _view.ViewLevel);
 
+    /// <summary>Points at a cell as the mouse would, for captures and the smoke; the mouse no longer moves the frame.</summary>
+    public void PointAt(TileCoord cell) => _pointed = cell;
+
+    /// <summary>Gives the frame back to the mouse after <see cref="PointAt"/> or <see cref="PointAtDrag"/>.</summary>
+    public void StopPointing()
+    {
+        _pointed = null;
+        _pointedDrag = null;
+    }
+
+    /// <summary>Shows a drag between two cells as the build tool would preview it, without placing anything; for captures.</summary>
+    public void PointAtDrag(TileCoord from, TileCoord to)
+    {
+        _pointed = to;
+        _pointedDrag = (from, to);
+    }
+
+    /// <summary>
+    /// With furniture to build, its translucent model where it would go, turned, with an arrow to
+    /// its front, and red where it cannot (<c>docs/gdd/vista-previa-de-muebles.md</c>): on the cell
+    /// under the mouse, or on every cell of the drag. The cells come from the same query the
+    /// command uses. Asked every frame, as blueprints and plants change under a still mouse, and
+    /// by the smoke.
+    /// </summary>
+    internal void UpdatePreviews()
+    {
+        var previews = new List<Ghost>();
+        var content = _session.Simulation.Content;
+        if (_build is { } build && content.Get<BuildableDef>(build.Buildable) is { Visual: { } visual } buildable
+            && PreviewBox() is { } box)
+        {
+            var valid = Construction.CellsToPlan(_session.Simulation, buildable, box.From, box.To);
+            var cells = BoxCells(box.From, box.To);
+            if (cells.Count <= MaxPreviews)
+            {
+                var placed = valid.ToHashSet();
+                previews.AddRange(cells.Select(cell => new Ghost(cell, visual, build.Rotation, placed.Contains(cell) ? GhostLook.Preview : GhostLook.Blocked)));
+            }
+            else
+            {
+                previews.AddRange(valid.Take(MaxPreviews).Select(cell => new Ghost(cell, visual, build.Rotation, GhostLook.Preview)));
+            }
+        }
+
+        if (!previews.SequenceEqual(_previews))
+        {
+            _previews = previews;
+            _view.Previews.Show(previews, _session.Simulation.Progress.CurrentEra);
+        }
+    }
+
+    /// <summary>The box a preview covers: the drag under way, or the cell pointed at, or nothing.</summary>
+    private (TileCoord From, TileCoord To)? PreviewBox()
+    {
+        if (_pointedDrag is { } pointed)
+        {
+            return Box(null, pointed.From, pointed.To);
+        }
+
+        if (_pressed && _dragStart is { } start && _dragEnd is { } end)
+        {
+            return Box(null, start, end);
+        }
+
+        var hover = _pointed ?? _hoverCell;
+        return hover is { } cell ? (cell, cell) : null;
+    }
+
+    /// <summary>The cells of a box inside the map, in the order the command walks them.</summary>
+    private List<TileCoord> BoxCells(TileCoord a, TileCoord b)
+    {
+        var size = _session.Simulation.Map.Size;
+        var cells = new List<TileCoord>();
+        for (var z = Math.Max(0, Math.Min(a.Z, b.Z)); z <= Math.Min(size.Depth - 1, Math.Max(a.Z, b.Z)); z++)
+        {
+            for (var y = Math.Max(0, Math.Min(a.Y, b.Y)); y <= Math.Min(size.Height - 1, Math.Max(a.Y, b.Y)); y++)
+            {
+                for (var x = Math.Max(0, Math.Min(a.X, b.X)); x <= Math.Min(size.Width - 1, Math.Max(a.X, b.X)); x++)
+                {
+                    cells.Add(new TileCoord(x, y, z));
+                }
+            }
+        }
+
+        return cells;
+    }
+
     /// <summary>Frames the cell under the point, or nothing without one, and stretches the drag box to it.</summary>
     private void Hover(Vector2? screenPoint)
     {
-        _hoverCell = screenPoint is { } point ? PickAt(point) : null;
+        _hoverCell = _pointed ?? (screenPoint is { } point ? PickAt(point) : null);
         _hover.Visible = _hoverCell is not null;
         if (_hoverCell is { } cell)
         {
