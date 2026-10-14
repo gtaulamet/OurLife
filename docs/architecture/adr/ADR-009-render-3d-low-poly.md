@@ -3,6 +3,7 @@
 - **Estado:** aceptada
 - **Fecha:** 2026-10-09
 - **Reemplaza a:** ADR-007
+- **Ampliada por:** ADR-012 (terreno por shader y kits medievales, IP2.5)
 
 ## Contexto
 

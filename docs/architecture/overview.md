@@ -156,3 +156,4 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 - [ADR-009: Render 3D low-poly con el Nature Kit de Kenney](adr/ADR-009-render-3d-low-poly.md)
 - [ADR-010: Guardado en JSON comprimido y versionado](adr/ADR-010-guardado-json-comprimido.md)
 - [ADR-011: Datos derivados de la colonia fuera de la huella](adr/ADR-011-datos-derivados-de-la-colonia.md)
+- [ADR-012: Terreno estilizado por shader y kits medievales](adr/ADR-012-terreno-estilizado-por-shader.md)

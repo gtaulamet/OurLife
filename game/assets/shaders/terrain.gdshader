@@ -9,6 +9,8 @@ render_mode specular_disabled;
 uniform int style = 0;
 // Darkening of the levels below the current one (LevelShading).
 uniform float brightness = 1.0;
+// Off on the level the view cuts: the grass above it is hidden, so its fringe would sit on rock.
+uniform bool fringe = true;
 
 // Colours are #RRGGBB values, like COLOR: they are converted at the end, as StandardMaterial3D
 // does with VertexColorIsSrgb.
@@ -31,11 +33,18 @@ const int GRASS_FRINGE = 4;
 varying vec3 world_pos;
 varying vec3 world_normal;
 varying flat vec2 data;
+// The cell of the instance, from its origin at the centre of the bottom of the cell; a piece
+// that sticks out of it, like the cap of the cut, still takes the variation of its own cell.
+varying flat vec3 cell_id;
+// Height inside the piece, from its base.
+varying float local_y;
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	data = INSTANCE_CUSTOM.xy;
+	cell_id = floor(MODEL_MATRIX[3].xyz);
+	local_y = VERTEX.y;
 }
 
 float hash12(vec2 p) {
@@ -136,7 +145,7 @@ vec3 material(int pattern, vec3 base, vec2 uv, vec3 pos, vec3 cell, bool top, bo
 	} else if (pattern == PATTERN_PLANKS) {
 		// Planks of a quarter of a cell, along X on top and lying on the sides.
 		float across = top ? uv.y : pos.y;
-		float along = top ? uv.x : uv.x;
+		float along = uv.x;
 		float row = floor(across * 4.0);
 		float seam = smoothstep(0.0, 0.09, fract(across * 4.0)) * smoothstep(1.0, 0.91, fract(across * 4.0));
 		color *= mix(0.62, 1.0, seam);
@@ -163,15 +172,16 @@ void fragment() {
 		ROUGHNESS = 1.0;
 	} else {
 		vec3 normal = normalize(world_normal);
-		vec3 cell = floor(world_pos - normal * 0.001);
+		vec3 cell = cell_id;
 		vec3 pos = style == 3 ? (floor(world_pos * 16.0) + 0.5) / 16.0 : world_pos;
 		vec3 n = abs(normal);
+		// Every face that looks up, the slope of a ramp included, is painted from above.
 		bool top = normal.y > 0.5;
-		vec2 uv = n.y >= n.x && n.y >= n.z ? pos.xz : (n.x >= n.z ? vec2(pos.z, pos.y) : vec2(pos.x, pos.y));
+		vec2 uv = top ? pos.xz : (n.x >= n.z ? vec2(pos.z, pos.y) : vec2(pos.x, pos.y));
 		bool painted = style >= 2;
 
 		bool is_grass = (flags & GRASS_ALL) != 0 || ((flags & GRASS_TOP) != 0 && top);
-		if (!is_grass && (flags & GRASS_FRINGE) != 0 && !top && normal.y > -0.5) {
+		if (fringe && !is_grass && (flags & GRASS_FRINGE) != 0 && !top && normal.y > -0.5) {
 			// A ragged strip of grass hangs over the top of the side of a block.
 			float edge = 0.84 - 0.12 * vnoise(vec2(uv.x * 9.0, cell.y));
 			is_grass = fract(pos.y) > edge;
@@ -186,7 +196,7 @@ void fragment() {
 			float edge = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
 			color *= mix(is_grass ? 0.93 : 0.86, 1.0, smoothstep(0.0, 0.07, edge));
 		} else if (normal.y > -0.5) {
-			color *= mix(0.8, 1.0, smoothstep(0.0, 0.55, fract(pos.y)));
+			color *= mix(0.8, 1.0, smoothstep(0.0, 0.55, local_y));
 		}
 
 		ALBEDO = to_output(color * brightness);

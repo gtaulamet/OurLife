@@ -4,20 +4,23 @@
 
 - 3D low-poly sobre una grilla cuadrada, con cámara inclinada que rota en pasos de 90° (ADR-009). Hasta el 2026-10-09 el plan era pixel art 16×16 con vista cenital.
 - Paleta sobria y terrosa para la Edad Media. Cada época podrá tener su paleta.
+- Terreno con textura pintada por shader (ADR-012, estilo B de la prueba de IP2.5): pasto con briznas y manchas, tierra con grano, roca con vetas y estratos, madera en tablones, mampostería en ladrillos. Sin realismo: se mantiene el low-poly.
 - Legibilidad antes que detalle: muro, suelo, árbol, objeto y colono se distinguen a simple vista desde la altura habitual de la cámara.
 
 ## Fuentes de assets
 
 1. **[Nature Kit de Kenney](https://kenney.nl/assets/nature-kit)**, CC0: terreno, acantilados, árboles, arbustos, rocas y troncos para la superficie del valle. Al descargarlo hay que confirmar el contenido exacto y la licencia.
-2. Otros kits 3D CC0 de Kenney para lo que falte, sobre todo colonos y objetos. Conviene elegir kits con el mismo estilo low-poly.
-3. Modelos propios simples: el bloque de estrato para teñir, las escaleras y los marcadores de designación.
-4. Otros assets CC0 o CC-BY, con atribución en `CREDITS.md`. Los modelos para épocas futuras pueden tener que encargarse o comprarse.
+2. Otros kits 3D CC0 de Kenney para lo que falte, sobre todo colonos y objetos. Conviene elegir kits con el mismo estilo low-poly. Los aldeanos son los 12 de Mini Characters, con la ropa recoloreada con tonos de la época (ADR-012).
+3. **[KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette`.
+4. Modelos propios simples: el bloque de estrato para teñir, las escaleras y los marcadores de designación.
+5. Otros assets CC0 o CC-BY, con atribución en `CREDITS.md`. Los modelos para épocas futuras pueden tener que encargarse o comprarse.
 
 ## Técnica
 
 - Una celda del mapa mide una unidad de Godot de ancho y una de alto. La escala de cada modelo se ajusta en el catálogo, no en el modelo ni en el código.
 - Formato `.glb`. Sólo se copian al repositorio los modelos que se usan, en `game/assets/models/<pack>/`, con sus `.import` versionados.
 - Los modelos que se tiñen por material usan un material base gris. El color sale del `color` del `MaterialDef` y se aplica por instancia en el `MultiMesh`. Así un mismo bloque sirve para tierra, granito, caliza y arenisca.
+- Las piezas del terreno se pintan con `game/assets/shaders/terrain.gdshader`: el patrón de cada material (grano, motas, estratos, tablones, ladrillos) se calcula según la posición en el mundo, sin texturas ni costuras (ADR-012).
 - Profundidad: la vista corta el mapa en el nivel actual. La roca sin excavar del nivel actual muestra su cara superior oscurecida, y los niveles inferiores visibles se oscurecen según su distancia.
 - Variantes por época con sufijo `@<era>`. El id sin sufijo es el de respaldo.
 

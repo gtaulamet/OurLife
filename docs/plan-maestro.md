@@ -230,6 +230,7 @@ Shouldly en lugar de FluentAssertions porque la versión 8 de esta última dejó
 9. ADR-009: Render 3D low-poly con el Nature Kit de Kenney, `MultiMesh` por chunk y catálogo de visuales.
 10. ADR-010 (IP2): Guardado JSON comprimido y versionado.
 11. ADR-011: Datos derivados de la colonia (conectividad incremental, reservas, celdas con órdenes) fuera de la huella.
+12. ADR-012 (IP2.5): Terreno estilizado por shader, GL Compatibility y kits medievales (KayKit Dungeon y Mini Characters recoloreados).
 
 ### 3.7 Preparación para el progreso de épocas
 

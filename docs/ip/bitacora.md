@@ -8,10 +8,10 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v1-prueba-estilo`: plan de IP2.5 y prototipo del terreno |
-| `main` | En el cierre de IP2, con el tag `v0.2.0`, también en `origin` |
+| Rama de trabajo | `ip2.5/v1-prueba-estilo`, cerrada y en `main`. Sigue V2 en `ip2.5/v2-tamano-interfaz` |
+| `main` | En el cierre de V1 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
-| IP en curso | IP2.5 "Pulido visual", planificada el 14 de octubre de 2026 (`docs/ip/IP2.5.md`). IP3 se planifica después |
+| IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
 | Validación | `dotnet build` sin advertencias, 480 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
@@ -20,9 +20,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V1 Prueba de estilo**: el prototipo y las capturas están listos en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD. Falta que el usuario elija terreno (actual, A, B o C), renderizador (Compatibility o Forward+) y muebles (Kenney o KayKit). Con la elección: ADR-012, `docs/art.md` y cerrar V1.
-2. **V2 Tamaño de la interfaz** y **V3 Vista previa de muebles**, mientras el usuario revisa las capturas de V1.
-3. **V4 a V6** según `IP2.5.md`. Después, planificar IP3.
+1. **V2 Tamaño de la interfaz** y **V3 Vista previa de muebles**.
+2. **V4 Terreno y decoración**: implementar limpio el estilo B, llevar al catálogo los patrones por material y los colores del pasto (con test), quitar los otros estilos y el cuadro de 100 ms al compilar el shader.
+3. **V5 y V6** según `IP2.5.md`. Después, planificar IP3.
 4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: cierre de V1
+
+- El usuario eligió terreno B, GL Compatibility y muebles de KayKit. Los aldeanos siguen siendo los de Mini Characters, recoloreados.
+- ADR-012 (terreno por shader y kits medievales), referenciado en ADR-009, `overview.md` y `plan-maestro.md`; `docs/art.md` con la dirección del terreno y KayKit.
+- Se quitó el código que sólo servía para probar Forward+.
+- Revisión de código: 10 hallazgos, 6 corregidos, 3 para V4 y 1 que queda (detalle en `IP2.5.md`). 480 tests, mismas huellas.
+- `main` adelantado al cierre de V1.
 
 ### 2026-10-14: V1 Prueba de estilo
 

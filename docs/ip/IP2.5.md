@@ -6,13 +6,13 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1 espera la elección del usuario sobre las capturas.
+**Estado:** en curso. V1 hecho: terreno B, GL Compatibility y KayKit (ADR-012).
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| V1 Prueba de estilo | En curso | `ip2.5/v1-prueba-estilo` | Prototipo y capturas listos; falta la elección del usuario, ADR-012 y `art.md` |
+| V1 Prueba de estilo | Hecho | `ip2.5/v1-prueba-estilo` | El usuario eligió terreno B, GL Compatibility y muebles de KayKit (ADR-012) |
 | V2 Tamaño de la interfaz | Pendiente | `ip2.5/v2-tamano-interfaz` | |
 | V3 Vista previa de muebles | Pendiente | `ip2.5/v3-vista-previa` | |
 | V4 Terreno y decoración | Pendiente | `ip2.5/v4-terreno` | |
@@ -42,7 +42,7 @@ Los hitos se llaman V (de visual) para no confundirlos con H2.5, "Muebles y cama
 | V1 Prueba de estilo | Prototipo descartable del terreno en dos variantes: (A) colores planos con variación por celda y ruido suave; (B) textura pintada generada en el shader, con grano, vetas y estratos. Pasto sólo arriba en las dos. Comparación de GL Compatibility con Forward+ (sombras suaves y oclusión ambiental). Búsqueda de kits CC0 para los muebles medievales y los aldeanos (Kenney, KayKit, Quaternius) y prueba de cómo combinan | godot-engineer, art-integrator, humano | 5–8 | Capturas de la misma escena (semilla 42, nivel 14, zoom 22) al mediodía, al atardecer, de noche y en un corte bajo tierra, para cada variante. El usuario elige; ADR-012 y `docs/art.md` registran la decisión |
 | V2 Tamaño de la interfaz | Spec; opción "Tamaño de la interfaz" en Opciones; escala de la UI 2D sin tocar el render 3D; modo automático según el tamaño de la ventana; preferencia guardada; `--ui-scale` para capturas | godot-engineer, i18n-specialist | 3–5 | Capturas a 1280×720, 1920×1080 y 2560×1440 en es y en, sin textos cortados ni superpuestos; la selección de celdas con el ratón sigue acertando con la UI escalada |
 | V3 Vista previa de muebles | Spec; modelo translúcido del mueble en la celda bajo el cursor, girado con G, y en cada celda válida del arrastre; flecha en el suelo hacia el frente; tinte rojo donde no se puede colocar; planos de muebles dibujados con su modelo y su giro | godot-engineer, sim-engineer (consulta de solo lectura, si hace falta) | 4–6 | Captura con una cama y una silla en vista previa, en los cuatro giros; un plano de cama colocado muestra su orientación; las huellas no cambian |
-| V4 Terreno y decoración | Shader del terreno de la variante elegida; parámetros por material en el catálogo de visuales; borde de pasto en los costados; oscurecido por nivel como hoy; decoración por chunk con `MultiMesh`, elegida por un hash de la celda (nunca con el RNG de la simulación) y actualizada con los chunks sucios; tests del catálogo | godot-engineer, art-integrator | 10–14 | Capturas antes y después de la misma escena; corte bajo tierra con los estratos legibles; benchmark de la aldea dentro del presupuesto; mismas huellas |
+| V4 Terreno y decoración | Shader del terreno de la variante elegida; parámetros por material y colores del pasto en el catálogo de visuales, con su test (hoy están en `TerrainStyle` y en el shader); borde de pasto en los costados; oscurecido por nivel como hoy; decoración por chunk con `MultiMesh`, elegida por un hash de la celda (nunca con el RNG de la simulación) y actualizada con los chunks sucios; tests del catálogo | godot-engineer, art-integrator | 10–14 | Capturas antes y después de la misma escena; corte bajo tierra con los estratos legibles; benchmark de la aldea dentro del presupuesto; mismas huellas |
 | V5 Modelos y animaciones | Bayas, provisiones y arbusto con bayas; cama, mesa, silla y cofre medievales; variantes de aldeanos según el género; animaciones por estado del colono (quieto, caminar, trabajar, acarrear) sincronizadas con la velocidad del juego; catálogo, `CREDITS.md` y licencias | art-integrator, godot-engineer | 12–16 | Capturas de la aldea con colonos distintos y la casa amueblada; colonos que caminan, trabajan y acarrean, vistos a 1× y 4×; benchmark dentro del presupuesto |
 | V6 Integración | Checklist de playtest, capturas es/en, benchmark, paquetes de Windows y macOS, prueba en la Mac si cambia el renderizador, release `v0.2.5` | qa-tester, `/code-review`, humano | 4–6 | Checklist completo y `v0.2.5` publicada |
 
@@ -86,19 +86,19 @@ Los hitos se llaman V (de visual) para no confundirlos con H2.5, "Muebles y cama
 - La animación sale del estado que ya se consulta para el inspector y el panel Colonia: caminar si se mueve, trabajar si hace un trabajo, acarrear si lleva algo, quieto si no. Dormir conserva la pose acostada de hoy. La velocidad de la animación sigue la velocidad del juego, y la pausa la congela.
 - Cada modelo nuevo entra al catálogo con su licencia en `CREDITS.md`, y se borran del repositorio los que dejan de usarse, como piden los tests del catálogo.
 
-## Decisiones abiertas
+## Decisiones de V1
 
-Se cierran en V1, con las capturas:
+Cerradas el 14 de octubre de 2026 (ADR-012):
 
-1. **Estilo del terreno:** variante A (colores planos con variación) o B (textura pintada en el shader).
-2. **Renderizador:** seguir en GL Compatibility o pasar a Forward+.
-3. **Kits:** de dónde salen los muebles medievales y las variantes de aldeanos.
+1. **Estilo del terreno:** B, textura pintada en el shader.
+2. **Renderizador:** se queda GL Compatibility.
+3. **Kits:** muebles, barriles y comida de KayKit Dungeon Remastered; aldeanos de Mini Characters de Kenney, con la ropa recoloreada.
 
 ## Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| Forward+ deja afuera PCs con placas de video integradas o rinde mal en la Mac | Medir en el benchmark; probar en la Mac en V6. Si no rinde, se queda en Compatibility y se compensa con el shader |
+| Forward+ deja afuera PCs con placas de video integradas o rinde mal en la Mac | Resuelto en V1: se queda GL Compatibility |
 | Los kits de otro autor no combinan con el Nature Kit | Probarlos en una captura en V1, antes de elegir. La `palette` del catálogo unifica colores |
 | La fuente pixel se ve borrosa en algún tamaño | Pasos de 50 % (múltiplos de 8 px); si no alcanza, pasos de 100 % |
 | La UI escalada desplaza el punto que elige el ratón en el 3D | Criterio de V2: probar la selección de celdas y de colonos con la UI al 200 % |
@@ -121,9 +121,22 @@ Se cierran en V1, con las capturas:
 
 - Shader del terreno `game/assets/shaders/terrain.gdshader`, en lugar del `StandardMaterial3D`. Cuatro estilos: el plano de IP2 (`flat`) y las variantes A (variación de tono y bisel), B (textura pintada: briznas, grano, vetas, estratos, tablones y ladrillos) y C (B con 16 píxeles por celda). Todo se calcula según la posición en el mundo, sin texturas.
 - `MapRenderer` pasa a cada instancia el patrón de su material y las marcas de pasto (cara de arriba, toda la pieza o borde en los costados), con los datos propios del `MultiMesh`. El pasto ya no tiñe los costados de las rampas, y los bloques bajo el pasto llevan un borde verde.
-- `TerrainStyle` (provisorio) asigna un patrón a cada material y guarda el estilo; `--terrain-style flat|a|b|c` lo elige para las capturas. Forward+ se prueba con `--rendering-method forward_plus` de Godot: con él, el entorno suma oclusión ambiental y la luz sube un 30 %.
+- `TerrainStyle` (provisorio) asigna un patrón a cada material y guarda el estilo; `--terrain-style flat|a|b|c` lo elige para las capturas. Forward+ se probó con `--rendering-method forward_plus` de Godot, con oclusión ambiental y la luz un 30 % más fuerte; al elegirse Compatibility, ese código se quitó.
 - `CameraRig.Focus`: `--inspect-furniture` también centra la cámara en el mueble.
 - Kits: KayKit Dungeon Remastered (CC0, en GitHub) trae cama, mesas, silla, banqueta, baúles, barriles y platos de comida medievales; se probaron en la casa del smoke sin dejarlos en el repositorio. Mini Characters de Kenney trae 12 aldeanos (6 y 6) con las animaciones; no hay un kit CC0 gratuito de aldeanos medievales animados, así que se propone recolorear su ropa.
 - Benchmark de 20 s (RTX 4090 de portátil): Compatibility con el terreno actual, 431 FPS de media y 335 en el 1 % más lento; con B, 420 y 330; Forward+ con B, 674 y 540. Al compilar el shader hay un cuadro de unos 100 ms, a resolver en V4.
 - Capturas comparadas en una página privada para el usuario: https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD
 - 480 tests en verde y mismas huellas del smoke.
+
+**Decisión del usuario:** terreno B, GL Compatibility y KayKit. Se quitó del código lo que sólo servía para probar Forward+ (luz más fuerte y oclusión ambiental). ADR-012 registra la decisión, ADR-009 la referencia, y `docs/art.md` suma la dirección del terreno y las fuentes nuevas.
+
+**Revisión de código:** 10 hallazgos, 6 corregidos.
+
+- La cara inclinada de una rampa se pinta siempre desde arriba: la proyección ya no depende del redondeo y no hay costuras en la pendiente.
+- El borde de pasto no se dibuja en el nivel que corta la vista, donde el pasto de arriba está oculto.
+- El oscurecido de los costados se mide desde la base de cada pieza, no de la celda: los escalones lo tienen bien.
+- La variación de tono sale de la celda de la instancia, así la tapa del corte coincide con su bloque.
+- Código muerto en los tablones, y `IP2.5.md` y la bitácora al día.
+- Quedan para V4, como prevé ADR-012: los colores del pasto fijos en el shader y los patrones por id de material en `TerrainStyle`, sin test. Pasan al catálogo de visuales con su test.
+- Queda como está: `CameraRig.Focus` centra la cámara en la columna del mueble sin cambiar el nivel. Es para capturas, que ya pasan `--level`.
+- 480 tests en verde y mismas huellas.

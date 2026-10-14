@@ -122,6 +122,7 @@ public partial class MapRenderer : Node3D
         var material = new ShaderMaterial { Shader = shader };
         material.SetShaderParameter("style", TerrainStyle.Current);
         material.SetShaderParameter("brightness", LevelShading.Brightness(depth));
+        material.SetShaderParameter("fringe", depth > 0);
         material.SetShaderParameter("grass_flat", new Vector3(_grassColor.R, _grassColor.G, _grassColor.B));
         return material;
     }
