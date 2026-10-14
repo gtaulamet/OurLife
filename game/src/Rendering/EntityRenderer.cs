@@ -16,6 +16,8 @@ namespace OurLife.Game.Rendering;
 /// with the progress of their <see cref="Movement"/> and face where they walk, and hold the model
 /// of what they carry in front of them (see <c>docs/gdd/almacenes.md</c>). A sleeper lies on its
 /// back over its cell, along its bed if it sleeps in one (<c>docs/gdd/muebles-y-camas.md</c>).
+/// A colonist is one of the variants of its model for its gender, chosen by its id, and plays the
+/// animation of what it does, at the speed of the game (ADR-012).
 /// </summary>
 public partial class EntityRenderer : Node3D
 {
@@ -30,6 +32,19 @@ public partial class EntityRenderer : Node3D
     // How much a sleeper rises on a bed, to the mattress.
     private const float MattressHeight = 0.22f;
 
+    // The animations of the Mini Characters kit that loop, by what a colonist does.
+    private const string Idle = "idle";
+    private const string Walk = "walk";
+    private const string Strike = "attack-melee-right";
+    private const string Handle = "interact-right";
+    private const string PickUp = "pick-up";
+    private const string Hold = "holding-both";
+    private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold];
+
+    // The animation libraries whose animations were already set to loop: they are shared by every instance.
+    private readonly HashSet<AnimationLibrary> _looped = [];
+    private Func<float> _animationSpeed = () => 1f;
+
     private readonly Dictionary<EntityId, EntityView> _views = [];
 
     // The views that move, a few among thousands of plants: the only ones updated every frame.
@@ -39,11 +54,16 @@ public partial class EntityRenderer : Node3D
     private int _viewLevel;
 
     /// <summary>Draws the entities of a simulation. The renderer owns the library from this call on.</summary>
-    public static EntityRenderer Create(Simulation simulation, ModelLibrary models, int viewLevel)
+    /// <param name="animationSpeed">How fast the colonists move their bodies: the game's speed, 0 when it stands still. Read every frame.</param>
+    public static EntityRenderer Create(Simulation simulation, ModelLibrary models, int viewLevel, Func<float> animationSpeed)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(models);
-        var renderer = new EntityRenderer { Name = nameof(EntityRenderer), _simulation = simulation, _models = models, _viewLevel = viewLevel };
+        ArgumentNullException.ThrowIfNull(animationSpeed);
+        var renderer = new EntityRenderer
+        {
+            Name = nameof(EntityRenderer), _simulation = simulation, _models = models, _viewLevel = viewLevel, _animationSpeed = animationSpeed,
+        };
 
         try
         {
@@ -121,12 +141,15 @@ public partial class EntityRenderer : Node3D
     {
         var world = _simulation.World;
         var glide = Math.Min(1f, (float)delta * GlideRate);
+        var speed = _animationSpeed();
         foreach (var (entity, view) in _walkers)
         {
             if (!world.IsAlive(entity))
             {
                 continue;
             }
+
+            Animate(entity, view, speed);
 
             var target = WalkingPosition(entity, out var facing);
             if (SleepingPose(entity, view.Node.Rotation.Y, view.HalfHeight) is { } lying)
@@ -157,7 +180,7 @@ public partial class EntityRenderer : Node3D
             return;
         }
 
-        var node = _models.Instantiate(model);
+        var node = _models.Instantiate(model, FileOf(entity, model));
 
         // Measured before it is placed: half its height is how far a sleeper's feet move back.
         var halfHeight = (ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f) / 2;
@@ -172,7 +195,7 @@ public partial class EntityRenderer : Node3D
         }
 
         AddChild(node);
-        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node)) { HalfHeight = halfHeight };
+        var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node)) { HalfHeight = halfHeight, Animator = AnimatorOf(node) };
         _views.Add(entity, view);
         if (moves)
         {
@@ -290,6 +313,102 @@ public partial class EntityRenderer : Node3D
     }
 
     /// <summary>
+    /// The file of a model a colonist is drawn with: one of the variants for its gender, picked by
+    /// its id, so it keeps its look; the model's own file for anything else.
+    /// </summary>
+    private string? FileOf(EntityId entity, VisualModel model)
+    {
+        if (model.Variants is null || !_simulation.World.TryGet<Colonist>(entity, out var colonist)
+            || !model.Variants.TryGetValue(colonist.Gender.ToString().ToLowerInvariant(), out var files))
+        {
+            return null;
+        }
+
+        var hash = unchecked((uint)entity.Index * 2654435761u);
+        return files[(int)(hash % (uint)files.Count)];
+    }
+
+    /// <summary>The animation player of a model, with the animations it has set to loop, or null for a model without one.</summary>
+    private AnimationPlayer? AnimatorOf(Node node)
+    {
+        var animator = FindAnimator(node);
+        if (animator is null)
+        {
+            return null;
+        }
+
+        foreach (var name in animator.GetAnimationLibraryList())
+        {
+            using var library = animator.GetAnimationLibrary(name);
+            if (!_looped.Add(library))
+            {
+                continue;
+            }
+
+            foreach (var animation in LoopingAnimations.Where(animation => library.HasAnimation(animation)))
+            {
+                using var clip = library.GetAnimation(animation);
+                clip.LoopMode = Animation.LoopModeEnum.Linear;
+            }
+        }
+
+        return animator;
+    }
+
+    private static AnimationPlayer? FindAnimator(Node node)
+    {
+        if (node is AnimationPlayer player)
+        {
+            return player;
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            if (FindAnimator(child) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Plays the animation of what a colonist does: walking, striking to dig or chop, handling
+    /// to build, picking up to gather, holding what it carries, or standing; at the game's speed.
+    /// </summary>
+    private void Animate(EntityId entity, EntityView view, float speed)
+    {
+        if (view.Animator is not { } animator)
+        {
+            return;
+        }
+
+        var world = _simulation.World;
+        var moving = world.TryGet<Movement>(entity, out var movement) && movement.IsMoving;
+        var job = world.TryGet<Job>(entity, out var current) ? current : null;
+        var working = job is { Stage: JobStage.Working };
+        var name = moving ? Walk
+            : working && job!.Kind is JobKind.Mine or JobKind.DigStairs or JobKind.Chop or JobKind.Deconstruct ? Strike
+            : working && job!.Kind is JobKind.Build ? Handle
+            : working && job!.Kind is JobKind.Harvest ? PickUp
+            : world.Has<Carried>(entity) ? Hold
+            : Idle;
+        if (!animator.HasAnimation(name))
+        {
+            name = Idle;
+        }
+
+        if (view.Playing != name && animator.HasAnimation(name))
+        {
+            animator.Play(name);
+            view.Playing = name;
+        }
+
+        animator.SpeedScale = speed;
+    }
+
+    /// <summary>
     /// How a sleeping colonist lies, or null if it is not asleep: on its back, its feet moved back
     /// half its height so its body lies centred on the cell. On the bed its job is for, it takes
     /// the bed's heading and lies on the mattress; on the ground it keeps the heading it had.
@@ -390,5 +509,11 @@ public partial class EntityRenderer : Node3D
 
         /// <summary>Half the height of its model as drawn, to lay a sleeper centred on its cell.</summary>
         public float HalfHeight { get; init; }
+
+        /// <summary>The player of the model's animations, for a colonist; null for a model without them.</summary>
+        public AnimationPlayer? Animator { get; init; }
+
+        /// <summary>The animation it plays, so it is only started when it changes.</summary>
+        public string? Playing { get; set; }
     }
 }

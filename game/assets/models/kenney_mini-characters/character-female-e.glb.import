@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b8eqqufsahdfy"
-path="res://.godot/imported/chest.glb-a6d041f8ab516b64cb4045a0e0b80adc.scn"
+uid="uid://oqp33brx8dwl"
+path="res://.godot/imported/character-female-e.glb-6fa9150205c4a86f4c243bd1c6959e0b.scn"
 
 [deps]
 
-source_file="res://assets/models/kenney_survival-kit/chest.glb"
-dest_files=["res://.godot/imported/chest.glb-a6d041f8ab516b64cb4045a0e0b80adc.scn"]
+source_file="res://assets/models/kenney_mini-characters/character-female-e.glb"
+dest_files=["res://.godot/imported/character-female-e.glb-6fa9150205c4a86f4c243bd1c6959e0b.scn"]
 
 [params]
 

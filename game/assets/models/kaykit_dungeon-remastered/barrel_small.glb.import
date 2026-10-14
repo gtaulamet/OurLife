@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bpbrlsj1epj80"
-path="res://.godot/imported/table.glb-eaab82dc31451d41a1b9fb642598e9dd.scn"
+uid="uid://dsxd54g5rp8q4"
+path="res://.godot/imported/barrel_small.glb-9ef305e9f2942bebe49f42feeda9f397.scn"
 
 [deps]
 
-source_file="res://assets/models/kenney_furniture-kit/table.glb"
-dest_files=["res://.godot/imported/table.glb-eaab82dc31451d41a1b9fb642598e9dd.scn"]
+source_file="res://assets/models/kaykit_dungeon-remastered/barrel_small.glb"
+dest_files=["res://.godot/imported/barrel_small.glb-9ef305e9f2942bebe49f42feeda9f397.scn"]
 
 [params]
 

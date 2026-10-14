@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cdm262n0jgdje"
-path="res://.godot/imported/colormap.png-faa108aff6121a335f60581eb12c470b.ctex"
+uid="uid://uywdygim8l4e"
+path="res://.godot/imported/colormap.png-2ef5b7cc3133f00c4ebfcb2fa2c4e7ce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/models/kenney_survival-kit/Textures/colormap.png"
-dest_files=["res://.godot/imported/colormap.png-faa108aff6121a335f60581eb12c470b.ctex"]
+source_file="res://assets/models/kenney_food-kit/Textures/colormap.png"
+dest_files=["res://.godot/imported/colormap.png-2ef5b7cc3133f00c4ebfcb2fa2c4e7ce.ctex"]
 
 [params]
 

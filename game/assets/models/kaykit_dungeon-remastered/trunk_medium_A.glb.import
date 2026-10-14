@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://djydyx6v3f6hf"
-path="res://.godot/imported/flower_redA.glb-220d90c4ebcd7bb9541618d93222932d.scn"
+uid="uid://dwqyhffs6j00i"
+path="res://.godot/imported/trunk_medium_A.glb-492fd65133625e182dbec9b084314d8a.scn"
 
 [deps]
 
-source_file="res://assets/models/kenney_nature-kit/flower_redA.glb"
-dest_files=["res://.godot/imported/flower_redA.glb-220d90c4ebcd7bb9541618d93222932d.scn"]
+source_file="res://assets/models/kaykit_dungeon-remastered/trunk_medium_A.glb"
+dest_files=["res://.godot/imported/trunk_medium_A.glb-492fd65133625e182dbec9b084314d8a.scn"]
 
 [params]
 

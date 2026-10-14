@@ -156,9 +156,10 @@ public class VisualCatalogTests
     [Fact]
     public void Every_kit_model_of_the_catalog_gets_its_colours_corrected()
     {
-        // Every model in the repository comes from a Kenney kit, and all of them need it.
-        var uncorrected = Catalog.Models.Where(model => !model.SrgbAsLinear).Select(model => model.Id)
-            .Concat(Catalog.Decorations.Where(decoration => !decoration.SrgbAsLinear).Select(decoration => decoration.Id))
+        // Every Kenney kit needs it; KayKit stores its colours right, in a texture (ADR-012).
+        static bool IsKenney(string path) => path.Contains("/kenney_", StringComparison.Ordinal);
+        var uncorrected = Catalog.Models.Where(model => IsKenney(model.ModelPath) && !model.SrgbAsLinear).Select(model => model.Id)
+            .Concat(Catalog.Decorations.Where(decoration => IsKenney(decoration.ModelPath) && !decoration.SrgbAsLinear).Select(decoration => decoration.Id))
             .ToList();
 
         uncorrected.ShouldBeEmpty(string.Join(Environment.NewLine, uncorrected));
@@ -197,6 +198,27 @@ public class VisualCatalogTests
             .ToList();
 
         textured.ShouldBeEmpty(string.Join(Environment.NewLine, textured));
+    }
+
+    [Fact]
+    public void Variants_and_parts_are_read()
+    {
+        var catalog = VisualCatalog.Parse("""
+            {
+              "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} },
+              "models": {
+                "human": { "model": "res://a.glb", "variants": { "female": ["res://f1.glb", "res://f2.glb"], "male": ["res://m.glb"] } },
+                "bush": { "model": "res://bush.glb", "parts": [{ "model": "res://berries.glb", "offset": [0.1, 0.4, -0.2], "scale": 2 }] }
+              }
+            }
+            """);
+
+        catalog.TryResolve("human", null, out var human).ShouldBeTrue();
+        human.Variants!["female"].ShouldBe(["res://f1.glb", "res://f2.glb"]);
+        human.Files.ShouldBe(["res://a.glb", "res://f1.glb", "res://f2.glb", "res://m.glb"]);
+        catalog.TryResolve("bush", null, out var bush).ShouldBeTrue();
+        bush.Parts.ShouldBe([new VisualPart("res://berries.glb", 0.1f, 0.4f, -0.2f, 2f)]);
+        bush.Turn.ShouldBe(0);
     }
 
     [Fact]
@@ -252,6 +274,11 @@ public class VisualCatalogTests
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb", "chance": 0 } }, "models": {} }""")]
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb", "chance": 600 }, "flower": { "model": "res://flower.glb", "chance": 500 } }, "models": {} }""")]
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb", "chance": 10, "colour": "#FFFFFF" } }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "variants": { "female": [] } } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "parts": [{ "model": "res://b.glb", "offset": [0, 1] }] } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "parts": [{ "model": "res://b.glb", "offset": [0, 1, 0], "scale": 0 }] } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "parts": [{ "model": "res://b.glb", "offset": [0, 1, 0], "tint": "#FF0000" }] } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "turn": 4 } } }""")]
     public void An_invalid_catalog_is_rejected_with_a_format_error(string json)
     {
         Should.Throw<FormatException>(() => VisualCatalog.Parse(json));
@@ -262,7 +289,7 @@ public class VisualCatalogTests
 
     /// <summary>Every model file the catalog names: the models of the defs and those of the decoration.</summary>
     private static IEnumerable<(string Id, string Path)> ModelFiles() =>
-        Catalog.Models.Select(model => (model.Id, model.ModelPath))
+        Catalog.Models.SelectMany(model => model.Files.Select(file => (model.Id, file)))
             .Concat(Catalog.Decorations.Select(decoration => (decoration.Id, decoration.ModelPath)));
 
     private static string BaseId(string id)

@@ -7,10 +7,10 @@ Todo asset o código de terceros se registra aquí **antes** de entrar al reposi
 | Asset | Autor | Licencia | Fuente | Uso en el juego |
 |---|---|---|---|---|
 | Fuente Tiny5 | Stefan Schmidt, The Tiny5 Project Authors | SIL Open Font License 1.1; texto en `game/assets/fonts/tiny5/OFL.txt` | github.com/Gissio/font_tiny5, vía Google Fonts | Toda la interfaz |
-| Nature Kit 2.1, 15 modelos | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_nature-kit/License.txt` | kenney.nl/assets/nature-kit | Árboles, arbustos, objetos del mapa y decoración del pasto |
-| Mini Characters, 1 modelo y su textura | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_mini-characters/License.txt` | kenney.nl/assets/mini-characters | Colonos, de forma provisional |
-| Furniture Kit 2.0, 3 modelos | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_furniture-kit/License.txt` | kenney.nl/assets/furniture-kit | Cama, mesa y silla |
-| Survival Kit 2.0, 1 modelo y su textura | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_survival-kit/License.txt` | kenney.nl/assets/survival-kit | Cofre |
+| Nature Kit 2.1, 13 modelos | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_nature-kit/License.txt` | kenney.nl/assets/nature-kit | Árboles, arbustos, objetos del mapa y decoración del pasto |
+| Mini Characters, 12 modelos y su textura, recoloreada | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_mini-characters/License.txt` | kenney.nl/assets/mini-characters | Colonos, con la ropa en tonos de época (la textura `colormap.png` se modificó en IP2.5) |
+| Food Kit, 1 modelo y su textura | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_food-kit/License.txt` | kenney.nl/assets/food-kit | Bayas, sueltas y en los arbustos |
+| KayKit Dungeon Remastered 1.0, 5 modelos | Kay Lousberg (www.kaylousberg.com) | CC0 1.0; texto en `game/assets/models/kaykit_dungeon-remastered/License.txt` | github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0 | Cama, mesa, silla, baúl y el barril de las provisiones |
 
 ## Código de terceros
 

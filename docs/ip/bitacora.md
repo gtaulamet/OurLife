@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v4-opcion-decoracion`, cerrada y en `main`. Sigue V5 en `ip2.5/v5-modelos` |
+| Rama de trabajo | `ip2.5/v5-modelos`: V5 hecho, falta la revisión de código |
 | `main` | En el cierre de V4 de IP2.5, con la opción de decoración, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V5 Modelos y animaciones** (`docs/ip/IP2.5.md`). El usuario puede mirar el antes y después de V4 en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD.
+1. **V5**: revisión de código, commit y adelantar `main`. El usuario puede mirar el antes y después de V4 en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD.
 2. **V6 Integración** según `IP2.5.md`. Después, planificar IP3.
 3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -41,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: V5 Modelos y animaciones
+
+- Muebles y provisiones de KayKit, con la madera entonada; bayas del Food Kit, sueltas y en los arbustos; los 12 aldeanos de Mini Characters con la ropa recoloreada y animaciones según lo que hacen, a la velocidad del juego.
+- El catálogo suma `variants`, `parts` y `turn`. El baúl de KayKit miraba a +X: `turn: 3`.
+- 507 tests, mismas huellas. Detalle en el registro de V5 de `IP2.5.md`.
 
 ### 2026-10-14: opción Decoración del pasto
 

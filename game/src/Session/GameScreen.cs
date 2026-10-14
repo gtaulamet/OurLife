@@ -76,7 +76,16 @@ public partial class GameScreen : Node
         {
             screen.Session = GameSession.Create(simulation);
             screen.AddChild(screen.Session);
-            screen.View = WorldView.Create(simulation, catalog, () => services.Settings.DayNightCycle, services.Settings.Decoration, level, distance);
+            // Colonists move their bodies at the speed of the game, and stand still with it.
+            var session = screen.Session;
+            screen.View = WorldView.Create(
+                simulation,
+                catalog,
+                () => services.Settings.DayNightCycle,
+                services.Settings.Decoration,
+                () => session.Paused || session.Held ? 0f : session.Speed,
+                level,
+                distance);
             screen.AddChild(screen.View);
             screen.Session.EventsRead += screen.View.Apply;
             screen.Input = GameInput.Create(screen.Session, screen.View);

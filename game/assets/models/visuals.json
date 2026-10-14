@@ -14,8 +14,7 @@
   "srgbAsLinearKits": [
     "res://assets/models/kenney_nature-kit/",
     "res://assets/models/kenney_mini-characters/",
-    "res://assets/models/kenney_furniture-kit/",
-    "res://assets/models/kenney_survival-kit/"
+    "res://assets/models/kenney_food-kit/"
   ],
   "palette": {
     "grass": "#3E6A2A",
@@ -24,9 +23,8 @@
     "woodBark": "#7A5233",
     "woodBarkDark": "#5C4030",
     "woodInner": "#C9AE84",
-    "wood": "#9A6B40",
     "dirt": "#7A5A3E",
-    "colorRed": "#B03A36"
+    "texture": "#A89584"
   },
   "decoration": {
     "grass": { "model": "res://assets/models/kenney_nature-kit/grass.glb", "scale": 1.8, "chance": 170 },
@@ -40,16 +38,31 @@
   "models": {
     "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },
     "plant.pine": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 1.4 },
-    "plant.berry_bush": { "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb", "scale": 1.6 },
+    "plant.berry_bush": {
+      "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb",
+      "scale": 1.6,
+      "parts": [
+        { "model": "res://assets/models/kenney_food-kit/cherries.glb", "offset": [0.18, 0.36, 0.12], "scale": 1.6 },
+        { "model": "res://assets/models/kenney_food-kit/cherries.glb", "offset": [-0.2, 0.32, 0.06], "scale": 1.6 },
+        { "model": "res://assets/models/kenney_food-kit/cherries.glb", "offset": [0.02, 0.42, -0.2], "scale": 1.6 }
+      ]
+    },
     "plant.berry_bush.harvested": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 1.4 },
     "item.log": { "model": "res://assets/models/kenney_nature-kit/log.glb", "scale": 1.0 },
     "item.stone": { "model": "res://assets/models/kenney_nature-kit/rock_smallA.glb", "scale": 1.0 },
-    "item.berries": { "model": "res://assets/models/kenney_nature-kit/flower_redA.glb", "scale": 1.0 },
-    "item.provisions": { "model": "res://assets/models/kenney_nature-kit/pot_small.glb", "scale": 1.0 },
-    "creature.human": { "model": "res://assets/models/kenney_mini-characters/character-male-a.glb", "scale": 1.3 },
-    "furniture.bed": { "model": "res://assets/models/kenney_furniture-kit/bedSingle.glb", "scale": 1.0, "center": true },
-    "furniture.table": { "model": "res://assets/models/kenney_furniture-kit/table.glb", "scale": 1.1, "center": true },
-    "furniture.chair": { "model": "res://assets/models/kenney_furniture-kit/chair.glb", "scale": 1.6, "center": true },
-    "furniture.chest": { "model": "res://assets/models/kenney_survival-kit/chest.glb", "scale": 2.0, "center": true }
+    "item.berries": { "model": "res://assets/models/kenney_food-kit/cherries.glb", "scale": 2.4 },
+    "item.provisions": { "model": "res://assets/models/kaykit_dungeon-remastered/barrel_small.glb", "scale": 0.5 },
+    "creature.human": {
+      "model": "res://assets/models/kenney_mini-characters/character-male-a.glb",
+      "scale": 1.3,
+      "variants": {
+        "female": ["res://assets/models/kenney_mini-characters/character-female-a.glb", "res://assets/models/kenney_mini-characters/character-female-b.glb", "res://assets/models/kenney_mini-characters/character-female-c.glb", "res://assets/models/kenney_mini-characters/character-female-d.glb", "res://assets/models/kenney_mini-characters/character-female-e.glb", "res://assets/models/kenney_mini-characters/character-female-f.glb"],
+        "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]
+      }
+    },
+    "furniture.bed": { "model": "res://assets/models/kaykit_dungeon-remastered/bed_frame.glb", "scale": 0.36 },
+    "furniture.table": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },
+    "furniture.chair": { "model": "res://assets/models/kaykit_dungeon-remastered/chair.glb", "scale": 0.55 },
+    "furniture.chest": { "model": "res://assets/models/kaykit_dungeon-remastered/trunk_medium_A.glb", "scale": 0.8, "turn": 3 }
   }
 }

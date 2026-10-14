@@ -8,7 +8,37 @@ namespace OurLife.Game.Rendering;
 /// stores sRGB colours in glTF's linear colour field, so they need correcting.
 /// </summary>
 /// <param name="Center">The model's origin is off its middle, as in the Furniture Kit: it is centred on the cell when instanced.</param>
-public sealed record VisualModel(string Id, string ModelPath, float Scale, bool SrgbAsLinear = false, bool Center = false);
+/// <param name="Variants">
+/// Other files of the same model by a tag, like a colonist's gender: the renderer picks one of
+/// the tag's files per entity, and the plain <paramref name="ModelPath"/> without a tag.
+/// </param>
+/// <param name="Parts">More models drawn with this one, like berries on a bush.</param>
+/// <param name="Turn">
+/// Quarter turns, counterclockwise seen from above, that bring the model's front to +Z, where the
+/// furniture preview's arrow points before it is turned (<c>docs/gdd/vista-previa-de-muebles.md</c>).
+/// </param>
+public sealed record VisualModel(
+    string Id,
+    string ModelPath,
+    float Scale,
+    bool SrgbAsLinear = false,
+    bool Center = false,
+    IReadOnlyDictionary<string, IReadOnlyList<string>>? Variants = null,
+    IReadOnlyList<VisualPart>? Parts = null,
+    int Turn = 0)
+{
+    /// <summary>Every model file this visual draws with: its own, its variants and its parts.</summary>
+    public IEnumerable<string> Files =>
+        new[] { ModelPath }
+            .Concat(Variants?.Values.SelectMany(paths => paths) ?? [])
+            .Concat(Parts?.Select(part => part.ModelPath) ?? []);
+}
+
+/// <summary>
+/// A model drawn with another, placed by an offset from the other's origin, in cells, and with
+/// its own scale: neither is affected by the other's scale.
+/// </summary>
+public sealed record VisualPart(string ModelPath, float X, float Y, float Z, float Scale);
 
 /// <summary>
 /// How the terrain shader paints a material (ADR-012): with only its colour and tone, or with
@@ -145,7 +175,7 @@ public sealed class VisualCatalog
             var models = new Dictionary<string, VisualModel>(StringComparer.Ordinal);
             foreach (var entry in root.GetProperty("models").EnumerateObject())
             {
-                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center");
+                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn");
                 var scale = entry.Value.TryGetProperty("scale", out var scaleValue) ? scaleValue.GetSingle() : 1f;
                 if (scale <= 0)
                 {
@@ -155,7 +185,42 @@ public sealed class VisualCatalog
                 var path = StringValue(entry.Value.GetProperty("model"), $"{entry.Name}.model");
                 var srgbAsLinear = kits.Exists(kit => path.StartsWith(kit, StringComparison.Ordinal));
                 var center = entry.Value.TryGetProperty("center", out var centerValue) && centerValue.GetBoolean();
-                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center));
+                Dictionary<string, IReadOnlyList<string>>? variants = null;
+                if (entry.Value.TryGetProperty("variants", out var variantsElement))
+                {
+                    variants = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+                    foreach (var tag in variantsElement.EnumerateObject())
+                    {
+                        var files = tag.Value.EnumerateArray().Select(file => StringValue(file, $"{entry.Name}.variants.{tag.Name}")).ToList();
+                        variants.Add(tag.Name, files.Count > 0 ? files : throw new FormatException($"'{entry.Name}': the variants '{tag.Name}' are empty."));
+                    }
+                }
+
+                List<VisualPart>? parts = null;
+                if (entry.Value.TryGetProperty("parts", out var partsElement))
+                {
+                    parts = [];
+                    foreach (var part in partsElement.EnumerateArray())
+                    {
+                        OnlyFields(part, $"'{entry.Name}' part", "model", "offset", "scale");
+                        var offset = part.GetProperty("offset").EnumerateArray().Select(value => value.GetSingle()).ToArray();
+                        var partScale = part.TryGetProperty("scale", out var partScaleValue) ? partScaleValue.GetSingle() : 1f;
+                        if (offset.Length != 3 || partScale <= 0)
+                        {
+                            throw new FormatException($"'{entry.Name}': a part needs an offset of three numbers and a positive scale.");
+                        }
+
+                        parts.Add(new VisualPart(StringValue(part.GetProperty("model"), $"{entry.Name}.parts.model"), offset[0], offset[1], offset[2], partScale));
+                    }
+                }
+
+                var turn = entry.Value.TryGetProperty("turn", out var turnValue) ? turnValue.GetInt32() : 0;
+                if (turn is < 0 or > 3)
+                {
+                    throw new FormatException($"'{entry.Name}': turn must be from 0 to 3 quarter turns.");
+                }
+
+                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn));
             }
 
             var palette = new Dictionary<string, string>(StringComparer.Ordinal);

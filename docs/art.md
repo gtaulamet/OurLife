@@ -11,7 +11,7 @@
 
 1. **[Nature Kit de Kenney](https://kenney.nl/assets/nature-kit)**, CC0: terreno, acantilados, árboles, arbustos, rocas y troncos para la superficie del valle. Al descargarlo hay que confirmar el contenido exacto y la licencia.
 2. Otros kits 3D CC0 de Kenney para lo que falte, sobre todo colonos y objetos. Conviene elegir kits con el mismo estilo low-poly. Los aldeanos son los 12 de Mini Characters, con la ropa recoloreada con tonos de la época (ADR-012).
-3. **[KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette`.
+3. **[KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette` (material `texture`). No guarda sus colores como Kenney, así que no va en `srgbAsLinearKits`.
 4. Modelos propios simples: el bloque de estrato para teñir, las escaleras y los marcadores de designación.
 5. Otros assets CC0 o CC-BY, con atribución en `CREDITS.md`. Los modelos para épocas futuras pueden tener que encargarse o comprarse.
 
@@ -53,7 +53,11 @@ Formato fijado en H1.5 y ampliado en IP2.5 (`game/assets/models/visuals.json`):
   - `materials` da el patrón con que se pinta cada material, por el id de su def: `plain` (sólo color y tono), `soil` (grano y piedritas), `speckled` (motas y grietas, como el granito), `layered` (estratos, como la caliza y la arenisca), `planks` (tablones) o `bricks` (ladrillos). Cada material del contenido necesita el suyo.
 - `srgbAsLinearKits`: carpetas de kits que guardan sus colores sRGB en el campo de color lineal de glTF, como los de Kenney. El importador los aclara una segunda vez, y el juego deshace esa conversión sólo en los modelos de esas carpetas.
 - `palette`: reemplaza el color de un material de los modelos, por su nombre dentro del `.glb` (`leafsGreen`, `woodBark`, `grass`). Mantiene la paleta terrosa de la época. Sin entrada, se usa el color del kit corregido.
-- `models`: el modelo de cada id visual y su escala (1 si falta). La escala hace que el modelo ocupe una celda. `center: true` centra sobre la celda un modelo cuyo origen está en una esquina, como los del Furniture Kit.
+- `models`: el modelo de cada id visual y su escala (1 si falta). La escala hace que el modelo ocupe una celda.
+  - `center: true` centra sobre la celda un modelo cuyo origen está en una esquina.
+  - `turn` (0 a 3) son cuartos de vuelta, antihorarios vistos desde arriba, que llevan el frente del modelo hacia +Z, adonde apunta la flecha de la vista previa de muebles sin girar. El baúl de KayKit tiene `turn: 3`.
+  - `variants` da otros archivos del mismo modelo por etiqueta; para los colonos, la etiqueta es el género (`female`, `male`) y cada colono toma uno de sus archivos según su id, siempre el mismo.
+  - `parts` agrega modelos al principal, cada uno con su `offset` en celdas y su `scale`, sin heredar la escala del principal: las cerezas sobre el arbusto de bayas.
 - `decoration`: modelos que visten el pasto, como matas, flores y piedritas. `chance` dice en cuántas celdas de pasto de cada mil aparece cada uno; la suma no pasa de mil. Un hash de la celda elige el modelo, su giro, su tamaño y su lugar dentro de la celda, así que una celda siempre se ve igual. No son entidades, no se guardan y no cambian la simulación. No aparecen bajo un mueble ni bajo una planta. Los modelos de la decoración no deben ser los de un objeto (la flor roja de las bayas, la piedra chica), para no confundirse con algo que se puede levantar, y no llevan texturas: se dibujan con un color por material. Las matas toman el `grass` de la paleta, a propósito un poco más oscuro que los verdes de `terrain.grass`, para que se distingan del suelo. El jugador elige cuánta decoración ver (`docs/gdd/decoracion-del-pasto.md`): la opción multiplica estas probabilidades.
 - El terreno no tiene modelos: sus piezas se generan en código, se tiñen con el `color` del `MaterialDef` y el shader les pinta el patrón (ADR-009 y ADR-012).
 
@@ -84,18 +88,20 @@ El art-integrator mantiene la lista de modelos que faltan.
 
 ### Modelos que faltan
 
-Revisado en H1.7, el 11 de octubre de 2026:
+Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 
 | Modelo | Estado | Plan |
 |---|---|---|
-| Terreno | Resuelto con piezas generadas en código | — |
-| Arbusto de bayas con bayas y sin bayas | Provisional: `plant_bushDetailed` con frutos y `plant_bush` sin frutos (`plant.berry_bush.harvested`), ambos del Nature Kit. Se distinguen por la forma; ninguno muestra bayas | Un modelo propio o una variante con bayas rojas, en H1.8 o en el backlog |
-| Bayas | Provisional: `flower_redA` | Buscar en otro kit de Kenney o hacer uno propio |
-| Provisiones | Provisional: `pot_small` | Un saco o una canasta de otro kit de Kenney |
-| Aldeanos | Provisional: un solo `character-male-a` de Mini Characters, a escala 1,3 (para caber en las camas) y sin animación (pose de T) | Entre 4 y 6 variantes del mismo kit y una animación de caminar, en H1.8 o en el backlog |
+| Terreno | Resuelto con piezas generadas en código y pintadas por el shader (ADR-012) | — |
+| Arbusto de bayas con bayas y sin bayas | Resuelto: `plant_bushDetailed` con tres racimos de `cherries` del Food Kit como partes; `plant_bush` sin bayas | — |
+| Bayas | Resuelto: `cherries` del Food Kit | — |
+| Provisiones | Resuelto: `barrel_small` de KayKit | — |
+| Aldeanos | Resuelto: los 12 de Mini Characters (6 mujeres y 6 hombres), con la ropa recoloreada y animaciones de caminar, golpear, manipular, levantar, sostener y quieto | Animaciones de comer y de dormir, si las pide el juego |
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
-| Muebles (H2.5) | Cama, mesa y silla del Furniture Kit (`bedSingle`, `table`, `chair`); cofre del Survival Kit (`chest`). Estética moderna en la cama y la silla | Variantes medievales propias o de otro kit, en el backlog |
+| Muebles | Resuelto: cama, mesa, silla y baúl de KayKit Dungeon Remastered, con la madera entonada por la paleta (`texture`) | — |
+
+**Recoloreo de los aldeanos.** La textura `kenney_mini-characters/Textures/colormap.png` es la de Kenney con las franjas de ropa cambiadas a tonos de época (musgo, ocre, óxido, rubia, glasto, lana cruda, lino, ciruela y rosa viejo), conservando el degradé de cada franja. La piel, los grises y el pelo no se tocan. La comparten los 12 aldeanos.
 
 ## Fuente tipográfica
 

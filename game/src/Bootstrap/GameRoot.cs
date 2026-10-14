@@ -888,11 +888,12 @@ public partial class GameRoot : Node
             }
         }
 
-        foreach (var model in models.Catalog.Models)
+        // Every file of a model: its own, its variants and its parts.
+        foreach (var file in models.Catalog.Models.SelectMany(model => model.Files).Distinct(StringComparer.Ordinal))
         {
-            if (models.Load(model) is null)
+            if (models.Load(file) is null)
             {
-                problems.Add($"{model.ModelPath} does not load; run godot --headless --path game --import");
+                problems.Add($"{file} does not load; run godot --headless --path game --import");
             }
         }
 

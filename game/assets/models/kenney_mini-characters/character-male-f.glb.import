@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dr5bn2vfqvwfs"
-path="res://.godot/imported/bedSingle.glb-a172676c2487074e0eeae98131e096e8.scn"
+uid="uid://vcyonw0w4ltn"
+path="res://.godot/imported/character-male-f.glb-e96470949c03a9ea7b7eeeb32f181c75.scn"
 
 [deps]
 
-source_file="res://assets/models/kenney_furniture-kit/bedSingle.glb"
-dest_files=["res://.godot/imported/bedSingle.glb-a172676c2487074e0eeae98131e096e8.scn"]
+source_file="res://assets/models/kenney_mini-characters/character-male-f.glb"
+dest_files=["res://.godot/imported/character-male-f.glb-e96470949c03a9ea7b7eeeb32f181c75.scn"]
 
 [params]
 

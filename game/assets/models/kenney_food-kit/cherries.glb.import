@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dqk5savk4xr2o"
-path="res://.godot/imported/pot_small.glb-b268d229efb6393610c6f88896b73355.scn"
+uid="uid://o5i6ixge24p"
+path="res://.godot/imported/cherries.glb-6e6455868bef9ce891069931df8b9d38.scn"
 
 [deps]
 
-source_file="res://assets/models/kenney_nature-kit/pot_small.glb"
-dest_files=["res://.godot/imported/pot_small.glb-b268d229efb6393610c6f88896b73355.scn"]
+source_file="res://assets/models/kenney_food-kit/cherries.glb"
+dest_files=["res://.godot/imported/cherries.glb-6e6455868bef9ce891069931df8b9d38.scn"]
 
 [params]
 

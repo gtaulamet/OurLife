@@ -6,7 +6,7 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1 a V4 hechos.
+**Estado:** en curso. V1 a V5 hechos; falta V6.
 
 ## Estado de los hitos
 
@@ -16,7 +16,7 @@
 | V2 Tamaño de la interfaz | Hecho | `ip2.5/v2-tamano-interfaz` | Opción en Opciones con Automático (100 % a 300 % según la ventana); clic probado con la UI al 200 % |
 | V3 Vista previa de muebles | Hecho | `ip2.5/v3-vista-previa` | Modelo translúcido girado con flecha al frente, rojo donde no va; planos de muebles con su modelo |
 | V4 Terreno y decoración | Hecho | `ip2.5/v4-terreno`, `ip2.5/v4-opcion-decoracion` | Sólo el estilo B; patrones, verdes y decoración en el catálogo; matas, flores, piedritas y hongos sobre el pasto, con la opción Decoración del pasto |
-| V5 Modelos y animaciones | Pendiente | `ip2.5/v5-modelos` | |
+| V5 Modelos y animaciones | Hecho | `ip2.5/v5-modelos` | Muebles y provisiones de KayKit, bayas del Food Kit, 12 aldeanos recoloreados con animaciones |
 | V6 Integración | Pendiente | `ip2.5/v6-integracion` | |
 
 Los hitos se llaman V (de visual) para no confundirlos con H2.5, "Muebles y camas", de IP2.
@@ -235,3 +235,21 @@ Pedido del usuario del 14 de octubre de 2026, después de cerrar V4, en la rama 
 - Capturas de los cuatro niveles y de Opciones en es y en. Con esta fila, Opciones a 720p queda justa: una más no entra.
 - 507 tests en verde y mismas huellas.
 - Revisión de código: 7 hallazgos, 6 corregidos. Lo principal: al escalar cada probabilidad, una celda podía cambiar de pieza al subir el nivel, contra lo que dice la spec; ahora la presencia y la pieza salen de hashes distintos. Cambiar el nivel rearma sólo la decoración, sin vaciar los chunks pendientes ni dejar vieja la tapa del corte. La vista se entera por el evento `Settings.DecorationChanged`, no consultando en cada cuadro. El smoke pasa por los cuatro niveles. Queda como está cuándo se guarda el nivel elegido con `--decoration` activo: la misma regla que el tamaño de la interfaz.
+
+## Registro de V5: Modelos y animaciones
+
+**Entregado**
+
+- Catálogo de visuales: un modelo puede tener `variants` por etiqueta, `parts` con su desplazamiento y escala, y `turn` para llevar su frente a +Z. `VisualModel.Files` lista todos sus archivos; los tests del catálogo (existencia, importación, paleta, archivos del repositorio) los recorren todos.
+- Muebles de KayKit Dungeon Remastered: `bed_frame`, `table_small`, `chair` y `trunk_medium_A` (con `turn: 3`, porque su frente mira a +X). La paleta entona su madera (`texture`) para que combine con los muros. Salen el Furniture Kit y el Survival Kit.
+- Bayas: `cherries` del Food Kit, sueltas y como tres racimos sobre el arbusto que tiene bayas. Provisiones: `barrel_small` de KayKit, con la misma madera. Salen `flower_redA` y `pot_small`.
+- Aldeanos: los 12 de Mini Characters. Cada colono toma uno de los seis de su género según su id. La textura que comparten se recoloreó con tonos de época.
+- Animaciones: caminar, golpear (cavar, tallar escaleras, talar, desmontar), manipular (construir), levantar (recolectar), sostener (con carga) y quieto, en bucle. Van a la velocidad del juego y se detienen con la pausa o con un menú abierto. Dormir conserva la pose acostada.
+- El smoke carga todos los archivos de cada modelo, variantes y partes incluidas.
+- `CREDITS.md` y `docs/art.md` (formato del catálogo, modelos que faltan, recoloreo).
+
+**Verificación**
+
+- Capturas: la llegada con los colonos, el trabajo con poses distintas, la casa de día con los muebles de KayKit y de noche con un colono dormido en la cama, los arbustos con cerezas.
+- Vista previa de silla, cama y baúl en giro 0, y del baúl en giro 1: la flecha apunta al frente de cada modelo.
+- 507 tests en verde y mismas huellas.

@@ -43,6 +43,7 @@ El usuario eligió el 14 de octubre de 2026: **terreno B, GL Compatibility y Kay
 - Los muebles salen de **KayKit Dungeon Remastered** de Kay Lousberg (CC0, versión gratuita en GitHub): cama, mesa, silla y baúl. El kit también trae barriles, cajas y platos de comida para reemplazar los modelos provisionales. Usa una textura de degradé, así que no va en `srgbAsLinearKits`. Su madera rojiza se entona con la paleta del catálogo.
 - Los aldeanos siguen siendo los de **Mini Characters** de Kenney, ahora con sus 12 variantes (6 mujeres y 6 hombres) y sus animaciones. Su ropa moderna se recolorea con tonos de la época, cambiando la textura de colores que comparten.
 - Los kits nuevos siguen las reglas de `docs/art.md`: sólo se copian los modelos usados, con su licencia en `CREDITS.md`.
+- En V5 el catálogo suma `variants` (los aldeanos por género), `parts` (las cerezas sobre el arbusto) y `turn` (el frente de un modelo). Las bayas salen del Food Kit de Kenney y las provisiones de un barril de KayKit.
 
 ## Consecuencias
 

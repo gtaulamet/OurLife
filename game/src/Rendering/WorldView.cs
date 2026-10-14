@@ -40,12 +40,20 @@ public partial class WorldView : Node3D
     /// <summary>Builds the view of a simulation whose world is already generated.</summary>
     /// <param name="dayNight">Whether the day and night cycle is on; read every frame.</param>
     /// <param name="decoration">How much decoration dresses the grass at the start; <see cref="SetDecoration"/> changes it.</param>
+    /// <param name="animationSpeed">How fast colonists move their bodies: the game's speed, 0 when it stands still. Read every frame.</param>
     public static WorldView Create(
-        Simulation simulation, VisualCatalog catalog, Func<bool> dayNight, DecorationLevel decoration, int? level, int? distance = null)
+        Simulation simulation,
+        VisualCatalog catalog,
+        Func<bool> dayNight,
+        DecorationLevel decoration,
+        Func<float> animationSpeed,
+        int? level,
+        int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(dayNight);
+        ArgumentNullException.ThrowIfNull(animationSpeed);
         var map = simulation.Map;
         var viewLevel = Math.Clamp(level ?? HighestSurface(simulation), 0, map.Size.Depth - 1);
 
@@ -63,7 +71,7 @@ public partial class WorldView : Node3D
             view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration));
             view.AddChild(view._map);
 
-            view._entities = EntityRenderer.Create(simulation, new ModelLibrary(catalog), viewLevel);
+            view._entities = EntityRenderer.Create(simulation, new ModelLibrary(catalog), viewLevel, animationSpeed);
             view.AddChild(view._entities);
             view._orders = OrderMarkers.Create(simulation, catalog, viewLevel);
             view.AddChild(view._orders);

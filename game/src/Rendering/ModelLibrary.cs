@@ -44,15 +44,51 @@ public sealed class ModelLibrary : IDisposable
     }
 
     /// <summary>
-    /// A new instance of a model, scaled as the catalog says. A model to centre goes inside a holder
-    /// node, moved so the middle of its meshes lies over the holder's origin.
+    /// A new instance of a model, scaled as the catalog says, from its own file or from
+    /// <paramref name="file"/>, one of its variants. A model to centre goes inside a holder node,
+    /// moved so the middle of its meshes lies over the holder's origin. A model with parts goes
+    /// inside an unscaled node, with each part at its offset and scale.
     /// </summary>
-    /// <exception cref="InvalidOperationException">The model cannot be loaded.</exception>
-    public Node3D Instantiate(VisualModel model)
+    /// <exception cref="InvalidOperationException">The model or a part cannot be loaded.</exception>
+    public Node3D Instantiate(VisualModel model, string? file = null)
     {
-        var scene = Load(model) ?? throw new InvalidOperationException(
-            $"Cannot load the model of '{model.Id}' ({model.ModelPath}). Import the project: godot --headless --path game --import");
-        var node = scene.Instantiate<Node3D>();
+        ArgumentNullException.ThrowIfNull(model);
+        var body = InstantiateBody(model, file ?? model.ModelPath);
+
+        // Turned inside a holder: whoever places the instance sets the holder's own rotation.
+        if (model.Turn != 0)
+        {
+            var turned = new Node3D { Name = body.Name };
+            body.RotationDegrees = new Vector3(0, model.Turn * 90f, 0);
+            turned.AddChild(body);
+            body = turned;
+        }
+
+        if (model.Parts is not { Count: > 0 } parts)
+        {
+            return body;
+        }
+
+        var whole = new Node3D { Name = body.Name };
+        whole.AddChild(body);
+        foreach (var part in parts)
+        {
+            var node = LoadOrThrow(model, part.ModelPath).Instantiate<Node3D>();
+            node.Scale = Vector3.One * part.Scale;
+            node.Position = new Vector3(part.X, part.Y, part.Z);
+            whole.AddChild(node);
+        }
+
+        return whole;
+    }
+
+    private PackedScene LoadOrThrow(VisualModel model, string path) =>
+        Load(path) ?? throw new InvalidOperationException(
+            $"Cannot load the model of '{model.Id}' ({path}). Import the project: godot --headless --path game --import");
+
+    private Node3D InstantiateBody(VisualModel model, string path)
+    {
+        var node = LoadOrThrow(model, path).Instantiate<Node3D>();
         if (!model.Center)
         {
             node.Scale = Vector3.One * model.Scale;
