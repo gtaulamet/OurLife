@@ -212,3 +212,13 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - Rendimiento: con un `MultiMesh` por modelo y por chunk la decoración costaba hasta siete llamadas de dibujo por chunk; con una malla por chunk el promedio volvió a 418 FPS. En corridas seguidas la portátil dio entre 232 y 418 FPS con decoración y entre 288 y 311 sin ella: la diferencia queda dentro del ruido de la máquina, siempre muy por encima de 60 FPS. La partida se arma en unos 300 ms (antes, 210 ms).
 - El cuadro de 100 ms de V1 no era del shader (ver el registro de V1).
 - 506 tests en verde y mismas huellas.
+
+**Revisión de código:** 10 hallazgos, 8 corregidos.
+
+- Los arbustos de bayas no bloquean el paso, y la decoración crecía dentro de ellos: ahora la vista le pasa al terreno las celdas con plantas (`Designations.PlantCells`, calculado de nuevo cuando aparecen o se van entidades).
+- Una pieza sólo se corre hacia una vecina que también se puede decorar: no se mete en muros, muebles ni plantas, ni cuelga sobre un desnivel.
+- El smoke también carga los modelos de la decoración, y uno que no carga deja un aviso.
+- Un modelo sin normales o con superficies que no son triángulos ya no rompe el arranque. La decoración se dibuja por las dos caras, y un test pide que sus modelos no tengan texturas, porque el horneado guarda un color por material.
+- La suma de probabilidades no desborda; las normales se giran una vez por pieza; la decoración se decide en el mismo paso que dibuja el suelo, sin recorrer el cielo ni la roca; `ModelLibrary` carga por ruta.
+- Quedan como están: las matas toman el `grass` de la paleta, a propósito un poco más oscuro que el pasto del suelo para que se distingan (anotado en `docs/art.md`), y la biblioteca de modelos propia del terreno, por lo mismo que en V3.
+- 507 tests en verde y mismas huellas.

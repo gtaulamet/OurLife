@@ -188,6 +188,18 @@ public class VisualCatalogTests
     }
 
     [Fact]
+    public void Decoration_models_have_no_textures()
+    {
+        // The decoration is baked with one colour per material: a texture would be lost (ADR-012).
+        var textured = Catalog.Decorations
+            .Where(decoration => GlbHasImages(GamePath(decoration.ModelPath)))
+            .Select(decoration => decoration.Id)
+            .ToList();
+
+        textured.ShouldBeEmpty(string.Join(Environment.NewLine, textured));
+    }
+
+    [Fact]
     public void Patterns_grass_and_decoration_are_read()
     {
         var catalog = VisualCatalog.Parse("""
@@ -274,6 +286,15 @@ public class VisualCatalogTests
             .Where(material => material.TryGetProperty("name", out _))
             .Select(material => material.GetProperty("name").GetString()!)
             .ToList();
+    }
+
+    /// <summary>Whether a binary glTF carries images, read from its JSON chunk.</summary>
+    private static bool GlbHasImages(string file)
+    {
+        var bytes = File.ReadAllBytes(file);
+        var jsonLength = BitConverter.ToInt32(bytes, 12);
+        using var document = JsonDocument.Parse(bytes.AsMemory(20, jsonLength));
+        return document.RootElement.TryGetProperty("images", out var images) && images.GetArrayLength() > 0;
     }
 
     private static string GamePath(string resourcePath) =>

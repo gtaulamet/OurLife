@@ -880,7 +880,15 @@ public partial class GameRoot : Node
             }
         }
 
-        GD.Print($"[smoke] visuals: {models.Catalog.Models.Count()} models in the catalog");
+        foreach (var decoration in models.Catalog.Decorations)
+        {
+            if (models.Load(decoration.ModelPath) is null)
+            {
+                problems.Add($"{decoration.ModelPath} does not load; run godot --headless --path game --import");
+            }
+        }
+
+        GD.Print($"[smoke] visuals: {models.Catalog.Models.Count()} models and {models.Catalog.Decorations.Count} decorations in the catalog");
         foreach (var problem in problems)
         {
             GD.PushError($"[smoke] {problem}");

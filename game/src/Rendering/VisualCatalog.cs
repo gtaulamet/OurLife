@@ -137,7 +137,7 @@ public sealed class VisualCatalog
                 }
             }
 
-            if (decorations.Sum(decoration => decoration.Chance) > 1000)
+            if (decorations.Sum(decoration => (long)decoration.Chance) > 1000)
             {
                 throw new FormatException("decoration: the chances add up to more than 1000 in a thousand.");
             }

@@ -45,6 +45,10 @@ public partial class MapRenderer : Node3D
         Enumerable.Range(0, Enum.GetValues<TerrainPiece>().Length).Select(_ => new List<(Transform3D, Color, int, int)>()).ToArray();
 
     private IReadOnlyList<DecorationModel> _decorations = [];
+
+    // The cells with a plant, which keep their decoration out; asked once per chunk built.
+    private Func<IReadOnlySet<TileCoord>> _plantCells = null!;
+    private IReadOnlySet<TileCoord> _plants = new HashSet<TileCoord>();
     private DecorationMesh?[] _decorationMeshes = [];
     private readonly List<(int Model, Transform3D Transform)> _decorationBuffer = [];
     private StandardMaterial3D[] _decorationMaterials = [];
@@ -59,14 +63,17 @@ public partial class MapRenderer : Node3D
 
     public int ViewLevel { get; private set; }
 
-    public static MapRenderer Create(GameMap map, VisualCatalog catalog, int viewLevel)
+    /// <param name="plantCells">The cells with a plant: no decoration grows inside a bush or a tree.</param>
+    public static MapRenderer Create(GameMap map, VisualCatalog catalog, int viewLevel, Func<IReadOnlySet<TileCoord>> plantCells)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(plantCells);
         var renderer = new MapRenderer
         {
             Name = nameof(MapRenderer),
             _map = map,
+            _plantCells = plantCells,
             _materialColors = map.Materials.Select(material => Color.FromHtml(material.Color)).ToArray(),
             _materialPatterns = map.Materials.Select(material => (int)catalog.Patterns.GetValueOrDefault(material.Id)).ToArray(),
             _grass = catalog.Grass,
@@ -77,8 +84,12 @@ public partial class MapRenderer : Node3D
         renderer._decorations = catalog.Decorations;
         using (var library = new ModelLibrary(catalog))
         {
-            // A model that cannot be loaded is left out, like the models of entities.
+            // A model that cannot be loaded is left out, like the models of entities; the smoke checks them all.
             renderer._decorationMeshes = catalog.Decorations.Select(decoration => DecorationMesh.Bake(library, decoration)).ToArray();
+            foreach (var missing in catalog.Decorations.Where((_, i) => renderer._decorationMeshes[i] is null))
+            {
+                GD.PushWarning($"The decoration '{missing.Id}' ({missing.ModelPath}) could not be loaded and is left out.");
+            }
         }
 
         foreach (var piece in Enum.GetValues<TerrainPiece>())
@@ -159,12 +170,14 @@ public partial class MapRenderer : Node3D
     private static StandardMaterial3D DecorationMaterial(int depth)
     {
         var brightness = LevelShading.Brightness(depth);
+        // Both faces: thin blades of grass are often single sheets.
         return new StandardMaterial3D
         {
             VertexColorUseAsAlbedo = true,
             VertexColorIsSrgb = true,
             AlbedoColor = new Color(brightness, brightness, brightness),
             Roughness = 1f,
+            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
         };
     }
 
@@ -227,6 +240,7 @@ public partial class MapRenderer : Node3D
         }
 
         _decorationBuffer.Clear();
+        _plants = _plantCells();
 
         var x0 = chunk.X * GameMap.ChunkSize;
         var y0 = chunk.Y * GameMap.ChunkSize;
@@ -237,7 +251,6 @@ public partial class MapRenderer : Node3D
             for (var x = x0; x < x1; x++)
             {
                 AddCell(x, y, chunk.Z);
-                AddDecoration(x, y, chunk.Z);
             }
         }
 
@@ -318,18 +331,14 @@ public partial class MapRenderer : Node3D
     }
 
     /// <summary>
-    /// A tuft, a flower or pebbles on open ground with grass, chosen by a hash of the cell and
-    /// the chances of the catalog, or nothing. Furniture and plants keep their cell clear.
+    /// A tuft, a flower or pebbles on a floor with grass, chosen by a hash of the cell and the
+    /// chances of the catalog, or nothing. Furniture and plants keep their cell clear. A piece
+    /// moves off the middle of its cell only towards neighbours that could take one too, so it
+    /// does not reach into a wall, a piece of furniture or a plant, or hang over a drop.
     /// </summary>
     private void AddDecoration(int x, int y, int z)
     {
-        if (_decorations.Count == 0 || _map.ShapeAt(x, y, z) != TileShape.Floor)
-        {
-            return;
-        }
-
-        var flags = _map.FlagsAt(x, y, z);
-        if ((flags & TileFlags.Grass) == 0 || (flags & (TileFlags.Furniture | TileFlags.Blocked)) != 0)
+        if (_decorations.Count == 0 || !Dressable(x, y, z))
         {
             return;
         }
@@ -345,12 +354,25 @@ public partial class MapRenderer : Node3D
 
             var yaw = Unit(CellHash(x, y, z, 1)) * Mathf.Tau;
             var size = 1f + ((Unit(CellHash(x, y, z, 2)) - 0.5f) * 2 * DecorationSizeVariation);
-            var offset = new Vector3(Unit(CellHash(x, y, z, 3)) - 0.5f, 0, Unit(CellHash(x, y, z, 4)) - 0.5f) * 2 * DecorationSpread;
+            var offset = new Vector3(
+                Toward(Unit(CellHash(x, y, z, 3)) - 0.5f, Dressable(x - 1, y, z), Dressable(x + 1, y, z)),
+                0,
+                Toward(Unit(CellHash(x, y, z, 4)) - 0.5f, Dressable(x, y - 1, z), Dressable(x, y + 1, z))) * 2 * DecorationSpread;
             var origin = new Vector3(x + 0.5f, z + TerrainMeshes.FloorThickness, y + 0.5f) + offset;
             _decorationBuffer.Add((i, new Transform3D(new Basis(Vector3.Up, yaw).Scaled(new Vector3(size, size, size)), origin)));
             return;
         }
     }
+
+    /// <summary>A floor with grass, without furniture or a plant: a cell the decoration may dress.</summary>
+    private bool Dressable(int x, int y, int z) =>
+        _map.ShapeOrEmpty(x, y, z) == TileShape.Floor
+        && (_map.FlagsAt(x, y, z) & (TileFlags.Grass | TileFlags.Furniture | TileFlags.Blocked)) == TileFlags.Grass
+        && !_plants.Contains(new TileCoord(x, y, z));
+
+    /// <summary>An offset from -0.5 to 0.5 along one axis, kept at 0 or less towards a side that cannot be dressed.</summary>
+    private static float Toward(float offset, bool lowSideOpen, bool highSideOpen) =>
+        offset < 0 ? (lowSideOpen ? offset : 0) : (highSideOpen ? offset : 0);
 
     /// <summary>
     /// A hash of a cell and a salt, the same on every run and machine: the decoration of a cell
@@ -378,6 +400,7 @@ public partial class MapRenderer : Node3D
                 break;
             case TileShape.Floor:
                 Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z) ? GrassAll : 0);
+                AddDecoration(x, y, z);
                 break;
             case TileShape.Ramp:
                 Add(TerrainPiece.Ramp, new Transform3D(new Basis(Vector3.Up, RampYaw(x, y, z)), origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z) ? GrassTop : 0);

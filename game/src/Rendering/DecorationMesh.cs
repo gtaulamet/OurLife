@@ -29,8 +29,7 @@ public sealed class DecorationMesh
     {
         ArgumentNullException.ThrowIfNull(library);
         ArgumentNullException.ThrowIfNull(decoration);
-        var model = new VisualModel(decoration.Id, decoration.ModelPath, decoration.Scale, decoration.SrgbAsLinear);
-        if (library.Load(model) is not { } scene)
+        if (library.Load(decoration.ModelPath) is not { } scene)
         {
             return null;
         }
@@ -71,10 +70,12 @@ public sealed class DecorationMesh
                 continue;
             }
 
+            // A piece is turned and scaled the same on every axis: its normals only turn.
+            var turn = transform.Basis.Orthonormalized();
             for (var i = 0; i < model.Vertices.Length; i++, at++)
             {
                 vertices[at] = transform * model.Vertices[i];
-                normals[at] = (transform.Basis * model.Normals[i]).Normalized();
+                normals[at] = turn * model.Normals[i];
                 colors[at] = model.Colors[i];
             }
         }
@@ -99,6 +100,12 @@ public sealed class DecorationMesh
             using var mesh = meshInstance.Mesh;
             for (var surface = 0; mesh is not null && surface < mesh.GetSurfaceCount(); surface++)
             {
+                // Only triangles are dressed; lines or points of a model are left out.
+                if (mesh is ArrayMesh arrayMesh && arrayMesh.SurfaceGetPrimitiveType(surface) != Mesh.PrimitiveType.Triangles)
+                {
+                    continue;
+                }
+
                 using var material = mesh.SurfaceGetMaterial(surface);
                 var color = material is null ? Godot.Colors.White : library.SurfaceColor(material, srgbAsLinear);
                 using var arrays = mesh.SurfaceGetArrays(surface);
@@ -110,7 +117,9 @@ public sealed class DecorationMesh
                 {
                     var vertex = indices.Length > 0 ? indices[i] : i;
                     vertices.Add(transform * points[vertex]);
-                    normals.Add((transform.Basis * pointNormals[vertex]).Normalized());
+
+                    // A model without normals faces up, like the ground it stands on.
+                    normals.Add(pointNormals.Length > vertex ? (transform.Basis * pointNormals[vertex]).Normalized() : Vector3.Up);
                     colors.Add(color);
                 }
             }

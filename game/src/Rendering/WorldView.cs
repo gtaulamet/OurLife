@@ -1,6 +1,7 @@
 using Godot;
 using OurLife.Core.Colony;
 using OurLife.Core.Ecs;
+using OurLife.Core.Map;
 using OurLife.Core.Sim;
 using OurLife.Game.Input;
 
@@ -17,6 +18,11 @@ public partial class WorldView : Node3D
     private const float StartDistance = 85f;
 
     private MapRenderer _map = null!;
+    private Simulation _simulation = null!;
+
+    // The cells with a plant, for the decoration; worked out again after entities come or go.
+    private IReadOnlySet<TileCoord> _plantCells = new HashSet<TileCoord>();
+    private bool _plantsChanged = true;
     private EntityRenderer _entities = null!;
     private OrderMarkers _orders = null!;
 
@@ -40,7 +46,7 @@ public partial class WorldView : Node3D
         var map = simulation.Map;
         var viewLevel = Math.Clamp(level ?? HighestSurface(simulation), 0, map.Size.Depth - 1);
 
-        var view = new WorldView { Name = nameof(WorldView) };
+        var view = new WorldView { Name = nameof(WorldView), _simulation = simulation };
         try
         {
             var environment = CreateEnvironment();
@@ -51,7 +57,7 @@ public partial class WorldView : Node3D
             var ai = ColonyRules.From(simulation.Content).Ai;
             view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, ai.NightEndHour, ai.NightStartHour, dayNight));
 
-            view._map = MapRenderer.Create(map, catalog, viewLevel);
+            view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells);
             view.AddChild(view._map);
 
             view._entities = EntityRenderer.Create(simulation, new ModelLibrary(catalog), viewLevel);
@@ -85,7 +91,19 @@ public partial class WorldView : Node3D
         {
             _entities.Apply(simEvent);
             _orders.Apply(simEvent);
+            _plantsChanged |= simEvent is EntitySpawnedEvent or EntityRemovedEvent;
         }
+    }
+
+    private IReadOnlySet<TileCoord> PlantCells()
+    {
+        if (_plantsChanged)
+        {
+            _plantCells = Designations.PlantCells(_simulation);
+            _plantsChanged = false;
+        }
+
+        return _plantCells;
     }
 
     private static int HighestSurface(Simulation simulation)

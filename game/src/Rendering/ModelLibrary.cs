@@ -24,17 +24,20 @@ public sealed class ModelLibrary : IDisposable
     public VisualCatalog Catalog { get; }
 
     /// <summary>The scene of a model, or null if it cannot be loaded (for example, not imported yet).</summary>
-    public PackedScene? Load(VisualModel model)
+    public PackedScene? Load(VisualModel model) => Load(model.ModelPath);
+
+    /// <summary>The scene of a model file, or null if it cannot be loaded, cached by its path.</summary>
+    public PackedScene? Load(string path)
     {
-        if (!_scenes.TryGetValue(model.ModelPath, out var scene))
+        if (!_scenes.TryGetValue(path, out var scene))
         {
-            scene = ResourceLoader.Exists(model.ModelPath) ? GD.Load<PackedScene>(model.ModelPath) : null;
+            scene = ResourceLoader.Exists(path) ? GD.Load<PackedScene>(path) : null;
             if (scene is null)
             {
                 return null;
             }
 
-            _scenes.Add(model.ModelPath, scene);
+            _scenes.Add(path, scene);
         }
 
         return scene;
