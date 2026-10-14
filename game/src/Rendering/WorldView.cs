@@ -19,7 +19,6 @@ public partial class WorldView : Node3D
 
     private MapRenderer _map = null!;
     private Simulation _simulation = null!;
-    private Func<DecorationLevel> _decoration = null!;
 
     // The cells with a plant, for the decoration; worked out again after entities come or go.
     private IReadOnlySet<TileCoord> _plantCells = new HashSet<TileCoord>();
@@ -40,17 +39,17 @@ public partial class WorldView : Node3D
 
     /// <summary>Builds the view of a simulation whose world is already generated.</summary>
     /// <param name="dayNight">Whether the day and night cycle is on; read every frame.</param>
-    /// <param name="decoration">How much decoration dresses the grass; read every frame.</param>
+    /// <param name="decoration">How much decoration dresses the grass at the start; <see cref="SetDecoration"/> changes it.</param>
     public static WorldView Create(
-        Simulation simulation, VisualCatalog catalog, Func<bool> dayNight, Func<DecorationLevel> decoration, int? level, int? distance = null)
+        Simulation simulation, VisualCatalog catalog, Func<bool> dayNight, DecorationLevel decoration, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(catalog);
+        ArgumentNullException.ThrowIfNull(dayNight);
         var map = simulation.Map;
         var viewLevel = Math.Clamp(level ?? HighestSurface(simulation), 0, map.Size.Depth - 1);
 
-        ArgumentNullException.ThrowIfNull(decoration);
-        var view = new WorldView { Name = nameof(WorldView), _simulation = simulation, _decoration = decoration };
+        var view = new WorldView { Name = nameof(WorldView), _simulation = simulation };
         try
         {
             var environment = CreateEnvironment();
@@ -61,7 +60,7 @@ public partial class WorldView : Node3D
             var ai = ColonyRules.From(simulation.Content).Ai;
             view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, ai.NightEndHour, ai.NightStartHour, dayNight));
 
-            view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration()));
+            view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration));
             view.AddChild(view._map);
 
             view._entities = EntityRenderer.Create(simulation, new ModelLibrary(catalog), viewLevel);
@@ -99,8 +98,8 @@ public partial class WorldView : Node3D
         }
     }
 
-    /// <summary>Follows the decoration option, which the options over the game may change.</summary>
-    public override void _Process(double delta) => _map.SetDecorationDensity(DecorationLevels.Multiplier(_decoration()));
+    /// <summary>Dresses the grass with this much decoration, as the options over the game may ask.</summary>
+    public void SetDecoration(DecorationLevel level) => _map.SetDecorationDensity(DecorationLevels.Multiplier(level));
 
     private IReadOnlySet<TileCoord> PlantCells()
     {

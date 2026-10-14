@@ -11,8 +11,8 @@ Spec de la decoración del pasto y de su opción. Pedido del usuario del 14 de o
 ## Opción
 
 - **Opciones** suma la fila **Decoración del pasto**: Nada, Poca, Normal y Mucha. Por defecto, Normal.
-- Multiplica la probabilidad de cada pieza del catálogo: Nada por 0, Poca por 0,4, Normal por 1 y Mucha por 1,8. Una celda con decoración en Poca la conserva en Normal y en Mucha: más decoración agrega piezas sin cambiar las que había.
-- Se aplica en el acto, también sobre la partida, y se guarda en las preferencias. Al cambiarla, el terreno se arma de nuevo una vez (una fracción de segundo).
+- Multiplica la probabilidad total de decoración del catálogo: Nada por 0, Poca por 0,4, Normal por 1 y Mucha por 1,8, hasta mil en mil. Un hash de la celda dice si lleva decoración, comparado con esa probabilidad total, y otro hash elige cuál pieza, sólo por las probabilidades del catálogo. Así, una celda con decoración en Poca la conserva igual en Normal y en Mucha, y la mezcla de piezas es la misma en todos los niveles.
+- Se aplica en el acto, también sobre la partida, y se guarda en las preferencias. Al cambiarla se rearma sólo la decoración de cada chunk, no el terreno.
 - Sirve para el gusto del jugador y para placas de video más lentas: menos decoración dibuja menos triángulos.
 - `--decoration none|low|normal|high` fija el nivel para capturas y benchmarks, sin guardarlo.
 

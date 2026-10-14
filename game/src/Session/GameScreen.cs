@@ -76,7 +76,7 @@ public partial class GameScreen : Node
         {
             screen.Session = GameSession.Create(simulation);
             screen.AddChild(screen.Session);
-            screen.View = WorldView.Create(simulation, catalog, () => services.Settings.DayNightCycle, () => services.Settings.Decoration, level, distance);
+            screen.View = WorldView.Create(simulation, catalog, () => services.Settings.DayNightCycle, services.Settings.Decoration, level, distance);
             screen.AddChild(screen.View);
             screen.Session.EventsRead += screen.View.Apply;
             screen.Input = GameInput.Create(screen.Session, screen.View);
@@ -116,6 +116,13 @@ public partial class GameScreen : Node
     public void Advance(int ticks) => Session.Advance(ticks);
 
     /// <summary>Autosaves when a new day of the game has started since the last frame.</summary>
+    // The decoration option may change over the game, from the options of the pause menu.
+    public override void _EnterTree() => _services.Settings.DecorationChanged += OnDecorationChanged;
+
+    public override void _ExitTree() => _services.Settings.DecorationChanged -= OnDecorationChanged;
+
+    private void OnDecorationChanged() => View.SetDecoration(_services.Settings.Decoration);
+
     public override void _Process(double delta)
     {
         var today = Today(Session.Simulation);

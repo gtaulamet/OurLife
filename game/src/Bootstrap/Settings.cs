@@ -55,8 +55,11 @@ public sealed class Settings
     /// <summary>Raised when the interface size changes, so the window applies it.</summary>
     public event Action? UiScaleChanged;
 
-    /// <summary>How much decoration dresses the grass (see <c>docs/gdd/decoracion-del-pasto.md</c>); the view reads it every frame.</summary>
+    /// <summary>How much decoration dresses the grass (see <c>docs/gdd/decoracion-del-pasto.md</c>).</summary>
     public DecorationLevel Decoration { get; private set; }
+
+    /// <summary>Raised when the decoration level changes, so the view dresses the grass again.</summary>
+    public event Action? DecorationChanged;
 
     public static Settings Load()
     {
@@ -105,11 +108,17 @@ public sealed class Settings
             return;
         }
 
+        var changed = level != Decoration;
         Decoration = level;
         if (save && level != _savedDecoration)
         {
             _savedDecoration = level;
             Save();
+        }
+
+        if (changed)
+        {
+            DecorationChanged?.Invoke();
         }
     }
 

@@ -839,6 +839,17 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] the preview of a {piece.Id} shows where it would go");
         }
 
+        // The decoration option over the game: the grass is dressed again with each level, and
+        // back to where it was (docs/gdd/decoracion-del-pasto.md).
+        var decoration = _services!.Settings.Decoration;
+        foreach (var level in Enum.GetValues<DecorationLevel>())
+        {
+            _services.Settings.SetDecoration(level, save: false);
+        }
+
+        _services.Settings.SetDecoration(decoration, save: false);
+        GD.Print("[smoke] the grass is dressed again for every decoration level");
+
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();
         screen.Advance(10);

@@ -228,9 +228,10 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 
 Pedido del usuario del 14 de octubre de 2026, después de cerrar V4, en la rama `ip2.5/v4-opcion-decoracion`. Spec en `docs/gdd/decoracion-del-pasto.md`.
 
-- Opciones suma **Decoración del pasto**: Nada, Poca, Normal (por defecto) y Mucha, que multiplican la probabilidad del catálogo por 0, 0,4, 1 y 1,8. Se aplica en el acto, rearmando el terreno una vez, y se guarda (`decoration` en `settings.cfg`; un valor desconocido vuelve a Normal).
-- Una celda con decoración en un nivel la conserva en los niveles mayores: la tirada de la celda es la misma.
+- Opciones suma **Decoración del pasto**: Nada, Poca, Normal (por defecto) y Mucha, que multiplican la probabilidad total del catálogo por 0, 0,4, 1 y 1,8. Se aplica en el acto, rearmando sólo la decoración de cada chunk, y se guarda (`decoration` en `settings.cfg`; un valor desconocido vuelve a Normal).
+- Un hash de la celda dice si lleva decoración y otro elige la pieza: una celda decorada en un nivel lleva la misma pieza en los niveles mayores, y la mezcla no cambia.
 - `--decoration none|low|normal|high` para capturas y benchmarks, sin guardarlo.
 - Medición alternada, dos veces: Nada 327 y 324 FPS, Mucha 303 y 300. Mucha cuesta unos 0,25 ms por cuadro en la RTX 4090 de portátil; en una placa más lenta la proporción puede ser mayor.
 - Capturas de los cuatro niveles y de Opciones en es y en. Con esta fila, Opciones a 720p queda justa: una más no entra.
 - 507 tests en verde y mismas huellas.
+- Revisión de código: 7 hallazgos, 6 corregidos. Lo principal: al escalar cada probabilidad, una celda podía cambiar de pieza al subir el nivel, contra lo que dice la spec; ahora la presencia y la pieza salen de hashes distintos. Cambiar el nivel rearma sólo la decoración, sin vaciar los chunks pendientes ni dejar vieja la tapa del corte. La vista se entera por el evento `Settings.DecorationChanged`, no consultando en cada cuadro. El smoke pasa por los cuatro niveles. Queda como está cuándo se guarda el nivel elegido con `--decoration` activo: la misma regla que el tamaño de la interfaz.

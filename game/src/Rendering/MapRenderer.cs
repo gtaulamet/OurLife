@@ -46,6 +46,9 @@ public partial class MapRenderer : Node3D
 
     private IReadOnlyList<DecorationModel> _decorations = [];
 
+    // The sum of the chances of the catalog, in a thousand.
+    private int _decorationTotal;
+
     // What the chances of the decoration are multiplied by (DecorationLevels).
     private float _decorationDensity = 1f;
 
@@ -87,6 +90,7 @@ public partial class MapRenderer : Node3D
         renderer._levelMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(renderer.TerrainMaterial).ToArray();
         renderer._decorationMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(DecorationMaterial).ToArray();
         renderer._decorations = catalog.Decorations;
+        renderer._decorationTotal = catalog.Decorations.Sum(decoration => decoration.Chance);
         using (var library = new ModelLibrary(catalog))
         {
             // A model that cannot be loaded is left out, like the models of entities; the smoke checks them all.
@@ -112,8 +116,8 @@ public partial class MapRenderer : Node3D
     }
 
     /// <summary>
-    /// Dresses the grass with more or less decoration: every chunk is built again, a fraction of
-    /// a second once, as when the view starts.
+    /// Dresses the grass with more or less decoration: only the decoration of each chunk is
+    /// built again, the terrain and the chunks waiting to be rebuilt stay as they are.
     /// </summary>
     public void SetDecorationDensity(float density)
     {
@@ -123,7 +127,15 @@ public partial class MapRenderer : Node3D
         }
 
         _decorationDensity = density;
-        BuildAllChunks();
+        _plants = _plantCells();
+
+        // Grass needs a floor, so every chunk with grass already has nodes.
+        foreach (var chunk in _chunks.Keys.ToList())
+        {
+            var instances = _chunks[chunk];
+            BuildDecoration(chunk, ref instances);
+            Keep(chunk, instances);
+        }
     }
 
     /// <summary>Moves the cut to another level, clamped to the map.</summary>
@@ -259,7 +271,6 @@ public partial class MapRenderer : Node3D
             buffer.Clear();
         }
 
-        _decorationBuffer.Clear();
         _plants = _plantCells();
 
         var x0 = chunk.X * GameMap.ChunkSize;
@@ -300,7 +311,37 @@ public partial class MapRenderer : Node3D
             Fill((MultiMeshInstance3D)instances[i]!, piece);
         }
 
-        // The decoration of the chunk, after the pieces.
+        BuildDecoration(chunk, ref instances);
+        Keep(chunk, instances);
+    }
+
+    /// <summary>Keeps the nodes of a chunk, shaded for its level, or forgets a chunk that draws nothing.</summary>
+    private void Keep(ChunkKey chunk, GeometryInstance3D?[]? instances)
+    {
+        if (instances is null || instances.All(instance => instance is null))
+        {
+            _chunks.Remove(chunk);
+            return;
+        }
+
+        _chunks[chunk] = instances;
+        ApplyLevel(chunk, instances);
+    }
+
+    /// <summary>The decoration of a chunk, in the slot after its pieces: one mesh with all of it.</summary>
+    private void BuildDecoration(ChunkKey chunk, ref GeometryInstance3D?[]? instances)
+    {
+        _decorationBuffer.Clear();
+        var x0 = chunk.X * GameMap.ChunkSize;
+        var y0 = chunk.Y * GameMap.ChunkSize;
+        for (var y = y0; y < Math.Min(y0 + GameMap.ChunkSize, _map.Size.Height); y++)
+        {
+            for (var x = x0; x < Math.Min(x0 + GameMap.ChunkSize, _map.Size.Width); x++)
+            {
+                AddDecoration(x, y, chunk.Z);
+            }
+        }
+
         var decoration = ChunkPieces.Length;
         using var decorationMesh = DecorationMesh.Combine(_decorationMeshes, _decorationBuffer);
         if (decorationMesh is null)
@@ -310,24 +351,15 @@ public partial class MapRenderer : Node3D
                 emptied.QueueFree();
                 instances[decoration] = null;
             }
-        }
-        else
-        {
-            instances ??= new GeometryInstance3D?[ChunkPieces.Length + 1];
 
-            // Tufts so close to the ground striped it with their shadows, and cost a pass.
-            instances[decoration] ??= AddDecorationNode(chunk);
-            ((MeshInstance3D)instances[decoration]!).Mesh = decorationMesh;
-        }
-
-        if (instances is null || instances.All(instance => instance is null))
-        {
-            _chunks.Remove(chunk);
             return;
         }
 
-        _chunks[chunk] = instances;
-        ApplyLevel(chunk, instances);
+        instances ??= new GeometryInstance3D?[ChunkPieces.Length + 1];
+
+        // Tufts so close to the ground striped it with their shadows, and cost a pass.
+        instances[decoration] ??= AddDecorationNode(chunk);
+        ((MeshInstance3D)instances[decoration]!).Mesh = decorationMesh;
     }
 
     /// <summary>Shows a chunk darkened for its depth below the current level, or hides it.</summary>
@@ -351,24 +383,31 @@ public partial class MapRenderer : Node3D
     }
 
     /// <summary>
-    /// A tuft, a flower or pebbles on a floor with grass, chosen by a hash of the cell and the
-    /// chances of the catalog, or nothing. Furniture and plants keep their cell clear. A piece
+    /// A tuft, a flower or pebbles on a floor with grass, chosen by hashes of the cell and the
+    /// chances of the catalog, or nothing. One hash says whether the cell is dressed, against the
+    /// total chance times the density; another picks the piece by the chances alone. So more
+    /// decoration adds pieces and keeps the ones there were, and the mix stays the same at every
+    /// density. Furniture and plants keep their cell clear. A piece
     /// moves off the middle of its cell only towards neighbours that could take one too, so it
     /// does not reach into a wall, a piece of furniture or a plant, or hang over a drop.
     /// </summary>
     private void AddDecoration(int x, int y, int z)
     {
-        if (_decorations.Count == 0 || _decorationDensity <= 0 || !Dressable(x, y, z))
+        if (_decorationTotal == 0 || _decorationDensity <= 0 || !Dressable(x, y, z))
         {
             return;
         }
 
-        // The same roll at every density: more decoration adds pieces and keeps the ones there were.
-        var roll = (float)(CellHash(x, y, z, 0) % 1000);
+        if (CellHash(x, y, z, 0) % 1000 >= Math.Min(1000f, _decorationTotal * _decorationDensity))
+        {
+            return;
+        }
+
+        var pick = (long)(CellHash(x, y, z, 5) % (uint)_decorationTotal);
         for (var i = 0; i < _decorations.Count; i++)
         {
-            roll -= _decorations[i].Chance * _decorationDensity;
-            if (roll >= 0)
+            pick -= _decorations[i].Chance;
+            if (pick >= 0)
             {
                 continue;
             }
@@ -421,7 +460,6 @@ public partial class MapRenderer : Node3D
                 break;
             case TileShape.Floor:
                 Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z) ? GrassAll : 0);
-                AddDecoration(x, y, z);
                 break;
             case TileShape.Ramp:
                 Add(TerrainPiece.Ramp, new Transform3D(new Basis(Vector3.Up, RampYaw(x, y, z)), origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z) ? GrassTop : 0);

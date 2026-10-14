@@ -8,8 +8,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v4-opcion-decoracion`: opción Decoración del pasto, falta la revisión de código |
-| `main` | En el cierre de V4 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
+| Rama de trabajo | `ip2.5/v4-opcion-decoracion`, cerrada y en `main`. Sigue V5 en `ip2.5/v5-modelos` |
+| `main` | En el cierre de V4 de IP2.5, con la opción de decoración, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
 | Validación | `dotnet build` sin advertencias, 507 tests en verde, smoke con código 0 |
@@ -20,8 +20,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Opción de decoración**: revisión de código, commit y adelantar `main`. El usuario puede mirar el antes y después de V4 en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD.
-2. **V5 Modelos y animaciones** y **V6 Integración** según `IP2.5.md`. Después, planificar IP3.
+1. **V5 Modelos y animaciones** (`docs/ip/IP2.5.md`). El usuario puede mirar el antes y después de V4 en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD.
+2. **V6 Integración** según `IP2.5.md`. Después, planificar IP3.
 3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -36,6 +36,7 @@ En orden:
 - **GitHub CLI:** `gh` está instalado en esta PC y autenticado como `gtaulamet`. Una sesión de PowerShell abierta antes de instalarlo no lo tiene en el `PATH`: usar `& 'C:\Program Files\GitHub CLI\gh.exe'`. Las releases se crean con `gh release create <tag> <zip> --verify-tag --notes-file <archivo>`.
 - **Archivos `.uid`:** un script nuevo no tiene `.uid` hasta que el editor abre el proyecto. `& $env:GODOT_BIN --headless --path game --import` los genera sin abrirlo; correrlo antes de cerrar un hito y versionarlos.
 - **Fuente nítida:** el smoke y `--screenshot` fallan si la caché de la fuente tiene suavizado. El mensaje indica cómo reimportar.
+- **Cadenas de comandos:** encadenar con `&&` hasta el final. Un `;` en medio deja correr lo que sigue aunque falle lo anterior: así se adelantó `main` una vez con un commit incompleto (se corrigió adelantándolo de nuevo).
 - **Comandos bloqueados:** un filtro de seguridad rechaza los comandos de PowerShell cuyo texto contiene `/code-review`, aunque sea dentro de un string. Esos textos se editan con la herramienta de edición.
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
@@ -47,6 +48,7 @@ En orden:
 - Opciones suma Decoración del pasto (Nada, Poca, Normal, Mucha), guardada; `--decoration` para capturas y benchmarks. Spec `docs/gdd/decoracion-del-pasto.md`.
 - Medición alternada: Nada unos 325 FPS, Mucha unos 300 (0,25 ms por cuadro en la RTX 4090 de portátil).
 - A 720p, Opciones queda justa: la próxima opción pide dos columnas o pestañas (riesgo en `IP2.5.md`).
+- Revisión de código: 7 hallazgos, 6 corregidos; lo principal, subir el nivel ya no cambia las piezas que había. `main` adelantado.
 
 ### 2026-10-14: V4 Terreno y decoración
 
