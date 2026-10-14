@@ -471,13 +471,14 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 |---|---|---|---|---|---|
 | IP1 | Primeros colonos | Valle 3D, 5 colonos, excavar, escaleras, talar, recolectar, hambre y sueño, es/en | 112–153 | 11–15 / 6–8 / 3–4 | nov 2026 |
 | IP2 | Asentamiento | Almacenes, acarreo, construcción y muebles, guardar y cargar, prioridades, día y noche | 77–101 | 8–10 / 4–5 / 2–3 | dic 2026 |
+| IP2.5 | Pulido visual | Terreno con textura y decoración, muebles medievales, colonos animados, vista previa de muebles y tamaño de la interfaz | 38–55 | 4–6 / 2–3 / 1 | nov 2026 |
 | IP3 | Oficios | Talleres, recetas, producción, habilidades, agricultura, metales, conocimientos | 90–110 | 9–11 / 5–6 / 2–3 | ene 2027 |
 | IP4 | Vida en la colonia | Habitaciones, ánimo, rasgos, relaciones, ocio, crisis | 70–90 | 7–9 / 4–5 / 2 | feb 2027 |
 | IP5 | Peligros | Salud, combate, fauna y caza, bandidos, milicia, medicina | 90–120 | 9–12 / 5–6 / 2–3 | mar 2027 |
 | IP6 | Estaciones | Estaciones, clima, temperatura, antorchas, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | may 2027 |
 | IP7 | Mundo y leyendas | Mapa del mundo, facciones, historia generada, elección de sitio, crónicas | 90–130 | 9–13 / 5–7 / 2–3 | jun 2027 |
 | IP8 | Publicación 1.0 | Rendimiento, audio, tutorial, accesibilidad, mods, QA de idiomas, exportación | 80–120 | 8–12 / 4–6 / 2–3 | jul 2027 |
-| **Total 1.0** | | | **689–934** | **69–93 / 34–47 / 17–23** | **jul 2027; sep 2027 con margen** |
+| **Total 1.0** | | | **727–989** | **73–99 / 36–49 / 18–25** | **jul 2027; sep 2027 con margen** |
 
 **Fase 2: progreso de épocas (futuro, posterior a la 1.0)**
 
@@ -485,9 +486,9 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 |---|---|---|---|---|---|
 | IP9 | Edad Moderna | Cambio de época, generaciones, imprenta, pólvora, la aldea se vuelve villa | 120–160 | 12–16 / 6–8 / 3–4 | sep 2027 |
 | IP10 | Edad Contemporánea | Revolución Industrial: vapor, electricidad, fábricas, saneamiento | 140–190 | 14–19 / 7–10 / 4–5 | oct 2027 |
-| **Total con épocas** | | | **949–1 284** | **95–128 / 47–64 / 24–32** | **oct 2027; ene 2028 con margen** |
+| **Total con épocas** | | | **987–1 339** | **99–134 / 49–67 / 25–33** | **oct 2027; ene 2028 con margen** |
 
-IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. Las fechas siguen siendo aproximadas.
+IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. IP2.5 se sumó el 14-oct-2026, a pedido del usuario, entre IP2 e IP3: corre las fechas siguientes unas dos semanas y adelanta la escala de UI de IP8. Las fechas siguen siendo aproximadas.
 
 El arte de las épocas Moderna y Contemporánea probablemente requiera encargar o comprar modelos 3D. Ese costo no está incluido en las horas.
 
@@ -561,6 +562,14 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
   - Estimación: 3 a 5 h.
 - **Jugable:** construir una casa con camas, ordenar el almacén, ver a la aldea dormir de noche y retomar la partida otro día.
 
+**IP2.5 · Pulido visual (38–55 h).** Agentes: godot-engineer, art-integrator, i18n-specialist, qa-tester. Detalle en `docs/ip/IP2.5.md`.
+- Prueba de estilo con capturas: textura del terreno y renderizador (GL Compatibility o Forward+), elegidos por el usuario.
+- Terreno con pasto sólo arriba, textura y variación por material; decoración del suelo sólo visual.
+- Modelos provisionales reemplazados, muebles medievales, variantes de aldeanos y sus animaciones.
+- Vista previa del mueble girado al colocarlo, y planos de muebles con su modelo.
+- Tamaño de la interfaz en Opciones, con modo automático según la resolución.
+- **Jugable:** la misma partida de IP2, con un valle que se ve mejor y textos legibles en cualquier pantalla.
+
 **IP3 · Oficios (90–110 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist.
 - Habilidades con experiencia que afectan velocidad y calidad.
 - Talleres por datos: carpintería, cantería, cocina, fundición y herrería, con recetas en JSON.
@@ -616,7 +625,7 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - Mapas de 192×192×64 con más de 100 agentes; mallas combinadas por chunk y niveles de detalle si el render lo necesita.
 - Audio: efectos, música y ambiente con packs CC0.
 - Tutorial, tooltips y enciclopedia generada desde los defs.
-- Accesibilidad: escala de UI, reasignación de teclas y paletas para daltonismo.
+- Accesibilidad: reasignación de teclas y paletas para daltonismo. La escala de UI llega antes, en IP2.5.
 - Mods: carpeta con defs, textos y modelos; orden de carga y validación.
 - QA de idiomas: pseudo-localización para detectar textos largos, flujo de exportación e importación para traductores y prueba con un tercer idioma.
 - Exportación Windows, Linux y macOS; página en itch.io o Steam; registro de errores.

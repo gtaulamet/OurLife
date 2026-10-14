@@ -4,25 +4,27 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-13.*
+*Actualizado el 2026-10-14.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | Ninguna en curso. La última, `ip2/h2-7-integracion`, está en `main` |
+| Rama de trabajo | `ip2.5/v1-prueba-estilo`, con el plan de IP2.5 |
 | `main` | En el cierre de IP2, con el tag `v0.2.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
-| IP en curso | Ninguna. Lo siguiente es planificar IP3 según `docs/plan-maestro.md` y `docs/ip/backlog.md` |
+| IP en curso | IP2.5 "Pulido visual", planificada el 14 de octubre de 2026 (`docs/ip/IP2.5.md`). IP3 se planifica después |
 | Validación | `dotnet build` sin advertencias, 480 tests en verde, smoke con código 0 |
-| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000` |
+| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
 
 ## Pendientes
 
 En orden:
 
-1. **Planificar IP3** (`docs/plan-maestro.md`): escribir `docs/ip/IP3.md` con sus hitos y revisar el backlog.
-2. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **V1 Prueba de estilo** (`docs/ip/IP2.5.md`): prototipar las variantes A y B del terreno, comparar GL Compatibility con Forward+, buscar kits CC0 para los muebles medievales y los aldeanos, y sacar las capturas de la misma escena para que el usuario elija. Con la elección, ADR-012 y `docs/art.md`.
+2. **V2 Tamaño de la interfaz** y **V3 Vista previa de muebles**, mientras el usuario revisa las capturas de V1.
+3. **V4 a V6** según `IP2.5.md`. Después, planificar IP3.
+4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
+5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -39,6 +41,15 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: plan de IP2.5 Pulido visual
+
+- Pedido del usuario antes de IP3: un terreno con textura en lugar de colores planos, mejores objetos, ver hacia dónde mira un mueble al colocarlo y textos más grandes según la resolución.
+- Revisé el estado actual: el terreno son cajas generadas en código con un color por material y la marca `Grass` tiñe el bloque entero; la UI está a 16 px sin escalar con la ventana; el modelo de los colonos trae 30 animaciones (caminar, quieto, levantar, acarrear) que no se usan.
+- El usuario sumó al alcance los modelos provisionales, los muebles medievales, los colonos animados con variantes y la decoración del suelo, y pidió evaluar Forward+ con capturas.
+- Plan en `docs/ip/IP2.5.md`: seis hitos (V1 a V6), 38 a 55 h, versión `v0.2.5`. Empieza con una prueba de estilo con capturas para que el usuario elija el terreno, el renderizador y los kits.
+- `plan-maestro.md` con la fila de IP2.5 y los totales nuevos; la escala de UI se adelanta de IP8. Del backlog salen las variantes de aldeanos, el arbusto con bayas y los muebles medievales.
+- Rama `ip2.5/v1-prueba-estilo` desde `main`.
 
 ### 2026-10-13: H2.7 Integración
 

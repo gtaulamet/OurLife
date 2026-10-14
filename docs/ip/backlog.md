@@ -13,10 +13,7 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 
 ## Interfaz
 
-- Variantes de aldeanos y una animación de caminar: hoy hay un solo modelo, en pose de T.
-- Un arbusto que muestre las bayas: hoy con y sin frutos se distinguen sólo por la forma.
 - Que `EntityRenderer` cambie los modelos cuando cambie la época. Llega con la segunda época.
-- Muebles con estética medieval: la cama y la silla del Furniture Kit son modernas (`docs/art.md`).
 
 ## Diseño
 
