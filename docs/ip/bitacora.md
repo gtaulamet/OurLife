@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v3-vista-previa`, cerrada y en `main`. Sigue V4 en `ip2.5/v4-terreno` |
+| Rama de trabajo | `ip2.5/v4-terreno`: V4 hecho, falta que el usuario mire las capturas y la revisión de código |
 | `main` | En el cierre de V3 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
-| Validación | `dotnet build` sin advertencias, 495 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 506 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
 
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V4 Terreno y decoración**: implementar limpio el estilo B, llevar al catálogo los patrones por material y los colores del pasto (con test), quitar los otros estilos y el cuadro de 100 ms al compilar el shader.
+1. **V4**: el usuario mira las capturas de la decoración; revisión de código, commit y adelantar `main`.
 2. **V5 y V6** según `IP2.5.md`. Después, planificar IP3.
 3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -40,6 +40,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: V4 Terreno y decoración
+
+- Sólo queda el estilo B. Los patrones de cada material y los verdes del pasto pasan al catálogo, con tests.
+- Decoración del pasto con siete modelos del Nature Kit, elegida por un hash de la celda: una malla por chunk.
+- El cuadro de 100 ms de V1 no era del shader: era la ventana cambiando de tamaño durante el benchmark.
+- Las mediciones de la portátil varían mucho entre corridas (232 a 418 FPS); con y sin decoración se mezclan, siempre muy por encima de 60.
+- 506 tests, mismas huellas. Detalle en el registro de V4 de `IP2.5.md`.
 
 ### 2026-10-14: V3 Vista previa de muebles
 
@@ -68,7 +76,7 @@ En orden:
 
 - Shader del terreno con cuatro estilos (actual, A, B y C) y `--terrain-style` para elegirlo; pasto sólo arriba y con borde en los costados de los bloques. Forward+ se prueba con `--rendering-method forward_plus`.
 - Kits: KayKit Dungeon Remastered (CC0) para los muebles medievales, probado en la casa del smoke; Mini Characters de Kenney trae 12 aldeanos con animaciones, con ropa moderna a recolorear.
-- Benchmark: el shader casi no cuesta; en esta PC Forward+ rinde más (674 contra 420 FPS de media). Un cuadro de unos 100 ms al compilar el shader, para V4.
+- Benchmark: el shader casi no cuesta; en esta PC Forward+ rinde más (674 contra 420 FPS de media). Un cuadro de unos 100 ms que se atribuyó al shader resultó ser la ventana cambiando de tamaño (ver V4).
 - Página de comparación para el usuario (privada): https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD. Detalle en el registro de V1 de `IP2.5.md`.
 - 480 tests en verde, mismas huellas.
 

@@ -47,7 +47,8 @@ El usuario eligió el 14 de octubre de 2026: **terreno B, GL Compatibility y Kay
 ## Consecuencias
 
 - El costo es despreciable: en el benchmark de la aldea, 420 FPS de media con el estilo B contra 431 con el terreno plano (RTX 4090 de portátil).
-- Al compilarse el shader la primera vez se pierde un cuadro de unos 100 ms. V4 tiene que evitarlo, por ejemplo compilándolo detrás de la pantalla de carga.
-- Los estilos A, C y el plano se quitan en V4. `--terrain-style` queda hasta entonces para las capturas de antes y después.
-- Un material nuevo necesita su patrón en el catálogo; el test del catálogo lo verifica desde V4.
+- En V1 se atribuyó al shader un cuadro de unos 100 ms. En V4 se vio que no era eso: aparecía cuando la ventana del benchmark cambiaba de tamaño a mitad de la medición. Con la ventana fija en 1280×720, el peor cuadro con el estilo B es de 3,8 ms.
+- Los estilos A, C y el plano se quitaron en V4, con `--terrain-style`.
+- Un material nuevo necesita su patrón en el catálogo; el test del catálogo lo verifica.
+- La decoración del pasto (V4) es una malla por chunk con todos sus modelos, horneados con su color en los vértices: una llamada de dibujo por chunk. Con un `MultiMesh` por modelo y por chunk el valle sumaba hasta siete llamadas por chunk.
 - Las épocas futuras pueden tener otra paleta de patrones sin tocar el shader, con variantes `@<era>` en el catálogo.

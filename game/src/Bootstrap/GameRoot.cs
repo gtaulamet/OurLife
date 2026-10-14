@@ -150,10 +150,6 @@ public partial class GameRoot : Node
             GD.PushWarning($"Unknown command line argument ignored: {argument}");
         }
 
-        if (options.TerrainStyle is { } terrainStyle)
-        {
-            TerrainStyle.Current = TerrainStyle.Names[terrainStyle];
-        }
 
         if (options.LicensesPath is { } licensesPath)
         {

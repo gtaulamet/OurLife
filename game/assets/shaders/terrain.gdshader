@@ -1,20 +1,17 @@
-// Terrain of the map, drawn by MapRenderer (IP2.5, V1 style test).
+// Terrain of the map, drawn by MapRenderer with a painted look (ADR-012).
 // Per instance: COLOR is the colour of the material (#RRGGBB values), INSTANCE_CUSTOM.x its
-// pattern and INSTANCE_CUSTOM.y the grass flags. Patterns are made here from the position in the
-// world, so neighbouring cells join without seams and no textures are needed.
+// pattern (TerrainPattern) and INSTANCE_CUSTOM.y the grass flags. Patterns are made here from the
+// position in the world, so neighbouring cells join without seams and no textures are needed.
 shader_type spatial;
 render_mode specular_disabled;
 
-// 0: flat colours, as in IP2; 1: A, tone variation; 2: B, painted texture; 3: C, B in pixels.
-uniform int style = 0;
 // Darkening of the levels below the current one (LevelShading).
 uniform float brightness = 1.0;
 // Off on the level the view cuts: the grass above it is hidden, so its fringe would sit on rock.
 uniform bool fringe = true;
 
-// Colours are #RRGGBB values, like COLOR: they are converted at the end, as StandardMaterial3D
-// does with VertexColorIsSrgb.
-uniform vec3 grass_flat = vec3(0.416, 0.604, 0.235);
+// The greens of the catalog. Colours are #RRGGBB values, like COLOR: they are converted at the
+// end, as StandardMaterial3D does with VertexColorIsSrgb.
 uniform vec3 grass_lush = vec3(0.302, 0.459, 0.180);
 uniform vec3 grass_dry = vec3(0.447, 0.502, 0.220);
 uniform vec3 grass_deep = vec3(0.208, 0.357, 0.149);
@@ -107,22 +104,21 @@ vec3 to_output(vec3 color) {
 	return color;
 }
 
-vec3 grass(vec2 uv, vec3 cell, bool painted) {
+// Patches of dry and deep grass, and blades as dark and light specks, a little stretched.
+vec3 grass(vec2 uv, vec3 cell) {
 	float patch = fbm(uv * 0.22);
 	vec3 color = mix(grass_lush, grass_dry, smoothstep(0.55, 0.8, patch) * 0.8);
 	color = mix(color, grass_deep, smoothstep(0.45, 0.22, patch) * 0.7);
 	color *= 0.96 + 0.08 * hash13(cell);
-	if (painted) {
-		// Blades: dark and light specks, a little stretched.
-		color *= mix(1.0, 0.86, step(0.72, vnoise(uv * vec2(26.0, 20.0))));
-		color = mix(color, color * 1.1 + vec3(0.01, 0.02, 0.0), step(0.8, vnoise(uv * vec2(19.0, 23.0) + 7.3)));
-	}
+	color *= mix(1.0, 0.86, step(0.72, vnoise(uv * vec2(26.0, 20.0))));
+	color = mix(color, color * 1.1 + vec3(0.01, 0.02, 0.0), step(0.8, vnoise(uv * vec2(19.0, 23.0) + 7.3)));
 	return color;
 }
 
-vec3 material(int pattern, vec3 base, vec2 uv, vec3 pos, vec3 cell, bool top, bool painted) {
+// The colour of the material, varied a little per cell and in soft patches, with its pattern.
+vec3 material(int pattern, vec3 base, vec2 uv, vec3 pos, vec3 cell, bool top) {
 	vec3 color = base * (0.93 + 0.14 * hash13(cell)) * (0.94 + 0.12 * fbm(uv * 0.4));
-	if (!painted || pattern == PATTERN_PLAIN) {
+	if (pattern == PATTERN_PLAIN) {
 		return color;
 	}
 
@@ -166,40 +162,33 @@ void fragment() {
 	int pattern = int(data.x + 0.5);
 	int flags = int(data.y + 0.5);
 	vec3 base = COLOR.rgb;
+	vec3 normal = normalize(world_normal);
+	vec3 cell = cell_id;
+	vec3 pos = world_pos;
+	vec3 n = abs(normal);
+	// Every face that looks up, the slope of a ramp included, is painted from above.
+	bool top = normal.y > 0.5;
+	vec2 uv = top ? pos.xz : (n.x >= n.z ? vec2(pos.z, pos.y) : vec2(pos.x, pos.y));
 
-	if (style == 0) {
-		ALBEDO = to_output(((flags & (GRASS_TOP | GRASS_ALL)) != 0 ? grass_flat : base) * brightness);
-		ROUGHNESS = 1.0;
-	} else {
-		vec3 normal = normalize(world_normal);
-		vec3 cell = cell_id;
-		vec3 pos = style == 3 ? (floor(world_pos * 16.0) + 0.5) / 16.0 : world_pos;
-		vec3 n = abs(normal);
-		// Every face that looks up, the slope of a ramp included, is painted from above.
-		bool top = normal.y > 0.5;
-		vec2 uv = top ? pos.xz : (n.x >= n.z ? vec2(pos.z, pos.y) : vec2(pos.x, pos.y));
-		bool painted = style >= 2;
-
-		bool is_grass = (flags & GRASS_ALL) != 0 || ((flags & GRASS_TOP) != 0 && top);
-		if (fringe && !is_grass && (flags & GRASS_FRINGE) != 0 && !top && normal.y > -0.5) {
-			// A ragged strip of grass hangs over the top of the side of a block.
-			float edge = 0.84 - 0.12 * vnoise(vec2(uv.x * 9.0, cell.y));
-			is_grass = fract(pos.y) > edge;
-		}
-
-		vec3 color = is_grass ? grass(uv, cell, painted) : material(pattern, base, uv, pos, cell, top, painted);
-
-		// Edges of the cells read as a faint bevel on top, and the bottom of the sides darkens a
-		// little, as if in the shade of the block in front.
-		if (top) {
-			vec2 f = fract(uv);
-			float edge = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
-			color *= mix(is_grass ? 0.93 : 0.86, 1.0, smoothstep(0.0, 0.07, edge));
-		} else if (normal.y > -0.5) {
-			color *= mix(0.8, 1.0, smoothstep(0.0, 0.55, local_y));
-		}
-
-		ALBEDO = to_output(color * brightness);
-		ROUGHNESS = 1.0;
+	bool is_grass = (flags & GRASS_ALL) != 0 || ((flags & GRASS_TOP) != 0 && top);
+	if (fringe && !is_grass && (flags & GRASS_FRINGE) != 0 && !top && normal.y > -0.5) {
+		// A ragged strip of grass hangs over the top of the side of a block.
+		float edge = 0.84 - 0.12 * vnoise(vec2(uv.x * 9.0, cell.y));
+		is_grass = fract(pos.y) > edge;
 	}
+
+	vec3 color = is_grass ? grass(uv, cell) : material(pattern, base, uv, pos, cell, top);
+
+	// Edges of the cells read as a faint bevel on top, and the bottom of the sides darkens a
+	// little, as if in the shade of the block in front.
+	if (top) {
+		vec2 f = fract(uv);
+		float edge = min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y));
+		color *= mix(is_grass ? 0.93 : 0.86, 1.0, smoothstep(0.0, 0.07, edge));
+	} else if (normal.y > -0.5) {
+		color *= mix(0.8, 1.0, smoothstep(0.0, 0.55, local_y));
+	}
+
+	ALBEDO = to_output(color * brightness);
+	ROUGHNESS = 1.0;
 }

@@ -63,22 +63,22 @@ public class VisualCatalogTests
     public void Every_model_file_exists_and_has_its_import_file()
     {
         var problems = new List<string>();
-        foreach (var model in Catalog.Models)
+        foreach (var (id, path) in ModelFiles())
         {
-            if (!model.ModelPath.StartsWith(ResourcePrefix, StringComparison.Ordinal))
+            if (!path.StartsWith(ResourcePrefix, StringComparison.Ordinal))
             {
-                problems.Add($"'{model.Id}': {model.ModelPath} is not a res:// path");
+                problems.Add($"'{id}': {path} is not a res:// path");
                 continue;
             }
 
-            var file = GamePath(model.ModelPath);
+            var file = GamePath(path);
             if (!File.Exists(file))
             {
-                problems.Add($"'{model.Id}': {model.ModelPath} does not exist");
+                problems.Add($"'{id}': {path} does not exist");
             }
             else if (!File.Exists(file + ".import"))
             {
-                problems.Add($"'{model.Id}': {model.ModelPath}.import is missing; import the project and version it");
+                problems.Add($"'{id}': {path}.import is missing; import the project and version it");
             }
         }
 
@@ -88,7 +88,7 @@ public class VisualCatalogTests
     [Fact]
     public void Only_the_models_of_the_catalog_are_in_the_repository()
     {
-        var referenced = Catalog.Models.Select(model => Path.GetFullPath(GamePath(model.ModelPath))).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var referenced = ModelFiles().Select(model => Path.GetFullPath(GamePath(model.Path))).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var extra = Directory.EnumerateFiles(RepoPaths.Combine("game", "assets", "models"), "*.glb", SearchOption.AllDirectories)
             .Select(Path.GetFullPath)
@@ -101,8 +101,8 @@ public class VisualCatalogTests
     [Fact]
     public void Every_palette_colour_replaces_a_material_of_some_model()
     {
-        var materials = Catalog.Models
-            .SelectMany(model => GlbMaterialNames(GamePath(model.ModelPath)))
+        var materials = ModelFiles()
+            .SelectMany(model => GlbMaterialNames(GamePath(model.Path)))
             .ToHashSet(StringComparer.Ordinal);
 
         var unused = Catalog.Palette.Keys.Where(name => !materials.Contains(name)).ToList();
@@ -115,7 +115,7 @@ public class VisualCatalogTests
     {
         var catalog = VisualCatalog.Parse("""
             {
-              "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" },
+              "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} },
               "models": {
                 "house": { "model": "res://house.glb" },
                 "house@modern": { "model": "res://house_modern.glb", "scale": 2 }
@@ -138,7 +138,7 @@ public class VisualCatalogTests
     {
         var catalog = VisualCatalog.Parse("""
             {
-              "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" },
+              "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} },
               "srgbAsLinearKits": ["res://kit/"],
               "models": {
                 "a": { "model": "res://kit/a.glb" },
@@ -157,7 +157,9 @@ public class VisualCatalogTests
     public void Every_kit_model_of_the_catalog_gets_its_colours_corrected()
     {
         // Every model in the repository comes from a Kenney kit, and all of them need it.
-        var uncorrected = Catalog.Models.Where(model => !model.SrgbAsLinear).Select(model => model.Id).ToList();
+        var uncorrected = Catalog.Models.Where(model => !model.SrgbAsLinear).Select(model => model.Id)
+            .Concat(Catalog.Decorations.Where(decoration => !decoration.SrgbAsLinear).Select(decoration => decoration.Id))
+            .ToList();
 
         uncorrected.ShouldBeEmpty(string.Join(Environment.NewLine, uncorrected));
     }
@@ -167,7 +169,7 @@ public class VisualCatalogTests
     {
         var catalog = VisualCatalog.Parse("""
             {
-              "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" },
+              "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} },
               "palette": { "leafsGreen": "#4C7A2B" },
               "models": {}
             }
@@ -176,22 +178,68 @@ public class VisualCatalogTests
         catalog.Palette.ShouldBe(new Dictionary<string, string> { ["leafsGreen"] = "#4C7A2B" });
     }
 
+    [Fact]
+    public void Every_material_has_a_terrain_pattern_and_every_pattern_names_a_material()
+    {
+        var materials = GameContent.Defs.All<MaterialDef>().Select(material => material.Id).ToList();
+
+        materials.Where(id => !Catalog.Patterns.ContainsKey(id)).ShouldBeEmpty("materials without a pattern in terrain.materials");
+        Catalog.Patterns.Keys.Where(id => !materials.Contains(id)).ShouldBeEmpty("patterns of materials that do not exist");
+    }
+
+    [Fact]
+    public void Patterns_grass_and_decoration_are_read()
+    {
+        var catalog = VisualCatalog.Parse("""
+            {
+              "terrain": {
+                "cutColor": "#000000",
+                "grass": { "lush": "#4D752E", "dry": "#728038", "deep": "#355B26" },
+                "materials": { "soil": "soil", "granite": "Speckled" }
+              },
+              "srgbAsLinearKits": ["res://kit/"],
+              "decoration": {
+                "tuft": { "model": "res://kit/tuft.glb", "scale": 0.5, "chance": 120 },
+                "flower": { "model": "res://flower.glb", "chance": 20 }
+              },
+              "models": {}
+            }
+            """);
+
+        catalog.Grass.ShouldBe(new GrassColors("#4D752E", "#728038", "#355B26"));
+        catalog.Patterns["soil"].ShouldBe(TerrainPattern.Soil);
+        catalog.Patterns["granite"].ShouldBe(TerrainPattern.Speckled);
+        catalog.Decorations.ShouldBe([
+            new DecorationModel("tuft", "res://kit/tuft.glb", 0.5f, SrgbAsLinear: true, 120),
+            new DecorationModel("flower", "res://flower.glb", 1f, SrgbAsLinear: false, 20),
+        ]);
+    }
+
     [Theory]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" } }""")]
-    [InlineData("""{ "terrain": { "grassColor": "green", "cutColor": "#000000" }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "models": { "a": { "model": "res://a.glb", "scale": 0 } } }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "models": { "a": { "scale": 1 } } }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "models": {}, }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "palette": { "grass": "#12345" }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "palette": { "grass": "#12345 " }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "# 12345", "cutColor": "#000000" }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "palette": { "grass": null }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "models": { "a": { "model": null } } }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": null }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "pallete": {}, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "srgbAsLinearKits": ["res://kit"], "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000", "skyColor": "#0000FF" }, "models": {} }""")]
-    [InlineData("""{ "terrain": { "grassColor": "#00FF00", "cutColor": "#000000" }, "models": { "a": { "model": "res://a.glb", "scal": 2 } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "green", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "scale": 0 } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "scale": 1 } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": {}, }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "palette": { "grass": "#12345" }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "palette": { "grass": "#12345 " }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "# 12345", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "palette": { "grass": null }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": null } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": null, "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "pallete": {}, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "srgbAsLinearKits": ["res://kit"], "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {}, "skyColor": "#0000FF" }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "scal": 2 } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "materials": {} }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00" }, "materials": {} }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": { "soil": "grainy" } }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": { "soil": 1 } }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grassColor": "#00FF00", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb" } }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb", "chance": 0 } }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb", "chance": 600 }, "flower": { "model": "res://flower.glb", "chance": 500 } }, "models": {} }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "decoration": { "tuft": { "model": "res://tuft.glb", "chance": 10, "colour": "#FFFFFF" } }, "models": {} }""")]
     public void An_invalid_catalog_is_rejected_with_a_format_error(string json)
     {
         Should.Throw<FormatException>(() => VisualCatalog.Parse(json));
@@ -199,6 +247,11 @@ public class VisualCatalogTests
 
     private static IEnumerable<(Def Def, string Visual)> VisualDefs() =>
         GameContent.Defs.AllDefs().Select(def => (def, DefVisuals.Of(def))).Where(entry => entry.Item2 is not null).Select(entry => (entry.def, entry.Item2!));
+
+    /// <summary>Every model file the catalog names: the models of the defs and those of the decoration.</summary>
+    private static IEnumerable<(string Id, string Path)> ModelFiles() =>
+        Catalog.Models.Select(model => (model.Id, model.ModelPath))
+            .Concat(Catalog.Decorations.Select(decoration => (decoration.Id, decoration.ModelPath)));
 
     private static string BaseId(string id)
     {

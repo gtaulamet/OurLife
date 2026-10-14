@@ -11,9 +11,34 @@ namespace OurLife.Game.Rendering;
 public sealed record VisualModel(string Id, string ModelPath, float Scale, bool SrgbAsLinear = false, bool Center = false);
 
 /// <summary>
-/// The visual catalog (<c>assets/models/visuals.json</c>, ADR-009): terrain colours that are not
-/// material colours, colours that replace those of the kits, the kits whose colours need
-/// correcting, and the model of every visual id that defs name in their <c>visual</c> field.
+/// How the terrain shader paints a material (ADR-012): with only its colour and tone, or with
+/// the grain of soil, the specks and cracks of granite, the strata of sedimentary rock, planks or bricks.
+/// The values are those of the shader.
+/// </summary>
+public enum TerrainPattern
+{
+    Plain = 0,
+    Soil = 1,
+    Speckled = 2,
+    Layered = 3,
+    Planks = 5,
+    Bricks = 6,
+}
+
+/// <summary>The three greens the shader mixes into grass, as #RRGGBB: the usual one, patches of dry grass and of deep grass.</summary>
+public sealed record GrassColors(string Lush, string Dry, string Deep);
+
+/// <summary>
+/// A model scattered on grass to dress it, like a tuft or a flower: presentation only, never an
+/// entity. <paramref name="Chance"/> is how many grass cells in a thousand get it.
+/// </summary>
+public sealed record DecorationModel(string Id, string ModelPath, float Scale, bool SrgbAsLinear, int Chance);
+
+/// <summary>
+/// The visual catalog (<c>assets/models/visuals.json</c>, ADR-009 and ADR-012): the colours of
+/// the grass and of the cut, the pattern the terrain shader paints each material with, colours
+/// that replace those of the kits, the kits whose colours need correcting, the models that dress
+/// the grass, and the model of every visual id that defs name in their <c>visual</c> field.
 /// An id may have era variants such as <c>house@modern</c>; without one, the plain id is used.
 /// Plain C# without Godot, so the content tests check the real catalog. Unknown fields are errors.
 /// </summary>
@@ -23,12 +48,20 @@ public sealed class VisualCatalog
 
     private readonly Dictionary<string, VisualModel> _models;
 
-    private VisualCatalog(Dictionary<string, VisualModel> models, Dictionary<string, string> palette, string grassColor, string cutColor)
+    private VisualCatalog(
+        Dictionary<string, VisualModel> models,
+        Dictionary<string, string> palette,
+        GrassColors grass,
+        string cutColor,
+        Dictionary<string, TerrainPattern> patterns,
+        List<DecorationModel> decorations)
     {
         _models = models;
         Palette = palette;
-        GrassColor = grassColor;
+        Grass = grass;
         CutColor = cutColor;
+        Patterns = patterns;
+        Decorations = decorations;
     }
 
     /// <summary>
@@ -37,8 +70,14 @@ public sealed class VisualCatalog
     /// </summary>
     public IReadOnlyDictionary<string, string> Palette { get; }
 
-    /// <summary>Colour of floors covered with grass, as #RRGGBB.</summary>
-    public string GrassColor { get; }
+    /// <summary>The colours of the grass (ADR-012).</summary>
+    public GrassColors Grass { get; }
+
+    /// <summary>The pattern of each material, by the id of its def (ADR-012).</summary>
+    public IReadOnlyDictionary<string, TerrainPattern> Patterns { get; }
+
+    /// <summary>The models that dress the grass, in the order of the catalog.</summary>
+    public IReadOnlyList<DecorationModel> Decorations { get; }
 
     /// <summary>Colour of rock and soil cut open by the view at the current level, as #RRGGBB.</summary>
     public string CutColor { get; }
@@ -53,7 +92,7 @@ public sealed class VisualCatalog
         {
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
-            OnlyFields(root, "catalog", "terrain", "srgbAsLinearKits", "palette", "models");
+            OnlyFields(root, "catalog", "terrain", "srgbAsLinearKits", "palette", "decoration", "models");
             var kits = new List<string>();
             if (root.TryGetProperty("srgbAsLinearKits", out var kitsElement))
             {
@@ -65,7 +104,44 @@ public sealed class VisualCatalog
             }
 
             var terrain = root.GetProperty("terrain");
-            OnlyFields(terrain, "terrain", "grassColor", "cutColor");
+            OnlyFields(terrain, "terrain", "cutColor", "grass", "materials");
+            var grassElement = terrain.GetProperty("grass");
+            OnlyFields(grassElement, "terrain.grass", "lush", "dry", "deep");
+            var grass = new GrassColors(ColorField(grassElement, "lush"), ColorField(grassElement, "dry"), ColorField(grassElement, "deep"));
+            var patterns = new Dictionary<string, TerrainPattern>(StringComparer.Ordinal);
+            foreach (var entry in terrain.GetProperty("materials").EnumerateObject())
+            {
+                var name = StringValue(entry.Value, $"terrain.materials.{entry.Name}");
+
+                // By name only: a number would be read as any value of the enum.
+                patterns.Add(entry.Name, Enum.GetNames<TerrainPattern>().FirstOrDefault(pattern => pattern.Equals(name, StringComparison.OrdinalIgnoreCase)) is { } known
+                    ? Enum.Parse<TerrainPattern>(known)
+                    : throw new FormatException($"terrain.materials.{entry.Name}: unknown pattern '{name}'."));
+            }
+
+            var decorations = new List<DecorationModel>();
+            if (root.TryGetProperty("decoration", out var decorationElement))
+            {
+                foreach (var entry in decorationElement.EnumerateObject())
+                {
+                    OnlyFields(entry.Value, $"decoration '{entry.Name}'", "model", "scale", "chance");
+                    var path = StringValue(entry.Value.GetProperty("model"), $"{entry.Name}.model");
+                    var scale = entry.Value.TryGetProperty("scale", out var scaleValue) ? scaleValue.GetSingle() : 1f;
+                    var chance = entry.Value.GetProperty("chance").GetInt32();
+                    if (scale <= 0 || chance <= 0)
+                    {
+                        throw new FormatException($"decoration '{entry.Name}': scale and chance must be positive.");
+                    }
+
+                    decorations.Add(new DecorationModel(entry.Name, path, scale, kits.Exists(kit => path.StartsWith(kit, StringComparison.Ordinal)), chance));
+                }
+            }
+
+            if (decorations.Sum(decoration => decoration.Chance) > 1000)
+            {
+                throw new FormatException("decoration: the chances add up to more than 1000 in a thousand.");
+            }
+
             var models = new Dictionary<string, VisualModel>(StringComparer.Ordinal);
             foreach (var entry in root.GetProperty("models").EnumerateObject())
             {
@@ -91,11 +167,7 @@ public sealed class VisualCatalog
                 }
             }
 
-            return new VisualCatalog(
-                models,
-                palette,
-                ColorField(terrain, "grassColor"),
-                ColorField(terrain, "cutColor"));
+            return new VisualCatalog(models, palette, grass, ColorField(terrain, "cutColor"), patterns, decorations);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or ArgumentException)
         {
@@ -115,7 +187,7 @@ public sealed class VisualCatalog
         return _models.TryGetValue(id, out model!);
     }
 
-    private static string ColorField(JsonElement terrain, string name) => ColorValue(terrain.GetProperty(name), name);
+    private static string ColorField(JsonElement element, string name) => ColorValue(element.GetProperty(name), name);
 
     private static string ColorValue(JsonElement element, string name)
     {

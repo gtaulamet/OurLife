@@ -1,7 +1,15 @@
 {
   "terrain": {
-    "grassColor": "#6A9A3C",
-    "cutColor": "#3A332D"
+    "cutColor": "#3A332D",
+    "grass": { "lush": "#4D752E", "dry": "#728038", "deep": "#355B26" },
+    "materials": {
+      "soil": "soil",
+      "granite": "speckled",
+      "limestone": "layered",
+      "sandstone": "layered",
+      "timber": "planks",
+      "masonry": "bricks"
+    }
   },
   "srgbAsLinearKits": [
     "res://assets/models/kenney_nature-kit/",
@@ -19,6 +27,15 @@
     "wood": "#9A6B40",
     "dirt": "#7A5A3E",
     "colorRed": "#B03A36"
+  },
+  "decoration": {
+    "grass": { "model": "res://assets/models/kenney_nature-kit/grass.glb", "scale": 1.8, "chance": 170 },
+    "grass_large": { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "scale": 1.8, "chance": 90 },
+    "grass_leafs": { "model": "res://assets/models/kenney_nature-kit/grass_leafs.glb", "scale": 2.0, "chance": 80 },
+    "flower_yellow": { "model": "res://assets/models/kenney_nature-kit/flower_yellowA.glb", "scale": 1.7, "chance": 25 },
+    "flower_purple": { "model": "res://assets/models/kenney_nature-kit/flower_purpleA.glb", "scale": 1.7, "chance": 20 },
+    "pebbles": { "model": "res://assets/models/kenney_nature-kit/rock_smallFlatA.glb", "scale": 1.0, "chance": 15 },
+    "mushroom": { "model": "res://assets/models/kenney_nature-kit/mushroom_tan.glb", "scale": 1.6, "chance": 8 }
   },
   "models": {
     "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },

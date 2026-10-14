@@ -9,12 +9,19 @@ namespace OurLife.Game.Rendering;
 /// has one <see cref="MultiMeshInstance3D"/> per <see cref="TerrainPiece"/>, with only the blocks
 /// that touch an open cell, created only for pieces the chunk has. The view cuts the map at
 /// <see cref="ViewLevel"/>: higher levels are hidden, blocks at the cut get a dark cap, and lower
-/// levels darken with depth. Chunks the map reports as dirty are rebuilt every frame.
+/// levels darken with depth. Chunks the map reports as dirty are rebuilt every frame. Grass is
+/// dressed with tufts, flowers and pebbles of the catalog's decoration, one mesh per chunk with
+/// all of them, a single draw call: a hash of each cell chooses them, so a cell always looks the
+/// same, and they are not entities of the simulation (ADR-012).
 /// </summary>
 public partial class MapRenderer : Node3D
 {
     // A 3×4 transform, a colour and the custom data, in the layout of MultiMesh.Buffer.
     private const int FloatsPerInstance = 20;
+
+    // How far a decoration may sit from the middle of its cell, and how much its size varies.
+    private const float DecorationSpread = 0.3f;
+    private const float DecorationSizeVariation = 0.25f;
 
     // Grass flags of an instance, for the terrain shader.
     private const int GrassTop = 1;
@@ -31,15 +38,21 @@ public partial class MapRenderer : Node3D
         [(0, -1, Mathf.Pi / 2), (1, 0, 0), (0, 1, -Mathf.Pi / 2), (-1, 0, Mathf.Pi)];
 
     private readonly Dictionary<TerrainPiece, Mesh> _meshes = [];
-    private readonly Dictionary<ChunkKey, MultiMeshInstance3D?[]> _chunks = [];
+    // Per chunk, a MultiMeshInstance3D per piece, then a MeshInstance3D with the decoration.
+    private readonly Dictionary<ChunkKey, GeometryInstance3D?[]> _chunks = [];
     private readonly List<ChunkKey> _dirty = [];
     private readonly List<(Transform3D Transform, Color Color, int Pattern, int Grass)>[] _buffers =
         Enumerable.Range(0, Enum.GetValues<TerrainPiece>().Length).Select(_ => new List<(Transform3D, Color, int, int)>()).ToArray();
 
+    private IReadOnlyList<DecorationModel> _decorations = [];
+    private DecorationMesh?[] _decorationMeshes = [];
+    private readonly List<(int Model, Transform3D Transform)> _decorationBuffer = [];
+    private StandardMaterial3D[] _decorationMaterials = [];
+
     private GameMap _map = null!;
     private Color[] _materialColors = [];
     private int[] _materialPatterns = [];
-    private Color _grassColor;
+    private GrassColors _grass = null!;
     private Color _cutColor;
     private ShaderMaterial[] _levelMaterials = [];
     private MultiMeshInstance3D _cutLayer = null!;
@@ -55,11 +68,18 @@ public partial class MapRenderer : Node3D
             Name = nameof(MapRenderer),
             _map = map,
             _materialColors = map.Materials.Select(material => Color.FromHtml(material.Color)).ToArray(),
-            _materialPatterns = map.Materials.Select(material => TerrainStyle.PatternOf(material.Id)).ToArray(),
-            _grassColor = Color.FromHtml(catalog.GrassColor),
+            _materialPatterns = map.Materials.Select(material => (int)catalog.Patterns.GetValueOrDefault(material.Id)).ToArray(),
+            _grass = catalog.Grass,
             _cutColor = Color.FromHtml(catalog.CutColor),
         };
         renderer._levelMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(renderer.TerrainMaterial).ToArray();
+        renderer._decorationMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(DecorationMaterial).ToArray();
+        renderer._decorations = catalog.Decorations;
+        using (var library = new ModelLibrary(catalog))
+        {
+            // A model that cannot be loaded is left out, like the models of entities.
+            renderer._decorationMeshes = catalog.Decorations.Select(decoration => DecorationMesh.Bake(library, decoration)).ToArray();
+        }
 
         foreach (var piece in Enum.GetValues<TerrainPiece>())
         {
@@ -109,8 +129,15 @@ public partial class MapRenderer : Node3D
                 material.Dispose();
             }
 
+            foreach (var material in _decorationMaterials)
+            {
+                material.Dispose();
+            }
+
             _meshes.Clear();
             _levelMaterials = [];
+            _decorationMeshes = [];
+            _decorationMaterials = [];
         }
     }
 
@@ -120,11 +147,32 @@ public partial class MapRenderer : Node3D
         // converts them where the renderer needs it.
         using var shader = GD.Load<Shader>(ShaderPath);
         var material = new ShaderMaterial { Shader = shader };
-        material.SetShaderParameter("style", TerrainStyle.Current);
         material.SetShaderParameter("brightness", LevelShading.Brightness(depth));
         material.SetShaderParameter("fringe", depth > 0);
-        material.SetShaderParameter("grass_flat", new Vector3(_grassColor.R, _grassColor.G, _grassColor.B));
+        material.SetShaderParameter("grass_lush", ColorParameter(_grass.Lush));
+        material.SetShaderParameter("grass_dry", ColorParameter(_grass.Dry));
+        material.SetShaderParameter("grass_deep", ColorParameter(_grass.Deep));
         return material;
+    }
+
+    /// <summary>The decoration's colours are in its vertices, as #RRGGBB values like the albedo colours of the models.</summary>
+    private static StandardMaterial3D DecorationMaterial(int depth)
+    {
+        var brightness = LevelShading.Brightness(depth);
+        return new StandardMaterial3D
+        {
+            VertexColorUseAsAlbedo = true,
+            VertexColorIsSrgb = true,
+            AlbedoColor = new Color(brightness, brightness, brightness),
+            Roughness = 1f,
+        };
+    }
+
+    /// <summary>A #RRGGBB colour as the shader takes it: the same values, converted there (see TerrainMaterial).</summary>
+    private static Vector3 ColorParameter(string html)
+    {
+        var color = Color.FromHtml(html);
+        return new Vector3(color.R, color.G, color.B);
     }
 
     /// <summary>
@@ -178,6 +226,8 @@ public partial class MapRenderer : Node3D
             buffer.Clear();
         }
 
+        _decorationBuffer.Clear();
+
         var x0 = chunk.X * GameMap.ChunkSize;
         var y0 = chunk.Y * GameMap.ChunkSize;
         var x1 = Math.Min(x0 + GameMap.ChunkSize, _map.Size.Width);
@@ -187,6 +237,7 @@ public partial class MapRenderer : Node3D
             for (var x = x0; x < x1; x++)
             {
                 AddCell(x, y, chunk.Z);
+                AddDecoration(x, y, chunk.Z);
             }
         }
 
@@ -206,14 +257,34 @@ public partial class MapRenderer : Node3D
                 continue;
             }
 
-            instances ??= new MultiMeshInstance3D?[ChunkPieces.Length];
+            instances ??= new GeometryInstance3D?[ChunkPieces.Length + 1];
             if (instances[i] is null)
             {
                 instances[i] = new MultiMeshInstance3D { Name = $"Chunk_{chunk.X}_{chunk.Y}_{chunk.Z}_{piece}" };
                 AddChild(instances[i]);
             }
 
-            Fill(instances[i]!, piece);
+            Fill((MultiMeshInstance3D)instances[i]!, piece);
+        }
+
+        // The decoration of the chunk, after the pieces.
+        var decoration = ChunkPieces.Length;
+        using var decorationMesh = DecorationMesh.Combine(_decorationMeshes, _decorationBuffer);
+        if (decorationMesh is null)
+        {
+            if (instances?[decoration] is { } emptied)
+            {
+                emptied.QueueFree();
+                instances[decoration] = null;
+            }
+        }
+        else
+        {
+            instances ??= new GeometryInstance3D?[ChunkPieces.Length + 1];
+
+            // Tufts so close to the ground striped it with their shadows, and cost a pass.
+            instances[decoration] ??= AddDecorationNode(chunk);
+            ((MeshInstance3D)instances[decoration]!).Mesh = decorationMesh;
         }
 
         if (instances is null || instances.All(instance => instance is null))
@@ -227,12 +298,12 @@ public partial class MapRenderer : Node3D
     }
 
     /// <summary>Shows a chunk darkened for its depth below the current level, or hides it.</summary>
-    private void ApplyLevel(ChunkKey chunk, MultiMeshInstance3D?[] instances)
+    private void ApplyLevel(ChunkKey chunk, GeometryInstance3D?[] instances)
     {
         var visible = LevelShading.IsVisible(chunk.Z, ViewLevel);
-        foreach (var instance in instances)
+        for (var i = 0; i < instances.Length; i++)
         {
-            if (instance is null)
+            if (instances[i] is not { } instance)
             {
                 continue;
             }
@@ -240,10 +311,62 @@ public partial class MapRenderer : Node3D
             instance.Visible = visible;
             if (visible)
             {
-                instance.MaterialOverride = _levelMaterials[ViewLevel - chunk.Z];
+                var depth = ViewLevel - chunk.Z;
+                instance.MaterialOverride = i < ChunkPieces.Length ? _levelMaterials[depth] : _decorationMaterials[depth];
             }
         }
     }
+
+    /// <summary>
+    /// A tuft, a flower or pebbles on open ground with grass, chosen by a hash of the cell and
+    /// the chances of the catalog, or nothing. Furniture and plants keep their cell clear.
+    /// </summary>
+    private void AddDecoration(int x, int y, int z)
+    {
+        if (_decorations.Count == 0 || _map.ShapeAt(x, y, z) != TileShape.Floor)
+        {
+            return;
+        }
+
+        var flags = _map.FlagsAt(x, y, z);
+        if ((flags & TileFlags.Grass) == 0 || (flags & (TileFlags.Furniture | TileFlags.Blocked)) != 0)
+        {
+            return;
+        }
+
+        var roll = (int)(CellHash(x, y, z, 0) % 1000);
+        for (var i = 0; i < _decorations.Count; i++)
+        {
+            roll -= _decorations[i].Chance;
+            if (roll >= 0)
+            {
+                continue;
+            }
+
+            var yaw = Unit(CellHash(x, y, z, 1)) * Mathf.Tau;
+            var size = 1f + ((Unit(CellHash(x, y, z, 2)) - 0.5f) * 2 * DecorationSizeVariation);
+            var offset = new Vector3(Unit(CellHash(x, y, z, 3)) - 0.5f, 0, Unit(CellHash(x, y, z, 4)) - 0.5f) * 2 * DecorationSpread;
+            var origin = new Vector3(x + 0.5f, z + TerrainMeshes.FloorThickness, y + 0.5f) + offset;
+            _decorationBuffer.Add((i, new Transform3D(new Basis(Vector3.Up, yaw).Scaled(new Vector3(size, size, size)), origin)));
+            return;
+        }
+    }
+
+    /// <summary>
+    /// A hash of a cell and a salt, the same on every run and machine: the decoration of a cell
+    /// never changes. The view's own; the simulation's random streams are not touched.
+    /// </summary>
+    private static uint CellHash(int x, int y, int z, uint salt)
+    {
+        var hash = ((uint)x * 73856093u) ^ ((uint)y * 19349663u) ^ ((uint)z * 83492791u) ^ (salt * 2654435761u);
+        hash ^= hash >> 13;
+        hash *= 0x5bd1e995u;
+        hash ^= hash >> 15;
+        return hash;
+    }
+
+    /// <summary>A hash as a number from 0 up to 1.</summary>
+    private static float Unit(uint hash) => hash / 4294967296f;
 
     private void AddCell(int x, int y, int z)
     {
@@ -398,6 +521,17 @@ public partial class MapRenderer : Node3D
         // The node keeps its own reference. Godot .NET crashes on exit if C# still holds
         // references to resources it created, so the C# one is released right away.
         multimesh.Dispose();
+    }
+
+    private MeshInstance3D AddDecorationNode(ChunkKey chunk)
+    {
+        var node = new MeshInstance3D
+        {
+            Name = $"Chunk_{chunk.X}_{chunk.Y}_{chunk.Z}_Decoration",
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+        AddChild(node);
+        return node;
     }
 
     /// <summary>Dark caps on the blocks of the current level that have something above them.</summary>

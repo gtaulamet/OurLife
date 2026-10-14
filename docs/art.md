@@ -26,13 +26,20 @@
 
 ## Formato de visuals.json
 
-Formato fijado en H1.5 (`game/assets/models/visuals.json`):
+Formato fijado en H1.5 y ampliado en IP2.5 (`game/assets/models/visuals.json`):
 
 ```json
 {
-  "terrain": { "grassColor": "#6A9A3C", "cutColor": "#3A332D" },
+  "terrain": {
+    "cutColor": "#3A332D",
+    "grass": { "lush": "#4D752E", "dry": "#728038", "deep": "#355B26" },
+    "materials": { "soil": "soil", "granite": "speckled", "timber": "planks" }
+  },
   "srgbAsLinearKits": ["res://assets/models/kenney_nature-kit/"],
   "palette": { "leafsGreen": "#4C7A2B", "woodBark": "#7A5233" },
+  "decoration": {
+    "grass": { "model": "res://assets/models/kenney_nature-kit/grass.glb", "scale": 1.8, "chance": 170 }
+  },
   "models": {
     "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },
     "house@modern": { "model": "res://assets/models/…/house_modern.glb" }
@@ -40,15 +47,20 @@ Formato fijado en H1.5 (`game/assets/models/visuals.json`):
 }
 ```
 
-- `terrain`: colores del terreno que no salen de un `MaterialDef`. `grassColor` es el suelo con pasto, y `cutColor` es el hueco de una escalera hacia abajo y la celda sin material.
+- `terrain`: lo que el shader del terreno no saca de un `MaterialDef` (ADR-012).
+  - `cutColor` es el hueco de una escalera hacia abajo y la celda sin material.
+  - `grass` son los tres verdes que se mezclan en el pasto: el de siempre (`lush`), las manchas de pasto seco (`dry`) y las de pasto denso (`deep`).
+  - `materials` da el patrón con que se pinta cada material, por el id de su def: `plain` (sólo color y tono), `soil` (grano y piedritas), `speckled` (motas y grietas, como el granito), `layered` (estratos, como la caliza y la arenisca), `planks` (tablones) o `bricks` (ladrillos). Cada material del contenido necesita el suyo.
 - `srgbAsLinearKits`: carpetas de kits que guardan sus colores sRGB en el campo de color lineal de glTF, como los de Kenney. El importador los aclara una segunda vez, y el juego deshace esa conversión sólo en los modelos de esas carpetas.
 - `palette`: reemplaza el color de un material de los modelos, por su nombre dentro del `.glb` (`leafsGreen`, `woodBark`, `grass`). Mantiene la paleta terrosa de la época. Sin entrada, se usa el color del kit corregido.
 - `models`: el modelo de cada id visual y su escala (1 si falta). La escala hace que el modelo ocupe una celda. `center: true` centra sobre la celda un modelo cuyo origen está en una esquina, como los del Furniture Kit.
-- El terreno no tiene modelos: sus piezas se generan en código y se tiñen con el `color` del `MaterialDef` (ADR-009).
+- `decoration`: modelos que visten el pasto, como matas, flores y piedritas. `chance` dice en cuántas celdas de pasto de cada mil aparece cada uno; la suma no pasa de mil. Un hash de la celda elige el modelo, su giro, su tamaño y su lugar dentro de la celda, así que una celda siempre se ve igual. No son entidades, no se guardan y no cambian la simulación. No aparecen bajo un mueble ni bajo una planta. Los modelos de la decoración no deben ser los de un objeto (la flor roja de las bayas, la piedra chica), para no confundirse con algo que se puede levantar.
+- El terreno no tiene modelos: sus piezas se generan en código, se tiñen con el `color` del `MaterialDef` y el shader les pinta el patrón (ADR-009 y ADR-012).
 
 Los defs nombran su visual con el campo `visual`. Los tests de contenido (`VisualCatalogTests`) verifican que:
 
 - Cada id exista sin sufijo de época.
+- Cada material del contenido tenga su patrón, y cada patrón nombre un material.
 - Cada modelo del catálogo lo use algún def.
 - Las variantes nombren una época existente.
 - Cada `.glb` exista con su `.import`.

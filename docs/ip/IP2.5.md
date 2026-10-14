@@ -6,7 +6,7 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1, V2 y V3 hechos.
+**Estado:** en curso. V1 a V4 hechos.
 
 ## Estado de los hitos
 
@@ -15,7 +15,7 @@
 | V1 Prueba de estilo | Hecho | `ip2.5/v1-prueba-estilo` | El usuario eligió terreno B, GL Compatibility y muebles de KayKit (ADR-012) |
 | V2 Tamaño de la interfaz | Hecho | `ip2.5/v2-tamano-interfaz` | Opción en Opciones con Automático (100 % a 300 % según la ventana); clic probado con la UI al 200 % |
 | V3 Vista previa de muebles | Hecho | `ip2.5/v3-vista-previa` | Modelo translúcido girado con flecha al frente, rojo donde no va; planos de muebles con su modelo |
-| V4 Terreno y decoración | Pendiente | `ip2.5/v4-terreno` | |
+| V4 Terreno y decoración | Hecho | `ip2.5/v4-terreno` | Sólo el estilo B; patrones, verdes y decoración en el catálogo; matas, flores, piedritas y hongos sobre el pasto |
 | V5 Modelos y animaciones | Pendiente | `ip2.5/v5-modelos` | |
 | V6 Integración | Pendiente | `ip2.5/v6-integracion` | |
 
@@ -124,7 +124,7 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - `TerrainStyle` (provisorio) asigna un patrón a cada material y guarda el estilo; `--terrain-style flat|a|b|c` lo elige para las capturas. Forward+ se probó con `--rendering-method forward_plus` de Godot, con oclusión ambiental y la luz un 30 % más fuerte; al elegirse Compatibility, ese código se quitó.
 - `CameraRig.Focus`: `--inspect-furniture` también centra la cámara en el mueble.
 - Kits: KayKit Dungeon Remastered (CC0, en GitHub) trae cama, mesas, silla, banqueta, baúles, barriles y platos de comida medievales; se probaron en la casa del smoke sin dejarlos en el repositorio. Mini Characters de Kenney trae 12 aldeanos (6 y 6) con las animaciones; no hay un kit CC0 gratuito de aldeanos medievales animados, así que se propone recolorear su ropa.
-- Benchmark de 20 s (RTX 4090 de portátil): Compatibility con el terreno actual, 431 FPS de media y 335 en el 1 % más lento; con B, 420 y 330; Forward+ con B, 674 y 540. Al compilar el shader hay un cuadro de unos 100 ms, a resolver en V4.
+- Benchmark de 20 s (RTX 4090 de portátil): Compatibility con el terreno actual, 431 FPS de media y 335 en el 1 % más lento; con B, 420 y 330; Forward+ con B, 674 y 540. El cuadro de unos 100 ms que se vio no era del shader: en V4 se comprobó que aparece cuando la ventana del benchmark cambia de tamaño a mitad de la medición.
 - Capturas comparadas en una página privada para el usuario: https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD
 - 480 tests en verde y mismas huellas del smoke.
 
@@ -195,3 +195,20 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - `ModelLibrary` recorre las superficies en un solo lugar para los dos tipos de copia; se quitaron una rama muerta y una sangría mal puesta.
 - Queda como está: cada grupo de fantasmas tiene su propia `ModelLibrary`. Los `PackedScene` son los mismos recursos de la caché de Godot y sólo se duplican diccionarios chicos; compartir la biblioteca complicaría quién la libera.
 - 495 tests en verde y mismas huellas.
+
+## Registro de V4: Terreno y decoración
+
+**Entregado**
+
+- El shader del terreno queda con el estilo B; se quitaron los otros estilos, `TerrainStyle` y `--terrain-style`.
+- Catálogo de visuales: `terrain.grass` (los tres verdes del pasto) y `terrain.materials` (el patrón de cada material, por nombre) reemplazan a `grassColor`, y `decoration` lista los modelos que visten el pasto con su probabilidad. `VisualCatalog` los lee y rechaza patrones desconocidos, campos de más y probabilidades que sumen más de mil.
+- Decoración: siete modelos del Nature Kit (tres matas de pasto, flores amarillas y violetas, piedritas y un hongo). Un hash de la celda, nunca el RNG de la simulación, elige modelo, giro, tamaño y lugar; nada bajo muebles ni plantas. Cada modelo se hornea en triángulos con su color en los vértices (`DecorationMesh`), y la decoración de un chunk es una sola malla que se rehace con el chunk y se oscurece por nivel como el terreno. No proyecta sombras.
+- Tests del catálogo: cada material del contenido tiene patrón y cada patrón nombra un material; los modelos de la decoración existen, se importan, corrigen su color y cuentan para la paleta y para los `.glb` del repositorio.
+- `docs/art.md` (formato del catálogo y reglas de la decoración), ADR-012 (consecuencias), `CREDITS.md` (15 modelos del Nature Kit).
+
+**Verificación**
+
+- Capturas de después en las escenas de antes (valle, de cerca, corte bajo tierra, la casa, atardecer y noche): https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD tiene las de antes.
+- Rendimiento: con un `MultiMesh` por modelo y por chunk la decoración costaba hasta siete llamadas de dibujo por chunk; con una malla por chunk el promedio volvió a 418 FPS. En corridas seguidas la portátil dio entre 232 y 418 FPS con decoración y entre 288 y 311 sin ella: la diferencia queda dentro del ruido de la máquina, siempre muy por encima de 60 FPS. La partida se arma en unos 300 ms (antes, 210 ms).
+- El cuadro de 100 ms de V1 no era del shader (ver el registro de V1).
+- 506 tests en verde y mismas huellas.

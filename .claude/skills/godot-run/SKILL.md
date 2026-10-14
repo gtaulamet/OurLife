@@ -69,7 +69,6 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 # Tamaño de la interfaz (IP2.5): otra resolución con --resolution de Godot, antes de "--"; --ui-scale auto|100|150|200|250|300
 & $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080.png --locale es --seed 42 --play --inspect --colony
 & $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080-200.png --locale en --ui-scale 200 --options
-# Estilo del terreno (provisorio hasta V4 de IP2.5): --terrain-style flat|a|b|c; b es el elegido
 # Una casa amueblada: --inspect-furniture centra la cámara en el primer mueble; --level a la altura de la casa
 & $env:GODOT_BIN --path game -- --screenshot out/casa.png --seed 42 --play --level 15 --zoom 9 --ticks 5000 --orders --hour 12 --inspect-furniture
 # Vista previa de un mueble (IP2.5): --furniture, --rotation 0..3, --point x,y (centra la cámara) y --drag-to x,y.

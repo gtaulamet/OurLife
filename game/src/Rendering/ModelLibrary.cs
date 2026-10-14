@@ -242,6 +242,13 @@ public sealed class ModelLibrary : IDisposable
         return ghost;
     }
 
+    /// <summary>The colour a material of a model is drawn with (see <see cref="ColorOf"/>); white for one that is not a <see cref="BaseMaterial3D"/>.</summary>
+    public Color SurfaceColor(Material material, bool srgbAsLinear)
+    {
+        ArgumentNullException.ThrowIfNull(material);
+        return material is BaseMaterial3D original ? ColorOf(original, srgbAsLinear) : Colors.White;
+    }
+
     /// <summary>
     /// The colour of a model's material: the catalog's palette for its name, or its own. Some kits
     /// store their sRGB palette in glTF's linear colour field, and the importer converts it to sRGB

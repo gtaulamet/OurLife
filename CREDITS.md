@@ -7,7 +7,7 @@ Todo asset o código de terceros se registra aquí **antes** de entrar al reposi
 | Asset | Autor | Licencia | Fuente | Uso en el juego |
 |---|---|---|---|---|
 | Fuente Tiny5 | Stefan Schmidt, The Tiny5 Project Authors | SIL Open Font License 1.1; texto en `game/assets/fonts/tiny5/OFL.txt` | github.com/Gissio/font_tiny5, vía Google Fonts | Toda la interfaz |
-| Nature Kit 2.1, 8 modelos | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_nature-kit/License.txt` | kenney.nl/assets/nature-kit | Árboles, arbustos y objetos del mapa |
+| Nature Kit 2.1, 15 modelos | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_nature-kit/License.txt` | kenney.nl/assets/nature-kit | Árboles, arbustos, objetos del mapa y decoración del pasto |
 | Mini Characters, 1 modelo y su textura | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_mini-characters/License.txt` | kenney.nl/assets/mini-characters | Colonos, de forma provisional |
 | Furniture Kit 2.0, 3 modelos | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_furniture-kit/License.txt` | kenney.nl/assets/furniture-kit | Cama, mesa y silla |
 | Survival Kit 2.0, 1 modelo y su textura | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_survival-kit/License.txt` | kenney.nl/assets/survival-kit | Cofre |
