@@ -45,6 +45,16 @@ public partial class CameraRig : Node3D
         return rig;
     }
 
+    /// <summary>Centres the view on a cell of the map, for captures.</summary>
+    public void Focus(Vector2 cell)
+    {
+        _focus = cell.Clamp(Vector2.Zero, _mapSize);
+        if (IsInsideTree())
+        {
+            PlaceCamera();
+        }
+    }
+
     public override void _Ready()
     {
         InputActions.Register();

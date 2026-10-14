@@ -140,6 +140,11 @@ public partial class GameRoot : Node
             GD.PushWarning($"Unknown command line argument ignored: {argument}");
         }
 
+        if (options.TerrainStyle is { } terrainStyle)
+        {
+            TerrainStyle.Current = TerrainStyle.Names[terrainStyle];
+        }
+
         if (options.LicensesPath is { } licensesPath)
         {
             var fullPath = Path.GetFullPath(licensesPath);
@@ -421,7 +426,9 @@ public partial class GameRoot : Node
         simulation.World.Query<Furniture, Position>(pieces);
         if (options.InspectFurniture && pieces.Count > 0)
         {
-            screen.Input.SelectCell(simulation.World.Get<Position>(pieces[0]).Cell);
+            var cell = simulation.World.Get<Position>(pieces[0]).Cell;
+            screen.Input.SelectCell(cell);
+            screen.View.Camera.Focus(new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
         }
 
         if (options.Colony)

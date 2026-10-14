@@ -95,6 +95,9 @@ public sealed record CommandLineOptions
     /// </summary>
     public int? Hour { get; init; }
 
+    /// <summary>Style of the terrain for the style test of IP2.5: flat, a, b or c (see <c>TerrainStyle</c>).</summary>
+    public string? TerrainStyle { get; init; }
+
     /// <summary>The screens <c>--show</c> knows.</summary>
     public static readonly IReadOnlyList<string> Screens = ["load", "save", "error"];
 
@@ -216,6 +219,15 @@ public sealed record CommandLineOptions
 
                     options = options with { Show = screen };
                     break;
+                case "--terrain-style":
+                    var style = ValueAfter(args, ref i);
+                    if (!Rendering.TerrainStyle.Names.ContainsKey(style))
+                    {
+                        throw new ArgumentException($"--terrain-style must be one of: {string.Join(", ", Rendering.TerrainStyle.Names.Keys)}.");
+                    }
+
+                    options = options with { TerrainStyle = style };
+                    break;
                 default:
                     unknown.Add(args[i]);
                     break;
@@ -250,7 +262,7 @@ public sealed record CommandLineOptions
         $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
-        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}";
+        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, terrain-style={TerrainStyle ?? "-"}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
     {

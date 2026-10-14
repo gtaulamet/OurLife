@@ -6,13 +6,13 @@
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** planificada el 14 de octubre de 2026.
+**Estado:** en curso. V1 espera la elección del usuario sobre las capturas.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| V1 Prueba de estilo | Pendiente | `ip2.5/v1-prueba-estilo` | Variantes del terreno y del renderizador comparadas en capturas; el usuario elige |
+| V1 Prueba de estilo | En curso | `ip2.5/v1-prueba-estilo` | Prototipo y capturas listos; falta la elección del usuario, ADR-012 y `art.md` |
 | V2 Tamaño de la interfaz | Pendiente | `ip2.5/v2-tamano-interfaz` | |
 | V3 Vista previa de muebles | Pendiente | `ip2.5/v3-vista-previa` | |
 | V4 Terreno y decoración | Pendiente | `ip2.5/v4-terreno` | |
@@ -114,3 +114,16 @@ Se cierran en V1, con las capturas:
 - `dotnet test` y smoke test en verde; capturas es/en revisadas.
 - Presupuesto: 60 FPS con la aldea construida en el benchmark.
 - `/code-review` sin hallazgos pendientes, playtest humano en Windows y macOS, y `v0.2.5` publicada.
+
+## Registro de V1: Prueba de estilo
+
+**Hecho hasta ahora (14 de octubre de 2026)**
+
+- Shader del terreno `game/assets/shaders/terrain.gdshader`, en lugar del `StandardMaterial3D`. Cuatro estilos: el plano de IP2 (`flat`) y las variantes A (variación de tono y bisel), B (textura pintada: briznas, grano, vetas, estratos, tablones y ladrillos) y C (B con 16 píxeles por celda). Todo se calcula según la posición en el mundo, sin texturas.
+- `MapRenderer` pasa a cada instancia el patrón de su material y las marcas de pasto (cara de arriba, toda la pieza o borde en los costados), con los datos propios del `MultiMesh`. El pasto ya no tiñe los costados de las rampas, y los bloques bajo el pasto llevan un borde verde.
+- `TerrainStyle` (provisorio) asigna un patrón a cada material y guarda el estilo; `--terrain-style flat|a|b|c` lo elige para las capturas. Forward+ se prueba con `--rendering-method forward_plus` de Godot: con él, el entorno suma oclusión ambiental y la luz sube un 30 %.
+- `CameraRig.Focus`: `--inspect-furniture` también centra la cámara en el mueble.
+- Kits: KayKit Dungeon Remastered (CC0, en GitHub) trae cama, mesas, silla, banqueta, baúles, barriles y platos de comida medievales; se probaron en la casa del smoke sin dejarlos en el repositorio. Mini Characters de Kenney trae 12 aldeanos (6 y 6) con las animaciones; no hay un kit CC0 gratuito de aldeanos medievales animados, así que se propone recolorear su ropa.
+- Benchmark de 20 s (RTX 4090 de portátil): Compatibility con el terreno actual, 431 FPS de media y 335 en el 1 % más lento; con B, 420 y 330; Forward+ con B, 674 y 540. Al compilar el shader hay un cuadro de unos 100 ms, a resolver en V4.
+- Capturas comparadas en una página privada para el usuario: https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD
+- 480 tests en verde y mismas huellas del smoke.

@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v1-prueba-estilo`, con el plan de IP2.5 |
+| Rama de trabajo | `ip2.5/v1-prueba-estilo`: plan de IP2.5 y prototipo del terreno |
 | `main` | En el cierre de IP2, con el tag `v0.2.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual", planificada el 14 de octubre de 2026 (`docs/ip/IP2.5.md`). IP3 se planifica después |
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **V1 Prueba de estilo** (`docs/ip/IP2.5.md`): prototipar las variantes A y B del terreno, comparar GL Compatibility con Forward+, buscar kits CC0 para los muebles medievales y los aldeanos, y sacar las capturas de la misma escena para que el usuario elija. Con la elección, ADR-012 y `docs/art.md`.
+1. **V1 Prueba de estilo**: el prototipo y las capturas están listos en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD. Falta que el usuario elija terreno (actual, A, B o C), renderizador (Compatibility o Forward+) y muebles (Kenney o KayKit). Con la elección: ADR-012, `docs/art.md` y cerrar V1.
 2. **V2 Tamaño de la interfaz** y **V3 Vista previa de muebles**, mientras el usuario revisa las capturas de V1.
 3. **V4 a V6** según `IP2.5.md`. Después, planificar IP3.
 4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
@@ -41,6 +41,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-14: V1 Prueba de estilo
+
+- Shader del terreno con cuatro estilos (actual, A, B y C) y `--terrain-style` para elegirlo; pasto sólo arriba y con borde en los costados de los bloques. Forward+ se prueba con `--rendering-method forward_plus`.
+- Kits: KayKit Dungeon Remastered (CC0) para los muebles medievales, probado en la casa del smoke; Mini Characters de Kenney trae 12 aldeanos con animaciones, con ropa moderna a recolorear.
+- Benchmark: el shader casi no cuesta; en esta PC Forward+ rinde más (674 contra 420 FPS de media). Un cuadro de unos 100 ms al compilar el shader, para V4.
+- Página de comparación para el usuario (privada): https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD. Detalle en el registro de V1 de `IP2.5.md`.
+- 480 tests en verde, mismas huellas.
 
 ### 2026-10-14: plan de IP2.5 Pulido visual
 

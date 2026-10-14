@@ -107,6 +107,15 @@ public partial class WorldView : Node3D
             AmbientLightSource = Godot.Environment.AmbientSource.Color,
         };
 
+        // Style test of IP2.5: ambient occlusion only exists in Forward+.
+        if (RenderingServer.GetCurrentRenderingMethod() != "gl_compatibility")
+        {
+            environment.SsaoEnabled = true;
+            environment.SsaoRadius = 1.5f;
+            environment.SsaoIntensity = 3.5f;
+            environment.SsaoPower = 1.8f;
+        }
+
         // The node keeps its own reference; the C# one is released (see MapRenderer.Fill).
         return new WorldEnvironment { Name = "Environment", Environment = environment };
     }

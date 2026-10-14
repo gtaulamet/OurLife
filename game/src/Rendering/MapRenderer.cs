@@ -13,8 +13,15 @@ namespace OurLife.Game.Rendering;
 /// </summary>
 public partial class MapRenderer : Node3D
 {
-    // A 3×4 transform and a colour, in the layout of MultiMesh.Buffer.
-    private const int FloatsPerInstance = 16;
+    // A 3×4 transform, a colour and the custom data, in the layout of MultiMesh.Buffer.
+    private const int FloatsPerInstance = 20;
+
+    // Grass flags of an instance, for the terrain shader.
+    private const int GrassTop = 1;
+    private const int GrassAll = 2;
+    private const int GrassFringe = 4;
+
+    private const string ShaderPath = "res://assets/shaders/terrain.gdshader";
 
     private static readonly TerrainPiece[] ChunkPieces =
         [TerrainPiece.Block, TerrainPiece.Floor, TerrainPiece.Ramp, TerrainPiece.Steps, TerrainPiece.Hole, TerrainPiece.Door];
@@ -26,14 +33,15 @@ public partial class MapRenderer : Node3D
     private readonly Dictionary<TerrainPiece, Mesh> _meshes = [];
     private readonly Dictionary<ChunkKey, MultiMeshInstance3D?[]> _chunks = [];
     private readonly List<ChunkKey> _dirty = [];
-    private readonly List<(Transform3D Transform, Color Color)>[] _buffers =
-        Enumerable.Range(0, Enum.GetValues<TerrainPiece>().Length).Select(_ => new List<(Transform3D, Color)>()).ToArray();
+    private readonly List<(Transform3D Transform, Color Color, int Pattern, int Grass)>[] _buffers =
+        Enumerable.Range(0, Enum.GetValues<TerrainPiece>().Length).Select(_ => new List<(Transform3D, Color, int, int)>()).ToArray();
 
     private GameMap _map = null!;
     private Color[] _materialColors = [];
+    private int[] _materialPatterns = [];
     private Color _grassColor;
     private Color _cutColor;
-    private StandardMaterial3D[] _levelMaterials = [];
+    private ShaderMaterial[] _levelMaterials = [];
     private MultiMeshInstance3D _cutLayer = null!;
 
     public int ViewLevel { get; private set; }
@@ -47,10 +55,11 @@ public partial class MapRenderer : Node3D
             Name = nameof(MapRenderer),
             _map = map,
             _materialColors = map.Materials.Select(material => Color.FromHtml(material.Color)).ToArray(),
+            _materialPatterns = map.Materials.Select(material => TerrainStyle.PatternOf(material.Id)).ToArray(),
             _grassColor = Color.FromHtml(catalog.GrassColor),
             _cutColor = Color.FromHtml(catalog.CutColor),
-            _levelMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(TerrainMaterial).ToArray(),
         };
+        renderer._levelMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(renderer.TerrainMaterial).ToArray();
 
         foreach (var piece in Enum.GetValues<TerrainPiece>())
         {
@@ -105,19 +114,16 @@ public partial class MapRenderer : Node3D
         }
     }
 
-    private static StandardMaterial3D TerrainMaterial(int depth)
+    private ShaderMaterial TerrainMaterial(int depth)
     {
-        var brightness = LevelShading.Brightness(depth);
-        return new StandardMaterial3D
-        {
-            VertexColorUseAsAlbedo = true,
-
-            // Instance colours are #RRGGBB values, like the albedo colours of the models. GL
-            // Compatibility renders the same with or without the flag; Forward+ needs it.
-            VertexColorIsSrgb = true,
-            AlbedoColor = new Color(brightness, brightness, brightness),
-            Roughness = 1f,
-        };
+        // Instance colours are #RRGGBB values, like the albedo colours of the models; the shader
+        // converts them where the renderer needs it.
+        using var shader = GD.Load<Shader>(ShaderPath);
+        var material = new ShaderMaterial { Shader = shader };
+        material.SetShaderParameter("style", TerrainStyle.Current);
+        material.SetShaderParameter("brightness", LevelShading.Brightness(depth));
+        material.SetShaderParameter("grass_flat", new Vector3(_grassColor.R, _grassColor.G, _grassColor.B));
+        return material;
     }
 
     /// <summary>
@@ -244,28 +250,28 @@ public partial class MapRenderer : Node3D
         switch (_map.ShapeAt(x, y, z))
         {
             case TileShape.Wall when IsExposed(x, y, z):
-                Add(TerrainPiece.Block, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z));
+                Add(TerrainPiece.Block, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z + 1) ? GrassFringe : 0);
                 break;
             case TileShape.Floor:
-                Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), SurfaceColor(x, y, z));
+                Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z) ? GrassAll : 0);
                 break;
             case TileShape.Ramp:
-                Add(TerrainPiece.Ramp, new Transform3D(new Basis(Vector3.Up, RampYaw(x, y, z)), origin), SurfaceColor(x, y, z));
+                Add(TerrainPiece.Ramp, new Transform3D(new Basis(Vector3.Up, RampYaw(x, y, z)), origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z) ? GrassTop : 0);
                 break;
             case TileShape.StairUp:
-                Add(TerrainPiece.Steps, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z));
+                Add(TerrainPiece.Steps, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z));
                 break;
             case TileShape.StairUpDown:
                 // Steps up on one half of the cell, the opening of the way down on the other.
                 var half = Basis.Identity.Scaled(new Vector3(0.5f, 1f, 1f));
-                Add(TerrainPiece.Steps, new Transform3D(half, origin + new Vector3(0.25f, 0, 0)), MaterialColor(x, y, z));
+                Add(TerrainPiece.Steps, new Transform3D(half, origin + new Vector3(0.25f, 0, 0)), MaterialColor(x, y, z), Pattern(x, y, z));
                 Add(TerrainPiece.Hole, new Transform3D(half, origin - new Vector3(0.25f, 0, 0)), _cutColor);
                 break;
             case TileShape.StairDown:
                 Add(TerrainPiece.Hole, new Transform3D(Basis.Identity, origin), _cutColor);
                 break;
             case TileShape.Door:
-                Add(TerrainPiece.Door, new Transform3D(new Basis(Vector3.Up, DoorYaw(x, y, z)), origin), MaterialColor(x, y, z));
+                Add(TerrainPiece.Door, new Transform3D(new Basis(Vector3.Up, DoorYaw(x, y, z)), origin), MaterialColor(x, y, z), Pattern(x, y, z));
                 break;
         }
     }
@@ -329,11 +335,18 @@ public partial class MapRenderer : Node3D
     private Color CutCapColor(int x, int y, int z) =>
         MaterialColor(x, y, z) * new Color(LevelShading.CutBrightness, LevelShading.CutBrightness, LevelShading.CutBrightness);
 
-    private Color SurfaceColor(int x, int y, int z) =>
-        _map.FlagsAt(x, y, z).HasFlag(TileFlags.Grass) ? _grassColor : MaterialColor(x, y, z);
+    /// <summary>Whether the cell is open ground with grass; a block below it gets a fringe of grass.</summary>
+    private bool HasGrass(int x, int y, int z) =>
+        z < _map.Size.Depth && _map.ShapeOrEmpty(x, y, z) is TileShape.Floor or TileShape.Ramp && _map.FlagsAt(x, y, z).HasFlag(TileFlags.Grass);
 
-    private void Add(TerrainPiece piece, Transform3D transform, Color color) =>
-        _buffers[(int)piece].Add((transform, color));
+    private int Pattern(int x, int y, int z)
+    {
+        var material = _map.MaterialIndexAt(x, y, z);
+        return material == GameMap.NoMaterial ? 0 : _materialPatterns[material];
+    }
+
+    private void Add(TerrainPiece piece, Transform3D transform, Color color, int pattern = 0, int grass = 0) =>
+        _buffers[(int)piece].Add((transform, color, pattern, grass));
 
     private void Fill(MultiMeshInstance3D instance, TerrainPiece piece)
     {
@@ -342,16 +355,17 @@ public partial class MapRenderer : Node3D
         {
             TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
             UseColors = true,
+            UseCustomData = true,
             Mesh = _meshes[piece],
             InstanceCount = buffer.Count,
         };
 
-        // One call for the whole chunk instead of two per instance. Each instance is the 3×4
-        // transform by rows, with the origin at the end of each row, and then its colour.
+        // One call for the whole chunk instead of three per instance. Each instance is the 3×4
+        // transform by rows, with the origin at the end of each row, its colour and its custom data.
         var data = new float[buffer.Count * FloatsPerInstance];
         for (var i = 0; i < buffer.Count; i++)
         {
-            var (transform, color) = buffer[i];
+            var (transform, color, pattern, grass) = buffer[i];
             var basis = transform.Basis;
             var origin = transform.Origin;
             var at = i * FloatsPerInstance;
@@ -371,6 +385,10 @@ public partial class MapRenderer : Node3D
             data[at + 13] = color.G;
             data[at + 14] = color.B;
             data[at + 15] = color.A;
+            data[at + 16] = pattern;
+            data[at + 17] = grass;
+            data[at + 18] = 0;
+            data[at + 19] = 0;
         }
 
         multimesh.Buffer = data;
@@ -395,7 +413,7 @@ public partial class MapRenderer : Node3D
                 {
                     if (_map.ShapeAt(x, y, z) == TileShape.Wall && _map.ShapeAt(x, y, z + 1) != TileShape.Empty)
                     {
-                        Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), CutCapColor(x, y, z));
+                        Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), CutCapColor(x, y, z), Pattern(x, y, z));
                     }
                 }
             }

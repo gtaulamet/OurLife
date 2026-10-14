@@ -180,11 +180,13 @@ public partial class DayNightCycle : Node
 
     private void Show(Look look, Vector3 rotation)
     {
+        // Style test of IP2.5: Forward+ lights in linear space and looks darker with the same energies.
+        var scale = RenderingServer.GetCurrentRenderingMethod() == "gl_compatibility" ? 1f : 1.3f;
         _environment.BackgroundColor = look.Sky;
         _environment.AmbientLightColor = look.Ambient;
-        _environment.AmbientLightEnergy = look.AmbientEnergy;
+        _environment.AmbientLightEnergy = look.AmbientEnergy * scale;
         _light.LightColor = look.Light;
-        _light.LightEnergy = look.LightEnergy;
+        _light.LightEnergy = look.LightEnergy * scale;
         _light.RotationDegrees = rotation;
     }
 }
