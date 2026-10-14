@@ -175,6 +175,11 @@ public partial class GameRoot : Node
             _services.Settings.SetUiScale(uiScale, save: false);
         }
 
+        if (options.Decoration is { } decoration)
+        {
+            _services.Settings.SetDecoration(decoration, save: false);
+        }
+
         // The interface size follows the setting and the size of the window (see docs/gdd/tamano-de-la-interfaz.md).
         _services.Settings.ApplyUiScale(GetTree().Root);
         _services.Settings.UiScaleChanged += ApplyUiScale;

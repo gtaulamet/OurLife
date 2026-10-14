@@ -46,6 +46,9 @@ public partial class MapRenderer : Node3D
 
     private IReadOnlyList<DecorationModel> _decorations = [];
 
+    // What the chances of the decoration are multiplied by (DecorationLevels).
+    private float _decorationDensity = 1f;
+
     // The cells with a plant, which keep their decoration out; asked once per chunk built.
     private Func<IReadOnlySet<TileCoord>> _plantCells = null!;
     private IReadOnlySet<TileCoord> _plants = new HashSet<TileCoord>();
@@ -64,7 +67,8 @@ public partial class MapRenderer : Node3D
     public int ViewLevel { get; private set; }
 
     /// <param name="plantCells">The cells with a plant: no decoration grows inside a bush or a tree.</param>
-    public static MapRenderer Create(GameMap map, VisualCatalog catalog, int viewLevel, Func<IReadOnlySet<TileCoord>> plantCells)
+    /// <param name="decorationDensity">What the chances of the decoration are multiplied by (see <see cref="DecorationLevels"/>).</param>
+    public static MapRenderer Create(GameMap map, VisualCatalog catalog, int viewLevel, Func<IReadOnlySet<TileCoord>> plantCells, float decorationDensity)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -74,6 +78,7 @@ public partial class MapRenderer : Node3D
             Name = nameof(MapRenderer),
             _map = map,
             _plantCells = plantCells,
+            _decorationDensity = decorationDensity,
             _materialColors = map.Materials.Select(material => Color.FromHtml(material.Color)).ToArray(),
             _materialPatterns = map.Materials.Select(material => (int)catalog.Patterns.GetValueOrDefault(material.Id)).ToArray(),
             _grass = catalog.Grass,
@@ -104,6 +109,21 @@ public partial class MapRenderer : Node3D
         renderer.BuildAllChunks();
         renderer.RebuildCutLayer();
         return renderer;
+    }
+
+    /// <summary>
+    /// Dresses the grass with more or less decoration: every chunk is built again, a fraction of
+    /// a second once, as when the view starts.
+    /// </summary>
+    public void SetDecorationDensity(float density)
+    {
+        if (Mathf.IsEqualApprox(density, _decorationDensity))
+        {
+            return;
+        }
+
+        _decorationDensity = density;
+        BuildAllChunks();
     }
 
     /// <summary>Moves the cut to another level, clamped to the map.</summary>
@@ -338,15 +358,16 @@ public partial class MapRenderer : Node3D
     /// </summary>
     private void AddDecoration(int x, int y, int z)
     {
-        if (_decorations.Count == 0 || !Dressable(x, y, z))
+        if (_decorations.Count == 0 || _decorationDensity <= 0 || !Dressable(x, y, z))
         {
             return;
         }
 
-        var roll = (int)(CellHash(x, y, z, 0) % 1000);
+        // The same roll at every density: more decoration adds pieces and keeps the ones there were.
+        var roll = (float)(CellHash(x, y, z, 0) % 1000);
         for (var i = 0; i < _decorations.Count; i++)
         {
-            roll -= _decorations[i].Chance;
+            roll -= _decorations[i].Chance * _decorationDensity;
             if (roll >= 0)
             {
                 continue;

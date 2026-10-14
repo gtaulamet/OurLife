@@ -15,7 +15,7 @@
 | V1 Prueba de estilo | Hecho | `ip2.5/v1-prueba-estilo` | El usuario eligió terreno B, GL Compatibility y muebles de KayKit (ADR-012) |
 | V2 Tamaño de la interfaz | Hecho | `ip2.5/v2-tamano-interfaz` | Opción en Opciones con Automático (100 % a 300 % según la ventana); clic probado con la UI al 200 % |
 | V3 Vista previa de muebles | Hecho | `ip2.5/v3-vista-previa` | Modelo translúcido girado con flecha al frente, rojo donde no va; planos de muebles con su modelo |
-| V4 Terreno y decoración | Hecho | `ip2.5/v4-terreno` | Sólo el estilo B; patrones, verdes y decoración en el catálogo; matas, flores, piedritas y hongos sobre el pasto |
+| V4 Terreno y decoración | Hecho | `ip2.5/v4-terreno`, `ip2.5/v4-opcion-decoracion` | Sólo el estilo B; patrones, verdes y decoración en el catálogo; matas, flores, piedritas y hongos sobre el pasto, con la opción Decoración del pasto |
 | V5 Modelos y animaciones | Pendiente | `ip2.5/v5-modelos` | |
 | V6 Integración | Pendiente | `ip2.5/v6-integracion` | |
 
@@ -102,7 +102,8 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 | Los kits de otro autor no combinan con el Nature Kit | Probarlos en una captura en V1, antes de elegir. La `palette` del catálogo unifica colores |
 | La fuente pixel se ve borrosa en algún tamaño | Pasos de 50 % (múltiplos de 8 px); si no alcanza, pasos de 100 % |
 | La UI escalada desplaza el punto que elige el ratón en el 3D | Criterio de V2: probar la selección de celdas y de colonos con la UI al 200 % |
-| La decoración pesa en los mapas grandes de IP8 | `MultiMesh` por chunk y un límite de densidad en el catálogo |
+| La decoración pesa en los mapas grandes de IP8 | Una malla por chunk, la probabilidad en el catálogo y la opción Decoración del pasto (Nada a Mucha) |
+| Opciones ya no entra a 720p con una fila más | Al sumar la próxima opción, pasar a dos columnas o a pestañas |
 
 ## Definición de hecho de IP2.5
 
@@ -221,4 +222,15 @@ Cerradas el 14 de octubre de 2026 (ADR-012):
 - Un modelo sin normales o con superficies que no son triángulos ya no rompe el arranque. La decoración se dibuja por las dos caras, y un test pide que sus modelos no tengan texturas, porque el horneado guarda un color por material.
 - La suma de probabilidades no desborda; las normales se giran una vez por pieza; la decoración se decide en el mismo paso que dibuja el suelo, sin recorrer el cielo ni la roca; `ModelLibrary` carga por ruta.
 - Quedan como están: las matas toman el `grass` de la paleta, a propósito un poco más oscuro que el pasto del suelo para que se distingan (anotado en `docs/art.md`), y la biblioteca de modelos propia del terreno, por lo mismo que en V3.
+- 507 tests en verde y mismas huellas.
+
+## Agregado a V4: opción de decoración
+
+Pedido del usuario del 14 de octubre de 2026, después de cerrar V4, en la rama `ip2.5/v4-opcion-decoracion`. Spec en `docs/gdd/decoracion-del-pasto.md`.
+
+- Opciones suma **Decoración del pasto**: Nada, Poca, Normal (por defecto) y Mucha, que multiplican la probabilidad del catálogo por 0, 0,4, 1 y 1,8. Se aplica en el acto, rearmando el terreno una vez, y se guarda (`decoration` en `settings.cfg`; un valor desconocido vuelve a Normal).
+- Una celda con decoración en un nivel la conserva en los niveles mayores: la tirada de la celda es la misma.
+- `--decoration none|low|normal|high` para capturas y benchmarks, sin guardarlo.
+- Medición alternada, dos veces: Nada 327 y 324 FPS, Mucha 303 y 300. Mucha cuesta unos 0,25 ms por cuadro en la RTX 4090 de portátil; en una placa más lenta la proporción puede ser mayor.
+- Capturas de los cuatro niveles y de Opciones en es y en. Con esta fila, Opciones a 720p queda justa: una más no entra.
 - 507 tests en verde y mismas huellas.

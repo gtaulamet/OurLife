@@ -1,5 +1,6 @@
 using Godot;
 using OurLife.Game.Bootstrap;
+using OurLife.Game.Rendering;
 
 namespace OurLife.Game.UI;
 
@@ -14,6 +15,7 @@ public partial class OptionsScreen : Control
     private readonly List<(bool Fullscreen, Button Button)> _modes = [];
     private readonly List<(bool On, Button Button)> _cycle = [];
     private readonly List<(int Setting, Button Button)> _sizes = [];
+    private readonly List<(DecorationLevel Level, Button Button)> _decorations = [];
 
     public event Action? Closed;
 
@@ -69,6 +71,19 @@ public partial class OptionsScreen : Control
             screen._sizes.Add((setting, button));
         }
 
+        column.AddChild(UiBuilder.Caption("ui.options.decoration"));
+        var decorations = new HBoxContainer();
+        decorations.AddThemeConstantOverride("separation", UiBuilder.Gap);
+        column.AddChild(decorations);
+        foreach (var (level, key) in DecorationLevels.InOrder)
+        {
+            var button = new Button { Text = key, ToggleMode = true };
+            button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
+            button.Pressed += () => screen.ChooseDecoration(level);
+            decorations.AddChild(button);
+            screen._decorations.Add((level, button));
+        }
+
         column.AddChild(UiBuilder.Caption("ui.options.day_night"));
         var cycle = new HBoxContainer();
         cycle.AddThemeConstantOverride("separation", UiBuilder.Gap);
@@ -87,6 +102,7 @@ public partial class OptionsScreen : Control
         screen.RefreshModes();
         screen.RefreshCycle();
         screen.RefreshSizes();
+        screen.RefreshDecorations();
         return screen;
     }
 
@@ -159,6 +175,20 @@ public partial class OptionsScreen : Control
                 : _services.Text.Format("ui.options.ui_scale_percent", ("percent", setting));
             button.Disabled = setting != UiScaleRules.Auto && !UiScaleRules.IsAvailable(setting, window.X, window.Y);
             button.SetPressedNoSignal(setting == shown);
+        }
+    }
+
+    private void ChooseDecoration(DecorationLevel level)
+    {
+        _services.Settings.SetDecoration(level);
+        RefreshDecorations();
+    }
+
+    private void RefreshDecorations()
+    {
+        foreach (var (level, button) in _decorations)
+        {
+            button.SetPressedNoSignal(level == _services.Settings.Decoration);
         }
     }
 

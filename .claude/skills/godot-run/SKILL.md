@@ -71,6 +71,8 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 & $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080-200.png --locale en --ui-scale 200 --options
 # Una casa amueblada: --inspect-furniture centra la cámara en el primer mueble; --level a la altura de la casa
 & $env:GODOT_BIN --path game -- --screenshot out/casa.png --seed 42 --play --level 15 --zoom 9 --ticks 5000 --orders --hour 12 --inspect-furniture
+# Decoración del pasto (IP2.5): --decoration none|low|normal|high, sin guardarlo; sirve también con --benchmark
+& $env:GODOT_BIN --path game -- --screenshot out/sin-deco.png --seed 42 --play --level 14 --zoom 12 --ticks 200 --hour 12 --decoration none
 # Vista previa de un mueble (IP2.5): --furniture, --rotation 0..3, --point x,y (centra la cámara) y --drag-to x,y.
 # En PowerShell, las columnas van entre comillas: "44,53"; sin comillas llegan como "44 53".
 & $env:GODOT_BIN --path game -- --screenshot out/silla.png --seed 42 --play --level 15 --zoom 8 --ticks 5000 --orders --hour 12 --furniture chair --rotation 1 --point "44,53"

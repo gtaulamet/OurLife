@@ -1,4 +1,5 @@
 using Godot;
+using OurLife.Game.Rendering;
 using OurLife.Game.UI;
 using OurLife.Localization;
 
@@ -7,7 +8,7 @@ namespace OurLife.Game.Bootstrap;
 /// <summary>
 /// Player preferences, stored in <c>user://settings.cfg</c>. Without a saved preference the
 /// language is Spanish, whatever the language of the operating system, the game is windowed, the
-/// day and night cycle is on and the interface size is automatic.
+/// day and night cycle is on, the interface size is automatic and the grass has the normal decoration.
 /// </summary>
 public sealed class Settings
 {
@@ -17,19 +18,24 @@ public sealed class Settings
     private const string FullscreenKey = "fullscreen";
     private const string DayNightKey = "day_night";
     private const string UiScaleKey = "ui_scale";
+    private const string DecorationKey = "decoration";
 
     private readonly bool _persistent;
 
-    // The size written to the file; UiScale may differ for this session only (--ui-scale).
+    // The values written to the file; UiScale and Decoration may differ for this session only
+    // (--ui-scale, --decoration).
     private int _savedUiScale;
+    private DecorationLevel _savedDecoration;
 
-    private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, bool persistent)
+    private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, int decoration, bool persistent)
     {
         Locale = locale;
         Fullscreen = fullscreen;
         DayNightCycle = dayNight;
         UiScale = UiScaleRules.IsValid(uiScale) ? uiScale : UiScaleRules.Auto;
         _savedUiScale = UiScale;
+        Decoration = Enum.IsDefined((DecorationLevel)decoration) ? (DecorationLevel)decoration : DecorationLevel.Normal;
+        _savedDecoration = Decoration;
         _persistent = persistent;
     }
 
@@ -49,12 +55,15 @@ public sealed class Settings
     /// <summary>Raised when the interface size changes, so the window applies it.</summary>
     public event Action? UiScaleChanged;
 
+    /// <summary>How much decoration dresses the grass (see <c>docs/gdd/decoracion-del-pasto.md</c>); the view reads it every frame.</summary>
+    public DecorationLevel Decoration { get; private set; }
+
     public static Settings Load()
     {
         using var config = new ConfigFile();
         if (config.Load(FilePath) != Error.Ok)
         {
-            return new Settings(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, persistent: true);
+            return new Settings(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, persistent: true);
         }
 
         return new Settings(
@@ -62,11 +71,13 @@ public sealed class Settings
             config.GetValue(Section, FullscreenKey, false).AsBool(),
             config.GetValue(Section, DayNightKey, true).AsBool(),
             config.GetValue(Section, UiScaleKey, UiScaleRules.Auto).AsInt32(),
+            config.GetValue(Section, DecorationKey, (int)DecorationLevel.Normal).AsInt32(),
             persistent: true);
     }
 
     /// <summary>Settings that are never written, for smoke tests and screenshots.</summary>
-    public static Settings InMemory() => new(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, persistent: false);
+    public static Settings InMemory() =>
+        new(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, persistent: false);
 
     public void SetLocale(string locale)
     {
@@ -84,6 +95,22 @@ public sealed class Settings
     {
         DayNightCycle = on;
         Save();
+    }
+
+    /// <summary>Sets how much decoration dresses the grass. Without <paramref name="save"/> it lasts for this session only, as with <c>--decoration</c>.</summary>
+    public void SetDecoration(DecorationLevel level, bool save = true)
+    {
+        if (!Enum.IsDefined(level))
+        {
+            return;
+        }
+
+        Decoration = level;
+        if (save && level != _savedDecoration)
+        {
+            _savedDecoration = level;
+            Save();
+        }
     }
 
     /// <summary>
@@ -136,6 +163,7 @@ public sealed class Settings
         config.SetValue(Section, FullscreenKey, Fullscreen);
         config.SetValue(Section, DayNightKey, DayNightCycle);
         config.SetValue(Section, UiScaleKey, _savedUiScale);
+        config.SetValue(Section, DecorationKey, (int)_savedDecoration);
         var error = config.Save(FilePath);
         if (error != Error.Ok)
         {

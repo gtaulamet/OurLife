@@ -102,6 +102,12 @@ public sealed record CommandLineOptions
     public int? UiScale { get; init; }
 
     /// <summary>
+    /// How much decoration dresses the grass for this session, without saving it: none, low,
+    /// normal or high (<c>docs/gdd/decoracion-del-pasto.md</c>), to compare captures and benchmarks.
+    /// </summary>
+    public Rendering.DecorationLevel? Decoration { get; init; }
+
+    /// <summary>
     /// Turn the build tool on with this piece of furniture, of its first material, to see its
     /// preview in screenshots (milestone V3, <c>docs/gdd/vista-previa-de-muebles.md</c>).
     /// </summary>
@@ -248,6 +254,14 @@ public sealed record CommandLineOptions
 
                     options = options with { UiScale = uiScale };
                     break;
+                case "--decoration":
+                    var decorationName = ValueAfter(args, ref i);
+                    options = options with
+                    {
+                        Decoration = Rendering.DecorationLevels.Parse(decorationName)
+                            ?? throw new ArgumentException("--decoration must be one of: none, low, normal, high."),
+                    };
+                    break;
                 case "--furniture":
                     options = options with { Furniture = ValueAfter(args, ref i) };
                     break;
@@ -317,7 +331,7 @@ public sealed record CommandLineOptions
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ui-scale={(UiScale is null ? "-" : UiScale == UI.UiScaleRules.Auto ? "auto" : UiScale.Value.ToString(CultureInfo.InvariantCulture))}, " +
-        $"furniture={Furniture ?? "-"}, rotation={Rotation?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
+        $"decoration={Decoration?.ToString().ToLowerInvariant() ?? "-"}, furniture={Furniture ?? "-"}, rotation={Rotation?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"point={(Point is { } point ? $"{point.X},{point.Y}" : "-")}, drag-to={(DragTo is { } drag ? $"{drag.X},{drag.Y}" : "-")}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)
