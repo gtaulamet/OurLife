@@ -53,7 +53,7 @@ flowchart LR
 | Acción | Teclado | Ratón |
 |---|---|---|
 | Mover la cámara | WASD o flechas | |
-| Zoom | | Rueda |
+| Zoom | + / - (mantener) | Rueda; en el trackpad, pellizcar o deslizar dos dedos |
 | Rotar 90° | Q / E | |
 | Subir o bajar de nivel | RePág / AvPág | |
 | Pausa | Espacio | Botón de pausa |

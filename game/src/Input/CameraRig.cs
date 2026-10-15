@@ -4,8 +4,8 @@ namespace OurLife.Game.Input;
 
 /// <summary>
 /// The camera of the world view (ADR-009): it looks down at a point of the current level with a
-/// fixed tilt, turns in steps of 90°, moves with the keys, zooms with the wheel and changes level
-/// with Page Up/Down. Moving is relative to where the camera faces.
+/// fixed tilt, turns in steps of 90°, moves with the keys, zooms with the wheel, the trackpad or
+/// + and -, and changes level with Page Up/Down. Moving is relative to where the camera faces.
 /// </summary>
 public partial class CameraRig : Node3D
 {
@@ -13,6 +13,9 @@ public partial class CameraRig : Node3D
     private const float MinDistance = 8f;
     private const float MaxDistance = 140f;
     private const float ZoomStep = 1.15f;
+
+    /// <summary>How much holding + or - changes the distance in a second.</summary>
+    private const float KeyZoomPerSecond = 3f;
     private const float PanSpeedPerDistance = 0.9f;
 
     private Camera3D _camera = null!;
@@ -25,6 +28,9 @@ public partial class CameraRig : Node3D
 
     /// <summary>The camera itself, for turning screen points into rays.</summary>
     public Camera3D Camera => _camera;
+
+    /// <summary>Distance from the camera to the point it looks at: smaller is closer.</summary>
+    public float Distance => _distance;
 
     /// <summary>Raised with the new level when the player moves the view up or down.</summary>
     public event Action<int>? LevelChanged;
@@ -84,6 +90,12 @@ public partial class CameraRig : Node3D
             ChangeLevel(-1);
         }
 
+        var zoom = Godot.Input.GetAxis(InputActions.ZoomIn, InputActions.ZoomOut);
+        if (zoom != 0f)
+        {
+            Zoom(Mathf.Pow(KeyZoomPerSecond, zoom * (float)delta));
+        }
+
         var move = Godot.Input.GetVector(InputActions.CameraLeft, InputActions.CameraRight, InputActions.CameraForward, InputActions.CameraBack);
         if (move != Vector2.Zero)
         {
@@ -100,18 +112,27 @@ public partial class CameraRig : Node3D
 
     public override void _UnhandledInput(InputEvent @event)
     {
-        if (@event is InputEventMouseButton { Pressed: true } button)
+        switch (@event)
         {
-            if (button.ButtonIndex == MouseButton.WheelUp)
-            {
-                _distance = Math.Max(MinDistance, _distance / ZoomStep);
-            }
-            else if (button.ButtonIndex == MouseButton.WheelDown)
-            {
-                _distance = Math.Min(MaxDistance, _distance * ZoomStep);
-            }
+            case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelUp }:
+                Zoom(1f / ZoomStep);
+                break;
+            case InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.WheelDown }:
+                Zoom(ZoomStep);
+                break;
+
+            // A trackpad on macOS sends no wheel: pinching and sliding two fingers are gestures.
+            case InputEventMagnifyGesture magnify when magnify.Factor > 0f:
+                Zoom(1f / magnify.Factor);
+                break;
+            case InputEventPanGesture pan:
+                Zoom(Mathf.Pow(ZoomStep, pan.Delta.Y));
+                break;
         }
     }
+
+    /// <summary>Multiplies the distance to the focus: below 1 comes closer.</summary>
+    private void Zoom(float factor) => _distance = Math.Clamp(_distance * factor, MinDistance, MaxDistance);
 
     private void ChangeLevel(int step)
     {

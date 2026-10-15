@@ -762,6 +762,9 @@ public partial class GameRoot : Node
                 if (screen.Input.Selected is { IsColonist: true })
                 {
                     GD.Print("[smoke] with the interface at 200 %, a click on a colonist selects it");
+
+                    // The click reached the world there, so a gesture there reaches the camera too.
+                    ZoomWithTrackpadAndKeys(root, screen.View.Camera, pixel);
                     return;
                 }
             }
@@ -773,6 +776,37 @@ public partial class GameRoot : Node
             settings.SetUiScale(setting, save: false);
             root.Size = size;
         }
+    }
+
+    /// <summary>
+    /// A Mac trackpad sends no wheel: pinching spread out comes closer and sliding two fingers
+    /// down goes away, as the window gets them (<c>docs/gdd/interfaz-ip1.md</c>). Each gesture is
+    /// then undone, so the view stays as it was. + and - zoom whatever the keyboard layout: + is a
+    /// key of its own on a Spanish one and Shift and = on a US one.
+    /// </summary>
+    private static void ZoomWithTrackpadAndKeys(Window root, CameraRig rig, Vector2 pixel)
+    {
+        var start = rig.Distance;
+        root.PushInput(new InputEventMagnifyGesture { Factor = 1.5f, Position = pixel });
+        var pinched = rig.Distance;
+        root.PushInput(new InputEventMagnifyGesture { Factor = 1f / 1.5f, Position = pixel });
+        root.PushInput(new InputEventPanGesture { Delta = new Vector2(0f, 2f), Position = pixel });
+        var slid = rig.Distance;
+        root.PushInput(new InputEventPanGesture { Delta = new Vector2(0f, -2f), Position = pixel });
+        if (!(pinched < start && slid > start))
+        {
+            throw new InvalidOperationException($"From {start}, a pinch left the camera at {pinched} and a slide down at {slid}.");
+        }
+
+        using var plus = new InputEventKey { Keycode = Key.Plus };
+        using var equal = new InputEventKey { Keycode = Key.Equal, ShiftPressed = true };
+        using var minus = new InputEventKey { Keycode = Key.Minus };
+        if (!InputMap.EventIsAction(plus, InputActions.ZoomIn) || !InputMap.EventIsAction(equal, InputActions.ZoomIn) || !InputMap.EventIsAction(minus, InputActions.ZoomOut))
+        {
+            throw new InvalidOperationException("+, Shift and = or - is not bound to the zoom.");
+        }
+
+        GD.Print("[smoke] a pinch and a two-finger slide on the trackpad zoom, and so do + and -");
     }
 
     /// <summary>

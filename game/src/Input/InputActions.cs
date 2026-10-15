@@ -5,7 +5,7 @@ namespace OurLife.Game.Input;
 
 /// <summary>
 /// Input actions of the game, registered in code so <c>project.godot</c> stays minimal. The keys
-/// follow <c>docs/gdd/interfaz-ip1.md</c>: WASD or arrows to move, Q/E to rotate, Page Up/Down to change level,
+/// follow <c>docs/gdd/interfaz-ip1.md</c>: WASD or arrows to move, Q/E to rotate, + and - to zoom, Page Up/Down to change level,
 /// M, B, T, R, Z, V, H and X for orders, C to build, G to turn furniture, P for the colony panel, Space and 1 to 3 for time.
 /// </summary>
 public static class InputActions
@@ -18,6 +18,8 @@ public static class InputActions
     public const string RotateRight = "camera_rotate_right";
     public const string LevelUp = "view_level_up";
     public const string LevelDown = "view_level_down";
+    public const string ZoomIn = "camera_zoom_in";
+    public const string ZoomOut = "camera_zoom_out";
     public const string TogglePause = "time_pause";
     public const string Speed1 = "time_speed_1";
     public const string Speed2 = "time_speed_2";
@@ -49,6 +51,16 @@ public static class InputActions
         (Build, [Key.C]),
         (RotateBuild, [Key.G]),
         (ToggleColony, [Key.P]),
+    ];
+
+    /// <summary>
+    /// Keys bound by the character they type, not by their place: + and - sit in different places
+    /// on each layout, and on a US keyboard + is Shift and =.
+    /// </summary>
+    private static readonly (string Action, Key[] Keys)[] CharacterBindings =
+    [
+        (ZoomIn, [Key.Plus, Key.Equal, Key.KpAdd]),
+        (ZoomOut, [Key.Minus, Key.KpSubtract]),
     ];
 
     /// <summary>The action that chooses an order, like <c>order_mine</c>.</summary>
@@ -84,6 +96,21 @@ public static class InputActions
             {
                 // The input map keeps its own reference (see MapRenderer.Fill).
                 using var keyEvent = new InputEventKey { PhysicalKeycode = key };
+                InputMap.ActionAddEvent(action, keyEvent);
+            }
+        }
+
+        foreach (var (action, keys) in CharacterBindings)
+        {
+            if (InputMap.HasAction(action))
+            {
+                continue;
+            }
+
+            InputMap.AddAction(action);
+            foreach (var key in keys)
+            {
+                using var keyEvent = new InputEventKey { Keycode = key };
                 InputMap.ActionAddEvent(action, keyEvent);
             }
         }

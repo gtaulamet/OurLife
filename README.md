@@ -11,7 +11,7 @@ Cinco colonos llegan en primavera a un valle con 30 raciones. Comen, duermen de 
 | Acción | Teclado | Ratón |
 |---|---|---|
 | Mover la cámara | WASD o flechas | |
-| Zoom | | Rueda |
+| Zoom | + / - (mantener) | Rueda; en el trackpad, pellizcar o deslizar dos dedos |
 | Rotar 90° | Q / E | |
 | Subir o bajar de nivel | RePág / AvPág | |
 | Pausa y velocidad 1×, 2×, 4× | Espacio, 1, 2, 3 | Botones de la barra superior |
@@ -71,7 +71,7 @@ La versión de Mac es una app universal (Apple Silicon e Intel) y se exporta des
 ./tools/package-macos.ps1
 ```
 
-El script exporta `OurLife.app`, le agrega `LICENSES.txt` y `CREDITS.md` sin tocar los permisos del zip, y arma `builds/OurLife-v<versión>-macos-universal.zip`. No puede correr el smoke: eso se hace en una Mac.
+El script, que necesita PowerShell 7, exporta `OurLife.app`, le agrega `LICENSES.txt` y `CREDITS.md`, vuelve a marcar las entradas del zip como hechas en Unix para que la Mac respete los permisos de ejecución, y arma `builds/OurLife-v<versión>-macos-universal.zip`. No puede correr el smoke: eso se hace en una Mac.
 
 **En la Mac:**
 

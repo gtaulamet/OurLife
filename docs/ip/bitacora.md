@@ -4,15 +4,15 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-14.*
+*Actualizado el 2026-10-15.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v6-integracion`: paquetes y pasada automática hechos, falta el playtest humano |
+| Rama de trabajo | `ip2.5/v6-integracion`: playtest en Windows aprobado; en la Mac, dos hallazgos corregidos (permisos del zip y zoom con el trackpad), falta volver a probar ahí |
 | `main` | En el cierre de V5 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
 | IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
-| Validación | `dotnet build` sin advertencias, 509 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 515 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
 
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **El usuario** juega con `builds/OurLife-v0.2.5-windows-x86_64.zip` (y en la Mac con el de macOS, vuelto a firmar) siguiendo `docs/ip/playtest-ip2.5.md`. Los zips no se versionan: en la otra PC se arman con `./tools/package-windows.ps1` y `./tools/package-macos.ps1`.
+1. **El usuario** vuelve a probar en la Mac con el zip de macOS del 15 de octubre (vuelto a firmar, sin `chmod`): la sección macOS de `docs/ip/playtest-ip2.5.md`, con el zoom del trackpad y de + y -. Los zips no se versionan: en la otra PC se arman con `./tools/package-windows.ps1` y `./tools/package-macos.ps1`, este último con PowerShell 7.
 2. Con el playtest aprobado: revisión de código de V6, adelantar `main`, tag `v0.2.5` y release de GitHub con los dos zips. Después, planificar IP3.
 3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -41,6 +41,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-15: V6, hallazgos del playtest en la Mac
+
+- La checklist de Windows quedó toda en ✅.
+- Hallazgo 1: la app de Mac no tenía permiso de ejecución. El `ZipArchive` de .NET (PowerShell 7) marca como MS-DOS todas las entradas al agregar archivos, y macOS ignora sus permisos. `package-macos.ps1` reescribe el directorio central para marcarlas como Unix, da `rw-r--r--` a lo agregado y falla si el ejecutable no tiene permiso de ejecución.
+- Hallazgo 2: en la Mac, el trackpad no hacía zoom porque no manda rueda. Ahora hacen zoom el pellizco (`InputEventMagnifyGesture`), deslizar dos dedos (`InputEventPanGesture`) y mantener + o - (acciones `camera_zoom_in`/`camera_zoom_out`, por carácter y no por posición). El smoke los comprueba y falla si el pellizco va al revés.
+- Mismas huellas, 515 tests. Zips de Windows y macOS rearmados.
 
 ### 2026-10-14: V6 Integración (primera parte)
 
