@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. Empezar IP3 con H3.1: la spec `docs/gdd/vida-y-generaciones.md` (game-designer), con las decisiones del usuario que ya están en `docs/ip/IP3.md`. Falta definir de quién heredan el apellido los hijos.
+1. Empezar IP3 con H3.1: la spec `docs/gdd/vida-y-generaciones.md` (game-designer), con las decisiones del usuario que ya están en `docs/ip/IP3.md`.
 2. **En la Mac**, cuando haya ocasión: la sección macOS de `docs/ip/playtest-ip2.5.md` con el zip de `v0.2.5` (abrir sin `chmod`, zoom con el trackpad y con + y -, smoke con la huella `974758E0263469A3`). Quedó en ➖ al cerrar IP2.5.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -46,7 +46,7 @@ En orden:
 - El usuario cerró IP2.5 con el playtest de Windows aprobado. Los puntos de macOS quedaron en ➖: los hallazgos de la Mac se corrigieron, pero no se volvieron a probar ahí.
 - Revisión de código de V6: 9 hallazgos, todos corregidos. El script de macOS pide PowerShell 7.4, detecta bien Zip64 y da modo de carpeta a las carpetas; el zoom con dos dedos tiene tope por evento y no hace zoom de costado, y el smoke lo comprueba; el registro de las teclas quedó en una sola función.
 - `main` adelantado, tag `v0.2.5` y release de GitHub con los dos zips.
-- Respuestas del usuario para la spec de IP3: los niños sólo juegan, la orientación forma parte de la personalidad y cualquier pareja es posible, los colonos tienen apellido, la comida es el único tope de población y dos fundadores llegan en pareja.
+- Respuestas del usuario para la spec de IP3: los niños sólo juegan, la orientación forma parte de la personalidad y cualquier pareja es posible, los colonos tienen apellido y los hijos heredan el del padre, la comida es el único tope de población y dos fundadores llegan en pareja.
 
 ### 2026-10-15: plan de IP3 "Vida y generaciones"
 

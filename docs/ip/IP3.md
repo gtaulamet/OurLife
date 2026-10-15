@@ -69,7 +69,7 @@ Respondidas el 15 de octubre de 2026:
 
 - **Trabajo infantil:** los niños sólo juegan. Los adolescentes hacen trabajos livianos.
 - **Parejas:** se modela la orientación como parte de la personalidad, y cualquier pareja es posible entre adultos con orientaciones compatibles. Sólo una pareja de mujer y varón puede tener hijos.
-- **Apellidos:** cada colono lleva apellido. Los fundadores llegan con el suyo y los hijos lo heredan; la spec define de quién (padre, madre o los dos) y la lista de apellidos medievales, que no se traducen, como los nombres.
+- **Apellidos:** cada colono lleva apellido. Los fundadores llegan con el suyo y los hijos heredan el del padre. La spec define la lista de apellidos medievales, que no se traducen, como los nombres.
 - **Tope de población:** en principio, sólo la comida. El benchmark de H3.10 dice si hace falta un tope por rendimiento.
 - **Fundadores:** dos de los cinco llegan en pareja.
 
