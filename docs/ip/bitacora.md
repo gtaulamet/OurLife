@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | Ninguna abierta. La próxima es `ip3/h3-1-spec` |
+| Rama de trabajo | `ip3/h3-1-spec`: borrador de la spec de IP3 listo, espera la aprobación del usuario |
 | `main` | En el cierre de IP2.5 (`v0.2.5`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
@@ -20,8 +20,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. Empezar IP3 con H3.1: la spec `docs/gdd/vida-y-generaciones.md` (game-designer), con las decisiones del usuario que ya están en `docs/ip/IP3.md`.
-2. **En la Mac**, cuando haya ocasión: la sección macOS de `docs/ip/playtest-ip2.5.md` con el zip de `v0.2.5` (abrir sin `chmod`, zoom con el trackpad y con + y -, smoke con la huella `974758E0263469A3`). Quedó en ➖ al cerrar IP2.5.
+1. **El usuario** revisa la spec `docs/gdd/vida-y-generaciones.md` (H3.1). Con su aprobación, H3.1 se cierra y sigue H3.2, edad y etapas de la vida, en `ip3/h3-2-edad`.
+2. **En la Mac** (el usuario lo está probando): la sección macOS de `docs/ip/playtest-ip2.5.md` con el zip de `v0.2.5` (abrir sin `chmod`, zoom con el trackpad y con + y -, smoke con la huella `974758E0263469A3`). Quedó en ➖ al cerrar IP2.5.
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -40,6 +40,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-15: H3.1, borrador de la spec de IP3
+
+- Rama `ip3/h3-1-spec`, desde `main` en `v0.2.5`.
+- Spec `docs/gdd/vida-y-generaciones.md`: tiempo de la vida y los tres ritmos (Rápido por defecto), cinco etapas, fundadores con edad, apellido y la pareja, cinco rasgos y la orientación, habilidades por tipo de trabajo, siete interacciones, relaciones y familia, pensamientos y ánimo, dos crisis, seis deseos, embarazo y parto, crianza con cuna y el trabajo de alimentar, vejez con tabla por edad, migración del guardado a la versión 2, contrato, flujos, defs, textos, modelos y 16 criterios de aceptación. Apellidos castellanos e ingleses con fuentes.
+- Lo que quedó fuera, en el backlog. El usuario prueba `v0.2.5` en la Mac mientras tanto.
 
 ### 2026-10-15: cierre de IP2.5 (`v0.2.5`)
 

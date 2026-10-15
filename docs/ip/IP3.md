@@ -9,13 +9,13 @@
 
 **Estimación:** 95 a 135 h. **Versión al cerrar:** `v0.3.0`, para Windows y macOS.
 
-**Estado:** planificada. Empieza cuando se cierre IP2.5 (`v0.2.5`).
+**Estado:** en curso desde el 15 de octubre de 2026. H3.1 espera la aprobación de la spec.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| H3.1 Spec y contrato | Pendiente | `ip3/h3-1-spec` | |
+| H3.1 Spec y contrato | En curso | `ip3/h3-1-spec` | Borrador de `docs/gdd/vida-y-generaciones.md` listo; falta la aprobación del usuario |
 | H3.2 Edad y etapas de la vida | Pendiente | `ip3/h3-2-edad` | |
 | H3.3 Personalidad | Pendiente | `ip3/h3-3-personalidad` | |
 | H3.4 Habilidades | Pendiente | `ip3/h3-4-habilidades` | |
@@ -52,7 +52,7 @@
 
 | Hito | Contenido | Agentes | Horas | Entregable verificable |
 |---|---|---|---|---|
-| H3.1 Spec y contrato | `docs/gdd/vida-y-generaciones.md` con criterios de aceptación; defs JSON (etapas, ritmos de la vida, rasgos y orientación, interacciones, habilidades, pensamientos, deseos, curva de vejez, fertilidad, apellidos); contrato de comandos, eventos y consultas; balance de población contra comida, según las decisiones del usuario | game-designer, Plan, humano | 6–8 | Spec aprobada por el usuario; el contrato permite trabajar en paralelo |
+| H3.1 Spec y contrato | `docs/gdd/vida-y-generaciones.md` con criterios de aceptación; defs propuestos (etapas, ritmos de la vida, rasgos y orientación, interacciones, habilidades, pensamientos, deseos, curva de vejez, fertilidad, apellidos), que entran como archivos en el hito que los usa; contrato de comandos, eventos y consultas; balance de población contra comida, según las decisiones del usuario | game-designer, Plan, humano | 6–8 | Spec aprobada por el usuario; el contrato permite trabajar en paralelo |
 | H3.2 Edad y etapas de la vida | Fecha de nacimiento y edad; etapas por datos con lo que permiten; ritmo de la vida elegido en Nueva partida y guardado; muerte por vejez; fundadores de edades distintas; migración de partidas de v0.2.x (edad sorteada en forma determinista); edad y etapa en el inspector | sim-engineer, godot-engineer, i18n-specialist | 10–14 | Test: con Muy rápido, un colono llega a anciano y muere de viejo antes de un tope de días; misma semilla ⇒ mismo resultado; una partida de v0.2.5 carga |
 | H3.3 Personalidad | Rasgos por datos; sorteo al llegar; herencia de los padres; deriva por vivencias con un tope por día; efecto en las decisiones (preferencias de trabajo, ganas de interactuar) | sim-engineer, game-designer | 8–12 | Tests de sorteo, herencia y deriva; dos colonos con rasgos opuestos eligen distinto en el mismo escenario |
 | H3.4 Habilidades | Una habilidad por tipo de trabajo; experiencia al trabajar; curva de niveles y efecto en la velocidad, en los defs; aprendizaje por enseñanza | sim-engineer | 8–12 | Test: un colono que tala sube de nivel y tala más rápido; un aprendiz gana experiencia junto a un maestro |
