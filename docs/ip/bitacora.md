@@ -11,7 +11,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Rama de trabajo | `ip2.5/v6-integracion`: playtest en Windows aprobado; en la Mac, dos hallazgos corregidos (permisos del zip y zoom con el trackpad), falta volver a probar ahí |
 | `main` | En el cierre de V5 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
-| IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 hecho, con terreno B, GL Compatibility y KayKit (ADR-012). IP3 se planifica después |
+| IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 a V5 hechos, V6 en el playtest. La siguiente es IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre; Oficios pasó a IP4 |
 | Validación | `dotnet build` sin advertencias, 515 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
 | Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
@@ -21,9 +21,10 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **El usuario** vuelve a probar en la Mac con el zip de macOS del 15 de octubre (vuelto a firmar, sin `chmod`): la sección macOS de `docs/ip/playtest-ip2.5.md`, con el zoom del trackpad y de + y -. Los zips no se versionan: en la otra PC se arman con `./tools/package-windows.ps1` y `./tools/package-macos.ps1`, este último con PowerShell 7.
-2. Con el playtest aprobado: revisión de código de V6, adelantar `main`, tag `v0.2.5` y release de GitHub con los dos zips. Después, planificar IP3.
-3. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+2. Con el playtest aprobado: revisión de código de V6, adelantar `main`, tag `v0.2.5` y release de GitHub con los dos zips.
+3. Empezar IP3 con H3.1: la spec `docs/gdd/vida-y-generaciones.md` (game-designer) y las preguntas abiertas de `docs/ip/IP3.md` para el usuario (trabajo infantil, parejas, apellidos, tope de población, fundadores).
+4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
+5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -41,6 +42,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-15: plan de IP3 "Vida y generaciones"
+
+- Pedido del usuario: colonos con sexo, edad y etapas (bebé, niño, adolescente, adulto, anciano), reproducción, muerte por vejez, personalidad sorteada que cambia con las vivencias, interacciones que dan habilidades y deseos.
+- Decisiones del usuario: va antes de Oficios, y el ritmo del envejecimiento se elige al crear la partida.
+- La nueva IP3 junta rasgos, relaciones y ánimo (antigua IP4), habilidades (antigua IP3) y generaciones (IP9). Oficios pasa a IP4, con habitaciones y comedor. Plan en `docs/ip/IP3.md`, de 95 a 135 h y diez hitos; `plan-maestro.md`, `eras.md`, `mapa-y-generacion.md` y ADR-008 actualizados.
+- También pidió que Claude le responda siempre en español.
 
 ### 2026-10-15: V6, hallazgos del playtest en la Mac
 

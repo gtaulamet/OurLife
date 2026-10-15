@@ -11,7 +11,7 @@ Spec del mapa 3D, la generación del valle de la IP1 y la conectividad. Los núm
 |---|---|
 | Forma | Vacía (aire), suelo, muro, rampa, escalera hacia arriba, escalera hacia abajo, escalera en ambos sentidos |
 | Material | Índice del `MaterialDef`, o ninguno en el aire |
-| Banderas | `pasto`, `bloqueada` (una planta impide el paso) y las órdenes de excavar y de escalera; la niebla llega en IP3 |
+| Banderas | `pasto`, `bloqueada` (una planta impide el paso) y las órdenes de excavar y de escalera; la niebla llega en IP4 |
 
 - Un **muro** es roca o tierra maciza. Un **suelo** es una celda abierta con piso: el material del suelo es el del piso. Una **rampa** es un suelo inclinado que sube al nivel de arriba.
 - Árboles, arbustos, objetos y criaturas no son celdas: son entidades con `Position`.
@@ -78,7 +78,7 @@ Todo sale del RNG de la simulación, con un flujo por capa (`worldgen.terrain`, 
 
 ## Fuera de alcance
 
-- Ríos, lagos y agua (IP6). Vetas de mineral y niebla subterránea (IP3).
+- Ríos, lagos y agua (IP6). Vetas de mineral y niebla subterránea (IP4).
 - Elección de sitio y mapa del mundo (IP7).
 - Caché de rutas y HPA*: IP5.
 - La llegada de los colonos y las provisiones iniciales están en `docs/gdd/colonos-e-ia.md`.

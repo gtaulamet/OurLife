@@ -136,7 +136,7 @@ Reglas:
 - Decisión priorizada: necesidad crítica → trabajo según prioridades del colono → necesidad leve → deambular.
 - `JobDriver`: secuencia de pasos (ir a, trabajar N ticks, recoger, consumir, dormir) con manejo de fallos.
 - Reservas para que dos colonos no tomen el mismo objetivo, y enfriamiento para objetivos inalcanzables.
-- Se enriquece con pensamientos y ánimo en IP4 y con combate en IP5.
+- Se enriquece con personalidad, interacciones, pensamientos y ánimo en IP3 y con combate en IP5.
 
 **Contenido por datos (Defs)**
 - JSON estricto en `game/content/defs/`: `EraDef`, `MaterialDef`, `PlantDef`, `ItemDef`, `CreatureDef`, `NeedDef`, `WorkTypeDef`, `JobDef`, `NameListDef`. Más adelante `BuildingDef`, `RecipeDef`, `KnowledgeDef`, `ThoughtDef`…
@@ -242,7 +242,8 @@ Shouldly en lugar de FluentAssertions porque la versión 8 de esta última dejó
 |---|---|---|
 | IP1 | `EraDef` con sólo `medieval`, campos `era` y `requires` en los defs, `UnlockService`, calendario con año absoluto, variantes de modelo por época, regla 5 en `CLAUDE.md` | Unas 4 h, repartidas en H1.2, H1.3 y H1.5 |
 | IP2 | Época y conocimientos dentro del formato de guardado | Incluido |
-| IP3 | Árbol de conocimientos medieval que bloquea recetas y edificios | +10 h |
+| IP3 | Generaciones: edad, nacimientos y muerte por vejez, adelantadas de IP9 | Incluido |
+| IP4 | Árbol de conocimientos medieval que bloquea recetas y edificios | +10 h |
 | IP5 | Armas a distancia genéricas por datos: arco y ballesta, luego mosquete | Incluido |
 | IP7 | Facciones con nivel tecnológico propio, para que el mundo también avance | Incluido |
 
@@ -473,23 +474,23 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 | IP1 | Primeros colonos | Valle 3D, 5 colonos, excavar, escaleras, talar, recolectar, hambre y sueño, es/en | 112–153 | 11–15 / 6–8 / 3–4 | nov 2026 |
 | IP2 | Asentamiento | Almacenes, acarreo, construcción y muebles, guardar y cargar, prioridades, día y noche | 77–101 | 8–10 / 4–5 / 2–3 | dic 2026 |
 | IP2.5 | Pulido visual | Terreno con textura y decoración, muebles medievales, colonos animados, vista previa de muebles y tamaño de la interfaz | 38–55 | 4–6 / 2–3 / 1 | nov 2026 |
-| IP3 | Oficios | Talleres, recetas, producción, habilidades, agricultura, metales, conocimientos | 90–110 | 9–11 / 5–6 / 2–3 | ene 2027 |
-| IP4 | Vida en la colonia | Habitaciones, ánimo, rasgos, relaciones, ocio, crisis | 70–90 | 7–9 / 4–5 / 2 | feb 2027 |
-| IP5 | Peligros | Salud, combate, fauna y caza, bandidos, milicia, medicina | 90–120 | 9–12 / 5–6 / 2–3 | mar 2027 |
-| IP6 | Estaciones | Estaciones, clima, temperatura, antorchas, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | may 2027 |
-| IP7 | Mundo y leyendas | Mapa del mundo, facciones, historia generada, elección de sitio, crónicas | 90–130 | 9–13 / 5–7 / 2–3 | jun 2027 |
-| IP8 | Publicación 1.0 | Rendimiento, audio, tutorial, accesibilidad, mods, QA de idiomas, exportación | 80–120 | 8–12 / 4–6 / 2–3 | jul 2027 |
-| **Total 1.0** | | | **727–989** | **73–99 / 36–49 / 18–25** | **jul 2027; sep 2027 con margen** |
+| IP3 | Vida y generaciones | Edad y etapas de la vida, personalidad, interacciones, relaciones, habilidades, ánimo, deseos, parejas, nacimientos y muerte por vejez | 95–135 | 10–14 / 5–7 / 3–4 | feb 2027 |
+| IP4 | Oficios | Talleres, recetas, producción, agricultura, metales, conocimientos, habitaciones y comedor | 105–130 | 11–13 / 6–7 / 3–4 | mar 2027 |
+| IP5 | Peligros | Salud, combate, fauna y caza, bandidos, milicia, medicina | 90–120 | 9–12 / 5–6 / 2–3 | abr 2027 |
+| IP6 | Estaciones | Estaciones, clima, temperatura, antorchas, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | jun 2027 |
+| IP7 | Mundo y leyendas | Mapa del mundo, facciones, historia generada, elección de sitio, crónicas | 90–130 | 9–13 / 5–7 / 2–3 | jul 2027 |
+| IP8 | Publicación 1.0 | Rendimiento, audio, tutorial, accesibilidad, mods, QA de idiomas, exportación | 80–120 | 8–12 / 4–6 / 2–3 | ago 2027 |
+| **Total 1.0** | | | **767–1 054** | **77–106 / 39–53 / 20–27** | **ago 2027; oct 2027 con margen** |
 
 **Fase 2: progreso de épocas (futuro, posterior a la 1.0)**
 
 | IP | Nombre | Qué se puede jugar al terminar | Horas | Semanas a 10 / 20 / 40 h | Fin aprox. |
 |---|---|---|---|---|---|
-| IP9 | Edad Moderna | Cambio de época, generaciones, imprenta, pólvora, la aldea se vuelve villa | 120–160 | 12–16 / 6–8 / 3–4 | sep 2027 |
-| IP10 | Edad Contemporánea | Revolución Industrial: vapor, electricidad, fábricas, saneamiento | 140–190 | 14–19 / 7–10 / 4–5 | oct 2027 |
-| **Total con épocas** | | | **987–1 339** | **99–134 / 49–67 / 25–33** | **oct 2027; ene 2028 con margen** |
+| IP9 | Edad Moderna | Cambio de época, linajes, imprenta, pólvora, la aldea se vuelve villa | 105–140 | 11–14 / 6–7 / 3–4 | oct 2027 |
+| IP10 | Edad Contemporánea | Revolución Industrial: vapor, electricidad, fábricas, saneamiento | 140–190 | 14–19 / 7–10 / 4–5 | nov 2027 |
+| **Total con épocas** | | | **1 012–1 384** | **102–139 / 51–70 / 26–35** | **nov 2027; feb 2028 con margen** |
 
-IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. IP2.5 se sumó el 14-oct-2026, a pedido del usuario, entre IP2 e IP3: corre las fechas siguientes unas dos semanas y adelanta la escala de UI de IP8. Las fechas siguen siendo aproximadas.
+IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. IP2.5 se sumó el 14-oct-2026, a pedido del usuario, entre IP2 e IP3: corre las fechas siguientes unas dos semanas y adelanta la escala de UI de IP8. El 15-oct-2026, a pedido del usuario, la vida de los colonos pasa antes de los oficios: la nueva IP3 "Vida y generaciones" junta los rasgos, las relaciones y el ánimo de la antigua IP4, las habilidades de la antigua IP3 y las generaciones de IP9, y suma la personalidad que cambia con las vivencias, los deseos y el ritmo de la vida elegido al crear la partida. Oficios pasa a IP4, con las habitaciones y el comedor de la antigua IP4. El total crece de 40 a 65 h y las fechas siguientes se corren unas tres semanas. Las fechas siguen siendo aproximadas.
 
 El arte de las épocas Moderna y Contemporánea probablemente requiera encargar o comprar modelos 3D. Ese costo no está incluido en las horas.
 
@@ -571,8 +572,21 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - Tamaño de la interfaz en Opciones, con modo automático según la resolución.
 - **Jugable:** la misma partida de IP2, con un valle que se ve mejor y textos legibles en cualquier pantalla.
 
-**IP3 · Oficios (90–110 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist.
-- Habilidades con experiencia que afectan velocidad y calidad.
+**IP3 · Vida y generaciones (95–135 h).** Agentes: game-designer, sim-engineer, godot-engineer, art-integrator, i18n-specialist, qa-tester. Detalle en `docs/ip/IP3.md`.
+- Sexo, fecha de nacimiento y edad. Etapas de la vida por datos: bebé, niño, adolescente, adulto y anciano, cada una con lo que puede hacer y su aspecto.
+- Ritmo de la vida elegido al crear la partida: cuántos años de vida pasan en un año del juego.
+- Muerte por vejez con una probabilidad creciente según la edad.
+- Rasgos de personalidad por datos, sorteados, heredados en parte y ajustados por las vivencias.
+- Interacciones entre colonos por datos (charlar, enseñar, discutir, consolar, cortejar), opinión entre pares, amistades, rivalidades, parejas y familia.
+- Habilidades con experiencia por tipo de trabajo, que se ganan trabajando y aprendiendo de otros, y aceleran el trabajo.
+- Pensamientos con duración e intensidad que forman el ánimo; el ánimo afecta el rendimiento y, muy bajo, causa crisis leves.
+- Deseos que nacen de la personalidad y de las interacciones.
+- Parejas, embarazo, parto y crianza, con la opción de permitir o impedir hijos.
+- Ficha del colono con edad, rasgos, habilidades, ánimo, deseos, relaciones y familia. Textos con concordancia de género y número, con tests dedicados.
+- **Jugable:** ver crecer una familia en la aldea, de los fundadores a sus nietos.
+
+**IP4 · Oficios (105–130 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist.
+- Calidad de lo producido según la habilidad, sobre las habilidades de IP3, y habilidades de los talleres.
 - Talleres por datos: carpintería, cantería, cocina, fundición y herrería, con recetas en JSON.
 - Órdenes de producción: hacer N, mantener N en stock, repetir.
 - Conocimientos: árbol tecnológico medieval que bloquea recetas y edificios. Se investiga en un scriptorium y también se gana trabajando. Es la base del progreso de épocas.
@@ -580,17 +594,8 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - Comidas cocinadas más nutritivas; deterioro simple de alimentos.
 - Vetas de mineral y niebla subterránea: los tiles sin descubrir se ocultan.
 - Panel de inventario de la colonia y panel de conocimientos.
-- **Jugable:** cadenas tronco → tablón → mesa, cosecha → comida y mineral → lingote → herramientas, desbloqueadas investigando.
-
-**IP4 · Vida en la colonia (70–90 h).** Agentes: game-designer, sim-engineer, i18n-specialist, godot-engineer.
-- Detección de habitaciones y su calidad por tamaño, muebles y materiales.
-- Dormitorios asignados y comedor.
-- Pensamientos con duración e intensidad que forman el ánimo; el ánimo afecta el rendimiento.
-- Rasgos de personalidad por datos, necesidad de ocio y crisis mentales leves.
-- Relaciones, conversaciones generadas, amistades y rivalidades.
-- Ficha del colono con biografía, rasgos, relaciones y pensamientos.
-- Textos generados con concordancia de género y número en español, con tests dedicados.
-- **Jugable:** gestionar la felicidad de la aldea.
+- Detección de habitaciones y su calidad por tamaño, muebles y materiales; dormitorios asignados y comedor, que suman pensamientos al ánimo de IP3.
+- **Jugable:** cadenas tronco → tablón → mesa, cosecha → comida y mineral → lingote → herramientas, desbloqueadas investigando, y una casa digna para cada familia.
 
 **IP5 · Peligros (90–120 h).** Agentes: sim-engineer, perf-engineer (nuevo), game-designer, art-integrator.
 - Salud por partes del cuerpo: heridas, sangrado, dolor, inconsciencia y muerte. Médico y cama médica.
@@ -634,9 +639,9 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 
 ### 7.4 IP9 e IP10: progreso de épocas (futuro)
 
-**IP9 · Edad Moderna (120–160 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist, godot-engineer.
+**IP9 · Edad Moderna (105–140 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist, godot-engineer.
 - Sistema de épocas completo: hitos de avance, evento y pantalla de cambio de época, desbloqueos y entrada en la crónica.
-- Generaciones: envejecimiento, parejas, nacimientos, infancia, muerte por vejez y linajes.
+- Linajes y herencia entre generaciones. El envejecimiento, las parejas, los nacimientos, la infancia y la muerte por vejez llegan antes, en IP3.
 - Conocimientos de la Edad Moderna: imprenta, pólvora, vidrio, relojería, manufacturas y medicina temprana.
 - Contenido nuevo: ladrillo y vidrio, manufacturas, imprenta, molinos mejorados, libros, mosquetes, cañones y fortificaciones abaluartadas.
 - Arte, tema de UI y música propios de la época mediante variantes.

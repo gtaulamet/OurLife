@@ -17,7 +17,7 @@ Progreso tecnológico continuo, al estilo de Dawn of Man:
 
 - La colonia avanza de época al reunir conocimientos clave y cumplir hitos de población, edificios y producción.
 - El calendario sigue corriendo desde el año de inicio; no hay saltos obligatorios.
-- Las generaciones se renuevan con nacimientos y vejez (IP9).
+- Las generaciones se renuevan con nacimientos y vejez (IP3).
 - El cambio de época es un evento: pantalla propia, desbloqueos y una entrada en la crónica de la colonia.
 
 **Pregunta abierta para IP9:** si conviene además un salto temporal opcional entre épocas.
@@ -62,7 +62,8 @@ Otras piezas por época:
 |---|---|---|
 | IP1 | `EraDef` con sólo `medieval`, campos `era` y `requires`, `UnlockService`, calendario con año absoluto, variantes de modelo por época | Unas 4 h |
 | IP2 | Época y conocimientos dentro del formato de guardado | Incluido |
-| IP3 | Árbol de conocimientos medieval que bloquea recetas y edificios | Unas 10 h |
+| IP3 | Generaciones: edad, nacimientos y muerte por vejez, adelantadas de IP9 | Incluido |
+| IP4 | Árbol de conocimientos medieval que bloquea recetas y edificios | Unas 10 h |
 | IP5 | Armas a distancia genéricas por datos: arco y ballesta, luego mosquete | Incluido |
 | IP7 | Facciones con nivel tecnológico propio | Incluido |
 

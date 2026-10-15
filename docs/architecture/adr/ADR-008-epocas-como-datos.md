@@ -19,6 +19,6 @@ La colonia empieza en la Edad Media y, después de la versión 1.0, debe poder a
 ## Consecuencias
 
 - La versión 1.0 medieval no se reescribe al sumar épocas.
-- Pequeño costo desde IP1, de unas 4 horas, más el árbol de conocimientos de IP3.
+- Pequeño costo desde IP1, de unas 4 horas, más el árbol de conocimientos de IP4 (IP3 hasta el replanteo del 15-oct-2026).
 - Un test verificará que un def de otra época queda bloqueado en la Edad Media (H1.3).
 - El arte de épocas modernas no está cubierto por los packs medievales gratuitos.
