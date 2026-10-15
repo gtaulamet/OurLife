@@ -779,23 +779,32 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// A Mac trackpad sends no wheel: pinching spread out comes closer and sliding two fingers
-    /// down goes away, as the window gets them (<c>docs/gdd/interfaz-ip1.md</c>). Each gesture is
-    /// then undone, so the view stays as it was. + and - zoom whatever the keyboard layout: + is a
-    /// key of its own on a Spanish one and Shift and = on a US one.
+    /// A Mac trackpad sends no wheel: pinching spread out comes closer, and a two-finger slide
+    /// that scrolls down, as the wheel would, goes away, as the window gets them
+    /// (<c>docs/gdd/interfaz-ip1.md</c>). A sideways slide does not zoom. Each gesture is then
+    /// undone, so the view stays as it was. + and - zoom whatever the keyboard layout: + is a key
+    /// of its own on a Spanish one and Shift and = on a US one.
     /// </summary>
     private static void ZoomWithTrackpadAndKeys(Window root, CameraRig rig, Vector2 pixel)
     {
         var start = rig.Distance;
-        root.PushInput(new InputEventMagnifyGesture { Factor = 1.5f, Position = pixel });
+        using var pinch = new InputEventMagnifyGesture { Factor = 1.5f, Position = pixel };
+        using var unpinch = new InputEventMagnifyGesture { Factor = 1f / 1.5f, Position = pixel };
+        using var slide = new InputEventPanGesture { Delta = new Vector2(0f, 0.5f), Position = pixel };
+        using var unslide = new InputEventPanGesture { Delta = new Vector2(0f, -0.5f), Position = pixel };
+        using var sideways = new InputEventPanGesture { Delta = new Vector2(2f, 0.5f), Position = pixel };
+        root.PushInput(pinch);
         var pinched = rig.Distance;
-        root.PushInput(new InputEventMagnifyGesture { Factor = 1f / 1.5f, Position = pixel });
-        root.PushInput(new InputEventPanGesture { Delta = new Vector2(0f, 2f), Position = pixel });
+        root.PushInput(unpinch);
+        root.PushInput(slide);
         var slid = rig.Distance;
-        root.PushInput(new InputEventPanGesture { Delta = new Vector2(0f, -2f), Position = pixel });
-        if (!(pinched < start && slid > start))
+        root.PushInput(unslide);
+        var beforeSideways = rig.Distance;
+        root.PushInput(sideways);
+        var sideSlid = rig.Distance;
+        if (!(pinched < start && slid > start && sideSlid == beforeSideways))
         {
-            throw new InvalidOperationException($"From {start}, a pinch left the camera at {pinched} and a slide down at {slid}.");
+            throw new InvalidOperationException($"From {start}, a pinch left the camera at {pinched}, a slide down at {slid} and a sideways slide changed {beforeSideways} to {sideSlid}.");
         }
 
         using var plus = new InputEventKey { Keycode = Key.Plus };

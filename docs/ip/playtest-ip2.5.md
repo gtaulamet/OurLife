@@ -58,10 +58,10 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 
 ### macOS (en una Mac con Apple Silicon)
 
-- [ ] Descomprimir `OurLife-v0.2.5-macos-universal.zip`, volver a firmar con los pasos del README (`codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`) y abrir la app, sin `chmod`: con el zip del 15 de octubre `OurLife.app/Contents/MacOS/OurLife` ya es ejecutable (hallazgo 1).
-- [ ] Zoom con el trackpad: pellizcar acerca y aleja, y deslizar dos dedos arriba y abajo también. Mantener + acerca y mantener - aleja (hallazgo 2). Anotar si la velocidad de cada uno resulta cómoda.
-- [ ] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `974758E0263469A3`, la misma que en Windows.
-- [ ] El terreno, la decoración y los aldeanos se ven como en Windows, y se juega sin tirones con la decoración en Normal. Si no, probar con Poca o Nada y anotar.
+- [➖] Descomprimir `OurLife-v0.2.5-macos-universal.zip`, volver a firmar con los pasos del README (`codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`) y abrir la app, sin `chmod`: con el zip del 15 de octubre `OurLife.app/Contents/MacOS/OurLife` ya es ejecutable (hallazgo 1).
+- [➖] Zoom con el trackpad: pellizcar acerca y aleja, y deslizar dos dedos arriba y abajo también. Mantener + acerca y mantener - aleja (hallazgo 2). Anotar si la velocidad de cada uno resulta cómoda.
+- [➖] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `974758E0263469A3`, la misma que en Windows.
+- [➖] El terreno, la decoración y los aldeanos se ven como en Windows, y se juega sin tirones con la decoración en Normal. Si no, probar con Poca o Nada y anotar.
 
 ### Rendimiento
 
@@ -93,6 +93,6 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 ## Resultado
 
-- Fecha y PC:
-- Quién jugó:
-- ¿Se puede publicar `v0.2.5`?
+- Fecha y PC: 15 de octubre de 2026, la PC con Windows y la Mac con Apple Silicon (antes de las correcciones de los hallazgos 1 y 2).
+- Quién jugó: el usuario (gtaulamet).
+- ¿Se puede publicar `v0.2.5`? Sí. Windows aprobado; los hallazgos de la Mac se corrigieron y el usuario cerró IP2.5 sin volver a probar ahí. Los puntos de macOS quedan en ➖ para la próxima vez que use la Mac.

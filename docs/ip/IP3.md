@@ -31,7 +31,7 @@
 ## Alcance
 
 - **Sexo:** cada colono es mujer o varón. El dato ya existe desde IP1 (`Gender`) y se usa para el nombre y la concordancia de los textos; ahora también decide quién puede tener hijos.
-- **Edad:** cada colono tiene fecha de nacimiento y envejece con el calendario. Los fundadores llegan como adultos de edades distintas.
+- **Edad:** cada colono tiene fecha de nacimiento y envejece con el calendario. Los fundadores llegan como adultos de edades distintas, y dos de ellos en pareja.
 - **Ritmo de la vida:** al crear la partida se elige cuántos años de vida pasan en un año del juego (un año del juego dura 60 días, unas 2,4 h a 1×). Los valores están en los defs; para empezar, Normal (1 año), Rápido (4 años) y Muy rápido (8 años). Con Rápido, un bebé es adulto en unas 11 h de juego y una vida dura unas 40 h. El ritmo se guarda con la partida y no cambia después.
 - **Etapas de la vida:** bebé, niño, adolescente, adulto y anciano, definidas en datos con sus edades. Cada etapa cambia qué puede hacer el colono (un bebé no camina solo, un niño juega y aprende pero no trabaja, un adolescente hace trabajos livianos, un anciano trabaja más despacio), cómo se ve y cuánto come y duerme.
 - **Muerte por vejez:** desde cierta edad, cada día hay una probabilidad creciente de morir de viejo, con la curva en los defs. Se avisa en el registro, como la muerte por hambre.
@@ -52,7 +52,7 @@
 
 | Hito | Contenido | Agentes | Horas | Entregable verificable |
 |---|---|---|---|---|
-| H3.1 Spec y contrato | `docs/gdd/vida-y-generaciones.md` con criterios de aceptación; defs JSON (etapas, ritmos de la vida, rasgos, interacciones, habilidades, pensamientos, deseos, curva de vejez, fertilidad); contrato de comandos, eventos y consultas; balance de población contra comida; respuesta a las preguntas abiertas | game-designer, Plan, humano | 6–8 | Spec aprobada por el usuario; el contrato permite trabajar en paralelo |
+| H3.1 Spec y contrato | `docs/gdd/vida-y-generaciones.md` con criterios de aceptación; defs JSON (etapas, ritmos de la vida, rasgos y orientación, interacciones, habilidades, pensamientos, deseos, curva de vejez, fertilidad, apellidos); contrato de comandos, eventos y consultas; balance de población contra comida, según las decisiones del usuario | game-designer, Plan, humano | 6–8 | Spec aprobada por el usuario; el contrato permite trabajar en paralelo |
 | H3.2 Edad y etapas de la vida | Fecha de nacimiento y edad; etapas por datos con lo que permiten; ritmo de la vida elegido en Nueva partida y guardado; muerte por vejez; fundadores de edades distintas; migración de partidas de v0.2.x (edad sorteada en forma determinista); edad y etapa en el inspector | sim-engineer, godot-engineer, i18n-specialist | 10–14 | Test: con Muy rápido, un colono llega a anciano y muere de viejo antes de un tope de días; misma semilla ⇒ mismo resultado; una partida de v0.2.5 carga |
 | H3.3 Personalidad | Rasgos por datos; sorteo al llegar; herencia de los padres; deriva por vivencias con un tope por día; efecto en las decisiones (preferencias de trabajo, ganas de interactuar) | sim-engineer, game-designer | 8–12 | Tests de sorteo, herencia y deriva; dos colonos con rasgos opuestos eligen distinto en el mismo escenario |
 | H3.4 Habilidades | Una habilidad por tipo de trabajo; experiencia al trabajar; curva de niveles y efecto en la velocidad, en los defs; aprendizaje por enseñanza | sim-engineer | 8–12 | Test: un colono que tala sube de nivel y tala más rápido; un aprendiz gana experiencia junto a un maestro |
@@ -63,13 +63,15 @@
 | H3.9 Ficha del colono | Panel con edad, etapa, rasgos, habilidades, ánimo y pensamientos, deseos, relaciones y familia; columna de edad y ánimo en el panel Colonia; opción de hijos en la ficha; opción de ritmo en Nueva partida | godot-engineer, i18n-specialist | 10–14 | Capturas en es y en a 1080p y 1440p sin textos cortados; el smoke abre la ficha |
 | H3.10 Integración | Balance de población y comida con los tres ritmos; benchmark con la población de una partida larga; checklist de playtest; paquetes de Windows y macOS; release `v0.3.0` | qa-tester, game-designer, `/code-review`, humano | 6–10 | Checklist completo y `v0.3.0` publicada |
 
-## Preguntas abiertas para la spec (H3.1)
+## Decisiones del usuario para la spec (H3.1)
 
-- **Trabajo infantil:** ¿los adolescentes hacen trabajos livianos y los niños ninguno, o los niños también ayudan (recolectar, acarrear)?
-- **Parejas:** las parejas se forman por afinidad entre adultos. ¿Se modela la orientación como un rasgo, o cualquier pareja es posible y sólo la de mujer y varón tiene hijos?
-- **Apellidos y linajes:** ¿los hijos llevan un apellido o el nombre del padre o de la madre ("hijo de…"), al estilo medieval?
-- **Tope de población:** ¿un máximo de colonos por rendimiento (hoy el presupuesto es de 2 ms por tick), o sólo la comida limita?
-- **Fundadores:** ¿alguno llega ya en pareja, o todos solteros?
+Respondidas el 15 de octubre de 2026:
+
+- **Trabajo infantil:** los niños sólo juegan. Los adolescentes hacen trabajos livianos.
+- **Parejas:** se modela la orientación como parte de la personalidad, y cualquier pareja es posible entre adultos con orientaciones compatibles. Sólo una pareja de mujer y varón puede tener hijos.
+- **Apellidos:** cada colono lleva apellido. Los fundadores llegan con el suyo y los hijos lo heredan; la spec define de quién (padre, madre o los dos) y la lista de apellidos medievales, que no se traducen, como los nombres.
+- **Tope de población:** en principio, sólo la comida. El benchmark de H3.10 dice si hace falta un tope por rendimiento.
+- **Fundadores:** dos de los cinco llegan en pareja.
 
 ## Riesgos
 

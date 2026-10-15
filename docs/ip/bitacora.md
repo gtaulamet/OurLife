@@ -8,23 +8,21 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip2.5/v6-integracion`: playtest en Windows aprobado; en la Mac, dos hallazgos corregidos (permisos del zip y zoom con el trackpad), falta volver a probar ahí |
-| `main` | En el cierre de V5 de IP2.5, también en `origin`. `v0.2.0` es la última versión |
-| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`) e IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) |
-| IP en curso | IP2.5 "Pulido visual" (`docs/ip/IP2.5.md`): V1 a V5 hechos, V6 en el playtest. La siguiente es IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre; Oficios pasó a IP4 |
+| Rama de trabajo | Ninguna abierta. La próxima es `ip3/h3-1-spec` |
+| `main` | En el cierre de IP2.5 (`v0.2.5`), también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) |
+| IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
 | Validación | `dotnet build` sin advertencias, 515 tests en verde, smoke con código 0 |
-| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP2.5 no debe cambiarlas |
-| Versión | `v0.2.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan) |
+| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP3 las va a cambiar: edad, personalidad e interacciones entran en el estado |
+| Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **El usuario** vuelve a probar en la Mac con el zip de macOS del 15 de octubre (vuelto a firmar, sin `chmod`): la sección macOS de `docs/ip/playtest-ip2.5.md`, con el zoom del trackpad y de + y -. Los zips no se versionan: en la otra PC se arman con `./tools/package-windows.ps1` y `./tools/package-macos.ps1`, este último con PowerShell 7.
-2. Con el playtest aprobado: revisión de código de V6, adelantar `main`, tag `v0.2.5` y release de GitHub con los dos zips.
-3. Empezar IP3 con H3.1: la spec `docs/gdd/vida-y-generaciones.md` (game-designer) y las preguntas abiertas de `docs/ip/IP3.md` para el usuario (trabajo infantil, parejas, apellidos, tope de población, fundadores).
-4. **En la Mac**, cuando haya ocasión: correr el smoke (`./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`) y comparar la huella con la de Windows. No se corrió en H2.7.
-5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. Empezar IP3 con H3.1: la spec `docs/gdd/vida-y-generaciones.md` (game-designer), con las decisiones del usuario que ya están en `docs/ip/IP3.md`. Falta definir de quién heredan el apellido los hijos.
+2. **En la Mac**, cuando haya ocasión: la sección macOS de `docs/ip/playtest-ip2.5.md` con el zip de `v0.2.5` (abrir sin `chmod`, zoom con el trackpad y con + y -, smoke con la huella `974758E0263469A3`). Quedó en ➖ al cerrar IP2.5.
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -42,6 +40,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-15: cierre de IP2.5 (`v0.2.5`)
+
+- El usuario cerró IP2.5 con el playtest de Windows aprobado. Los puntos de macOS quedaron en ➖: los hallazgos de la Mac se corrigieron, pero no se volvieron a probar ahí.
+- Revisión de código de V6: 9 hallazgos, todos corregidos. El script de macOS pide PowerShell 7.4, detecta bien Zip64 y da modo de carpeta a las carpetas; el zoom con dos dedos tiene tope por evento y no hace zoom de costado, y el smoke lo comprueba; el registro de las teclas quedó en una sola función.
+- `main` adelantado, tag `v0.2.5` y release de GitHub con los dos zips.
+- Respuestas del usuario para la spec de IP3: los niños sólo juegan, la orientación forma parte de la personalidad y cualquier pareja es posible, los colonos tienen apellido, la comida es el único tope de población y dos fundadores llegan en pareja.
 
 ### 2026-10-15: plan de IP3 "Vida y generaciones"
 

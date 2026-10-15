@@ -16,6 +16,9 @@ public partial class CameraRig : Node3D
 
     /// <summary>How much holding + or - changes the distance in a second.</summary>
     private const float KeyZoomPerSecond = 3f;
+
+    /// <summary>Most wheel steps one event of a two-finger slide may zoom.</summary>
+    private const float MaxPanSteps = 1f;
     private const float PanSpeedPerDistance = 0.9f;
 
     private Camera3D _camera = null!;
@@ -122,11 +125,13 @@ public partial class CameraRig : Node3D
                 break;
 
             // A trackpad on macOS sends no wheel: pinching and sliding two fingers are gestures.
+            // A slide zooms the way the wheel scrolls it; a mostly sideways one does not, and each
+            // event is capped, so the inertia after a flick slows down instead of jumping.
             case InputEventMagnifyGesture magnify when magnify.Factor > 0f:
                 Zoom(1f / magnify.Factor);
                 break;
-            case InputEventPanGesture pan:
-                Zoom(Mathf.Pow(ZoomStep, pan.Delta.Y));
+            case InputEventPanGesture pan when Mathf.Abs(pan.Delta.Y) > Mathf.Abs(pan.Delta.X):
+                Zoom(Mathf.Pow(ZoomStep, Mathf.Clamp(pan.Delta.Y, -MaxPanSteps, MaxPanSteps)));
                 break;
         }
     }

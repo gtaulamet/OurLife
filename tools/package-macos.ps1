@@ -14,9 +14,9 @@ game/project.godot.
 The app cannot be run here: the smoke test is run on a Mac. Godot's ad hoc signature from
 Windows is not accepted on Apple Silicon: the README says how to sign the app again on the Mac.
 
-Needs PowerShell 7, Godot 4.7.2 .NET (GODOT_BIN) and its macOS export template (macos.zip).
+Needs PowerShell 7.4 or later (Stream.ReadExactly), Godot 4.7.2 .NET (GODOT_BIN) and its macOS export template (macos.zip).
 #>
-#Requires -Version 7.0
+#Requires -Version 7.4
 param(
     [string]$Godot
 )
@@ -58,7 +58,10 @@ function Repair-UnixPermissions([string]$Path, [string]$Executable) {
         $count = [BitConverter]::ToUInt16($tail, $end + 10)
         $size = [BitConverter]::ToUInt32($tail, $end + 12)
         $offset = [BitConverter]::ToUInt32($tail, $end + 16)
-        if ($count -eq 0xFFFF -or $offset -eq 0xFFFFFFFF) { throw "$Path is a Zip64 archive, which this repair does not read." }
+        $zip64Locator = $end -ge 20 -and [BitConverter]::ToUInt32($tail, $end - 20) -eq 0x07064b50
+        if ($zip64Locator -or $count -eq 0xFFFF -or $size -eq 0xFFFFFFFF -or $offset -eq 0xFFFFFFFF) {
+            throw "$Path is a Zip64 archive, which this repair does not read."
+        }
 
         $directory = New-Object byte[] $size
         $stream.Position = $offset
@@ -68,16 +71,18 @@ function Repair-UnixPermissions([string]$Path, [string]$Executable) {
         for ($n = 0; $n -lt $count; $n++) {
             if ([BitConverter]::ToUInt32($directory, $at) -ne 0x02014b50) { throw "The central directory of $Path is damaged." }
             $directory[$at + 5] = 3
+            $nameLength = [BitConverter]::ToUInt16($directory, $at + 28)
+            $name = [System.Text.Encoding]::UTF8.GetString($directory, $at + 46, $nameLength)
+
             # The Unix mode is the high half of the external attributes.
             $mode = [BitConverter]::ToUInt16($directory, $at + 40)
             if ($mode -eq 0) {
-                $mode = 0x81A4 # A regular file, rw-r--r--.
-                $directory[$at + 40] = 0xA4
-                $directory[$at + 41] = 0x81
+                # A folder is rwxr-xr-x and a file rw-r--r--.
+                $mode = if ($name.EndsWith('/')) { 0x41ED } else { 0x81A4 }
+                [BitConverter]::GetBytes([uint16]$mode).CopyTo($directory, $at + 40)
             }
 
-            $nameLength = [BitConverter]::ToUInt16($directory, $at + 28)
-            if ([System.Text.Encoding]::UTF8.GetString($directory, $at + 46, $nameLength) -eq $Executable) { $executableMode = $mode }
+            if ($name -eq $Executable) { $executableMode = $mode }
             $at += 46 + $nameLength + [BitConverter]::ToUInt16($directory, $at + 30) + [BitConverter]::ToUInt16($directory, $at + 32)
         }
 

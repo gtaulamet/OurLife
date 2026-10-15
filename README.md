@@ -2,7 +2,7 @@
 
 Simulador de colonias al estilo de Dwarf Fortress. Un grupo de colonos funda una aldea medieval en un valle con niveles Z: talan, excavan, construyen y sobreviven. Más adelante, la aldea podrá avanzar por la Edad Moderna y la Contemporánea. El juego está en español por defecto y también en inglés.
 
-**Estado:** versión `0.2.5`, el cierre de IP2.5 "Pulido visual": terreno pintado, decoración del pasto, muebles medievales, aldeanos animados, vista previa de muebles y tamaño de la interfaz. Lo que sigue es IP3 ([plan maestro](docs/plan-maestro.md)). Los registros están en [docs/ip/IP1.md](docs/ip/IP1.md), [docs/ip/IP2.md](docs/ip/IP2.md) y [docs/ip/IP2.5.md](docs/ip/IP2.5.md).
+**Estado:** versión `0.2.5`, el cierre de IP2.5 "Pulido visual": terreno pintado, decoración del pasto, muebles medievales, aldeanos animados, vista previa de muebles y tamaño de la interfaz. Lo que sigue es IP3 "Vida y generaciones" ([plan](docs/ip/IP3.md) y [plan maestro](docs/plan-maestro.md)). Los registros están en [docs/ip/IP1.md](docs/ip/IP1.md), [docs/ip/IP2.md](docs/ip/IP2.md) y [docs/ip/IP2.5.md](docs/ip/IP2.5.md).
 
 ## Cómo se juega (v0.2.5)
 
@@ -71,7 +71,7 @@ La versión de Mac es una app universal (Apple Silicon e Intel) y se exporta des
 ./tools/package-macos.ps1
 ```
 
-El script, que necesita PowerShell 7, exporta `OurLife.app`, le agrega `LICENSES.txt` y `CREDITS.md`, vuelve a marcar las entradas del zip como hechas en Unix para que la Mac respete los permisos de ejecución, y arma `builds/OurLife-v<versión>-macos-universal.zip`. No puede correr el smoke: eso se hace en una Mac.
+El script, que necesita PowerShell 7.4 o posterior, exporta `OurLife.app`, le agrega `LICENSES.txt` y `CREDITS.md`, vuelve a marcar las entradas del zip como hechas en Unix para que la Mac respete los permisos de ejecución, y arma `builds/OurLife-v<versión>-macos-universal.zip`. No puede correr el smoke: eso se hace en una Mac.
 
 **En la Mac:**
 

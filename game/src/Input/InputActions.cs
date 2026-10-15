@@ -86,33 +86,28 @@ public static class InputActions
         var orders = Enum.GetValues<DesignationKind>().Select(kind => (Order(kind), new[] { OrderKey(kind) }));
         foreach (var (action, keys) in Bindings.Concat(orders))
         {
-            if (InputMap.HasAction(action))
-            {
-                continue;
-            }
-
-            InputMap.AddAction(action);
-            foreach (var key in keys)
-            {
-                // The input map keeps its own reference (see MapRenderer.Fill).
-                using var keyEvent = new InputEventKey { PhysicalKeycode = key };
-                InputMap.ActionAddEvent(action, keyEvent);
-            }
+            Add(action, keys, key => new InputEventKey { PhysicalKeycode = key });
         }
 
         foreach (var (action, keys) in CharacterBindings)
         {
-            if (InputMap.HasAction(action))
-            {
-                continue;
-            }
+            Add(action, keys, key => new InputEventKey { Keycode = key });
+        }
+    }
 
-            InputMap.AddAction(action);
-            foreach (var key in keys)
-            {
-                using var keyEvent = new InputEventKey { Keycode = key };
-                InputMap.ActionAddEvent(action, keyEvent);
-            }
+    private static void Add(string action, Key[] keys, Func<Key, InputEventKey> keyEvent)
+    {
+        if (InputMap.HasAction(action))
+        {
+            return;
+        }
+
+        InputMap.AddAction(action);
+        foreach (var key in keys)
+        {
+            // The input map keeps its own reference (see MapRenderer.Fill).
+            using var input = keyEvent(key);
+            InputMap.ActionAddEvent(action, input);
         }
     }
 }

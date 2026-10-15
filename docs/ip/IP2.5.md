@@ -1,12 +1,12 @@
 # IP2.5: Pulido visual
 
-**Objetivo.** Que el valle se vea mejor antes de sumar los oficios de IP3. Hoy el pasto, la tierra y la roca son bloques de un solo color, los colonos no se mueven y varios modelos son provisionales. Además, al colocar un mueble no se sabe hacia dónde mira, y los textos se ven chicos en pantallas grandes. No se busca realismo: el estilo sigue siendo low-poly (ADR-009), pero con textura, variación y vida.
+**Objetivo.** Que el valle se vea mejor antes de sumar los oficios, que eran IP3 y desde el 15 de octubre son IP4. Hoy el pasto, la tierra y la roca son bloques de un solo color, los colonos no se mueven y varios modelos son provisionales. Además, al colocar un mueble no se sabe hacia dónde mira, y los textos se ven chicos en pantallas grandes. No se busca realismo: el estilo sigue siendo low-poly (ADR-009), pero con textura, variación y vida.
 
 **Origen.** Pedido del usuario del 14 de octubre de 2026, después de cerrar IP2. Se hace antes de planificar IP3.
 
 **Estimación:** 38 a 55 h. **Versión al cerrar:** `v0.2.5`, para Windows y macOS.
 
-**Estado:** en curso. V1 a V5 hechos; V6 espera el playtest humano.
+**Estado:** cerrada el 15 de octubre de 2026 con `v0.2.5`.
 
 ## Estado de los hitos
 
@@ -17,7 +17,7 @@
 | V3 Vista previa de muebles | Hecho | `ip2.5/v3-vista-previa` | Modelo translúcido girado con flecha al frente, rojo donde no va; planos de muebles con su modelo |
 | V4 Terreno y decoración | Hecho | `ip2.5/v4-terreno`, `ip2.5/v4-opcion-decoracion` | Sólo el estilo B; patrones, verdes y decoración en el catálogo; matas, flores, piedritas y hongos sobre el pasto, con la opción Decoración del pasto |
 | V5 Modelos y animaciones | Hecho | `ip2.5/v5-modelos` | Muebles y provisiones de KayKit, bayas del Food Kit, 12 aldeanos recoloreados con animaciones |
-| V6 Integración | En curso | `ip2.5/v6-integracion` | Paquetes de Windows y macOS armados y pasada automática hecha; falta el playtest humano (`docs/ip/playtest-ip2.5.md`) |
+| V6 Integración | Hecho | `ip2.5/v6-integracion` | Playtest en Windows aprobado; dos hallazgos de la Mac corregidos (permisos del zip y zoom con el trackpad); `v0.2.5` publicada |
 
 Los hitos se llaman V (de visual) para no confundirlos con H2.5, "Muebles y camas", de IP2.
 
@@ -274,3 +274,11 @@ Pedido del usuario del 14 de octubre de 2026, después de cerrar V4, en la rama 
 - Versión 0.2.5 en `project.godot` (los presets la toman de ahí) y README al día.
 - Paquetes: `OurLife-v0.2.5-windows-x86_64.zip` (72,7 MB, con el smoke corrido sobre el ejecutable exportado) y `OurLife-v0.2.5-macos-universal.zip` (121,8 MB, firma ad hoc a rehacer en la Mac).
 - Checklist `docs/ip/playtest-ip2.5.md`, con la pasada automática: huellas iguales a las de v0.2.0, 509 tests, clic con la interfaz al 200 %, vista previa, decoración en vivo, benchmark dentro del presupuesto y capturas es/en a 1920×1080.
+
+**Playtest y cierre (15 de octubre de 2026)**
+
+- Playtest en Windows: toda la checklist en ✅.
+- Hallazgo 1, en la Mac: la app no tenía permiso de ejecución. Al agregar `LICENSES.txt` y `CREDITS.md`, el `ZipArchive` de .NET marca todas las entradas como hechas en MS-DOS, y macOS ignora sus permisos Unix. `package-macos.ps1` reescribe el directorio central para marcarlas como Unix y falla si el ejecutable no tiene permiso de ejecución. Necesita PowerShell 7.4 o posterior.
+- Hallazgo 2, en la Mac: el trackpad no hacía zoom, porque manda gestos y no rueda. Ahora hacen zoom el pellizco, deslizar dos dedos (como la rueda, con un tope por evento para la inercia y sin zoom de costado) y mantener + o -, por carácter y no por posición de la tecla. El smoke lo comprueba.
+- Revisión de código de V6: 9 hallazgos, todos corregidos. Los principales: el script pedía PowerShell 7.0 pero usa una función de 7.3; el zoom con dos dedos no tenía tope por evento; y la detección de Zip64 estaba incompleta.
+- El usuario cerró IP2.5 sin repetir la prueba en la Mac: los dos puntos de macOS de la checklist quedan para la próxima vez que use la Mac.
