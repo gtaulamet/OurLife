@@ -120,6 +120,15 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_negative_age_is_corrupt()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => System.Text.RegularExpressions.Regex.Replace(
+            json, "\"AgeDays\":[0-9]+", "\"AgeDays\":-5"));
+
+        LoadFails(file).Reason.ShouldBe(SaveLoadError.Corrupt);
+    }
+
+    [Fact]
     public void A_newer_format_with_new_header_fields_is_still_newer()
     {
         var file = Rewrite(Save(BusyColony().Simulation), "header.json", json => json.Replace(

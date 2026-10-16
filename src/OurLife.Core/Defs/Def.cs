@@ -29,6 +29,10 @@ public abstract class Def
     [JsonIgnore]
     public string? NameKey => TextCategory is null ? null : $"def.{TextCategory}.{Id}.name";
 
+    /// <summary>Key of the player-facing description, or null when the def has no texts.</summary>
+    [JsonIgnore]
+    public string? DescKey => TextCategory is null ? null : $"def.{TextCategory}.{Id}.desc";
+
     /// <summary>Content file the def was loaded from, for error messages.</summary>
     [JsonIgnore]
     public string SourceFile { get; internal set; } = string.Empty;

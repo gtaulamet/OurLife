@@ -159,11 +159,108 @@ public class LifeTests
 
         bed.Simulation.Run(60);
 
-        MovementSystem.StepCost(bed.Simulation, adult, new TileCoord(1, 1, 1), new TileCoord(2, 1, 1)).ShouldBe(20);
-        MovementSystem.StepCost(bed.Simulation, baby, new TileCoord(1, 1, 1), new TileCoord(2, 1, 1)).ShouldBe(80);
+        // A step of two ticks: 2000 thousandths, at 1000 a tick for an adult and 250 for a baby.
+        MovementSystem.StepCost(bed.Simulation, baby, new TileCoord(1, 1, 1), new TileCoord(2, 1, 1)).ShouldBe(2_000);
+        MovementSystem.ProgressOf(bed.Simulation, adult).ShouldBe(1_000);
+        MovementSystem.ProgressOf(bed.Simulation, baby).ShouldBe(250);
         bed.Need(adult, "hunger").Value.ShouldBe(10_000 - 200);
         bed.Need(baby, "hunger").Value.ShouldBe(10_000 - 80);
         bed.Need(baby, "rest").Value.ShouldBe(10_000 - 750);
+    }
+
+    [Fact]
+    public void A_child_at_ninety_percent_walks_ten_cells_in_the_time_an_adult_walks_nine()
+    {
+        static long TicksToWalk(string stage)
+        {
+            var bed = ColonyTestBed.Flat(14);
+            var colonist = bed.AddColonist(1, 1, 1);
+            bed.World.Add(colonist, new Life { AgeDays = 8 * DaysPerYear, Stage = stage });
+            bed.World.Add(colonist, new Job { Kind = JobKind.Wander, Cell = new TileCoord(11, 1, 1), UntilTick = long.MaxValue });
+            bed.World.Get<Movement>(colonist).Path.AddRange(Enumerable.Range(2, 10).Select(x => new TileCoord(x, 1, 1)));
+            while (bed.World.Get<Movement>(colonist).IsMoving)
+            {
+                bed.Simulation.Tick();
+            }
+
+            return bed.Simulation.CurrentTick;
+        }
+
+        // Ten steps of two ticks: 20 ticks for an adult, 2000 / 900 a step for a child, 22.2 ticks in all.
+        TicksToWalk("adult").ShouldBe(20);
+        TicksToWalk("child").ShouldBe(23);
+    }
+
+    [Fact]
+    public void A_child_who_plays_is_not_idle()
+    {
+        var bed = ColonyTestBed.Flat(12);
+        var adult = bed.AddColonist(2, 2, 1, name: "Urraca");
+        var child = bed.AddColonist(8, 8, 1);
+        bed.World.Add(child, new Life { AgeDays = 6 * DaysPerYear, Stage = "child" });
+
+        bed.Simulation.Run(4 * 60);
+
+        var idle = bed.DrainEvents().OfType<NotificationEvent>().Where(notice => notice.Text.Key == ColonyAlerts.IdleEventKey).ToList();
+        idle.Single().Text.Args["colonist"].ShouldBe("Urraca");
+        ColonyAlerts.Active(bed.Simulation).Select(alert => alert.Colonist).ShouldBe(new[] { adult });
+    }
+
+    [Fact]
+    public void Reaching_a_stage_that_does_not_do_a_job_drops_it()
+    {
+        var content = TestContent.WithDefs(ColonyTestBed.ContentJson.TrimEnd().TrimEnd(']')
+            + """, { "type": "LifeStage", "id": "frail", "fromYears": 85, "work": "none" }]""");
+        var (simulation, colonist) = Lonely(content, seed: 1);
+        var life = simulation.World.Get<Life>(colonist);
+        (life.AgeDays, life.Stage) = ((85 * DaysPerYear) - 8, "elder");
+        simulation.World.Add(colonist, new Movement());
+        simulation.World.Add(colonist, new Job { Kind = JobKind.Mine, Stage = JobStage.Working });
+
+        simulation.Run(LifeSystem.MidnightOffset(simulation.Time) + 1);
+
+        LifeRules.Stage(simulation, colonist)!.Id.ShouldBe("frail");
+        simulation.World.Has<Job>(colonist).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_stage_that_does_the_job_keeps_it_and_going_back_a_stage_is_not_told()
+    {
+        var (simulation, colonist) = Lonely(ColonyTestBed.Content, seed: 1);
+        var life = simulation.World.Get<Life>(colonist);
+        (life.AgeDays, life.Stage) = (30 * DaysPerYear, "elder");
+        simulation.World.Add(colonist, new Movement());
+        simulation.World.Add(colonist, new Job { Kind = JobKind.Mine, Stage = JobStage.Working });
+
+        simulation.Run(LifeSystem.MidnightOffset(simulation.Time) + 1);
+
+        LifeRules.Stage(simulation, colonist)!.Id.ShouldBe("adult");
+        simulation.World.Has<Job>(colonist).ShouldBeTrue();
+        var events = new List<ISimEvent>();
+        simulation.Events.DrainTo(events);
+        events.ShouldContain(new EntityChangedEvent(colonist));
+        events.OfType<NotificationEvent>().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void An_elder_gathers_to_eat_as_fast_as_an_adult()
+    {
+        static long TicksToGather(string stage)
+        {
+            var bed = ColonyTestBed.Flat(10);
+            var colonist = bed.AddColonist(2, 2, 1, hunger: 1_000);
+            bed.World.Add(colonist, new Life { AgeDays = 70 * DaysPerYear, Stage = stage });
+            var bush = bed.AddPlant("bush", 3, 2, 1);
+            while (!bed.World.Has<Harvested>(bush))
+            {
+                bed.Simulation.Tick();
+                bed.Simulation.CurrentTick.ShouldBeLessThan(500);
+            }
+
+            return bed.Simulation.CurrentTick;
+        }
+
+        TicksToGather("elder").ShouldBe(TicksToGather("adult"));
     }
 
     [Fact]
@@ -273,7 +370,8 @@ public class LifeTests
     private static (Simulation Simulation, EntityId Colonist) Lonely(DefDatabase content, ulong seed)
     {
         var simulation = new Simulation(seed, content) { LifePace = "very_fast" };
-        simulation.AddSystem(new LifeSystem(LifeRules.From(content)), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
+        simulation.AddSystem(
+            new LifeSystem(LifeRules.From(content), ColonyRules.From(content)), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
         return (simulation, AddElder(simulation, "Elvira"));
     }
 

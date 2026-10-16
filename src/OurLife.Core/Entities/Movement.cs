@@ -14,7 +14,7 @@ public sealed class Movement
     /// <summary>Index in <see cref="Path"/> of the next cell.</summary>
     public int Next { get; set; }
 
-    /// <summary>Progress towards the next cell, in tenths of a tick of walking.</summary>
+    /// <summary>Progress towards the next cell, in thousandths of a tick of walking at full speed.</summary>
     public int Progress { get; set; }
 
     public bool IsMoving => Next < Path.Count;

@@ -214,11 +214,12 @@ public sealed class JobSystem : ISimSystem
 
     /// <summary>
     /// Does one tick of work; true when the job is finished. Work for the player lasts longer for
-    /// a colonist who works slower (see <c>docs/gdd/vida-y-generaciones.md</c>); eating does not.
+    /// a colonist who works slower (see <c>docs/gdd/vida-y-generaciones.md</c>); gathering to eat
+    /// and eating do not.
     /// </summary>
     private bool Work(Simulation simulation, EntityId colonist, Job job)
     {
-        var speed = LifeRules.WorkSpeedPercent(simulation, colonist);
+        var speed = IsWork(job) ? LifeRules.WorkSpeedPercent(simulation, colonist) : 100;
         switch (job.Kind)
         {
             case JobKind.Mine:
@@ -385,7 +386,15 @@ public sealed class JobSystem : ISimSystem
         return job.Progress >= workTicks;
     }
 
-    /// <summary>The same, for work that lasts <c>ticks Ã— 100 / speed</c> ticks, at least one.</summary>
+    /// <summary>Whether the job is work for the player, which goes at the speed of the worker.</summary>
+    private static bool IsWork(Job job) => job.Kind switch
+    {
+        JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct => true,
+        JobKind.Harvest => !job.ForFood,
+        _ => false,
+    };
+
+    /// <summary>The same, for work that lasts <c>ticks × 100 / speed</c> ticks, at least one.</summary>
     private static bool Advance(Job job, int workTicks, int speedPercent) =>
         Advance(job, (int)Math.Max(1, (long)workTicks * 100 / speedPercent));
 

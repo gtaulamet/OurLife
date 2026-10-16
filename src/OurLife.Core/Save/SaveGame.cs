@@ -28,7 +28,7 @@ public static class SaveGame
 
     /// <summary>
     /// The oldest format this game still reads. Format 1 (v0.2.x) is migrated on loading: its
-    /// colonists get what IP3 adds (see "Guardado y migraciÃ³n" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// colonists get what IP3 adds (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -124,7 +124,7 @@ public static class SaveGame
             var simulation = Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content);
             if (header.FormatVersion == 1)
             {
-                ColonyStart.Migrate(simulation);
+                MigrateFromVersion1(simulation);
             }
 
             return (simulation, header);
@@ -290,6 +290,11 @@ public static class SaveGame
                     throw Corrupt($"{entity} walks step {movement.Next} of a path of {movement.Path.Count}");
                 }
 
+                if (component is Life { AgeDays: < 0 } life)
+                {
+                    throw Corrupt($"{entity} has lived {life.AgeDays} days");
+                }
+
                 saveType.AddTo!(simulation.World, entity, component);
             }
         }
@@ -302,6 +307,23 @@ public static class SaveGame
         }
 
         return simulation;
+    }
+
+    /// <summary>
+    /// A game of format 1 (v0.2.x), already restored, as if it had been saved in format 2: the
+    /// walkers count their progress in thousandths of a tick instead of tenths, and the colonists
+    /// get what IP3 adds (ADR-013).
+    /// </summary>
+    private static void MigrateFromVersion1(Simulation simulation)
+    {
+        var walkers = new List<EntityId>();
+        simulation.World.Query<Movement>(walkers);
+        foreach (var walker in walkers)
+        {
+            simulation.World.Get<Movement>(walker).Progress *= 100;
+        }
+
+        ColonyStart.Migrate(simulation);
     }
 
     private static GameMap RestoreMap(SavedMap saved, DefDatabase content)

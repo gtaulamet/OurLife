@@ -115,9 +115,11 @@ public partial class NewGameScreen : Control
         {
             button.Text = _services.Text.Capitalized(_services.Text.Format(pace.NameKey!));
             button.SetPressedNoSignal(pace.Id == _pace);
+            if (pace.Id == _pace)
+            {
+                _paceDescription.Text = _services.Text.Format(pace.DescKey!);
+            }
         }
-
-        _paceDescription.Text = _services.Text.Format($"def.life_pace.{_pace}.desc");
     }
 
     private void Start()

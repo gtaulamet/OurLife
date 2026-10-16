@@ -14,7 +14,7 @@ public static class ColonySystems
         var rules = ColonyRules.From(simulation.Content);
         var life = LifeRules.From(simulation.Content);
         simulation.AddSystem(new NeedsSystem());
-        simulation.AddSystem(new LifeSystem(life), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
+        simulation.AddSystem(new LifeSystem(life, rules), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
         var storage = new StorageIndex();
         simulation.AddSystem(new DecisionSystem(rules, storage));
         simulation.AddSystem(new JobSystem(rules, storage));

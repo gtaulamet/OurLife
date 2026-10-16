@@ -89,8 +89,9 @@ public static class WorkPriorityRules
 /// <summary>
 /// Keeps the state of the alerts of colonists (see <c>docs/gdd/gestion.md</c>) and tells the
 /// player when one starts: a colonist wandering with nothing to do for
-/// <see cref="AiConfigDef.IdleAlertHours"/>, and a need with <see cref="NeedDef.AlertWhenCritical"/>
-/// below its critical threshold. Runs last in the tick, after the jobs have changed.
+/// <see cref="AiConfigDef.IdleAlertHours"/>, unless its stage of life does no work, and a need
+/// with <see cref="NeedDef.AlertWhenCritical"/> below its critical threshold. Runs last in the
+/// tick, after the jobs have changed.
 /// </summary>
 public sealed class AlertSystem : ISimSystem
 {
@@ -114,8 +115,10 @@ public sealed class AlertSystem : ISimSystem
         {
             var person = world.Get<Colonist>(colonist);
 
-            // Between two walks a wanderer has no job for a tick: that is idle too.
-            if (!world.TryGet<Job>(colonist, out var job) || job.Kind == JobKind.Wander)
+            // Between two walks a wanderer has no job for a tick: that is idle too. A child who
+            // plays instead of working is not idle.
+            var works = LifeRules.Stage(simulation, colonist)?.Work != StageWork.None;
+            if (works && (!world.TryGet<Job>(colonist, out var job) || job.Kind == JobKind.Wander))
             {
                 person.IdleSinceTick ??= tick;
                 if (!person.IdleAlerted && tick - person.IdleSinceTick >= idleTicks)

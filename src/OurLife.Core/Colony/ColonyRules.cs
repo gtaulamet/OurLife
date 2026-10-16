@@ -25,6 +25,26 @@ public sealed class ColonyRules
     /// <summary>Ids of the plant defs whose harvest is food, so a hungry colonist skips the rest at once.</summary>
     public IReadOnlySet<string> FoodPlants { get; }
 
+    /// <summary>The work type a job belongs to, or null for a job that is not work, like eating or gathering to eat.</summary>
+    public WorkTypeDef? WorkTypeOf(Job job)
+    {
+        ArgumentNullException.ThrowIfNull(job);
+        if (job.ForFood)
+        {
+            return null;
+        }
+
+        for (var type = 0; type < WorkTypes.Count; type++)
+        {
+            if (WorkJobs[type].Contains(job.Kind))
+            {
+                return WorkTypes[type];
+            }
+        }
+
+        return null;
+    }
+
     /// <exception cref="InvalidOperationException">
     /// The content has no AiConfig or several, or some job for the player's orders is in no work
     /// type or in more than one.

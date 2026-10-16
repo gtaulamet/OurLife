@@ -9,14 +9,17 @@ namespace OurLife.Core.Colony;
 
 /// <summary>
 /// Walks the colonists along their routes. A straight step costs the creature's
-/// <c>moveTicksPerTile</c> ticks and a diagonal one 1.4 times that, counted in tenths of a tick
-/// so the leftover carries to the next step, and divided by the speed of the stage of life. A step
-/// the map no longer allows drops the job.
+/// <c>moveTicksPerTile</c> ticks and a diagonal one 1.4 times that, counted in thousandths of a
+/// tick so the leftover carries to the next step. A colonist makes progress at the speed of its
+/// stage of life (see <c>docs/gdd/vida-y-generaciones.md</c>). A step the map no longer allows
+/// drops the job.
 /// </summary>
 public sealed class MovementSystem : ISimSystem
 {
-    /// <summary>Progress a creature makes in one tick, in the same units as <see cref="PathFinder.StepCost"/>.</summary>
-    public const int ProgressPerTick = PathFinder.StraightCost;
+    /// <summary>Progress a creature makes in one tick at full speed: the units of <see cref="PathFinder.StepCost"/> times 100 %.</summary>
+    public const int ProgressPerTick = PathFinder.StraightCost * FullSpeed;
+
+    private const int FullSpeed = 100;
 
     private readonly List<EntityId> _walkers = [];
 
@@ -35,11 +38,12 @@ public sealed class MovementSystem : ISimSystem
             }
 
             var position = world.Get<Position>(walker);
-            movement.Progress += ProgressPerTick;
+            var ticksPerTile = TicksPerTile(simulation, walker);
+            movement.Progress += ProgressOf(simulation, walker);
             while (movement.IsMoving)
             {
                 var next = movement.Path[movement.Next];
-                var cost = StepCost(simulation, walker, position.Cell, next);
+                var cost = ticksPerTile * PathFinder.StepCost(position.Cell, next) * FullSpeed;
                 if (movement.Progress < cost)
                 {
                     break;
@@ -72,9 +76,18 @@ public sealed class MovementSystem : ISimSystem
     public static int StepCost(Simulation simulation, EntityId walker, TileCoord from, TileCoord to)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        var creature = simulation.Content.Get<CreatureDef>(simulation.World.Get<Colonist>(walker).Creature);
-        return creature.MoveTicksPerTile * PathFinder.StepCost(from, to) * 100 / LifeRules.MoveSpeedPercent(simulation, walker);
+        return TicksPerTile(simulation, walker) * PathFinder.StepCost(from, to) * FullSpeed;
     }
+
+    /// <summary>The progress a colonist makes in one tick: <see cref="ProgressPerTick"/> at the speed of its stage of life.</summary>
+    public static int ProgressOf(Simulation simulation, EntityId walker)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return PathFinder.StraightCost * LifeRules.MoveSpeedPercent(simulation, walker);
+    }
+
+    private static int TicksPerTile(Simulation simulation, EntityId walker) =>
+        simulation.Content.Get<CreatureDef>(simulation.World.Get<Colonist>(walker).Creature).MoveTicksPerTile;
 
     private static bool IsNeighbour(GameMap map, TileCoord from, TileCoord to, Span<TileCoord> neighbours)
     {
