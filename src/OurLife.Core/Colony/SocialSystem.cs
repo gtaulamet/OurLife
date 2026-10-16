@@ -19,9 +19,6 @@ public sealed partial class SocialSystem : ISimSystem
 {
     private const string RandomStream = "social.interactions";
 
-    // Until mood arrives (H3.6), everyone is in the middle.
-    private const int NeutralMood = 50;
-
     private readonly ColonyRules _colony;
     private readonly SocialRules _rules;
     private readonly PersonalityRules _personalities;
@@ -66,7 +63,7 @@ public sealed partial class SocialSystem : ISimSystem
     private static bool CanInteract(Simulation simulation, EntityId colonist)
     {
         var asleep = simulation.World.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Sleep && job.Stage == JobStage.Working;
-        return !asleep && (LifeRules.Stage(simulation, colonist)?.Interacts ?? true);
+        return !asleep && (LifeRules.Stage(simulation, colonist)?.Interacts ?? true) && !MoodRules.Isolates(simulation, colonist);
     }
 
     private bool InStages(Simulation simulation, EntityId colonist, IReadOnlyList<string> stages) =>

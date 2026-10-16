@@ -1228,7 +1228,7 @@ public partial class GameRoot : Node
         {
             var job = world.TryGet<Job>(colonist, out var current) ? JobKinds.Id(current.Kind) : "idle";
             var needs = string.Join(", ", world.Get<Needs>(colonist).Values.Select(need => $"{need.Need} {need.Value}"));
-            GD.Print($"[smoke]   {world.Get<Colonist>(colonist).Name}: {job} | {needs}");
+            GD.Print($"[smoke]   {world.Get<Colonist>(colonist).Name}: {job} | {needs} | mood {MoodRules.Value(simulation, colonist)}");
         }
     }
 

@@ -151,6 +151,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Un deseo se me frustró (`desire_frustrated`) | −6 | 3 días | 2 | |
 
 - **Efecto en el trabajo:** ánimo < 15: 80 %; < 30: 90 %; > 70: 105 %; > 85: 110 %.
+- **Cómo está hecho (H3.6):** los pensamientos de una situación (`need` y `below` en el def) no se guardan: salen de las necesidades al consultar el ánimo. Los de un hecho se guardan con su tick de fin en el componente `Mood`. Qué pensamiento deja cada hecho lo dicen los datos: cada interacción (`initiatorThought`, `receiverThought`, `rejectedThought`) y `MoodConfig` para dormir, aprender, formar pareja, separarse, las muertes y los deseos. Así el código no nombra pensamientos.
+- "Nació mi hijo" (`child_born`) llega con los nacimientos, en H3.7.
 - **Deriva:** perder a un familiar baja la sociabilidad 2 puntos; un hijo sube la amabilidad de los padres 2 puntos.
 
 ### Crisis
@@ -163,6 +165,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Se aísla (`isolate`) | 10, sociabilidad −2 | 6 h | No interactúa y deambula lejos de los demás |
 
 - Cada crisis baja la paciencia 2 puntos y se avisa en el registro (aviso amarillo), al empezar y al terminar.
+- Las dos crisis cortan el trabajo en curso al empezar y no toman trabajo mientras duran. Quien se aísla, además, no interactúa, y de los lugares que sortea para deambular elige el más lejano de los demás (H3.6).
 
 ## Deseos
 
@@ -177,7 +180,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Una cama propia (`own_bed`) | Tras dos noches seguidas en el suelo | Tiene cama | 50 % |
 | Reconciliarse (`reconcile`) | Tras discutir con un amigo | Su opinión de esa persona vuelve a ≥ 20 | 40 %, por la amabilidad |
 
-- "Tener un hijo" no nace si los hijos están impedidos para esa pareja: la opción del jugador no castiga el ánimo.
+- "Tener un hijo" no nace si los hijos están impedidos para esa pareja: la opción del jugador no castiga el ánimo. Este deseo llega con la fertilidad, en H3.7.
+- **Cómo está hecho (H3.6):** el def `Desire` tiene un `kind` que el código conoce (`learnFrom`, `befriend`, `findPartner`, `ownBed`, `reconcile`) y los números en datos (`chancePercent`, `scaledBy`, `minLevels`, `minOpinion`, `maxOpinion`, `nights`, `stages`). Las interacciones dicen qué deseo pueden despertar (`desire`). Un deseo sobre alguien que murió se descarta sin frustrarse.
 - Los deseos se ven en la ficha; no van al registro.
 
 ## Parejas, embarazo y nacimiento
@@ -213,7 +217,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 ## Guardado y migración
 
-- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, habilidades desde la 3 y opiniones desde la 4) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido. El formato es 5 desde H3.5.
+- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, habilidades desde la 3 y opiniones desde la 4; la 5 sólo empieza sin pensamientos ni deseos) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido. El formato es 6 desde H3.6.
 - Las huellas del smoke cambian en H3.2 (la edad entra en el estado) y en cada hito que suma estado. La bitácora registra las nuevas.
 
 ## Contrato con la presentación
@@ -268,10 +272,10 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | `PersonalityConfig` | `rolls` (3), `inheritedPercent` (50), `maxDriftPerDay` (3) y los pesos de orientación `orientations` (H3.3) | `personality.json` |
 | `Interaction` | Etapas de quien empieza y del otro (`familyReceivers` para jugar con la familia), peso y coeficientes por rasgo, condiciones (`minOpinion`, `maxOpinion`, `receiverMoodBelow`, `teaches`, `romantic`), resultados (`opinion`, `receiverOpinion`, `romance`, `backfire`) y deriva (H3.5) | `social.json` |
 | `SocialConfig` | `checkTicks`, `radius`, `pairCooldownHours`, `startChancePercent`, `closeWeightPercent`, umbrales de amistad, rivalidad y pareja, `retellMargin`, `breakupBelow`, olvido, `founderOpinion`, `widowYears` y `recentInteractions` (H3.5) | `social.json` |
-| `Thought` | `mood`, `durationHours`, `stackLimit` | `mood.json` |
-| `Crisis` | Peso y coeficientes, `durationHours`, comportamiento | `mood.json` |
-| `MoodConfig` | Base, umbrales y efecto en el trabajo, probabilidad de crisis | `mood.json` |
-| `Desire` | Disparador, cumplimiento, probabilidad, `expireDays` | `mood.json` |
+| `Thought` | `mood`, `durationHours`, `stackLimit`; para los de una situación, `need`, `below` (`low` o `critical`) y `replaces` (H3.6) | `mood.json` |
+| `Crisis` | `weight`, `traits`, `durationHours`, `behavior` (`refuseWork`, `isolate`) y `drift` (H3.6) | `mood.json` |
+| `MoodConfig` | `base`, bandas de `workSpeed`, `crisisBelow`, `crisisChancePercent`, `maxDesires`, `daysBetweenDesires`, `desireExpireDays`, `grief` y el pensamiento de cada hecho (H3.6) | `mood.json` |
+| `Desire` | `kind`, `chancePercent`, `scaledBy` y los números de cada clase (H3.6) | `mood.json` |
 | `WorkType` | `skill`, `light`; tipo nuevo `childcare` con `feed_baby` | `work_types.json` |
 | `NameList` | `surnames` | `names.json` |
 | `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2); `founderSkillMin` (3), `founderSkillMax` (10) y `founderSkillBonus` (4) (H3.4), con el máximo más el bonus hasta `maxLevel`; `foundingCouple` | `scenario.json` |

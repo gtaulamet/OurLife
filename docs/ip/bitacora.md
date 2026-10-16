@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-5-interacciones`: H3.5 cerrado. H3.6 va en `ip3/h3-6-animo` |
+| Rama de trabajo | `ip3/h3-6-animo`: H3.6 hecho, falta la revisión de código |
 | `main` | En el cierre de H3.5, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.5 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 623 tests en verde, smoke con código 0 |
-| Huella del smoke | `CE15ED74ECC60360` con `--seed 1 --ticks 5000`; `AC908F5FCB21A9CD` con `--seed 42 --ticks 5000` (desde H3.5). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 643 tests en verde, smoke con código 0 |
+| Huella del smoke | `ECB4B600749ABA31` con `--seed 1 --ticks 5000`; `57A3D947DB7DB434` con `--seed 42 --ticks 5000` (desde H3.6). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **H3.6, pensamientos, ánimo y deseos**, en `ip3/h3-6-animo`: el ánimo habilita consolar y suma su efecto a `WorkSpeed`.
+1. **H3.6:** revisión de código y cierre. Después, H3.7 (parejas, nacimientos y crianza) en `ip3/h3-7-nacimientos`, con el deseo de tener un hijo y el pensamiento "Nació mi hijo".
 2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -40,6 +40,16 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: H3.6, pensamientos, ánimo y deseos
+
+- Defs `Thought` (21), `Crisis` (2), `Desire` (5) y `MoodConfig`, en `mood.json`. Las interacciones dicen qué pensamiento dejan y qué deseo pueden despertar.
+- Ánimo = base 50 + pensamientos de hechos (componente `Mood`, con tick de fin y tope por pensamiento) + pensamientos de situación (hambre y sueño, calculados de las necesidades). Su efecto en el trabajo entra en `WorkSpeed`. Consolar ya funciona.
+- `MoodSystem`, cada hora: limpia pensamientos vencidos, empieza (ánimo < 15, 10 %) y termina crisis con aviso amarillo, y cumple o frustra deseos. A medianoche, el deseo anual de formar pareja. Las crisis cortan el trabajo; quien se aísla no interactúa y deambula lejos de los demás.
+- Pensamientos al despertar (cama o suelo), al aprender, al formar pareja o separarse y al morir alguien (pareja, hijo, padre o madre, amigo o vecino, con deriva de la sociabilidad por un familiar). Dos noches en el suelo pueden despertar el deseo de una cama.
+- Formato de guardado 6 (sin migración: una partida vieja empieza sin pensamientos) y archivo real `Fixtures/h3.5.olsave`.
+- El deseo de tener un hijo y "Nació mi hijo" quedan para H3.7.
+- 643 tests. Huellas nuevas: `ECB4B600749ABA31` (semilla 1) y `57A3D947DB7DB434` (semilla 42).
 
 ### 2026-10-16: cierre de H3.5
 

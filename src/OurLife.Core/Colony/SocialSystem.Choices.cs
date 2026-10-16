@@ -46,7 +46,7 @@ public sealed partial class SocialSystem
                  || (interaction.FamilyReceivers && Relationships.IsFamily(simulation, initiator, receiver)))
             || (interaction.MinOpinion is { } min && opinion < min)
             || (interaction.MaxOpinion is { } max && opinion > max)
-            || (interaction.ReceiverMoodBelow is { } mood && NeutralMood >= mood)
+            || (interaction.ReceiverMoodBelow is { } mood && MoodRules.Value(simulation, receiver) >= mood)
             || (interaction.Teaches && Lesson(simulation, initiator, receiver) is null))
         {
             return false;

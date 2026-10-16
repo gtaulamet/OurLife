@@ -109,6 +109,7 @@ public sealed class SkillRules
 
         if (gained > 0)
         {
+            MoodRules.Feel(simulation, colonist, config => config.Learned);
             simulation.Events.Emit(new EntityChangedEvent(colonist));
         }
 

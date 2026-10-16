@@ -59,6 +59,21 @@ public sealed class InteractionDef : Def
     /// <summary>Traits it may move.</summary>
     public IReadOnlyList<DriftEffect> Drift { get; init; } = [];
 
+    /// <summary>The thought it leaves the one who starts it; none if not set.</summary>
+    public string? InitiatorThought { get; init; }
+
+    /// <summary>The thought it leaves the other one.</summary>
+    public string? ReceiverThought { get; init; }
+
+    /// <summary>For courting that does not work, the thought it leaves the one who courted.</summary>
+    public string? RejectedThought { get; init; }
+
+    /// <summary>
+    /// The kind of desire it may wake: to learn more from the teacher, to befriend the other, or,
+    /// between friends, to make up. None if not set.
+    /// </summary>
+    public DesireKind? Desire { get; init; }
+
     internal override IEnumerable<DefReference> References()
     {
         foreach (var stage in InitiatorStages.Concat(ReceiverStages))
@@ -80,6 +95,10 @@ public sealed class InteractionDef : Def
         {
             yield return new DefReference(typeof(TraitDef), drift.Trait, "drift.trait");
         }
+
+        yield return new DefReference(typeof(ThoughtDef), InitiatorThought, "initiatorThought");
+        yield return new DefReference(typeof(ThoughtDef), ReceiverThought, "receiverThought");
+        yield return new DefReference(typeof(ThoughtDef), RejectedThought, "rejectedThought");
     }
 
     internal override IEnumerable<string> Validate()

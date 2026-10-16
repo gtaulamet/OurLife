@@ -413,10 +413,18 @@ public sealed class DecisionSystem : ISimSystem
     /// a lazy one (see "Personalidad" in <c>docs/gdd/vida-y-generaciones.md</c>), looks after its
     /// low needs before working.
     /// </summary>
-    private bool TryWorkOrLowNeeds(Simulation simulation, EntityId colonist) =>
-        PersonalityRules.NeedsBeforeWork(simulation, colonist)
+    /// <remarks>A colonist in a crisis does no work: it only looks after its needs and wanders.</remarks>
+    private bool TryWorkOrLowNeeds(Simulation simulation, EntityId colonist)
+    {
+        if (MoodRules.CrisisOf(simulation, colonist) is not null)
+        {
+            return TryLowNeeds(simulation, colonist);
+        }
+
+        return PersonalityRules.NeedsBeforeWork(simulation, colonist)
             ? TryLowNeeds(simulation, colonist) || TryWork(simulation, colonist)
             : TryWork(simulation, colonist) || TryLowNeeds(simulation, colonist);
+    }
 
     private bool TryLowNeeds(Simulation simulation, EntityId colonist)
     {
@@ -990,6 +998,10 @@ public sealed class DecisionSystem : ISimSystem
         var region = connectivity.RegionAt(from);
         var random = simulation.Random.Get("colony.decision");
         var radius = _rules.Ai.WanderRadius;
+        if (MoodRules.Isolates(simulation, colonist) && TryWanderAway(simulation, colonist, from, region, random, radius))
+        {
+            return;
+        }
 
         for (var attempt = 0; attempt < WanderAttempts; attempt++)
         {
@@ -1015,6 +1027,55 @@ public sealed class DecisionSystem : ISimSystem
 
         // Nowhere to go: wait where it is.
         Assign(simulation, colonist, new Job { Kind = JobKind.Wander, Cell = from }, []);
+    }
+
+    /// <summary>
+    /// A colonist who isolates itself wanders to the place, among those drawn, farthest from the
+    /// nearest other colonist (see "Crisis" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// </summary>
+    private bool TryWanderAway(Simulation simulation, EntityId colonist, TileCoord from, int region, Pcg32 random, int radius)
+    {
+        var map = simulation.Map;
+        var connectivity = simulation.Connectivity;
+        TileCoord? best = null;
+        var bestDistance = -1;
+        for (var attempt = 0; attempt < WanderAttempts; attempt++)
+        {
+            var cell = new TileCoord(from.X + random.NextInt(-radius, radius + 1), from.Y + random.NextInt(-radius, radius + 1), from.Z);
+            if (cell == from || !map.IsStandable(cell) || connectivity.RegionAt(cell) != region)
+            {
+                continue;
+            }
+
+            var nearest = int.MaxValue;
+            foreach (var other in _colonists)
+            {
+                if (other != colonist)
+                {
+                    nearest = Math.Min(nearest, PathFinder.Estimate(cell, simulation.World.Get<Position>(other).Cell));
+                }
+            }
+
+            if (nearest > bestDistance)
+            {
+                (best, bestDistance) = (cell, nearest);
+            }
+        }
+
+        _goal.Clear();
+        if (best is not { } goal)
+        {
+            return false;
+        }
+
+        _goal.Add(goal);
+        if (!_paths.TryFind(map, from, _goal, _path))
+        {
+            return false;
+        }
+
+        Assign(simulation, colonist, new Job { Kind = JobKind.Wander, Cell = goal }, _path);
+        return true;
     }
 
     private void Assign(Simulation simulation, EntityId colonist, Job job, List<TileCoord> path)

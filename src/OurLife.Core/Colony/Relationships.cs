@@ -154,8 +154,8 @@ public static class Relationships
     }
 
     /// <summary>
-    /// A colonist is gone: the others forget what they thought of it, and the family keeps its name
-    /// as dead. Its partner is a widow or widower from now.
+    /// A colonist is gone: each other one mourns it, by how close they were, then forgets what it
+    /// thought of it, and the family keeps its name as dead. Its partner is a widow or widower from now.
     /// </summary>
     internal static void ForgetTheDead(Simulation simulation, EntityId dead)
     {
@@ -169,6 +169,7 @@ public static class Relationships
                 continue;
             }
 
+            Mourn(simulation, colonist, dead);
             if (world.TryGet<Relations>(colonist, out var relations))
             {
                 relations.Others.RemoveAll(relation => relation.Other == dead);
@@ -196,6 +197,32 @@ public static class Relationships
             {
                 family.WidowedAtAgeDays = world.TryGet<Life>(colonist, out var life) ? life.AgeDays : 0;
             }
+        }
+    }
+
+    /// <summary>
+    /// The thought of a death, by the closest tie to the dead (see "Pensamientos y ánimo" in
+    /// <c>docs/gdd/vida-y-generaciones.md</c>); losing family also moves the personality.
+    /// </summary>
+    private static void Mourn(Simulation simulation, EntityId colonist, EntityId dead)
+    {
+        if (MoodRules.ConfigOf(simulation.Content) is not { } config)
+        {
+            return;
+        }
+
+        var family = simulation.World.TryGet<Family>(colonist, out var own) ? own : null;
+        var thought =
+            family?.Partner?.Entity == dead ? config.DeathPartner
+            : family?.Children.Any(child => child.Entity == dead) == true ? config.DeathChild
+            : family?.Father?.Entity == dead || family?.Mother?.Entity == dead ? config.DeathParent
+            : Kind(simulation, colonist, dead) == RelationKind.Friend ? config.DeathFriend
+            : config.DeathColonist;
+        MoodRules.Feel(simulation, colonist, thought);
+
+        if (config.Grief is { } grief && IsFamily(simulation, colonist, dead) && simulation.Content.All<PersonalityConfigDef>().Count == 1)
+        {
+            PersonalityRules.From(simulation.Content).Drift(simulation, colonist, grief.Trait, grief.Points);
         }
     }
 

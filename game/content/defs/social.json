@@ -2,6 +2,9 @@
   {
     "type": "Interaction",
     "id": "chat",
+    "initiatorThought": "chatted",
+    "receiverThought": "chatted",
+    "desire": "befriend",
     "initiatorStages": ["child", "adolescent", "adult", "elder"],
     "receiverStages": ["child", "adolescent", "adult", "elder"],
     "weight": 60,
@@ -12,6 +15,8 @@
   {
     "type": "Interaction",
     "id": "joke",
+    "initiatorThought": "laughed",
+    "receiverThought": "laughed",
     "initiatorStages": ["child", "adolescent", "adult", "elder"],
     "receiverStages": ["child", "adolescent", "adult", "elder"],
     "weight": 20,
@@ -23,6 +28,7 @@
   {
     "type": "Interaction",
     "id": "teach",
+    "desire": "learnFrom",
     "initiatorStages": ["adolescent", "adult", "elder"],
     "receiverStages": ["adolescent", "adult", "elder"],
     "weight": 30,
@@ -33,6 +39,9 @@
   {
     "type": "Interaction",
     "id": "argue",
+    "initiatorThought": "argued",
+    "receiverThought": "argued",
+    "desire": "reconcile",
     "initiatorStages": ["adolescent", "adult", "elder"],
     "receiverStages": ["adolescent", "adult", "elder"],
     "weight": 5,
@@ -44,6 +53,7 @@
   {
     "type": "Interaction",
     "id": "comfort",
+    "receiverThought": "comforted",
     "initiatorStages": ["adolescent", "adult", "elder"],
     "receiverStages": ["adolescent", "adult", "elder"],
     "weight": 25,
@@ -55,6 +65,7 @@
   {
     "type": "Interaction",
     "id": "flirt",
+    "rejectedThought": "rebuffed",
     "initiatorStages": ["adult", "elder"],
     "receiverStages": ["adult", "elder"],
     "weight": 15,
@@ -67,6 +78,8 @@
   {
     "type": "Interaction",
     "id": "play",
+    "initiatorThought": "played",
+    "receiverThought": "played",
     "initiatorStages": ["child"],
     "receiverStages": ["child", "adolescent"],
     "familyReceivers": true,

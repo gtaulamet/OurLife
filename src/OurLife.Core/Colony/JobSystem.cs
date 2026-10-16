@@ -109,8 +109,42 @@ public sealed class JobSystem : ISimSystem
 
             if (finished)
             {
+                if (job.Kind == JobKind.Sleep)
+                {
+                    WakeUp(simulation, colonist, job);
+                }
+
                 Drop(world, colonist);
             }
+        }
+    }
+
+    /// <summary>
+    /// A colonist that slept its fill thinks of where it slept, and after nights in a row on the
+    /// ground may wish for a bed (see "Pensamientos y ánimo" and "Deseos" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// </summary>
+    private static void WakeUp(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        var inBed = !job.Target.IsNone && world.IsAlive(job.Target) && world.Has<Bed>(job.Target)
+                    && world.Get<Position>(job.Target).Cell == world.Get<Position>(colonist).Cell;
+        MoodRules.Feel(simulation, colonist, config => inBed ? config.SleptInBed : config.SleptOnFloor);
+        if (MoodRules.ConfigOf(simulation.Content) is null)
+        {
+            return;
+        }
+
+        if (!world.TryGet<Mood>(colonist, out var mood))
+        {
+            mood = new Mood();
+            world.Add(colonist, mood);
+        }
+
+        mood.FloorNights = inBed ? 0 : mood.FloorNights + 1;
+        var nights = mood.FloorNights;
+        if (!inBed)
+        {
+            DesireRules.Consider(simulation, colonist, DesireKind.OwnBed, eligible: desire => nights >= desire.Nights);
         }
     }
 

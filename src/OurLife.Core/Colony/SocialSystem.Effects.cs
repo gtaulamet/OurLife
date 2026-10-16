@@ -11,11 +11,18 @@ public sealed partial class SocialSystem
     private void Apply(Simulation simulation, InteractionDef interaction, EntityId initiator, EntityId receiver, Pcg32 random)
     {
         int towardsReceiver = 0, towardsInitiator = 0, romance = 0;
+        var wentWell = true;
+        var wereFriends = Relationships.Kind(simulation, initiator, receiver) == RelationKind.Friend;
+        var lesson = interaction.Teaches ? Lesson(simulation, initiator, receiver) : null;
+        var gap = lesson is null
+            ? 0
+            : (SkillRules.Level(simulation, initiator, lesson.Id) ?? 0) - (SkillRules.Level(simulation, receiver, lesson.Id) ?? 0);
         if (interaction.Romantic)
         {
             // Courting works only if the other one is attracted back and does not dislike the one who courts.
-            if (Relationships.IsAttracted(simulation, receiver, initiator)
-                && Relationships.Opinion(simulation, receiver, initiator) >= interaction.RomanceMinOpinion)
+            wentWell = Relationships.IsAttracted(simulation, receiver, initiator)
+                       && Relationships.Opinion(simulation, receiver, initiator) >= interaction.RomanceMinOpinion;
+            if (wentWell)
             {
                 romance = Draw(interaction.Romance, random);
                 towardsReceiver = Draw(interaction.Opinion, random);
@@ -25,6 +32,7 @@ public sealed partial class SocialSystem
         else if (interaction.Backfire is { } backfire && PersonalityRules.Value(simulation, receiver, backfire.Trait) < backfire.Below
                  && random.Chance(backfire.ChancePercent * 100))
         {
+            wentWell = false;
             towardsReceiver = Draw(backfire.Opinion, random);
             towardsInitiator = Draw(backfire.Opinion, random);
         }
@@ -35,9 +43,9 @@ public sealed partial class SocialSystem
         }
 
         towardsInitiator += Draw(interaction.ReceiverOpinion, random);
-        if (interaction.Teaches && Lesson(simulation, initiator, receiver) is { } skill)
+        if (lesson is not null)
         {
-            _colony.Skills.Teach(simulation, initiator, receiver, skill);
+            _colony.Skills.Teach(simulation, initiator, receiver, lesson);
         }
 
         foreach (var drift in interaction.Drift)
@@ -56,7 +64,42 @@ public sealed partial class SocialSystem
         Relationships.Ensure(simulation, receiver, initiator).LastInteractionTick = simulation.CurrentTick;
         Remember(simulation, initiator, receiver, interaction, started: true);
         Remember(simulation, receiver, initiator, interaction, started: false);
+        if (wentWell)
+        {
+            MoodRules.Feel(simulation, initiator, interaction.InitiatorThought);
+            MoodRules.Feel(simulation, receiver, interaction.ReceiverThought);
+        }
+        else if (interaction.Romantic)
+        {
+            MoodRules.Feel(simulation, initiator, interaction.RejectedThought);
+        }
+
+        WakeDesires(simulation, interaction, initiator, receiver, wereFriends, lesson, gap);
         simulation.Events.Emit(new InteractionEvent(simulation.CurrentTick, initiator, receiver, interaction.Id));
+    }
+
+    /// <summary>The desires an interaction may wake (see "Deseos" in <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    private static void WakeDesires(
+        Simulation simulation, InteractionDef interaction, EntityId initiator, EntityId receiver, bool wereFriends, WorkTypeDef? lesson, int gap)
+    {
+        switch (interaction.Desire)
+        {
+            case DesireKind.LearnFrom when lesson is not null:
+                DesireRules.Consider(simulation, receiver, DesireKind.LearnFrom, initiator, lesson.Id, desire => gap >= desire.MinLevels);
+                break;
+            case DesireKind.Befriend:
+                foreach (var (from, to) in new[] { (initiator, receiver), (receiver, initiator) })
+                {
+                    var opinion = Relationships.Opinion(simulation, from, to);
+                    DesireRules.Consider(simulation, from, DesireKind.Befriend, to, eligible: desire => opinion >= desire.MinOpinion && opinion <= desire.MaxOpinion);
+                }
+
+                break;
+            case DesireKind.Reconcile when wereFriends:
+                DesireRules.Consider(simulation, initiator, DesireKind.Reconcile, receiver);
+                DesireRules.Consider(simulation, receiver, DesireKind.Reconcile, initiator);
+                break;
+        }
     }
 
     private static int Draw(IntRange? range, Pcg32 random) => range is null ? 0 : random.NextInt(range.Min, range.Max + 1);

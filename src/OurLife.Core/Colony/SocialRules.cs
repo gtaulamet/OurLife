@@ -89,6 +89,8 @@ public sealed class SocialRules
         else if (!partner && CanFormCouple(simulation, a, b))
         {
             Join(simulation, a, b);
+            MoodRules.Feel(simulation, a, config => config.NewPartner);
+            MoodRules.Feel(simulation, b, config => config.NewPartner);
             Notify(simulation, CoupleKey, a, b);
             return;
         }
@@ -165,6 +167,8 @@ public sealed class SocialRules
         FamilyOf(simulation, b).Partner = null;
         Relationships.Ensure(simulation, a, b).Romance = 0;
         Relationships.Ensure(simulation, b, a).Romance = 0;
+        MoodRules.Feel(simulation, a, config => config.Breakup);
+        MoodRules.Feel(simulation, b, config => config.Breakup);
         Notify(simulation, BreakupKey, a, b);
     }
 

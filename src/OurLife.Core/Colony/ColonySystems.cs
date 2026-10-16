@@ -19,7 +19,12 @@ public static class ColonySystems
         simulation.AddSystem(new DecisionSystem(rules, storage));
         simulation.AddSystem(new JobSystem(rules, storage));
         simulation.AddSystem(new MovementSystem(rules));
-        simulation.AddSystem(new SocialSystem(rules, SocialRules.From(simulation.Content), PersonalityRules.From(simulation.Content), life));
+        var personalities = PersonalityRules.From(simulation.Content);
+        simulation.AddSystem(new SocialSystem(rules, SocialRules.From(simulation.Content), personalities, life));
+        var mood = MoodRules.ConfigOf(simulation.Content)
+                   ?? throw new InvalidOperationException("The colony needs exactly one MoodConfig def.");
+        var (hour, offset) = MoodSystem.Schedule(simulation.Time);
+        simulation.AddSystem(new MoodSystem(rules, personalities, mood), hour, offset);
         simulation.AddSystem(new PlantGrowthSystem());
         simulation.AddSystem(new AlertSystem(rules));
     }

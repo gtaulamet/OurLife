@@ -24,12 +24,13 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 5;
+    public const int FormatVersion = 6;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
     /// after another (ADR-013): format 1 (v0.2.x) gets ages and surnames, format 2 (H3.2)
-    /// personalities, format 3 (H3.3) skills and format 4 (H3.4) relations (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// personalities, format 3 (H3.3) skills and format 4 (H3.4) relations; format 5 (H3.5) only
+    /// lacks thoughts, desires and crises, which start empty (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
     /// </summary>
     public const int OldestFormatVersion = 1;
 

@@ -12,5 +12,9 @@
   "event.social.friends": "Nació una amistad entre {a} y {b}.",
   "event.social.rivals": "{a} y {b} no se soportan.",
   "event.social.couple": "{a} y {b} ahora son pareja.",
-  "event.social.breakup": "{a} y {b} se separaron."
+  "event.social.breakup": "{a} y {b} se separaron.",
+  "event.mood.crisis.refuse_work": "{colonist} se niega a trabajar.",
+  "event.mood.crisis.isolate": "{colonist} se aleja de todos.",
+  "event.mood.crisis_end.refuse_work": "{colonist} vuelve a trabajar.",
+  "event.mood.crisis_end.isolate": "{colonist} vuelve a estar con los demás."
 }

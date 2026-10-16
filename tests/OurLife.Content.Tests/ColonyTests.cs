@@ -99,6 +99,22 @@ public class ColonyTests
     }
 
     [Fact]
+    public void Every_crisis_says_when_it_starts_and_ends_in_every_language()
+    {
+        MoodRules.ConfigOf(GameContent.Defs).ShouldNotBeNull();
+        var crises = GameContent.Defs.All<CrisisDef>();
+        crises.Count.ShouldBe(2);
+        foreach (var key in crises.SelectMany(crisis => new[] { MoodSystem.StartKey(crisis), MoodSystem.EndKey(crisis) }))
+        {
+            foreach (var catalog in GameContent.Catalogs.Values)
+            {
+                catalog.Messages.ContainsKey(key).ShouldBeTrue($"{catalog.Locale}: missing {key}");
+                catalog.Messages[key].ArgumentNames.ShouldContain("colonist");
+            }
+        }
+    }
+
+    [Fact]
     public void The_hud_shows_food_wood_and_stone_in_that_order()
     {
         var simulation = new Simulation(1, GameContent.Defs);

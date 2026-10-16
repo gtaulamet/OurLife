@@ -12,7 +12,8 @@ namespace OurLife.Content.Tests;
 /// came after (ADR-013, "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>). Each file
 /// was written by the code and content of its version, with seed 7 and 20 000 ticks:
 /// <c>v0.2.5.olsave</c> in format 1, <c>h3.2.olsave</c> in format 2, by H3.2, <c>h3.3.olsave</c>
-/// in format 3, by H3.3, and <c>h3.4.olsave</c> in format 4, by H3.4.
+/// in format 3, by H3.3, <c>h3.4.olsave</c> in format 4, by H3.4, and
+/// <c>h3.5.olsave</c> in format 5, by H3.5.
 /// </summary>
 public class OldSaveTests
 {
@@ -21,6 +22,7 @@ public class OldSaveTests
     [InlineData("h3.2.olsave", 2, "0.3.0-dev")]
     [InlineData("h3.3.olsave", 3, "0.3.0-dev")]
     [InlineData("h3.4.olsave", 4, "0.3.0-dev")]
+    [InlineData("h3.5.olsave", 5, "0.3.0-dev")]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion)
     {
         var simulation = Load(file, out var header);
@@ -45,6 +47,7 @@ public class OldSaveTests
     [InlineData("h3.2.olsave")]
     [InlineData("h3.3.olsave")]
     [InlineData("h3.4.olsave")]
+    [InlineData("h3.5.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);
