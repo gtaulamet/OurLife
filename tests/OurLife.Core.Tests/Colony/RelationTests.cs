@@ -55,6 +55,35 @@ public class RelationTests
     }
 
     [Fact]
+    public void After_a_breakup_the_romance_is_gone_and_liking_each_other_again_is_not_enough()
+    {
+        var (bed, a, b) = SocialTests.TwoInAHut(1, 50, 50, 50);
+        var rules = SocialRules.From(bed.Simulation.Content);
+        Love(bed, a, b, 60, 100);
+        rules.Change(bed.Simulation, a, b, 0, 0);
+        rules.Change(bed.Simulation, a, b, -70, 0);
+        Notices(bed);
+
+        rules.Change(bed.Simulation, a, b, 80, 10);
+
+        Relationships.PartnerOf(bed.Simulation, a).IsNone.ShouldBeTrue();
+        Relationships.Of(bed.Simulation, a, b)!.Romance.ShouldBe(0);
+        Notices(bed).ShouldNotContain(SocialRules.CoupleKey);
+    }
+
+    [Fact]
+    public void Family_never_becomes_a_couple()
+    {
+        var (bed, mother, son) = SocialTests.TwoInAHut(1, 50, 50, 50);
+        bed.World.Add(son, new Family { Mother = Relationships.RelativeOf(bed.Simulation, mother) });
+        Love(bed, mother, son, 90, 100);
+
+        SocialRules.From(bed.Simulation.Content).Change(bed.Simulation, mother, son, 1, 1);
+
+        Relationships.Kind(bed.Simulation, mother, son).ShouldBe(RelationKind.Family);
+    }
+
+    [Fact]
     public void A_couple_needs_both_to_be_attracted_and_two_women_who_are_can_form_one()
     {
         var (bed, a, b) = SocialTests.TwoInAHut(1, 50, 50, 50, Gender.Female);
@@ -124,6 +153,7 @@ public class RelationTests
         ColonistDeath.Die(bed.Simulation, husband, Core.Text.LocalizedText.Of("event.need.hunger.death").With("colonist", husband));
 
         bed.World.Get<Relations>(wife).Find(husband).ShouldBeNull();
+        (bed.World.TryGet<RecentInteractions>(wife, out var recent) ? recent.Entries : []).ShouldNotContain(entry => entry.Other == husband);
         bed.World.Get<Relations>(other).Find(husband).ShouldBeNull();
         var family = bed.World.Get<Family>(wife);
         family.Partner!.Dead.ShouldBeTrue();

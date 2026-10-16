@@ -36,13 +36,7 @@ public sealed class SocialRules
     public static SocialRules From(DefDatabase content)
     {
         ArgumentNullException.ThrowIfNull(content);
-        var configs = content.All<SocialConfigDef>();
-        if (configs.Count != 1)
-        {
-            throw new InvalidOperationException($"The colony needs exactly one SocialConfig def, found {configs.Count}.");
-        }
-
-        return new SocialRules(configs[0], content.All<InteractionDef>());
+        return new SocialRules(Relationships.ConfigOf(content), content.All<InteractionDef>());
     }
 
     /// <summary>
@@ -58,8 +52,8 @@ public sealed class SocialRules
             {
                 if (other != colonist)
                 {
-                    Relationships.Ensure(simulation, colonist, other).Opinion =
-                        random.NextInt(Config.FounderOpinion.Min, Config.FounderOpinion.Max + 1);
+                    Relationships.Ensure(simulation, colonist, other).Opinion = Math.Clamp(
+                        random.NextInt(Config.FounderOpinion.Min, Config.FounderOpinion.Max + 1), -MaxOpinion, MaxOpinion);
                 }
             }
         }
@@ -70,8 +64,8 @@ public sealed class SocialRules
             foreach (var (from, to) in new[] { (a, b), (b, a) })
             {
                 var relation = Relationships.Ensure(simulation, from, to);
-                relation.Opinion = couple.Opinion;
-                relation.Romance = couple.Romance;
+                relation.Opinion = Math.Clamp(couple.Opinion, -MaxOpinion, MaxOpinion);
+                relation.Romance = Math.Clamp(couple.Romance, 0, MaxRomance);
             }
 
             Join(simulation, a, b);
@@ -145,7 +139,7 @@ public sealed class SocialRules
             && relation.Opinion >= Config.CoupleOpinion && relation.Romance >= Config.CoupleRomance
             && Relationships.IsAttracted(simulation, from, to) && Relationships.IsFree(simulation, from);
 
-        return Wants(a, b) && Wants(b, a);
+        return Wants(a, b) && Wants(b, a) && !Relationships.IsFamily(simulation, a, b);
     }
 
     /// <summary>The two become a couple; a partner who died goes to the late ones.</summary>
@@ -164,10 +158,13 @@ public sealed class SocialRules
         }
     }
 
+    /// <summary>The couple breaks up, and the romance is gone: to be a couple again, they must court again.</summary>
     private void Split(Simulation simulation, EntityId a, EntityId b)
     {
         FamilyOf(simulation, a).Partner = null;
         FamilyOf(simulation, b).Partner = null;
+        Relationships.Ensure(simulation, a, b).Romance = 0;
+        Relationships.Ensure(simulation, b, a).Romance = 0;
         Notify(simulation, BreakupKey, a, b);
     }
 

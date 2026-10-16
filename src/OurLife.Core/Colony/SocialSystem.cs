@@ -92,6 +92,11 @@ public sealed partial class SocialSystem : ISimSystem
             return;
         }
 
+        if (_near.Sum(entry => entry.Weight) == 0)
+        {
+            return;
+        }
+
         var other = Pick(_near, random);
         _choices.Clear();
         foreach (var interaction in _rules.Interactions)

@@ -93,7 +93,7 @@ public sealed partial class SocialSystem
     /// <summary>
     /// Each opinion of someone the colonist did not meet in the last day comes back towards 0, by
     /// <see cref="SocialConfigDef.ForgetPerDay"/>; a good opinion of family or of a partner stops at
-    /// <see cref="SocialConfigDef.FamilyFloor"/>. Relations with the dead go away.
+    /// <see cref="SocialConfigDef.FamilyFloor"/>. The dead were forgotten when they died (see <see cref="Relationships.ForgetTheDead"/>).
     /// </summary>
     private void Forget(Simulation simulation)
     {
@@ -107,7 +107,6 @@ public sealed partial class SocialSystem
                 continue;
             }
 
-            relations.Others.RemoveAll(relation => !world.IsAlive(relation.Other) || !world.Has<Colonist>(relation.Other));
             foreach (var relation in relations.Others)
             {
                 if (relation.LastInteractionTick is { } last && simulation.CurrentTick - last < day)

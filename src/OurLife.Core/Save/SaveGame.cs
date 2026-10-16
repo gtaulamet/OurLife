@@ -327,10 +327,10 @@ public static class SaveGame
                 }
 
                 if (component is Relations relations
-                    && (relations.Others.Any(relation => relation.Opinion is < -100 or > 100 || relation.Romance is < 0 or > 100)
-                        || relations.Others.Select(relation => relation.Other).Distinct().Count() != relations.Others.Count))
+                    && (relations.Others.Any(relation => relation.Opinion is < -100 or > 100 || relation.Romance is < 0 or > 100 || relation.Other == entity)
+                        || relations.Others.Zip(relations.Others.Skip(1)).Any(pair => pair.First.Other.CompareTo(pair.Second.Other) >= 0)))
                 {
-                    throw Corrupt($"{entity} has an opinion out of range or two of the same colonist");
+                    throw Corrupt($"{entity} has an opinion out of range, of itself, or out of order");
                 }
 
                 saveType.AddTo!(simulation.World, entity, component);

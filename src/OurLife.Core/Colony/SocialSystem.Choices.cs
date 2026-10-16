@@ -54,7 +54,7 @@ public sealed partial class SocialSystem
 
         return !interaction.Romantic
                || (Relationships.IsFree(simulation, initiator) && Relationships.IsFree(simulation, receiver)
-                   && Relationships.IsAttracted(simulation, initiator, receiver));
+                   && Relationships.IsAttracted(simulation, initiator, receiver) && !Relationships.IsFamily(simulation, initiator, receiver));
     }
 
     /// <summary>The weight plus, for each trait, its coefficient for each 10 points over 50; never under 0.</summary>

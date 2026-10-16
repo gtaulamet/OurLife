@@ -31,6 +31,11 @@ public sealed class TraitDef : Def
             yield return "experience must be zero or more at both ends.";
         }
 
+        if (InteractionChance is { } chance && (chance.Low < 0 || chance.High < 0))
+        {
+            yield return "interactionChance must be zero or more at both ends.";
+        }
+
         if (NeedsBeforeWorkBelow is < 0 or > 100)
         {
             yield return "needsBeforeWorkBelow must be between 0 and 100.";
@@ -81,10 +86,10 @@ public sealed class PersonalityConfigDef : Def
             yield return "maxDriftPerDay must be zero or positive.";
         }
 
-        if (Orientations.Opposite < 0 || Orientations.Same < 0 || Orientations.Both < 0
-            || Orientations.Opposite + Orientations.Same + Orientations.Both == 0)
+        // Someone must be attracted to the other sex: a founding couple draws from those weights alone.
+        if (Orientations.Opposite < 0 || Orientations.Same < 0 || Orientations.Both < 0 || Orientations.Opposite + Orientations.Both == 0)
         {
-            yield return "orientations need weights of zero or more, and not all zero.";
+            yield return "orientations need weights of zero or more, and opposite or both above zero.";
         }
     }
 }

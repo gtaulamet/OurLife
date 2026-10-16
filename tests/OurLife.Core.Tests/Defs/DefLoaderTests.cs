@@ -160,7 +160,7 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Trait", "id": "grit", "workSpeed": { "low": 0, "high": 110 } }]""", "workSpeed must be positive")]
     [InlineData("""[{ "type": "Trait", "id": "grit", "needsBeforeWorkBelow": 120 }]""", "needsBeforeWorkBelow must be between")]
     [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 0, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 1, "same": 0, "both": 0 } }]""", "rolls must be positive")]
-    [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 0, "same": 0, "both": 0 } }]""", "not all zero")]
+    [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 0, "same": 5, "both": 0 } }]""", "opposite or both above zero")]
     [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "averageLevel": 10, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 0, "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 }]""", "speedBase must be positive")]
     [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "averageLevel": 10, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80, "speedPerLevel": 2, "teachingMinLevels": 0, "teachingBase": 100, "teachingPerLevel": 30 }]""", "teachingMinLevels must be at least 1")]
     [InlineData("""[{ "type": "Interaction", "id": "flirt", "initiatorStages": ["adult"], "receiverStages": ["adult"], "weight": 15, "romantic": true }]""", "needs romance")]

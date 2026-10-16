@@ -117,8 +117,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 - **Amistad y rivalidad:** opinión ≥ 40 de los dos lados es amistad; ≤ −40 de uno de los dos lados, rivalidad. Se avisa al empezar y no se guarda: sale de las opiniones. Para no repetir el aviso cuando la opinión va y viene sobre el umbral, cada relación recuerda el último lazo avisado (`Relation.Told`), que se olvida cuando las dos opiniones se alejan `retellMargin` (10) puntos del umbral.
 - **Olvido:** si un par no interactúa en un día, cada opinión se acerca 1 punto a 0, sin bajar de 30 entre familiares ni entre la pareja.
 - **Familia:** padre, madre, pareja, hijos y hermanos (los que comparten padre o madre). Al nacer, la opinión entre padres e hijo empieza en 40, y entre hermanos en 30. Los familiares muertos quedan en la ficha con su nombre y "fallecido".
-- **Pareja:** dos adultos solteros a los que se atraen mutuamente, con opinión ≥ 50 de los dos lados y romance ≥ 100, forman pareja. Cualquier pareja es posible (decisión del usuario); sólo una de mujer y varón puede tener hijos.
-- **Ruptura:** si la opinión de uno de los dos baja de 0, la pareja se rompe. Al morir uno, el otro queda viudo y puede volver a formar pareja después de un año de vida.
+- **Pareja:** dos adultos solteros a los que se atraen mutuamente, con opinión ≥ 50 de los dos lados y romance ≥ 100, forman pareja. Cualquier pareja es posible (decisión del usuario), salvo entre familiares; sólo una de mujer y varón puede tener hijos.
+- **Ruptura:** si la opinión de uno de los dos baja de 0, la pareja se rompe y el romance de los dos vuelve a 0: para ser pareja otra vez tienen que cortejarse de nuevo (H3.5). Al morir uno, el otro queda viudo y puede volver a formar pareja después de un año de vida.
 
 ## Pensamientos y ánimo
 

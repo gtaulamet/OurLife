@@ -73,6 +73,13 @@ public sealed class SocialConfigDef : Def
         {
             yield return "rivalOpinion must be under friendOpinion, and founderOpinion needs min <= max.";
         }
+
+        // Opinions go from -100 to 100 and romance from 0 to 100: a threshold out of them never holds.
+        if (new[] { FriendOpinion, RivalOpinion, CoupleOpinion, BreakupBelow, FounderOpinion.Min, FounderOpinion.Max }.Any(opinion => opinion is < -100 or > 100)
+            || CoupleRomance is < 0 or > 100 || FamilyFloor is < 0 or > 100)
+        {
+            yield return "opinions must be between -100 and 100, and coupleRomance and familyFloor between 0 and 100.";
+        }
     }
 }
 

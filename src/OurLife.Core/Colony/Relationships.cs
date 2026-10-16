@@ -174,6 +174,11 @@ public static class Relationships
                 relations.Others.RemoveAll(relation => relation.Other == dead);
             }
 
+            if (world.TryGet<RecentInteractions>(colonist, out var recent))
+            {
+                recent.Entries.RemoveAll(entry => entry.Other == dead);
+            }
+
             if (!world.TryGet<Family>(colonist, out var family))
             {
                 continue;
@@ -194,9 +199,12 @@ public static class Relationships
         }
     }
 
-    internal static SocialConfigDef Config(Simulation simulation)
+    internal static SocialConfigDef Config(Simulation simulation) => ConfigOf(simulation.Content);
+
+    /// <exception cref="InvalidOperationException">The content has no SocialConfig or several.</exception>
+    internal static SocialConfigDef ConfigOf(DefDatabase content)
     {
-        var configs = simulation.Content.All<SocialConfigDef>();
+        var configs = content.All<SocialConfigDef>();
         return configs.Count == 1
             ? configs[0]
             : throw new InvalidOperationException($"The colony needs exactly one SocialConfig def, found {configs.Count}.");
