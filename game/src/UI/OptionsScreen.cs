@@ -6,7 +6,8 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// Options, from the main menu or the pause menu: the language, applied live, the fullscreen
-/// mode, the size of the interface and the day and night cycle. All are saved at once.
+/// mode, the size of the interface, the decoration of the grass, the day and night cycle and the
+/// frames per second (<c>docs/gdd/indicadores.md</c>). All are saved at once.
 /// </summary>
 public partial class OptionsScreen : Control
 {
@@ -14,6 +15,7 @@ public partial class OptionsScreen : Control
     private readonly List<(string Locale, Button Button)> _languages = [];
     private readonly List<(bool Fullscreen, Button Button)> _modes = [];
     private readonly List<(bool On, Button Button)> _cycle = [];
+    private readonly List<(bool On, Button Button)> _fps = [];
     private readonly List<(int Setting, Button Button)> _sizes = [];
     private readonly List<(DecorationLevel Level, Button Button)> _decorations = [];
 
@@ -84,23 +86,18 @@ public partial class OptionsScreen : Control
             screen._decorations.Add((level, button));
         }
 
-        column.AddChild(UiBuilder.Caption("ui.options.day_night"));
-        var cycle = new HBoxContainer();
-        cycle.AddThemeConstantOverride("separation", UiBuilder.Gap);
-        column.AddChild(cycle);
-        foreach (var (key, on) in new[] { ("ui.common.on", true), ("ui.common.off", false) })
-        {
-            var button = new Button { Text = key, ToggleMode = true };
-            button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
-            button.Pressed += () => screen.ChooseDayNight(on);
-            cycle.AddChild(button);
-            screen._cycle.Add((on, button));
-        }
+        // Two switches side by side: at 720p a row more would not fit (docs/ip/IP2.5.md, risks).
+        var switches = new HBoxContainer();
+        switches.AddThemeConstantOverride("separation", UiBuilder.Gap * 3);
+        column.AddChild(switches);
+        switches.AddChild(Switch("ui.options.day_night", screen._cycle, screen.ChooseDayNight));
+        switches.AddChild(Switch("ui.options.show_fps", screen._fps, screen.ChooseShowFps));
 
         column.AddChild(UiBuilder.MenuButton("ui.common.back", () => screen.Closed?.Invoke()));
         screen.RefreshLanguages();
         screen.RefreshModes();
         screen.RefreshCycle();
+        screen.RefreshFps();
         screen.RefreshSizes();
         screen.RefreshDecorations();
         return screen;
@@ -196,6 +193,41 @@ public partial class OptionsScreen : Control
     {
         _services.Settings.SetDayNightCycle(on);
         RefreshCycle();
+    }
+
+    /// <summary>A caption with On and Off below it; the buttons are added to <paramref name="buttons"/>.</summary>
+    private static VBoxContainer Switch(string captionKey, List<(bool On, Button Button)> buttons, Action<bool> choose)
+    {
+        var group = new VBoxContainer();
+        group.AddThemeConstantOverride("separation", UiBuilder.Gap);
+        group.AddChild(UiBuilder.Caption(captionKey));
+        var row = new HBoxContainer();
+        row.AddThemeConstantOverride("separation", UiBuilder.Gap);
+        group.AddChild(row);
+        foreach (var (key, on) in new[] { ("ui.common.on", true), ("ui.common.off", false) })
+        {
+            var button = new Button { Text = key, ToggleMode = true };
+            button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
+            button.Pressed += () => choose(on);
+            row.AddChild(button);
+            buttons.Add((on, button));
+        }
+
+        return group;
+    }
+
+    private void ChooseShowFps(bool on)
+    {
+        _services.Settings.SetShowFps(on);
+        RefreshFps();
+    }
+
+    private void RefreshFps()
+    {
+        foreach (var (on, button) in _fps)
+        {
+            button.SetPressedNoSignal(on == _services.Settings.ShowFps);
+        }
     }
 
     private void RefreshCycle()

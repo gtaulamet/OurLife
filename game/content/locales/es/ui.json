@@ -150,5 +150,8 @@
   "ui.colony.priority": "{priority}",
   "ui.colony.priority_off": "No",
   "ui.newgame.life_pace": "Ritmo de la vida",
-  "ui.inspector.life": "{stage}, {years, plural, one {# año} other {# años}}"
+  "ui.inspector.life": "{stage}, {years, plural, one {# año} other {# años}}",
+  "ui.options.show_fps": "Mostrar FPS",
+  "ui.hud.stock": "{category}: {count}",
+  "ui.hud.fps": "{fps} FPS"
 }

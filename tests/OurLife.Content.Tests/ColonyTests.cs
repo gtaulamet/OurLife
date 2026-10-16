@@ -65,6 +65,14 @@ public class ColonyTests
     }
 
     [Fact]
+    public void The_hud_shows_food_wood_and_stone_in_that_order()
+    {
+        var simulation = new Simulation(1, GameContent.Defs);
+
+        ColonyStock.ByCategory(simulation).Select(line => line.Category.Id).ShouldBe(new[] { "food", "wood", "stone" });
+    }
+
+    [Fact]
     public void Every_job_has_its_report_in_every_language()
     {
         foreach (var kind in Enum.GetValues<JobKind>())

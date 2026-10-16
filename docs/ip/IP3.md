@@ -28,6 +28,13 @@
 
 **Ruta crítica:** H3.1 → H3.2 → (H3.3 ∥ H3.4) → H3.5 → H3.6 → H3.7 → H3.9 → H3.10. H3.8 se hace en paralelo desde H3.2, apenas estén fijadas las etapas.
 
+## Pedidos fuera de los hitos
+
+| Pedido | Fecha | Rama | Estado |
+|---|---|---|---|
+| Fundadores de los dos sexos: siempre al menos una mujer y un varón | 16 de octubre de 2026 | `ip3/h3-2-edad` | Hecho |
+| Existencias de comida, madera y piedra en el HUD, y la opción de ver los FPS (`docs/gdd/indicadores.md`) | 16 de octubre de 2026 | `ip3/indicadores-hud` | Hecho |
+
 ## Alcance
 
 - **Sexo:** cada colono es mujer o varón. El dato ya existe desde IP1 (`Gender`) y se usa para el nombre y la concordancia de los textos; ahora también decide quién puede tener hijos.

@@ -12,8 +12,9 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// The HUD of a game, drawn over the 3D view (see "HUD de la partida" in
-/// <c>docs/gdd/interfaz-ip1.md</c>): date and clock, time buttons and level on top; the inspector
-/// on the right; the event log, the order hint, the build bar (<c>docs/gdd/construccion.md</c>)
+/// <c>docs/gdd/interfaz-ip1.md</c>): date and clock, the colony's stock (<c>docs/gdd/indicadores.md</c>),
+/// time buttons and level on top; the inspector on the right; the event log with, if the player
+/// wants them, the frames per second beside it, the order hint, the build bar (<c>docs/gdd/construccion.md</c>)
 /// and the orders bar at the bottom; under the top bar, the alerts under way and the colony panel
 /// (<c>docs/gdd/gestion.md</c>). Buttons whose
 /// text is a key are translated by Godot; texts with arguments are formatted here again when the
@@ -27,6 +28,9 @@ public partial class Hud : CanvasLayer
     // Under the top bar, where the left column and the inspector start.
     private const int PanelsTop = 56;
 
+    // The frames per second are counted over this long, and shown again as often.
+    private const double FpsSeconds = 0.5;
+
     // Colours of the alerts: a warning and a danger.
     private static readonly Color WarningColor = new(1f, 0.85f, 0.3f);
     private static readonly Color DangerColor = new(1f, 0.4f, 0.35f);
@@ -39,6 +43,11 @@ public partial class Hud : CanvasLayer
     private WorldView _view = null!;
     private Label _date = null!;
     private Label _level = null!;
+    private readonly List<(ItemCategoryDef Category, Label Label)> _stock = [];
+    private Label _fps = null!;
+    private Control _fpsPanel = null!;
+    private double _sinceFps;
+    private int _framesSinceFps;
     private Label _hint = null!;
     private HBoxContainer _buildRow = null!;
     private VBoxContainer _alerts = null!;
@@ -100,9 +109,17 @@ public partial class Hud : CanvasLayer
         return hud;
     }
 
-    public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
+    public override void _EnterTree()
+    {
+        _services.Localizer.LocaleChanged += OnLocaleChanged;
+        _services.Settings.ShowFpsChanged += RefreshFps;
+    }
 
-    public override void _ExitTree() => _services.Localizer.LocaleChanged -= OnLocaleChanged;
+    public override void _ExitTree()
+    {
+        _services.Localizer.LocaleChanged -= OnLocaleChanged;
+        _services.Settings.ShowFpsChanged -= RefreshFps;
+    }
 
     /// <summary>Follows the events of a frame: new messages for the log, and news for the inspector.</summary>
     public void Apply(IReadOnlyList<ISimEvent> events)
@@ -114,13 +131,20 @@ public partial class Hud : CanvasLayer
 
     public override void _Process(double delta)
     {
+        _sinceFps += delta;
+        _framesSinceFps++;
+        if (_sinceFps >= FpsSeconds)
+        {
+            RefreshFps();
+        }
 
-        // The clock only changes with a tick: no need to format it every frame.
+        // The clock and the stock only change with a tick: no need to format them every frame.
         var tick = _session.Simulation.CurrentTick;
         if (tick != _shownTick)
         {
             _shownTick = tick;
             RefreshDate();
+            RefreshStock();
 
             // An alert also ends without a message, like an idle colonist that took work.
             _alertsChanged = true;
@@ -172,14 +196,23 @@ public partial class Hud : CanvasLayer
         panel.OffsetRight = -Margin;
         panel.OffsetTop = Margin;
 
+        // Everything fits in one line down to a canvas of 960 × 540 (docs/gdd/tamano-de-la-interfaz.md).
         var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        row.AddThemeConstantOverride("separation", Gap * 2);
+        row.AddThemeConstantOverride("separation", Gap + (Gap / 2));
         panel.AddChild(row);
 
         // The village's name is a proper name: it is never translated.
         row.AddChild(new Label { Text = colonyName, AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled });
         _date = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         row.AddChild(_date);
+
+        // What the colony has, by category of items, in the order of the content.
+        foreach (var line in ColonyStock.ByCategory(_session.Simulation))
+        {
+            var label = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled };
+            row.AddChild(label);
+            _stock.Add((line.Category, label));
+        }
 
         var time = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         time.AddThemeConstantOverride("separation", Gap / 2);
@@ -200,7 +233,7 @@ public partial class Hud : CanvasLayer
         colony.Pressed += () => Colony.Toggle();
         row.AddChild(colony);
 
-        _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(120, 0), HorizontalAlignment = HorizontalAlignment.Right };
+        _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(90, 0), HorizontalAlignment = HorizontalAlignment.Right };
         row.AddChild(_level);
         return panel;
     }
@@ -215,9 +248,17 @@ public partial class Hud : CanvasLayer
         column.GrowVertical = Control.GrowDirection.Begin;
         column.AddThemeConstantOverride("separation", Gap);
 
+        // The log on the left and, on the right of its row, the frames per second.
+        var logRow = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        column.AddChild(logRow);
         Log = EventLog.Create(_services);
-        Log.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin;
-        column.AddChild(Log);
+        Log.SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin | Control.SizeFlags.Expand;
+        logRow.AddChild(Log);
+        // On a panel, like the log, so it reads over any ground.
+        _fpsPanel = new PanelContainer { Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore, SizeFlagsVertical = Control.SizeFlags.ShrinkEnd };
+        logRow.AddChild(_fpsPanel);
+        _fps = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _fpsPanel.AddChild(_fps);
 
         _hint = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
         column.AddChild(_hint);
@@ -391,6 +432,8 @@ public partial class Hud : CanvasLayer
 
     private void RefreshAll()
     {
+        RefreshStock();
+        RefreshFps();
         RefreshDate();
         RefreshLevel();
         RefreshTimeButtons();
@@ -401,6 +444,40 @@ public partial class Hud : CanvasLayer
     {
         var date = _session.Simulation.CurrentDate;
         _date.Text = _services.Text.Format("ui.hud.date", ("date", _services.Text.Date(date)), ("clock", _services.Text.Clock(date)));
+    }
+
+    /// <summary>What the colony has, by category of items.</summary>
+    private void RefreshStock()
+    {
+        var text = _services.Text;
+        var stock = ColonyStock.ByCategory(_session.Simulation);
+        for (var i = 0; i < _stock.Count; i++)
+        {
+            var (category, label) = _stock[i];
+            var count = stock.FirstOrDefault(line => line.Category == category)?.Count ?? 0;
+            label.Text = text.Format("ui.hud.stock", ("category", text.Capitalized(text.Format(category.NameKey!))), ("count", count));
+        }
+    }
+
+    /// <summary>
+    /// The frames per second, if the player wants them: the frames drawn since the last time over
+    /// the time they took, which follows a change sooner than the engine's count of each second.
+    /// </summary>
+    private void RefreshFps()
+    {
+        _fpsPanel.Visible = _services.Settings.ShowFps;
+        if (_fpsPanel.Visible && _sinceFps > 0 && _framesSinceFps > 0)
+        {
+            _fps.Text = _services.Text.Format("ui.hud.fps", ("fps", (int)Math.Round(_framesSinceFps / _sinceFps)));
+        }
+        else if (_fpsPanel.Visible && _fps.Text.Length == 0)
+        {
+            // Before the first count, the engine's.
+            _fps.Text = _services.Text.Format("ui.hud.fps", ("fps", (int)Engine.GetFramesPerSecond()));
+        }
+
+        _sinceFps = 0;
+        _framesSinceFps = 0;
     }
 
     private void RefreshLevel() => _level.Text = _services.Text.Format("ui.hud.level", ("level", _view.ViewLevel));

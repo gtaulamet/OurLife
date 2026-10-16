@@ -1,7 +1,7 @@
 [
-  { "type": "ItemCategory", "id": "wood" },
-  { "type": "ItemCategory", "id": "stone" },
-  { "type": "ItemCategory", "id": "food" },
+  { "type": "ItemCategory", "id": "food", "order": 0 },
+  { "type": "ItemCategory", "id": "wood", "order": 1 },
+  { "type": "ItemCategory", "id": "stone", "order": 2 },
   { "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 25 },
   { "type": "Item", "id": "stone", "category": "stone", "kind": "raw", "visual": "item.stone", "stackLimit": 25 },
   { "type": "Item", "id": "berries", "category": "food", "kind": "food", "visual": "item.berries", "stackLimit": 75, "nutrition": 400 },

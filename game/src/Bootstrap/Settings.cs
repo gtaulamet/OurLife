@@ -8,7 +8,8 @@ namespace OurLife.Game.Bootstrap;
 /// <summary>
 /// Player preferences, stored in <c>user://settings.cfg</c>. Without a saved preference the
 /// language is Spanish, whatever the language of the operating system, the game is windowed, the
-/// day and night cycle is on, the interface size is automatic and the grass has the normal decoration.
+/// day and night cycle is on, the interface size is automatic, the grass has the normal decoration
+/// and the frames per second are hidden.
 /// </summary>
 public sealed class Settings
 {
@@ -19,16 +20,20 @@ public sealed class Settings
     private const string DayNightKey = "day_night";
     private const string UiScaleKey = "ui_scale";
     private const string DecorationKey = "decoration";
+    private const string ShowFpsKey = "show_fps";
 
     private readonly bool _persistent;
 
-    // The values written to the file; UiScale and Decoration may differ for this session only
-    // (--ui-scale, --decoration).
+    // The values written to the file; UiScale, Decoration and ShowFps may differ for this session
+    // only (--ui-scale, --decoration, --fps).
     private int _savedUiScale;
     private DecorationLevel _savedDecoration;
+    private bool _savedShowFps;
 
-    private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, int decoration, bool persistent)
+    private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, int decoration, bool showFps, bool persistent)
     {
+        ShowFps = showFps;
+        _savedShowFps = showFps;
         Locale = locale;
         Fullscreen = fullscreen;
         DayNightCycle = dayNight;
@@ -61,12 +66,19 @@ public sealed class Settings
     /// <summary>Raised when the decoration level changes, so the view dresses the grass again.</summary>
     public event Action? DecorationChanged;
 
+    /// <summary>Whether the HUD shows the frames per second (see <c>docs/gdd/indicadores.md</c>).</summary>
+    public bool ShowFps { get; private set; }
+
+    /// <summary>Raised when <see cref="ShowFps"/> changes, so the HUD shows or hides it.</summary>
+    public event Action? ShowFpsChanged;
+
     public static Settings Load()
     {
         using var config = new ConfigFile();
         if (config.Load(FilePath) != Error.Ok)
         {
-            return new Settings(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, persistent: true);
+            return new Settings(
+                Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, showFps: false, persistent: true);
         }
 
         return new Settings(
@@ -75,12 +87,13 @@ public sealed class Settings
             config.GetValue(Section, DayNightKey, true).AsBool(),
             config.GetValue(Section, UiScaleKey, UiScaleRules.Auto).AsInt32(),
             config.GetValue(Section, DecorationKey, (int)DecorationLevel.Normal).AsInt32(),
+            config.GetValue(Section, ShowFpsKey, false).AsBool(),
             persistent: true);
     }
 
     /// <summary>Settings that are never written, for smoke tests and screenshots.</summary>
     public static Settings InMemory() =>
-        new(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, persistent: false);
+        new(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, showFps: false, persistent: false);
 
     public void SetLocale(string locale)
     {
@@ -119,6 +132,23 @@ public sealed class Settings
         if (changed)
         {
             DecorationChanged?.Invoke();
+        }
+    }
+
+    /// <summary>Shows or hides the frames per second. Without <paramref name="save"/> it lasts for this session only, as with <c>--fps</c>.</summary>
+    public void SetShowFps(bool show, bool save = true)
+    {
+        var changed = show != ShowFps;
+        ShowFps = show;
+        if (save && show != _savedShowFps)
+        {
+            _savedShowFps = show;
+            Save();
+        }
+
+        if (changed)
+        {
+            ShowFpsChanged?.Invoke();
         }
     }
 
@@ -173,6 +203,7 @@ public sealed class Settings
         config.SetValue(Section, DayNightKey, DayNightCycle);
         config.SetValue(Section, UiScaleKey, _savedUiScale);
         config.SetValue(Section, DecorationKey, (int)_savedDecoration);
+        config.SetValue(Section, ShowFpsKey, _savedShowFps);
         var error = config.Save(FilePath);
         if (error != Error.Ok)
         {

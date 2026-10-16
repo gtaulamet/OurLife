@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-2-edad`: H3.2 cerrado. H3.3 va en `ip3/h3-3-personalidad` |
+| Rama de trabajo | `ip3/indicadores-hud`: existencias y FPS en el HUD, pedido del usuario. H3.3 va en `ip3/h3-3-personalidad` |
 | `main` | En el cierre de H3.2, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 y H3.2 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 554 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 557 tests en verde, smoke con código 0 |
 | Huella del smoke | `4D9981ED0F339C6D` con `--seed 1 --ticks 5000`; `B229DEF368992238` con `--seed 42 --ticks 5000` (desde los fundadores de los dos sexos). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -39,6 +39,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: existencias y FPS en el HUD
+
+- Pedido del usuario: un indicador de cuánta comida, madera y piedra tiene la aldea, y la posibilidad de ver los FPS. Spec `docs/gdd/indicadores.md`; anotado en "Pedidos fuera de los hitos" de `IP3.md`. Rama `ip3/indicadores-hud`.
+- La barra superior muestra "Comida: 64  Madera: 25  Piedra: 0": todo lo que hay en el mapa, almacenado o no, más lo que llevan los colonos. Las categorías salen del contenido, con el campo nuevo `ItemCategory.order`. Consulta `ColonyStock.ByCategory`.
+- Opciones suma "Mostrar FPS", guardado. Comparte fila con "Ciclo de día y noche", porque a 720p otra fila no entraba. Los FPS van en un panel abajo a la derecha, junto al registro, contados sobre medio segundo. `--fps` para capturas.
+- La barra superior se apretó un poco para entrar en 960 × 540 con las existencias. Capturas a 1080p, 960 × 540 y 720p en es y en, revisadas.
+- 557 tests, misma huella del smoke.
 
 ### 2026-10-16: fundadores de los dos sexos
 

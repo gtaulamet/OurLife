@@ -180,6 +180,11 @@ public partial class GameRoot : Node
             _services.Settings.SetDecoration(decoration, save: false);
         }
 
+        if (options.Fps)
+        {
+            _services.Settings.SetShowFps(true, save: false);
+        }
+
         // The interface size follows the setting and the size of the window (see docs/gdd/tamano-de-la-interfaz.md).
         _services.Settings.ApplyUiScale(GetTree().Root);
         _services.Settings.UiScaleChanged += ApplyUiScale;
@@ -903,6 +908,15 @@ public partial class GameRoot : Node
 
         _services.Settings.SetDecoration(decoration, save: false);
         GD.Print("[smoke] the grass is dressed again for every decoration level");
+
+        // The colony's stock and the frames per second in the HUD (docs/gdd/indicadores.md).
+        var stock = ColonyStock.ByCategory(screen.Session.Simulation);
+        GD.Print($"[smoke] stock in the HUD: {string.Join(", ", stock.Select(line => $"{line.Category.Id} {line.Count}"))}");
+        var showFps = _services.Settings.ShowFps;
+        _services.Settings.SetShowFps(!showFps, save: false);
+        screen.Advance(1);
+        _services.Settings.SetShowFps(showFps, save: false);
+        GD.Print("[smoke] the frames per second show and hide");
 
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();
