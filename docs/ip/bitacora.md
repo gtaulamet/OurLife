@@ -21,9 +21,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`, con el deseo de tener un hijo, el pensamiento "Nació mi hijo" y la opción de hijos en la ficha.
-2. **El usuario** responde las preguntas de `docs/gdd/libre-albedrio.md` (interruptor, tareas por iniciativa, umbrales, prioridades y dónde va). Hasta entonces, sólo en el backlog.
-3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -41,6 +40,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: IP3.5 "Libre albedrío" planificada
+
+- Respuestas del usuario: el interruptor va en Opciones para toda la aldea; por ahora sólo recolectar, talar y acarrear; las metas de existencias se eligen en el juego; la iniciativa respeta las prioridades; va como IP3.5, después de IP3.
+- `docs/ip/IP3.5.md` con cinco hitos (L1 spec, L2 interruptor y metas, L3 trabajo por iniciativa, L4 vida social con intención, L5 integración), 32 a 46 h y versión `v0.3.5`. Fila nueva en el plan maestro, que corre las fechas siguientes unas dos semanas. Sale del backlog.
+- Nota de diseño: la opción de Opciones llega a la partida como un comando (determinismo y guardado). Las tres partes van a IP3.5, así que el balance social de H3.10 se hace sin buscar ni evitar personas.
 
 ### 2026-10-16: libre albedrío, para planificar
 

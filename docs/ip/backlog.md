@@ -22,5 +22,4 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 - ¿Retroceso de época tras un colapso de la colonia?
 - Siglo XX y actualidad, después de IP10.
 - Fluidos dinámicos, multijugador, modo aventura y mundos persistentes entre partidas.
-- **Libre albedrío** (pedido del usuario del 16 de octubre de 2026, para planificar): iniciativa para trabajar sin órdenes, buscar a quienes aprecia y evitar a los conflictivos, según personalidad y ánimo. Propuesta y preguntas en `docs/gdd/libre-albedrio.md`.
 - Vida de los colonos, fuera de IP3 (`docs/gdd/vida-y-generaciones.md`): habilidades que se olvidan sin práctica, necesidad de ocio, camas dobles, casamientos y ceremonias, adopción, herencia de bienes y mellizos. Escuela en IP10, partos difíciles en IP5 y duelo con tumbas en IP5.

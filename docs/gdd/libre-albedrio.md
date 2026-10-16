@@ -1,6 +1,6 @@
 # Libre albedrío
 
-**Estado:** idea para planificar, sin aprobar. Pedido del usuario del 16 de octubre de 2026, durante IP3: "no es para hacerlo ahora, sino para pensarlo y planificarlo". No entra a mitad de IP3 (regla del proyecto); este documento junta lo que hay que decidir.
+**Estado:** dirección aprobada por el usuario el 16 de octubre de 2026; va como IP3.5 (`docs/ip/IP3.5.md`). La spec con criterios de aceptación se escribe en L1.
 
 ## Qué pidió el usuario
 
@@ -47,7 +47,11 @@ En el tiempo libre (sin órdenes, o de noche antes de dormir):
 - Cada rasgo puede sumar ganas a una clase de conducta libre, como ya suma peso a las interacciones: sociabilidad a buscar compañía, diligencia a la iniciativa, curiosidad a acercarse a un maestro.
 - Ánimo muy bajo: menos iniciativa y más aislamiento; ánimo alto: más ganas de compañía.
 
-## Preguntas para el usuario
+## Decisiones del usuario
+
+Respondidas el 16 de octubre de 2026: el interruptor va en Opciones, para toda la aldea; por ahora sólo recolectar, talar y acarrear; el jugador elige en el juego cuánto alcanza; la iniciativa respeta las prioridades; y va como IP3.5, con las tres partes (el balance de H3.10 se hace sin ellas). Como la simulación tiene que saber si está prendido (determinismo y guardado), la preferencia de Opciones llega a la partida como un comando, al cambiarla y al cargar; se cierra en L1.
+
+## Preguntas que se hicieron
 
 1. **Interruptor:** ¿el libre albedrío se prende y apaga para toda la aldea, por colono, o siempre está?
 2. **Qué puede hacer por su cuenta:** ¿sólo recolectar, talar y acarrear, o también otras tareas? ¿Excavar y construir quedan siempre en manos del jugador?
@@ -63,7 +67,7 @@ En el tiempo libre (sin órdenes, o de noche antes de dormir):
 | Parte en H3.10, el resto en IP4 | B (buscar y evitar) en el balance de H3.10; A y el lugar de reunión en IP4 | Lo social se arregla ya; la iniciativa llega con los oficios y el comedor | La iniciativa espera a IP4 |
 | Dentro de IP4 | Todo | IP4 trae agricultura, existencias y comedor, con los que la iniciativa tiene más sentido | La vida social sigue lenta hasta IP4 |
 
-Recomendación: buscar y evitar personas (parte B) en el balance de H3.10, porque es lo que hace falta para que las amistades se vean en una partida, y el resto como IP3.5 o al principio de IP4, una vez respondidas las preguntas.
+Elegida: IP3.5, con las tres partes.
 
 ## Estimación preliminar
 
