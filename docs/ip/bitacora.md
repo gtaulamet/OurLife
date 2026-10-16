@@ -21,8 +21,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`, con el deseo de tener un hijo, el pensamiento "Nació mi hijo" y la opción de hijos en la ficha.
-2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+2. **El usuario** responde las preguntas de `docs/gdd/libre-albedrio.md` (interruptor, tareas por iniciativa, umbrales, prioridades y dónde va). Hasta entonces, sólo en el backlog.
+3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
+4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -40,6 +41,11 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: libre albedrío, para planificar
+
+- Pedido del usuario: un libre albedrío en el que el colono con hambre busque o recolecte comida, sin nada que hacer tome tareas según sus prioridades, su personalidad y su ánimo, y busque o evite a otros según el vínculo. No es para ahora.
+- `docs/gdd/libre-albedrio.md`: qué ya hace el juego (comer y recolectar con hambre, tomar órdenes por prioridad), la propuesta en tres partes (trabajo por iniciativa, vida social con intención, preferencias por rasgos y ánimo), cinco preguntas para el usuario, tres lugares posibles en el plan y una estimación de 32 a 46 h. Anotado en el backlog y en "Pedidos fuera de los hitos" de `IP3.md`.
 
 ### 2026-10-16: ficha del colono (H3.9 adelantada)
 

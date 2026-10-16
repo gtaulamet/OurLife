@@ -34,6 +34,8 @@
 |---|---|---|---|
 | Fundadores de los dos sexos: siempre al menos una mujer y un varón | 16 de octubre de 2026 | `ip3/h3-2-edad` | Hecho |
 | Existencias de comida, madera y piedra en el HUD, y la opción de ver los FPS (`docs/gdd/indicadores.md`) | 16 de octubre de 2026 | `ip3/indicadores-hud` | Hecho |
+| Ficha del colono para ver los datos de IP3 en el juego (H3.9 adelantada) | 16 de octubre de 2026 | `ip3/h3-9-ficha` | Hecho, salvo la opción de hijos |
+| Libre albedrío: iniciativa, buscar y evitar personas (`docs/gdd/libre-albedrio.md`) | 16 de octubre de 2026 | — | Para planificar; en el backlog |
 
 ## Alcance
 
