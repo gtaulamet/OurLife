@@ -62,6 +62,9 @@ public sealed class LifeStageDef : Def
     /// </summary>
     public int TraitDriftPercent { get; init; } = 100;
 
+    /// <summary>Whether a colonist at this stage interacts with others; a baby does not.</summary>
+    public bool Interacts { get; init; } = true;
+
     /// <summary>The percent at which a need drops at this stage.</summary>
     public int NeedPercent(string need) => NeedsPercent.TryGetValue(need, out var percent) ? percent : 100;
 

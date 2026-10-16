@@ -123,6 +123,7 @@ public class SaveGameTests
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
+    [InlineData(4)]
     public void A_game_of_an_older_format_gets_what_came_later_and_keeps_the_rest(int format)
     {
         var bed = BusyColony();
@@ -136,7 +137,8 @@ public class SaveGameTests
             loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
             loaded.World.Get<Personality>(colonist).Traits.Count.ShouldBe(6);
             loaded.World.Get<Skills>(colonist).Values.Count.ShouldBe(5);
-            if (format == 3)
+            loaded.World.Get<Relations>(colonist).Others.Count.ShouldBe(4);
+            if (format >= 3)
             {
                 loaded.World.Get<Personality>(colonist).Traits.Select(trait => trait.Value)
                     .ShouldBe(bed.World.Get<Personality>(colonist).Traits.Select(trait => trait.Value));
@@ -470,7 +472,8 @@ public class SaveGameTests
 
     /// <summary>
     /// The saved game as an older format wrote it, without what came after: format 1 (v0.2.x) had
-    /// no pace of life, ages or surnames, format 2 (H3.2) no personalities and format 3 (H3.3) no skills.
+    /// no pace of life, ages or surnames, format 2 (H3.2) no personalities, format 3 (H3.3) no skills and
+    /// format 4 (H3.4) no relations.
     /// </summary>
     private static byte[] AsFormat(int format, byte[] file)
     {
@@ -480,7 +483,12 @@ public class SaveGameTests
         {
             var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
             var stores = state["Components"]!.AsArray();
-            var added = new List<string> { "skills" };
+            var added = new List<string> { "relations", "family", "recent_interactions" };
+            if (format <= 3)
+            {
+                added.Add("skills");
+            }
+
             if (format <= 2)
             {
                 added.Add("personality");
@@ -496,9 +504,9 @@ public class SaveGameTests
                 }
             }
 
-            foreach (var type in added)
+            foreach (var store in stores.Where(store => added.Contains((string)store!["Type"]!)).ToList())
             {
-                stores.Remove(stores.Single(store => (string)store!["Type"]! == type));
+                stores.Remove(store);
             }
 
             return state.ToJsonString();

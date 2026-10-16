@@ -37,6 +37,9 @@ public sealed class ScenarioDef : Def
     /// <summary>Levels added to one skill of each colonist, drawn, so each one has a strength.</summary>
     public required int FounderSkillBonus { get; init; }
 
+    /// <summary>The first two colonists, a woman and a man, arrive as a couple; none if not set.</summary>
+    public FoundingCouple? FoundingCouple { get; init; }
+
     /// <summary>Items left at the arrival point.</summary>
     public IReadOnlyList<ItemCount> Items { get; init; } = [];
 
@@ -69,6 +72,11 @@ public sealed class ScenarioDef : Def
         if (FounderSkillMin < 0 || FounderSkillMax < FounderSkillMin || FounderSkillBonus < 0)
         {
             yield return "founder skills must satisfy 0 <= founderSkillMin <= founderSkillMax, with founderSkillBonus zero or more.";
+        }
+
+        if (FoundingCouple is { } couple && (couple.MinYears < 0 || couple.MaxYears < couple.MinYears || Colonists < 2))
+        {
+            yield return "foundingCouple needs 0 <= minYears <= maxYears and at least two colonists.";
         }
 
         if (Items.Any(item => item.Count <= 0))

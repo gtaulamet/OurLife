@@ -41,8 +41,11 @@ public sealed class PersonalityRules
         return new PersonalityRules(configs[0], content.All<TraitDef>());
     }
 
-    /// <summary>A personality drawn at random: each trait the average of a few rolls, and an orientation by its weights.</summary>
-    public Personality Draw(Pcg32 random)
+    /// <summary>
+    /// A personality drawn at random: each trait the average of a few rolls, and an orientation by
+    /// its weights; with <paramref name="toOtherSex"/>, one of those attracted to the other sex.
+    /// </summary>
+    public Personality Draw(Pcg32 random, bool toOtherSex = false)
     {
         ArgumentNullException.ThrowIfNull(random);
         var personality = new Personality();
@@ -51,7 +54,7 @@ public sealed class PersonalityRules
             personality.Traits.Add(new TraitValue { Trait = trait.Id, Value = Roll(random) });
         }
 
-        personality.Orientation = DrawOrientation(random);
+        personality.Orientation = DrawOrientation(random, toOtherSex);
         return personality;
     }
 
@@ -129,6 +132,10 @@ public sealed class PersonalityRules
     public static int ExperiencePercent(Simulation simulation, EntityId colonist) =>
         ProductOf(simulation, colonist, trait => trait.Experience);
 
+    /// <summary>How likely a colonist is to start an interaction, in percent of the base chance: the product of every trait with a <see cref="TraitDef.InteractionChance"/>.</summary>
+    public static int InteractionChancePercent(Simulation simulation, EntityId colonist) =>
+        ProductOf(simulation, colonist, trait => trait.InteractionChance);
+
     /// <summary>Whether a trait makes the colonist look after its low needs before working.</summary>
     public static bool NeedsBeforeWork(Simulation simulation, EntityId colonist)
     {
@@ -171,12 +178,13 @@ public sealed class PersonalityRules
         return sum / Config.Rolls;
     }
 
-    private Orientation DrawOrientation(Pcg32 random)
+    private Orientation DrawOrientation(Pcg32 random, bool toOtherSex = false)
     {
         var weights = Config.Orientations;
-        var roll = random.NextInt(weights.Opposite + weights.Same + weights.Both);
+        var same = toOtherSex ? 0 : weights.Same;
+        var roll = random.NextInt(weights.Opposite + same + weights.Both);
         return roll < weights.Opposite ? Orientation.Opposite
-            : roll < weights.Opposite + weights.Same ? Orientation.Same
+            : roll < weights.Opposite + same ? Orientation.Same
             : Orientation.Both;
     }
 }

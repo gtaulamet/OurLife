@@ -1,5 +1,5 @@
 [
-  { "type": "Trait", "id": "sociability" },
+  { "type": "Trait", "id": "sociability", "interactionChance": { "low": 0, "high": 200 } },
   { "type": "Trait", "id": "kindness" },
   { "type": "Trait", "id": "diligence", "workSpeed": { "low": 90, "high": 110 }, "needsBeforeWorkBelow": 25 },
   { "type": "Trait", "id": "curiosity" },

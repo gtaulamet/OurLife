@@ -1,0 +1,97 @@
+[
+  {
+    "type": "Interaction",
+    "id": "chat",
+    "initiatorStages": ["child", "adolescent", "adult", "elder"],
+    "receiverStages": ["child", "adolescent", "adult", "elder"],
+    "weight": 60,
+    "initiatorTraits": { "sociability": 2 },
+    "opinion": { "min": 1, "max": 3 },
+    "backfire": { "trait": "patience", "below": 30, "chancePercent": 30, "opinion": { "min": -3, "max": -1 } }
+  },
+  {
+    "type": "Interaction",
+    "id": "joke",
+    "initiatorStages": ["child", "adolescent", "adult", "elder"],
+    "receiverStages": ["child", "adolescent", "adult", "elder"],
+    "weight": 20,
+    "initiatorTraits": { "sociability": 2 },
+    "minOpinion": 10,
+    "opinion": { "min": 2, "max": 5 },
+    "backfire": { "trait": "patience", "below": 30, "chancePercent": 20, "opinion": { "min": -2, "max": -2 } }
+  },
+  {
+    "type": "Interaction",
+    "id": "teach",
+    "initiatorStages": ["adolescent", "adult", "elder"],
+    "receiverStages": ["adolescent", "adult", "elder"],
+    "weight": 30,
+    "receiverTraits": { "curiosity": 2 },
+    "teaches": true,
+    "receiverOpinion": { "min": 2, "max": 2 }
+  },
+  {
+    "type": "Interaction",
+    "id": "argue",
+    "initiatorStages": ["adolescent", "adult", "elder"],
+    "receiverStages": ["adolescent", "adult", "elder"],
+    "weight": 5,
+    "initiatorTraits": { "patience": -6, "kindness": -4 },
+    "maxOpinion": 20,
+    "opinion": { "min": -8, "max": -3 },
+    "drift": [{ "who": "both", "trait": "patience", "points": -1, "chancePercent": 20 }]
+  },
+  {
+    "type": "Interaction",
+    "id": "comfort",
+    "initiatorStages": ["adolescent", "adult", "elder"],
+    "receiverStages": ["adolescent", "adult", "elder"],
+    "weight": 25,
+    "initiatorTraits": { "kindness": 3 },
+    "receiverMoodBelow": 30,
+    "receiverOpinion": { "min": 3, "max": 6 },
+    "drift": [{ "who": "initiator", "trait": "kindness", "points": 1, "chancePercent": 20 }]
+  },
+  {
+    "type": "Interaction",
+    "id": "flirt",
+    "initiatorStages": ["adult", "elder"],
+    "receiverStages": ["adult", "elder"],
+    "weight": 15,
+    "minOpinion": 20,
+    "romantic": true,
+    "romanceMinOpinion": 0,
+    "romance": { "min": 10, "max": 20 },
+    "opinion": { "min": 2, "max": 4 }
+  },
+  {
+    "type": "Interaction",
+    "id": "play",
+    "initiatorStages": ["child"],
+    "receiverStages": ["child", "adolescent"],
+    "familyReceivers": true,
+    "weight": 80,
+    "opinion": { "min": 2, "max": 4 },
+    "drift": [{ "who": "initiator", "trait": "sociability", "points": 1, "chancePercent": 20 }]
+  },
+  {
+    "type": "SocialConfig",
+    "id": "default",
+    "checkTicks": 30,
+    "radius": 4,
+    "pairCooldownHours": 2,
+    "startChancePercent": 20,
+    "closeWeightPercent": 200,
+    "friendOpinion": 40,
+    "rivalOpinion": -40,
+    "retellMargin": 10,
+    "coupleOpinion": 50,
+    "coupleRomance": 100,
+    "breakupBelow": 0,
+    "forgetPerDay": 1,
+    "familyFloor": 30,
+    "founderOpinion": { "min": -10, "max": 20 },
+    "widowYears": 1,
+    "recentInteractions": 5
+  }
+]

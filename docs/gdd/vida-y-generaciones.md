@@ -96,21 +96,25 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 | Interacción | Quién | Peso | Condición | Resultado |
 |---|---|---|---|---|
-| Charlar (`chat`) | Niño o mayor | 60, sociabilidad +2 | — | Opinión +1 a +3 los dos; "Charlé con alguien" |
+| Charlar (`chat`) | Niño o mayor | 60, sociabilidad +2 | — | Opinión +1 a +3 los dos; "Charlé con alguien". Si el otro tiene paciencia < 30, 30 % de que termine mal: opinión −1 a −3 (H3.5) |
 | Bromear (`joke`) | Niño o mayor | 20, sociabilidad +2 | Opinión ≥ 10 | Opinión +2 a +5 los dos y "Me reí". Si el otro tiene paciencia < 30, 20 % de que salga mal: opinión −2 |
 | Enseñar (`teach`) | Adolescente o mayor, a otro adolescente o mayor | 30, curiosidad del otro +2 | El que enseña tiene 3 niveles más en una habilidad | Experiencia para el aprendiz; su opinión +2 |
-| Discutir (`argue`) | Adolescente o mayor | 5, paciencia −3, amabilidad −2 | Opinión ≤ 10 | Opinión −3 a −8 los dos; "Discutí"; 20 % de paciencia −1 |
+| Discutir (`argue`) | Adolescente o mayor | 5, paciencia −6, amabilidad −4 (H3.5) | Opinión ≤ 20 (H3.5) | Opinión −3 a −8 los dos; "Discutí"; 20 % de paciencia −1 |
 | Consolar (`comfort`) | Adolescente o mayor | 25, amabilidad +3 | El otro tiene ánimo < 30 | El otro: opinión +3 a +6 y "Me consolaron"; quien consuela: 20 % de amabilidad +1 |
 | Cortejar (`flirt`) | Adultos solteros | 15 | Le atrae el otro; opinión ≥ 20 | Si el otro también se siente atraído y su opinión es ≥ 0: romance +10 a +20 los dos y opinión +2 a +4. Si no: "Me rechazaron" para quien cortejó |
 | Jugar (`play`) | Un niño, con un niño, un adolescente o un familiar | 80 | — | Opinión +2 a +4 los dos; "Jugué"; 20 % de sociabilidad +1 para el niño |
 
 - Cada interacción emite `InteractionEvent`: la presentación muestra un globo con un ícono sobre los dos colonos. No va al registro, salvo lo que cambia una relación (abajo).
 - La ficha guarda las últimas 5 interacciones de cada colono.
+- **Ajustes de H3.5:** con los números de arriba, dos colonos irritables y ásperos que conviven no llegaban a rivales: la charla subía la opinión y, pasando 10, ya no podían discutir. La charla termina mal con alguien impaciente (como la broma), la discusión pesa más según la paciencia y la amabilidad, y se permite hasta una opinión de 20. Para un colono promedio la discusión sigue con peso 5.
+- Un colono sin etapa de la vida cuenta como de la primera etapa que hace todo trabajo (`LifeRules.AdultStage`).
+- Hasta H3.6 todos tienen ánimo 50, así que nadie consuela todavía.
+- En una aldea real, con los colonos repartidos en sus trabajos, hay unas 3 interacciones por día entre cinco: las amistades tardan más de 10 días. Se revisa en el balance de H3.10.
 
 ## Relaciones y familia
 
 - **Opinión:** cada colono tiene una opinión de −100 a 100 de cada otro que conoce, que no tiene por qué ser la misma en los dos sentidos.
-- **Amistad y rivalidad:** opinión ≥ 40 de los dos lados es amistad; ≤ −40 de uno de los dos lados, rivalidad. Se avisa al empezar y no se guarda: sale de las opiniones.
+- **Amistad y rivalidad:** opinión ≥ 40 de los dos lados es amistad; ≤ −40 de uno de los dos lados, rivalidad. Se avisa al empezar y no se guarda: sale de las opiniones. Para no repetir el aviso cuando la opinión va y viene sobre el umbral, cada relación recuerda el último lazo avisado (`Relation.Told`), que se olvida cuando las dos opiniones se alejan `retellMargin` (10) puntos del umbral.
 - **Olvido:** si un par no interactúa en un día, cada opinión se acerca 1 punto a 0, sin bajar de 30 entre familiares ni entre la pareja.
 - **Familia:** padre, madre, pareja, hijos y hermanos (los que comparten padre o madre). Al nacer, la opinión entre padres e hijo empieza en 40, y entre hermanos en 30. Los familiares muertos quedan en la ficha con su nombre y "fallecido".
 - **Pareja:** dos adultos solteros a los que se atraen mutuamente, con opinión ≥ 50 de los dos lados y romance ≥ 100, forman pareja. Cualquier pareja es posible (decisión del usuario); sólo una de mujer y varón puede tener hijos.
@@ -209,7 +213,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 ## Guardado y migración
 
-- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, habilidades desde la 3, y en los hitos siguientes opiniones) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido. El formato es 4 desde H3.4.
+- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, habilidades desde la 3 y opiniones desde la 4) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido. El formato es 5 desde H3.5.
 - Las huellas del smoke cambian en H3.2 (la edad entra en el estado) y en cada hito que suma estado. La bitácora registra las nuevas.
 
 ## Contrato con la presentación
@@ -262,8 +266,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | `Trait` | `workSpeed` (`low` y `high`) y `needsBeforeWorkBelow` (H3.3); `experience` (H3.4); los coeficientes de interacciones y crisis en sus hitos; tramos de palabras para la ficha (H3.9) | `personality.json` |
 | `SkillConfig` | `maxLevel` (20), `averageLevel` (10), `experienceBase` (600), `experiencePerLevel` (150), `speedBase` (80), `speedPerLevel` (2), `teachingMinLevels` (3), `teachingBase` (100) y `teachingPerLevel` (30) (H3.4) | `skills.json` |
 | `PersonalityConfig` | `rolls` (3), `inheritedPercent` (50), `maxDriftPerDay` (3) y los pesos de orientación `orientations` (H3.3) | `personality.json` |
-| `Interaction` | Quién, peso y coeficientes, condición, resultados, deriva | `social.json` |
-| `SocialConfig` | `interactionCheckTicks`, `interactionRadius`, `pairCooldownHours`, umbrales de amistad, rivalidad y pareja, olvido | `social.json` |
+| `Interaction` | Etapas de quien empieza y del otro (`familyReceivers` para jugar con la familia), peso y coeficientes por rasgo, condiciones (`minOpinion`, `maxOpinion`, `receiverMoodBelow`, `teaches`, `romantic`), resultados (`opinion`, `receiverOpinion`, `romance`, `backfire`) y deriva (H3.5) | `social.json` |
+| `SocialConfig` | `checkTicks`, `radius`, `pairCooldownHours`, `startChancePercent`, `closeWeightPercent`, umbrales de amistad, rivalidad y pareja, `retellMargin`, `breakupBelow`, olvido, `founderOpinion`, `widowYears` y `recentInteractions` (H3.5) | `social.json` |
 | `Thought` | `mood`, `durationHours`, `stackLimit` | `mood.json` |
 | `Crisis` | Peso y coeficientes, `durationHours`, comportamiento | `mood.json` |
 | `MoodConfig` | Base, umbrales y efecto en el trabajo, probabilidad de crisis | `mood.json` |

@@ -32,6 +32,9 @@ public sealed class LifeRules
     /// <summary>The pace of a new game unless the player picks another.</summary>
     public LifePaceDef DefaultPace { get; }
 
+    /// <summary>The stage a colonist without <see cref="Life"/> counts as: the youngest that does every work.</summary>
+    public LifeStageDef AdultStage => Stages.FirstOrDefault(stage => stage.Work == StageWork.All) ?? Stages[^1];
+
     /// <exception cref="InvalidOperationException">
     /// The content has no LifeConfig or several, not exactly one default pace, no stage from
     /// 0 years, or two stages from the same age.

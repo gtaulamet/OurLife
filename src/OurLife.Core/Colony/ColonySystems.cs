@@ -19,6 +19,7 @@ public static class ColonySystems
         simulation.AddSystem(new DecisionSystem(rules, storage));
         simulation.AddSystem(new JobSystem(rules, storage));
         simulation.AddSystem(new MovementSystem(rules));
+        simulation.AddSystem(new SocialSystem(rules, SocialRules.From(simulation.Content), PersonalityRules.From(simulation.Content), life));
         simulation.AddSystem(new PlantGrowthSystem());
         simulation.AddSystem(new AlertSystem(rules));
     }

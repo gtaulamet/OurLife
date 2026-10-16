@@ -36,6 +36,9 @@ public static class SaveTypes
         Component<Life>("life");
         Component<Personality>("personality");
         Component<Skills>("skills");
+        Component<Relations>("relations");
+        Component<Family>("family");
+        Component<RecentInteractions>("recent_interactions");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");

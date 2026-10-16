@@ -16,6 +16,9 @@ public sealed class TraitDef : Def
     /// <summary>The experience it gives, in percent, working and learning from others; none if not set.</summary>
     public PercentRange? Experience { get; init; }
 
+    /// <summary>How likely it makes starting an interaction, in percent of the base chance; none if not set.</summary>
+    public PercentRange? InteractionChance { get; init; }
+
     internal override IEnumerable<string> Validate()
     {
         if (WorkSpeed is { } speed && (speed.Low <= 0 || speed.High <= 0))

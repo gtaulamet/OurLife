@@ -8,5 +8,9 @@
   "event.life.stage.adolescent": "{colonist} is a teenager now.",
   "event.life.stage.adult": "{colonist} has come of age: now a grown {colonist_gender, select, female {woman} other {man}}.",
   "event.life.stage.elder": "{colonist} has grown old: now an old {colonist_gender, select, female {woman} other {man}}.",
-  "event.life.old_age": "{colonist} died of old age at {years}."
+  "event.life.old_age": "{colonist} died of old age at {years}.",
+  "event.social.friends": "{a} and {b} became friends.",
+  "event.social.rivals": "{a} and {b} can't stand each other.",
+  "event.social.couple": "{a} and {b} are now a couple.",
+  "event.social.breakup": "{a} and {b} broke up."
 }

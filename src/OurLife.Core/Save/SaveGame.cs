@@ -24,12 +24,12 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 4;
+    public const int FormatVersion = 5;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
     /// after another (ADR-013): format 1 (v0.2.x) gets ages and surnames, format 2 (H3.2)
-    /// personalities and format 3 (H3.3) skills (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// personalities, format 3 (H3.3) skills and format 4 (H3.4) relations (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -136,6 +136,11 @@ public static class SaveGame
             if (header.FormatVersion <= 3)
             {
                 ColonyStart.MigrateSkills(simulation);
+            }
+
+            if (header.FormatVersion <= 4)
+            {
+                ColonyStart.MigrateRelations(simulation);
             }
 
             return (simulation, header);
@@ -319,6 +324,13 @@ public static class SaveGame
                         || skills.Values.Select(skill => skill.WorkType).Distinct(StringComparer.Ordinal).Count() != skills.Values.Count))
                 {
                     throw Corrupt($"{entity} has a skill below zero or twice");
+                }
+
+                if (component is Relations relations
+                    && (relations.Others.Any(relation => relation.Opinion is < -100 or > 100 || relation.Romance is < 0 or > 100)
+                        || relations.Others.Select(relation => relation.Other).Distinct().Count() != relations.Others.Count))
+                {
+                    throw Corrupt($"{entity} has an opinion out of range or two of the same colonist");
                 }
 
                 saveType.AddTo!(simulation.World, entity, component);

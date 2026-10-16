@@ -85,6 +85,20 @@ public class ColonyTests
     }
 
     [Fact]
+    public void Every_message_of_relations_names_both_colonists_in_every_language()
+    {
+        SocialRules.From(GameContent.Defs).Interactions.Count.ShouldBe(7);
+        foreach (var key in new[] { SocialRules.FriendsKey, SocialRules.RivalsKey, SocialRules.CoupleKey, SocialRules.BreakupKey })
+        {
+            foreach (var catalog in GameContent.Catalogs.Values)
+            {
+                catalog.Messages.ContainsKey(key).ShouldBeTrue($"{catalog.Locale}: missing {key}");
+                catalog.Messages[key].ArgumentNames.ShouldBe(new[] { "a", "b" }, ignoreOrder: true);
+            }
+        }
+    }
+
+    [Fact]
     public void The_hud_shows_food_wood_and_stone_in_that_order()
     {
         var simulation = new Simulation(1, GameContent.Defs);

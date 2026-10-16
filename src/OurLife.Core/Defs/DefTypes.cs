@@ -26,6 +26,8 @@ internal static class DefTypes
         ("Trait", typeof(TraitDef), "trait"),
         ("PersonalityConfig", typeof(PersonalityConfigDef), null),
         ("SkillConfig", typeof(SkillConfigDef), null),
+        ("Interaction", typeof(InteractionDef), "interaction"),
+        ("SocialConfig", typeof(SocialConfigDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

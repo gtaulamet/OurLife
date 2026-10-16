@@ -36,8 +36,8 @@ public static class ColonyStart
     /// <exception cref="ArgumentException">The content has no LifePace def <paramref name="lifePace"/>.</exception>
     /// <exception cref="InvalidOperationException">
     /// The map is missing, the colony already arrived, there is nowhere to stand, or the content
-    /// lacks the rules of life, personality or skills (see <see cref="LifeRules.From"/>,
-    /// <see cref="PersonalityRules.From"/> and <see cref="SkillRules.From"/>).
+    /// lacks the rules of life, personality, skills or relations (see <see cref="LifeRules.From"/>,
+    /// <see cref="PersonalityRules.From"/>, <see cref="SkillRules.From"/> and <see cref="SocialRules.From"/>).
     /// </exception>
     public static IReadOnlyList<EntityId> Settle(Simulation simulation, ScenarioDef scenario, string colonyName, string? lifePace = null)
     {
@@ -57,6 +57,7 @@ public static class ColonyStart
         var life = LifeRules.From(simulation.Content);
         var personalities = PersonalityRules.From(simulation.Content);
         var skills = SkillRules.From(simulation.Content);
+        var social = SocialRules.From(simulation.Content);
         var arrival = FindArrival(simulation);
         var creature = simulation.Content.Get<CreatureDef>(scenario.Creature);
         var random = simulation.Random.Get("colony.start");
@@ -74,7 +75,11 @@ public static class ColonyStart
                 : random.NextBool() ? Gender.Female : Gender.Male;
             simulation.World.Add(colonist, new Position { X = spot.X, Y = spot.Y, Z = spot.Z });
             var name = PickName(simulation.Content, creature, gender, random, usedNames);
-            var founder = FounderLife(simulation, scenario, life, random);
+            // The first two are the founding couple, if the scenario has one.
+            var couple = i < 2 ? scenario.FoundingCouple : null;
+            var founder = couple is null
+                ? FounderLife(simulation, scenario.FounderMinYears, scenario.FounderMaxYears, life, random)
+                : FounderLife(simulation, couple.MinYears, couple.MaxYears, life, random);
             simulation.World.Add(colonist, new Colonist
             {
                 Name = name,
@@ -83,13 +88,15 @@ public static class ColonyStart
                 Creature = creature.Id,
             });
             simulation.World.Add(colonist, founder);
-            simulation.World.Add(colonist, personalities.Draw(random));
+            simulation.World.Add(colonist, personalities.Draw(random, toOtherSex: couple is not null));
             simulation.World.Add(colonist, skills.Founder(scenario, random));
             simulation.World.Add(colonist, StartingNeeds(simulation.Content, creature, scenario, random));
             simulation.World.Add(colonist, new Movement());
             simulation.Events.Emit(new EntitySpawnedEvent(colonist));
             colonists.Add(colonist);
         }
+
+        social.Introduce(simulation, colonists, scenario.FoundingCouple, random);
 
         foreach (var item in scenario.Items)
         {
@@ -121,7 +128,7 @@ public static class ColonyStart
         foreach (var colonist in ColonistsOf(world))
         {
             var person = world.Get<Colonist>(colonist);
-            world.Add(colonist, FounderLife(simulation, scenario, life, random));
+            world.Add(colonist, FounderLife(simulation, scenario.FounderMinYears, scenario.FounderMaxYears, life, random));
             person.Surname = PickSurname(simulation.Content, simulation.Content.Get<CreatureDef>(person.Creature), random, usedSurnames);
         }
 
@@ -164,12 +171,22 @@ public static class ColonyStart
         return colonists;
     }
 
-    /// <summary>A founder of any day of life between the youngest and the end of the oldest year of the scenario.</summary>
-    private static Life FounderLife(Simulation simulation, ScenarioDef scenario, LifeRules life, Pcg32 random)
+    /// <summary>
+    /// Gives the colonists of a game saved before H3.5 (format 4) what founders think of each
+    /// other, drawn from the random stream <c>life.migration</c>. Nobody arrives as a couple (ADR-013).
+    /// </summary>
+    internal static void MigrateRelations(Simulation simulation)
+    {
+        var random = simulation.Random.Get(MigrationStream);
+        SocialRules.From(simulation.Content).Introduce(simulation, ColonistsOf(simulation.World), couple: null, random);
+    }
+
+    /// <summary>A founder of any day of life between the youngest age and the end of the oldest year.</summary>
+    private static Life FounderLife(Simulation simulation, int minYears, int maxYears, LifeRules life, Pcg32 random)
     {
         var daysPerYear = simulation.Time.DaysPerYear;
-        var youngest = scenario.FounderMinYears * daysPerYear;
-        var oldest = ((scenario.FounderMaxYears + 1) * daysPerYear) - 1;
+        var youngest = minYears * daysPerYear;
+        var oldest = ((maxYears + 1) * daysPerYear) - 1;
         return life.LifeAt(random.NextInt(youngest, oldest + 1), daysPerYear);
     }
 
