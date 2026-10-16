@@ -23,6 +23,8 @@ internal static class DefTypes
         ("LifePace", typeof(LifePaceDef), "life_pace"),
         ("LifeStage", typeof(LifeStageDef), "life_stage"),
         ("LifeConfig", typeof(LifeConfigDef), null),
+        ("Trait", typeof(TraitDef), "trait"),
+        ("PersonalityConfig", typeof(PersonalityConfigDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

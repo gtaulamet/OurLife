@@ -99,7 +99,7 @@ public class SaveGameTests
     }
 
     [Fact]
-    public void A_game_of_format_1_gets_ages_and_surnames_when_it_is_loaded()
+    public void A_game_of_format_1_gets_ages_surnames_and_personalities_when_it_is_loaded()
     {
         var bed = BusyColony();
         bed.Simulation.Run(200);
@@ -112,6 +112,7 @@ public class SaveGameTests
         colonists.Select(colonist => LifeRules.AgeYears(loaded, colonist)!.Value).ShouldAllBe(years => years >= 18 && years <= 40);
         colonists.Select(colonist => LifeRules.Stage(loaded, colonist)!.Id).ShouldAllBe(stage => stage == "adult");
         colonists.Select(colonist => loaded.World.Get<Colonist>(colonist).Surname).Distinct().Count().ShouldBe(5);
+        colonists.Select(colonist => loaded.World.Get<Personality>(colonist).Traits.Count).ShouldAllBe(count => count == 6);
         Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
 
         // Saved again, it is a game of the current format that loads as it was.
@@ -427,7 +428,7 @@ public class SaveGameTests
     private static SaveLoadException LoadFails(byte[] file) =>
         Should.Throw<SaveLoadException>(() => SaveGame.Load(new MemoryStream(file), ColonyTestBed.Content));
 
-    /// <summary>The saved game as v0.2.x wrote it: format 1, without pace of life, ages or surnames.</summary>
+    /// <summary>The saved game as v0.2.x wrote it: format 1, without pace of life, ages, surnames or personalities.</summary>
     private static byte[] AsFormat1(byte[] file)
     {
         var old = Rewrite(file, "header.json", json => json.Replace(
@@ -437,7 +438,10 @@ public class SaveGameTests
             var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
             state.Remove("LifePace");
             var stores = state["Components"]!.AsArray();
-            stores.Remove(stores.Single(store => (string)store!["Type"]! == "life"));
+            foreach (var added in new[] { "life", "personality" })
+            {
+                stores.Remove(stores.Single(store => (string)store!["Type"]! == added));
+            }
             foreach (var saved in stores.Single(store => (string)store!["Type"]! == "colonist")!["Entities"]!.AsArray())
             {
                 saved!["Value"]!.AsObject().Remove("Surname");

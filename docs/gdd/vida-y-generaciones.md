@@ -60,14 +60,16 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 |---|---|---|---|
 | `sociability` | Reservado | Sociable | Probabilidad de iniciar una interacción |
 | `kindness` | Áspero | Amable | Elige consolar o discutir; peso de las interacciones amables |
-| `diligence` | Perezoso | Trabajador | Velocidad de trabajo de 90 % a 110 % |
+| `diligence` | Perezoso | Trabajador | Velocidad de trabajo de 90 % a 110 %; por debajo de 25 atiende sus necesidades bajas antes de trabajar (H3.3) |
 | `curiosity` | Distraído | Curioso | Ganas de aprender: peso de enseñar como aprendiz y deseos de aprender |
 | `intelligence` | Torpe | Inteligente | Experiencia ganada de 75 % a 125 %, trabajando y aprendiendo de otro |
 | `patience` | Irritable | Paciente | Probabilidad de discutir y de entrar en crisis |
 
 - **Sorteo:** el promedio de tres tiradas de 0 a 100, que concentra los valores cerca de 50 sin cortarlos.
 - **Herencia:** un hijo saca, en cada rasgo, el promedio de sus padres en la mitad del valor y un sorteo en la otra mitad.
-- **Deriva:** las vivencias mueven los rasgos de a poco (ver interacciones, pensamientos y crisis). Cada rasgo se mueve como mucho 3 puntos por día del juego. En niños y adolescentes, cada vivencia mueve el doble: es cuando se forma el carácter.
+- **Deriva:** las vivencias mueven los rasgos de a poco (ver interacciones, pensamientos y crisis). Cada rasgo se mueve como mucho 3 puntos por día del juego, sumando las subidas y las bajadas, entre medianoche y medianoche. En niños y adolescentes, cada vivencia mueve el doble (`traitDriftPercent` de la etapa): es cuando se forma el carácter. El mecanismo llega en H3.3; las vivencias que lo usan, en H3.5 y H3.6.
+- **Perezosos** (pedido del plan: que dos colonos con rasgos opuestos elijan distinto ya en H3.3): un colono con diligencia menor a 25 atiende sus necesidades bajas antes de trabajar; el resto trabaja hasta que una necesidad es crítica, como en IP2. Es el campo `needsBeforeWorkBelow` del rasgo.
+- Un colono sin personalidad, o sin un rasgo, cuenta como promedio (50) en él.
 - **Orientación** (decisión del usuario): parte de la personalidad, sorteada al nacer o al llegar, con pesos en los defs: le atraen las personas del otro sexo (80), del mismo sexo (8) o de los dos (12). No cambia con las vivencias. La ficha la muestra desde la adolescencia.
 - La ficha muestra cada rasgo con una palabra ("Muy sociable", "Algo perezosa") en lugar del número, según tramos en los defs.
 
@@ -251,9 +253,10 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Def | Campos | Archivo |
 |---|---|---|
 | `LifePace` | `lifeDaysPerDay`, `default` | `life.json` |
-| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `interacts` (H3.5) y `visual` (H3.8) | `life.json` |
-| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); fertilidad, `conceptionChancePerYear`, `pregnancyLifeDays`, pesos de orientación y opiniones de los fundadores en los hitos que los usan | `life.json` |
-| `Trait` | Tramos de palabras para la ficha | `personality.json` |
+| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5) y `visual` (H3.8) | `life.json` |
+| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); fertilidad, `conceptionChancePerYear`, `pregnancyLifeDays` y opiniones de los fundadores en los hitos que los usan | `life.json` |
+| `Trait` | `workSpeed` (`low` y `high`) y `needsBeforeWorkBelow` (H3.3); los coeficientes de interacciones, experiencia y crisis en sus hitos; tramos de palabras para la ficha (H3.9) | `personality.json` |
+| `PersonalityConfig` | `rolls` (3), `inheritedPercent` (50), `maxDriftPerDay` (3) y los pesos de orientación `orientations` (H3.3) | `personality.json` |
 | `Interaction` | Quién, peso y coeficientes, condición, resultados, deriva | `social.json` |
 | `SocialConfig` | `interactionCheckTicks`, `interactionRadius`, `pairCooldownHours`, umbrales de amistad, rivalidad y pareja, olvido | `social.json` |
 | `Thought` | `mood`, `durationHours`, `stackLimit` | `mood.json` |

@@ -54,6 +54,7 @@ public static class ColonyStart
         }
 
         var life = LifeRules.From(simulation.Content);
+        var personalities = PersonalityRules.From(simulation.Content);
         var arrival = FindArrival(simulation);
         var creature = simulation.Content.Get<CreatureDef>(scenario.Creature);
         var random = simulation.Random.Get("colony.start");
@@ -80,6 +81,7 @@ public static class ColonyStart
                 Creature = creature.Id,
             });
             simulation.World.Add(colonist, founder);
+            simulation.World.Add(colonist, personalities.Draw(random));
             simulation.World.Add(colonist, StartingNeeds(simulation.Content, creature, scenario, random));
             simulation.World.Add(colonist, new Movement());
             simulation.Events.Emit(new EntitySpawnedEvent(colonist));
@@ -103,12 +105,13 @@ public static class ColonyStart
 
     /// <summary>
     /// Gives the colonists of a game saved before IP3 (format 1) what IP3 adds, as if they had
-    /// arrived with it: an age in the range of the founders and a surname, drawn from the random
-    /// stream <c>life.migration</c> by ascending id. The pace is the default one.
+    /// arrived with it: an age in the range of the founders, a surname and a personality, drawn
+    /// from the random stream <c>life.migration</c> by ascending id. The pace is the default one.
     /// </summary>
     internal static void Migrate(Simulation simulation)
     {
         var life = LifeRules.From(simulation.Content);
+        var personalities = PersonalityRules.From(simulation.Content);
         var scenario = TheOnlyScenario(simulation.Content);
         var random = simulation.Random.Get(MigrationStream);
         var world = simulation.World;
@@ -120,6 +123,7 @@ public static class ColonyStart
             var person = world.Get<Colonist>(colonist);
             world.Add(colonist, FounderLife(simulation, scenario, life, random));
             person.Surname = PickSurname(simulation.Content, simulation.Content.Get<CreatureDef>(person.Creature), random, usedSurnames);
+            world.Add(colonist, personalities.Draw(random));
         }
 
         simulation.LifePace = life.DefaultPace.Id;

@@ -34,6 +34,7 @@ public static class SaveTypes
         Component<Bed>("bed");
         Component<WorkPriorities>("work_priorities");
         Component<Life>("life");
+        Component<Personality>("personality");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");

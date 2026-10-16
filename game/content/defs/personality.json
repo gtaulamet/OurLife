@@ -1,0 +1,16 @@
+[
+  { "type": "Trait", "id": "sociability" },
+  { "type": "Trait", "id": "kindness" },
+  { "type": "Trait", "id": "diligence", "workSpeed": { "low": 90, "high": 110 }, "needsBeforeWorkBelow": 25 },
+  { "type": "Trait", "id": "curiosity" },
+  { "type": "Trait", "id": "intelligence" },
+  { "type": "Trait", "id": "patience" },
+  {
+    "type": "PersonalityConfig",
+    "id": "default",
+    "rolls": 3,
+    "inheritedPercent": 50,
+    "maxDriftPerDay": 3,
+    "orientations": { "opposite": 80, "same": 8, "both": 12 }
+  }
+]

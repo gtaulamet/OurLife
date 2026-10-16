@@ -595,12 +595,14 @@ public partial class GameRoot : Node
             var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
             GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
             var ages = colonists.Select(colonist => LifeRules.AgeYears(simulation, colonist) ?? -1).ToArray();
-            if (simulation.LifePace.Length == 0 || ages.Any(years => years < 0))
+            var traits = simulation.Content.All<TraitDef>().Count;
+            if (simulation.LifePace.Length == 0 || ages.Any(years => years < 0)
+                || colonists.Any(colonist => !simulation.World.TryGet<Personality>(colonist, out var personality) || personality.Traits.Count != traits))
             {
-                throw new InvalidOperationException("the colonists arrived without a pace of life or without an age");
+                throw new InvalidOperationException("the colonists arrived without a pace of life, an age or a personality");
             }
 
-            GD.Print($"[smoke] life: pace {simulation.LifePace}, ages {string.Join(", ", ages)}");
+            GD.Print($"[smoke] life: pace {simulation.LifePace}, ages {string.Join(", ", ages)}, {traits} traits each");
             var (stairSite, house) = OrderWorkAround(simulation, arrival);
 
             // Halfway, the game is saved and loaded, and the copy goes on beside it: both must

@@ -219,7 +219,7 @@ public sealed class JobSystem : ISimSystem
     /// </summary>
     private bool Work(Simulation simulation, EntityId colonist, Job job)
     {
-        var speed = IsWork(job) ? LifeRules.WorkSpeedPercent(simulation, colonist) : 100;
+        var speed = IsWork(job) ? WorkSpeed.PercentOf(simulation, colonist) : 100;
         switch (job.Kind)
         {
             case JobKind.Mine:

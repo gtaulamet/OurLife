@@ -16,9 +16,10 @@
     "fromYears": 3,
     "work": "none",
     "moveSpeedPercent": 90,
+    "traitDriftPercent": 200,
     "needsPercent": { "hunger": 70, "rest": 110 }
   },
-  { "type": "LifeStage", "id": "adolescent", "fromYears": 13, "work": "light", "workSpeedPercent": 80 },
+  { "type": "LifeStage", "id": "adolescent", "fromYears": 13, "work": "light", "workSpeedPercent": 80, "traitDriftPercent": 200 },
   { "type": "LifeStage", "id": "adult", "fromYears": 18, "work": "all" },
   {
     "type": "LifeStage",

@@ -295,6 +295,11 @@ public static class SaveGame
                     throw Corrupt($"{entity} has lived {life.AgeDays} days");
                 }
 
+                if (component is Personality personality && personality.Traits.Any(trait => trait?.Value is < 0 or > 100))
+                {
+                    throw Corrupt($"{entity} has a trait out of 0 to 100");
+                }
+
                 saveType.AddTo!(simulation.World, entity, component);
             }
         }

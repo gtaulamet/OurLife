@@ -28,6 +28,9 @@ public class DefLoaderTests
           { "type": "LifeStage", "id": "child", "fromYears": 3, "work": "none", "moveSpeedPercent": 90,
             "needsPercent": { "hunger": 70 } },
           { "type": "LifeConfig", "id": "default", "oldAge": [{ "years": 60, "percentPerYear": 1 }, { "years": 100, "percentPerYear": 100 }] },
+          { "type": "Trait", "id": "diligence", "workSpeed": { "low": 90, "high": 110 }, "needsBeforeWorkBelow": 25 },
+          { "type": "PersonalityConfig", "id": "default", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3,
+            "orientations": { "opposite": 80, "same": 8, "both": 12 } },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
             "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }
@@ -64,6 +67,10 @@ public class DefLoaderTests
         defs.Get<LifeStageDef>("child").WorkSpeedPercent.ShouldBe(100);
         defs.Get<LifeStageDef>("child").NameKey.ShouldBe("def.life_stage.child.name");
         defs.Get<LifeConfigDef>("default").OldAge[1].PercentPerYear.ShouldBe(100);
+        defs.Get<TraitDef>("diligence").WorkSpeed!.At(50).ShouldBe(100);
+        defs.Get<TraitDef>("diligence").NeedsBeforeWorkBelow.ShouldBe(25);
+        defs.Get<TraitDef>("diligence").NameKey.ShouldBe("def.trait.diligence.name");
+        defs.Get<PersonalityConfigDef>("default").Orientations.Both.ShouldBe(12);
         defs.Get<MaterialDef>("granite").SourceFile.ShouldBe("defs/extra.json");
     }
 
@@ -145,6 +152,10 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "LifeConfig", "id": "life", "oldAge": [{ "years": 80, "percentPerYear": 10 }, { "years": 70, "percentPerYear": 20 }] }]""", "must go up in years")]
     [InlineData("""[{ "type": "LifeConfig", "id": "life", "oldAge": [{ "years": 80, "percentPerYear": 120 }] }]""", "percentPerYear between 0 and 100")]
     [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 40, "founderMaxYears": 18 }]""", "founderMinYears <= founderMaxYears")]
+    [InlineData("""[{ "type": "Trait", "id": "grit", "workSpeed": { "low": 0, "high": 110 } }]""", "workSpeed must be positive")]
+    [InlineData("""[{ "type": "Trait", "id": "grit", "needsBeforeWorkBelow": 120 }]""", "needsBeforeWorkBelow must be between")]
+    [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 0, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 1, "same": 0, "both": 0 } }]""", "rolls must be positive")]
+    [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 0, "same": 0, "both": 0 } }]""", "not all zero")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

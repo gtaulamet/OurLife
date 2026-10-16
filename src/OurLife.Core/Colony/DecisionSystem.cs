@@ -388,21 +388,8 @@ public sealed class DecisionSystem : ISimSystem
             return false;
         }
 
-        if (TryWork(simulation, colonist))
-        {
-            return true;
-        }
-
         // Critical needs were tried above, and the job is wandering, which they always interrupt.
-        foreach (var need in NeedsBelow(simulation, colonist, critical: false))
-        {
-            if (TryNeed(simulation, colonist, need))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return TryWorkOrLowNeeds(simulation, colonist);
     }
 
     private void Decide(Simulation simulation, EntityId colonist)
@@ -415,20 +402,33 @@ public sealed class DecisionSystem : ISimSystem
             }
         }
 
-        if (TryWork(simulation, colonist))
+        if (!TryWorkOrLowNeeds(simulation, colonist))
         {
-            return;
+            Wander(simulation, colonist);
         }
+    }
 
+    /// <summary>
+    /// Work, and if there is none, the low needs. A colonist whose traits put its needs first, like
+    /// a lazy one (see "Personalidad" in <c>docs/gdd/vida-y-generaciones.md</c>), looks after its
+    /// low needs before working.
+    /// </summary>
+    private bool TryWorkOrLowNeeds(Simulation simulation, EntityId colonist) =>
+        PersonalityRules.NeedsBeforeWork(simulation, colonist)
+            ? TryLowNeeds(simulation, colonist) || TryWork(simulation, colonist)
+            : TryWork(simulation, colonist) || TryLowNeeds(simulation, colonist);
+
+    private bool TryLowNeeds(Simulation simulation, EntityId colonist)
+    {
         foreach (var need in NeedsBelow(simulation, colonist, critical: false))
         {
             if (TryNeed(simulation, colonist, need))
             {
-                return;
+                return true;
             }
         }
 
-        Wander(simulation, colonist);
+        return false;
     }
 
     /// <summary>

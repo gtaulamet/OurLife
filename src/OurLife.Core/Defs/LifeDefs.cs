@@ -56,6 +56,12 @@ public sealed class LifeStageDef : Def
     /// </summary>
     public IReadOnlyDictionary<string, int> NeedsPercent { get; init; } = new Dictionary<string, int>();
 
+    /// <summary>
+    /// How much each experience moves the traits of personality at this stage, in percent: the
+    /// years when the character takes shape move them more.
+    /// </summary>
+    public int TraitDriftPercent { get; init; } = 100;
+
     /// <summary>The percent at which a need drops at this stage.</summary>
     public int NeedPercent(string need) => NeedsPercent.TryGetValue(need, out var percent) ? percent : 100;
 
@@ -75,9 +81,9 @@ public sealed class LifeStageDef : Def
             yield return "fromYears must be zero or positive.";
         }
 
-        if (WorkSpeedPercent <= 0 || MoveSpeedPercent <= 0)
+        if (WorkSpeedPercent <= 0 || MoveSpeedPercent <= 0 || TraitDriftPercent < 0)
         {
-            yield return "workSpeedPercent and moveSpeedPercent must be positive.";
+            yield return "workSpeedPercent and moveSpeedPercent must be positive, and traitDriftPercent zero or more.";
         }
 
         if (NeedsPercent.Values.Any(percent => percent < 0))

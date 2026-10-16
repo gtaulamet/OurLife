@@ -65,6 +65,16 @@ public class ColonyTests
     }
 
     [Fact]
+    public void The_content_has_the_six_traits_of_the_spec_and_diligence_sets_the_speed()
+    {
+        var personality = PersonalityRules.From(GameContent.Defs);
+
+        personality.Traits.Select(trait => trait.Id).ShouldBe(new[] { "curiosity", "diligence", "intelligence", "kindness", "patience", "sociability" });
+        personality.Traits.Where(trait => trait.WorkSpeed is not null).Select(trait => trait.Id).ShouldBe(new[] { "diligence" });
+        personality.Config.MaxDriftPerDay.ShouldBe(3);
+    }
+
+    [Fact]
     public void The_hud_shows_food_wood_and_stone_in_that_order()
     {
         var simulation = new Simulation(1, GameContent.Defs);

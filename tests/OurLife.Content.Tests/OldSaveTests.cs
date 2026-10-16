@@ -28,6 +28,8 @@ public class OldSaveTests
         colonists.Count.ShouldBe(5);
         colonists.Select(colonist => LifeRules.AgeYears(simulation, colonist)!.Value).ShouldAllBe(years => years >= 18 && years <= 40);
         colonists.Select(colonist => simulation.World.Get<Colonist>(colonist).Surname).Distinct().Count().ShouldBe(5);
+        colonists.Select(colonist => simulation.World.Get<Personality>(colonist).Traits.Count)
+            .ShouldAllBe(count => count == GameContent.Defs.All<Core.Defs.TraitDef>().Count);
     }
 
     [Fact]

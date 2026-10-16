@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/indicadores-hud`: existencias y FPS hechos, `main` adelantado. H3.3 va en `ip3/h3-3-personalidad` |
+| Rama de trabajo | `ip3/h3-3-personalidad`: H3.3 hecho, falta la revisión de código |
 | `main` | Con H3.2 y los indicadores del HUD, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 y H3.2 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 557 tests en verde, smoke con código 0 |
-| Huella del smoke | `4D9981ED0F339C6D` con `--seed 1 --ticks 5000`; `B229DEF368992238` con `--seed 42 --ticks 5000` (desde los fundadores de los dos sexos). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 571 tests en verde, smoke con código 0 |
+| Huella del smoke | `7D3BF3621633EF7B` con `--seed 1 --ticks 5000`; `8D63FDA0CBA18BF8` con `--seed 42 --ticks 5000` (desde H3.3). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **H3.3, personalidad**, en `ip3/h3-3-personalidad`. H3.4 (habilidades) puede ir en paralelo y H3.8 (arte de las etapas) también, porque las etapas ya están fijadas.
+1. **H3.3:** revisión de código y cierre. Después, H3.4 (habilidades) en `ip3/h3-4-habilidades`; H3.8 (arte de las etapas) puede ir en paralelo.
 2. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -39,6 +39,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: H3.3, personalidad
+
+- Def `Trait` con los seis rasgos de la spec y `PersonalityConfig` (tres tiradas, herencia al 50 %, deriva de 3 por día y pesos de orientación 80/8/12), en `personality.json`. `LifeStage.traitDriftPercent`: niños y adolescentes al 200 %.
+- Componente `Personality` (rasgos por id con lo que se movió hoy, orientación y día de la deriva). `PersonalityRules`: sorteo, herencia (mitad de los padres y mitad sorteo), deriva con tope neto diario y consultas. Llegada y migración de la versión 1 sortean personalidad; el formato sigue en 2 y un colono sin personalidad cuenta como promedio.
+- Efectos: la diligencia da la velocidad de trabajo, de 90 % a 110 % (`WorkSpeed.PercentOf` junta etapa y rasgos). Decisión mía, anotada en la spec: un perezoso (diligencia < 25) atiende sus necesidades bajas antes de trabajar, para que dos colonos opuestos elijan distinto ya en este hito. Sociabilidad, amabilidad, curiosidad, inteligencia y paciencia actúan desde H3.4 a H3.6.
+- La deriva todavía no la llama nada en el juego: las vivencias llegan con las interacciones y los pensamientos.
+- 571 tests. Huellas nuevas: `7D3BF3621633EF7B` (semilla 1) y `8D63FDA0CBA18BF8` (semilla 42).
 
 ### 2026-10-16: existencias y FPS en el HUD
 
