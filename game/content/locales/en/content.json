@@ -253,5 +253,8 @@
   "def.desire.own_bed.gender": "other",
   "def.desire.reconcile.name": "make up",
   "def.desire.reconcile.desc": "Wants to make peace after an argument.",
-  "def.desire.reconcile.gender": "other"
+  "def.desire.reconcile.gender": "other",
+  "def.thought.death_sibling.name": "lost a sibling",
+  "def.thought.death_sibling.desc": "A brother or a sister died.",
+  "def.thought.death_sibling.gender": "other"
 }

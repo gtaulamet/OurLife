@@ -46,6 +46,8 @@ public sealed class MoodConfigDef : Def
 
     public string? DeathParent { get; init; }
 
+    public string? DeathSibling { get; init; }
+
     public string? DeathFriend { get; init; }
 
     public string? DeathColonist { get; init; }
@@ -58,7 +60,7 @@ public sealed class MoodConfigDef : Def
     {
         var thoughts = new[]
         {
-            SleptInBed, SleptOnFloor, Learned, NewPartner, Breakup, DeathPartner, DeathChild, DeathParent, DeathFriend, DeathColonist,
+            SleptInBed, SleptOnFloor, Learned, NewPartner, Breakup, DeathPartner, DeathChild, DeathParent, DeathSibling, DeathFriend, DeathColonist,
             DesireFulfilled, DesireFrustrated,
         };
         foreach (var thought in thoughts)

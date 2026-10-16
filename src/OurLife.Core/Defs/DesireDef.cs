@@ -15,7 +15,7 @@ public enum DesireKind
     /// <summary>After <see cref="DesireDef.Nights"/> nights in a row on the ground; fulfilled by having a bed.</summary>
     OwnBed,
 
-    /// <summary>After arguing with a friend; fulfilled when its opinion is back at <see cref="DesireDef.MinOpinion"/>.</summary>
+    /// <summary>After arguing with someone it thought at least <see cref="DesireDef.MinOpinion"/> of; fulfilled when the opinion is back where it was.</summary>
     Reconcile,
 }
 

@@ -27,6 +27,9 @@ public sealed record TimeSettings
 
     public int TicksPerDay => MinutesPerDay / MinutesPerTick;
 
+    /// <summary>Ticks in an hour of the game, rounded down if a tick does not fit an hour evenly.</summary>
+    public int TicksPerHour => TicksPerDay / 24;
+
     public int DaysPerYear => DaysPerSeason * Seasons.Count;
 
     /// <exception cref="ArgumentException">Some value is out of range.</exception>

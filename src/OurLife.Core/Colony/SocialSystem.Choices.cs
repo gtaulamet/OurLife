@@ -15,7 +15,7 @@ public sealed partial class SocialSystem
         var world = simulation.World;
         var config = _rules.Config;
         var cell = world.Get<Position>(colonist).Cell;
-        var cooldown = (long)config.PairCooldownHours * simulation.Time.TicksPerDay / 24;
+        var cooldown = (long)config.PairCooldownHours * simulation.Time.TicksPerHour;
         foreach (var other in _colonists)
         {
             if (other == colonist || !world.IsAlive(other))

@@ -16,6 +16,7 @@
   {"type": "Thought", "id": "death_partner", "mood": -20, "durationHours": 240},
   {"type": "Thought", "id": "death_child", "mood": -25, "durationHours": 240, "stackLimit": 2},
   {"type": "Thought", "id": "death_parent", "mood": -15, "durationHours": 168, "stackLimit": 2},
+  {"type": "Thought", "id": "death_sibling", "mood": -12, "durationHours": 168, "stackLimit": 2},
   {"type": "Thought", "id": "death_friend", "mood": -10, "durationHours": 120, "stackLimit": 3},
   {"type": "Thought", "id": "death_colonist", "mood": -3, "durationHours": 48, "stackLimit": 3},
   {"type": "Thought", "id": "desire_fulfilled", "mood": 8, "durationHours": 72, "stackLimit": 2},
@@ -26,6 +27,6 @@
   {"type": "Desire", "id": "befriend", "kind": "befriend", "chancePercent": 20, "scaledBy": "sociability", "minOpinion": 20, "maxOpinion": 39},
   {"type": "Desire", "id": "find_partner", "kind": "findPartner", "chancePercent": 30, "stages": ["adult"]},
   {"type": "Desire", "id": "own_bed", "kind": "ownBed", "chancePercent": 50, "nights": 2},
-  {"type": "Desire", "id": "reconcile", "kind": "reconcile", "chancePercent": 40, "scaledBy": "kindness", "minOpinion": 20},
-  {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated"}
+  {"type": "Desire", "id": "reconcile", "kind": "reconcile", "chancePercent": 40, "scaledBy": "kindness", "minOpinion": 10},
+  {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathSibling": "death_sibling", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated"}
 ]

@@ -212,15 +212,20 @@ public static class Relationships
         }
 
         var family = simulation.World.TryGet<Family>(colonist, out var own) ? own : null;
+        var social = Config(simulation);
+        var relatives = IsFamily(simulation, colonist, dead);
+        var friends = Opinion(simulation, colonist, dead) >= social.FriendOpinion && Opinion(simulation, dead, colonist) >= social.FriendOpinion;
         var thought =
             family?.Partner?.Entity == dead ? config.DeathPartner
             : family?.Children.Any(child => child.Entity == dead) == true ? config.DeathChild
             : family?.Father?.Entity == dead || family?.Mother?.Entity == dead ? config.DeathParent
-            : Kind(simulation, colonist, dead) == RelationKind.Friend ? config.DeathFriend
+            : relatives ? config.DeathSibling
+            : friends ? config.DeathFriend
             : config.DeathColonist;
         MoodRules.Feel(simulation, colonist, thought);
 
-        if (config.Grief is { } grief && IsFamily(simulation, colonist, dead) && simulation.Content.All<PersonalityConfigDef>().Count == 1)
+        // Rare enough that building the rules for it costs nothing.
+        if (config.Grief is { } grief && relatives && simulation.Content.All<PersonalityConfigDef>().Count == 1)
         {
             PersonalityRules.From(simulation.Content).Drift(simulation, colonist, grief.Trait, grief.Points);
         }

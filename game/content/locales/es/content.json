@@ -253,5 +253,8 @@
   "def.desire.own_bed.gender": "female",
   "def.desire.reconcile.name": "reconciliarse",
   "def.desire.reconcile.desc": "Quiere hacer las paces después de una discusión.",
-  "def.desire.reconcile.gender": "male"
+  "def.desire.reconcile.gender": "male",
+  "def.thought.death_sibling.name": "perdí a un hermano",
+  "def.thought.death_sibling.desc": "Murió un hermano o una hermana.",
+  "def.thought.death_sibling.gender": "male"
 }

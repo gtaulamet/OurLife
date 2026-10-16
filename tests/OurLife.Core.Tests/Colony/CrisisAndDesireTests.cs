@@ -128,6 +128,66 @@ public class CrisisAndDesireTests
         simulation.World.Get<Desires>(colonist).Active.Count.ShouldBe(2);
     }
 
+    [Fact]
+    public void An_argument_with_someone_it_liked_wakes_the_wish_to_make_up()
+    {
+        var bed = ColonyTestBed.Flat(5);
+        var simulation = new Simulation(3, Certain("reconcile"));
+        simulation.AttachMap(bed.Map);
+        ColonySystems.AddTo(simulation);
+        var a = Add(simulation, 1, 1, "Elvira");
+        var b = Add(simulation, 3, 3, "Urraca");
+        foreach (var (from, to) in new[] { (a, b), (b, a) })
+        {
+            Relationships.Ensure(simulation, from, to).Opinion = 14;
+        }
+
+        var events = new List<ISimEvent>();
+        for (var tick = 0; tick < 2 * TicksPerDay && !events.OfType<InteractionEvent>().Any(e => e.Interaction == "argue"); tick++)
+        {
+            simulation.Tick();
+            simulation.Events.DrainTo(events);
+        }
+
+        var argue = events.OfType<InteractionEvent>().First(e => e.Interaction == "argue");
+        var desires = new[] { argue.Initiator, argue.Receiver }
+            .SelectMany(colonist => simulation.World.TryGet<Desires>(colonist, out var own) ? own.Active : [])
+            .Select(desire => desire.Desire);
+        desires.ShouldContain("reconcile");
+    }
+
+    [Fact]
+    public void No_desire_is_born_without_room_nor_a_bed_for_one_who_has_one()
+    {
+        var json = ColonyTestBed.ContentJson.Replace("\"maxDesires\": 2", "\"maxDesires\": 0", StringComparison.Ordinal);
+        json.ShouldNotBe(ColonyTestBed.ContentJson);
+        var none = new Simulation(1, TestContent.WithDefs(json));
+        DesireRules.Consider(none, none.World.CreateEntity(), DesireKind.OwnBed);
+        none.World.Store<Desires>().Count.ShouldBe(0);
+
+        var simulation = new Simulation(1, Certain("own_bed"));
+        var colonist = simulation.World.CreateEntity();
+        var furniture = simulation.World.CreateEntity();
+        simulation.World.Add(furniture, new Bed { Owner = colonist });
+        DesireRules.Consider(simulation, colonist, DesireKind.OwnBed);
+        simulation.World.Has<Desires>(colonist).ShouldBeFalse();
+    }
+
+    private static EntityId Add(Simulation simulation, int x, int y, string name)
+    {
+        var colonist = simulation.World.CreateEntity();
+        simulation.World.Add(colonist, new Position { X = x, Y = y, Z = 1 });
+        simulation.World.Add(colonist, new Colonist { Name = name, Gender = Gender.Female, Creature = "human" });
+        simulation.World.Add(colonist, new Needs { Values = [new NeedState { Need = "hunger", Value = 10_000 }, new NeedState { Need = "rest", Value = 10_000 }] });
+        simulation.World.Add(colonist, new Movement());
+        simulation.World.Add(colonist, new Personality
+        {
+            // Kind enough to wish to make up, and impatient enough to argue.
+            Traits = [new TraitValue { Trait = "kindness", Value = 50 }, new TraitValue { Trait = "patience", Value = 0 }],
+        });
+        return colonist;
+    }
+
     /// <summary>The test content with these desires always born at their moment.</summary>
     private static DefDatabase Certain(params string[] desires)
     {

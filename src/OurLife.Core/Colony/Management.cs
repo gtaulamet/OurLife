@@ -109,7 +109,7 @@ public sealed class AlertSystem : ISimSystem
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
         var tick = simulation.CurrentTick;
-        var idleTicks = (long)_rules.Ai.IdleAlertHours * simulation.Time.TicksPerDay / 24;
+        var idleTicks = (long)_rules.Ai.IdleAlertHours * simulation.Time.TicksPerHour;
         world.Query<Colonist, Needs>(_colonists);
         foreach (var colonist in _colonists)
         {

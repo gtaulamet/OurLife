@@ -49,7 +49,7 @@ public sealed class MoodSystem : ISimSystem
     public static (int Interval, int Offset) Schedule(TimeSettings time)
     {
         ArgumentNullException.ThrowIfNull(time);
-        var hour = time.TicksPerDay / 24;
+        var hour = time.TicksPerHour;
         return (hour, LifeSystem.MidnightOffset(time) % hour);
     }
 
@@ -101,7 +101,7 @@ public sealed class MoodSystem : ISimSystem
             return;
         }
 
-        var ticksPerHour = simulation.Time.TicksPerDay / 24;
+        var ticksPerHour = simulation.Time.TicksPerHour;
         world.Add(colonist, new Crisis { Kind = kind.Id, UntilTick = simulation.CurrentTick + ((long)kind.DurationHours * ticksPerHour) });
         foreach (var shift in kind.Drift)
         {
@@ -190,19 +190,12 @@ public sealed class MoodSystem : ISimSystem
             return;
         }
 
-        var desires = simulation.World.TryGet<Desires>(colonist, out var existing) ? existing : null;
-        if (desires?.LastYearlyYear == years)
+        if (simulation.World.TryGet<Desires>(colonist, out var existing) && existing.LastYearlyYear == years)
         {
             return;
         }
 
-        if (desires is null)
-        {
-            desires = new Desires();
-            simulation.World.Add(colonist, desires);
-        }
-
-        desires.LastYearlyYear = years;
+        DesireRules.DesiresOf(simulation.World, colonist).LastYearlyYear = years;
         DesireRules.Consider(simulation, colonist, DesireKind.FindPartner, eligible: desire => desire.Stages.Contains(stage.Id));
     }
 

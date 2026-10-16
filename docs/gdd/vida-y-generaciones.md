@@ -145,6 +145,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Murió mi pareja (`death_partner`) | −20 | 10 días | 1 | |
 | Murió mi hijo (`death_child`) | −25 | 10 días | 2 | |
 | Murió mi padre o mi madre (`death_parent`) | −15 | 7 días | 2 | |
+| Murió mi hermano o hermana (`death_sibling`) | −12 | 7 días | 2 | Agregado en H3.6 |
 | Murió un amigo (`death_friend`) | −10 | 5 días | 3 | |
 | Murió alguien de la aldea (`death_colonist`) | −3 | 2 días | 3 | Si no es familiar ni amigo |
 | Cumplí un deseo (`desire_fulfilled`) | +8 | 3 días | 2 | |
@@ -153,6 +154,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 - **Efecto en el trabajo:** ánimo < 15: 80 %; < 30: 90 %; > 70: 105 %; > 85: 110 %.
 - **Cómo está hecho (H3.6):** los pensamientos de una situación (`need` y `below` en el def) no se guardan: salen de las necesidades al consultar el ánimo. Los de un hecho se guardan con su tick de fin en el componente `Mood`. Qué pensamiento deja cada hecho lo dicen los datos: cada interacción (`initiatorThought`, `receiverThought`, `rejectedThought`) y `MoodConfig` para dormir, aprender, formar pareja, separarse, las muertes y los deseos. Así el código no nombra pensamientos.
 - "Nació mi hijo" (`child_born`) llega con los nacimientos, en H3.7.
+- **Por qué cambió "Reconciliarse":** dos amigos no pueden discutir (la discusión pide opinión ≤ 20 y la amistad ≥ 40), así que el disparador original nunca ocurría. Los hermanos tenían el pensamiento de un vecino; ahora tienen el suyo.
+- Hacer una amistad no apunta a la familia ni a la pareja, y sólo nace de una charla que salió bien. Una cama propia no se desea si ya se tiene una, aunque no se llegue a ella.
 - **Deriva:** perder a un familiar baja la sociabilidad 2 puntos; un hijo sube la amabilidad de los padres 2 puntos.
 
 ### Crisis
@@ -178,7 +181,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Formar pareja (`find_partner`) | Un adulto soltero, una vez por año de vida | Formar pareja | 30 % |
 | Tener un hijo (`have_child`) | Un adulto en pareja fértil, una vez por año de vida | Nace un hijo de la pareja | 30 % |
 | Una cama propia (`own_bed`) | Tras dos noches seguidas en el suelo | Tiene cama | 50 % |
-| Reconciliarse (`reconcile`) | Tras discutir con un amigo | Su opinión de esa persona vuelve a ≥ 20 | 40 %, por la amabilidad |
+| Reconciliarse (`reconcile`) | Tras discutir con alguien de quien tenía opinión ≥ 10, si la opinión bajó (H3.6) | Su opinión vuelve a la de antes de la discusión | 40 %, por la amabilidad |
 
 - "Tener un hijo" no nace si los hijos están impedidos para esa pareja: la opción del jugador no castiga el ánimo. Este deseo llega con la fertilidad, en H3.7.
 - **Cómo está hecho (H3.6):** el def `Desire` tiene un `kind` que el código conoce (`learnFrom`, `befriend`, `findPartner`, `ownBed`, `reconcile`) y los números en datos (`chancePercent`, `scaledBy`, `minLevels`, `minOpinion`, `maxOpinion`, `nights`, `stages`). Las interacciones dicen qué deseo pueden despertar (`desire`). Un deseo sobre alguien que murió se descarta sin frustrarse.

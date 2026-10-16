@@ -19,12 +19,13 @@ public static class DesireRules
     /// A moment for desires of a kind, like a lesson for a desire to learn: each desire of that
     /// kind, if <paramref name="eligible"/>, may be born, while the colonist has room for one.
     /// </summary>
+    /// <param name="level">What the desire remembers: by default the level of the skill; for making up, the opinion before the argument.</param>
     internal static void Consider(
         Simulation simulation, EntityId colonist, DesireKind kind, EntityId target = default, string? workType = null,
-        Func<DesireDef, bool>? eligible = null)
+        Func<DesireDef, bool>? eligible = null, int? level = null)
     {
         var content = simulation.Content;
-        if (MoodRules.ConfigOf(content) is not { } config)
+        if (MoodRules.ConfigOf(content) is not { } config || (kind == DesireKind.OwnBed && HasBed(simulation, colonist)))
         {
             return;
         }
@@ -38,12 +39,15 @@ public static class DesireRules
 
             var desires = simulation.World.TryGet<Desires>(colonist, out var existing) ? existing : null;
             var today = simulation.Calendar.DayNumberAt(simulation.CurrentTick);
-            if (desires is not null
-                && (desires.Active.Count >= config.MaxDesires
-                    || (desires.LastBornDay is { } last && today - last < config.DaysBetweenDesires)
-                    || desires.Active.Any(active => active.Desire == desire.Id && active.Target == target && active.WorkType == workType)))
+            if ((desires?.Active.Count ?? 0) >= config.MaxDesires
+                || (desires?.LastBornDay is { } last && today - last < config.DaysBetweenDesires))
             {
                 return;
+            }
+
+            if (desires?.Active.Any(active => active.Desire == desire.Id && active.Target == target && active.WorkType == workType) == true)
+            {
+                continue;
             }
 
             var scale = desire.ScaledBy is { } trait ? PersonalityRules.Value(simulation, colonist, trait) : PersonalityRules.Average;
@@ -52,22 +56,29 @@ public static class DesireRules
                 continue;
             }
 
-            if (desires is null)
-            {
-                desires = new Desires();
-                simulation.World.Add(colonist, desires);
-            }
-
+            desires = DesiresOf(simulation.World, colonist);
             desires.LastBornDay = today;
             desires.Active.Add(new ActiveDesire
             {
                 Desire = desire.Id,
                 Target = target,
                 WorkType = workType,
-                Level = workType is null ? 0 : SkillRules.Level(simulation, colonist, workType) ?? 0,
+                Level = level ?? (workType is null ? 0 : SkillRules.Level(simulation, colonist, workType) ?? 0),
                 UntilTick = simulation.CurrentTick + ((long)config.DesireExpireDays * simulation.Time.TicksPerDay),
             });
         }
+    }
+
+    /// <summary>The desires of a colonist, created empty if it had none.</summary>
+    internal static Desires DesiresOf(World world, EntityId colonist)
+    {
+        if (!world.TryGet<Desires>(colonist, out var desires))
+        {
+            desires = new Desires();
+            world.Add(colonist, desires);
+        }
+
+        return desires;
     }
 
     /// <summary>Whether a desire came true.</summary>
@@ -82,7 +93,7 @@ public static class DesireRules
             DesireKind.Befriend => Alive(simulation, active.Target) && Relationships.Kind(simulation, colonist, active.Target) == RelationKind.Friend,
             DesireKind.FindPartner => !Relationships.PartnerOf(simulation, colonist).IsNone,
             DesireKind.OwnBed => HasBed(simulation, colonist),
-            DesireKind.Reconcile => Alive(simulation, active.Target) && Relationships.Opinion(simulation, colonist, active.Target) >= desire.MinOpinion,
+            DesireKind.Reconcile => Alive(simulation, active.Target) && Relationships.Opinion(simulation, colonist, active.Target) >= active.Level,
             _ => false,
         };
     }

@@ -32,10 +32,29 @@ public static class MoodRules
             return Neutral;
         }
 
+        // Without the iterators of Thoughts: the speed of work asks for it on every tick of work.
         var mood = config.Base;
-        foreach (var thought in Thoughts(simulation, colonist))
+        var content = simulation.Content;
+        if (simulation.World.TryGet<Mood>(colonist, out var state))
         {
-            mood += thought.Mood;
+            foreach (var active in state.Thoughts)
+            {
+                if (active.UntilTick > simulation.CurrentTick && content.TryGet<ThoughtDef>(active.Thought, out var thought))
+                {
+                    mood += thought.Mood;
+                }
+            }
+        }
+
+        if (simulation.World.TryGet<Needs>(colonist, out var needs))
+        {
+            foreach (var thought in content.All<ThoughtDef>())
+            {
+                if (Holds(content, needs, thought) && !Replaced(content, needs, thought))
+                {
+                    mood += thought.Mood;
+                }
+            }
         }
 
         return Math.Clamp(mood, 0, Max);
@@ -72,18 +91,39 @@ public static class MoodRules
             return [];
         }
 
-        var holding = new List<ThoughtDef>();
-        foreach (var thought in simulation.Content.All<ThoughtDef>())
+        var content = simulation.Content;
+        return [.. content.All<ThoughtDef>().Where(thought => Holds(content, needs, thought) && !Replaced(content, needs, thought))];
+    }
+
+    /// <summary>Whether a thought of a situation holds: its need is under its threshold.</summary>
+    private static bool Holds(DefDatabase content, Needs needs, ThoughtDef thought) =>
+        thought.Need is { } id && needs.Find(id) is { } state && content.TryGet<NeedDef>(id, out var need)
+        && state.Value < (thought.Below == NeedLevel.Critical ? need.CriticalThreshold : need.LowThreshold);
+
+    /// <summary>Whether another thought that holds stands in for this one, as starving for hungry.</summary>
+    private static bool Replaced(DefDatabase content, Needs needs, ThoughtDef thought)
+    {
+        foreach (var other in content.All<ThoughtDef>())
         {
-            if (thought.Need is { } id && needs.Find(id) is { } state && simulation.Content.TryGet<NeedDef>(id, out var need)
-                && state.Value < (thought.Below == NeedLevel.Critical ? need.CriticalThreshold : need.LowThreshold))
+            if (other.Replaces == thought.Id && Holds(content, needs, other))
             {
-                holding.Add(thought);
+                return true;
             }
         }
 
-        holding.RemoveAll(thought => holding.Any(other => other.Replaces == thought.Id));
-        return holding;
+        return false;
+    }
+
+    /// <summary>The thoughts of a colonist, created empty if it had none.</summary>
+    internal static Mood MoodOf(World world, EntityId colonist)
+    {
+        if (!world.TryGet<Mood>(colonist, out var mood))
+        {
+            mood = new Mood();
+            world.Add(colonist, mood);
+        }
+
+        return mood;
     }
 
     /// <summary>How fast a colonist works by its mood, in percent.</summary>
@@ -125,12 +165,7 @@ public static class MoodRules
             return;
         }
 
-        if (!simulation.World.TryGet<Mood>(colonist, out var mood))
-        {
-            mood = new Mood();
-            simulation.World.Add(colonist, mood);
-        }
-
+        var mood = MoodOf(simulation.World, colonist);
         mood.Thoughts.RemoveAll(active => active.UntilTick <= simulation.CurrentTick);
         var same = mood.Thoughts.FindAll(active => active.Thought == thought);
         if (same.Count >= def.StackLimit)
@@ -138,7 +173,7 @@ public static class MoodRules
             mood.Thoughts.Remove(same[0]);
         }
 
-        var ticksPerHour = simulation.Time.TicksPerDay / 24;
+        var ticksPerHour = simulation.Time.TicksPerHour;
         mood.Thoughts.Add(new ActiveThought { Thought = thought, UntilTick = simulation.CurrentTick + ((long)def.DurationHours * ticksPerHour) });
     }
 

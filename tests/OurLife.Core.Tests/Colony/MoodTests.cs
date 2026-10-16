@@ -114,6 +114,23 @@ public class MoodTests
     }
 
     [Fact]
+    public void A_brother_grieves_as_a_brother()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var mother = bed.AddColonist(1, 1, 1);
+        var brother = bed.AddColonist(3, 3, 1, name: "Urraca");
+        var sister = bed.AddColonist(5, 5, 1, name: "Jimena");
+        foreach (var child in new[] { brother, sister })
+        {
+            bed.World.Add(child, new Family { Mother = Relationships.RelativeOf(bed.Simulation, mother) });
+        }
+
+        ColonistDeath.Die(bed.Simulation, sister, Core.Text.LocalizedText.Of("event.need.hunger.death").With("colonist", sister));
+
+        bed.World.Get<Mood>(brother).Thoughts.Single().Thought.ShouldBe("death_sibling");
+    }
+
+    [Fact]
     public void A_death_grieves_the_partner_most_and_moves_the_family()
     {
         var bed = ColonyTestBed.Flat(15, seed: 4);

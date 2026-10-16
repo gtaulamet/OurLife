@@ -12,7 +12,7 @@ public sealed partial class SocialSystem
     {
         int towardsReceiver = 0, towardsInitiator = 0, romance = 0;
         var wentWell = true;
-        var wereFriends = Relationships.Kind(simulation, initiator, receiver) == RelationKind.Friend;
+        var before = (Relationships.Opinion(simulation, initiator, receiver), Relationships.Opinion(simulation, receiver, initiator));
         var lesson = interaction.Teaches ? Lesson(simulation, initiator, receiver) : null;
         var gap = lesson is null
             ? 0
@@ -74,20 +74,31 @@ public sealed partial class SocialSystem
             MoodRules.Feel(simulation, initiator, interaction.RejectedThought);
         }
 
-        WakeDesires(simulation, interaction, initiator, receiver, wereFriends, lesson, gap);
+        if (wentWell)
+        {
+            WakeDesires(simulation, interaction, initiator, receiver, before, lesson, gap);
+        }
+
         simulation.Events.Emit(new InteractionEvent(simulation.CurrentTick, initiator, receiver, interaction.Id));
     }
 
-    /// <summary>The desires an interaction may wake (see "Deseos" in <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    /// <summary>
+    /// The desires an interaction that went well may wake (see "Deseos" in
+    /// <c>docs/gdd/vida-y-generaciones.md</c>): to learn from a teacher who knows enough more, to
+    /// befriend someone it is warming to who is not family, and to make up with someone it liked
+    /// before the argument, until it likes it as much again.
+    /// </summary>
     private static void WakeDesires(
-        Simulation simulation, InteractionDef interaction, EntityId initiator, EntityId receiver, bool wereFriends, WorkTypeDef? lesson, int gap)
+        Simulation simulation, InteractionDef interaction, EntityId initiator, EntityId receiver,
+        (int OfReceiver, int OfInitiator) before, WorkTypeDef? lesson, int gap)
     {
+        var family = Relationships.IsFamily(simulation, initiator, receiver);
         switch (interaction.Desire)
         {
             case DesireKind.LearnFrom when lesson is not null:
                 DesireRules.Consider(simulation, receiver, DesireKind.LearnFrom, initiator, lesson.Id, desire => gap >= desire.MinLevels);
                 break;
-            case DesireKind.Befriend:
+            case DesireKind.Befriend when !family:
                 foreach (var (from, to) in new[] { (initiator, receiver), (receiver, initiator) })
                 {
                     var opinion = Relationships.Opinion(simulation, from, to);
@@ -95,9 +106,14 @@ public sealed partial class SocialSystem
                 }
 
                 break;
-            case DesireKind.Reconcile when wereFriends:
-                DesireRules.Consider(simulation, initiator, DesireKind.Reconcile, receiver);
-                DesireRules.Consider(simulation, receiver, DesireKind.Reconcile, initiator);
+            case DesireKind.Reconcile:
+                foreach (var (from, to, opinionBefore) in new[] { (initiator, receiver, before.OfReceiver), (receiver, initiator, before.OfInitiator) })
+                {
+                    var opinion = Relationships.Opinion(simulation, from, to);
+                    DesireRules.Consider(
+                        simulation, from, DesireKind.Reconcile, to, eligible: desire => opinionBefore >= desire.MinOpinion && opinion < opinionBefore, level: opinionBefore);
+                }
+
                 break;
         }
     }

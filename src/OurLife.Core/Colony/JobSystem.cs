@@ -134,12 +134,7 @@ public sealed class JobSystem : ISimSystem
             return;
         }
 
-        if (!world.TryGet<Mood>(colonist, out var mood))
-        {
-            mood = new Mood();
-            world.Add(colonist, mood);
-        }
-
+        var mood = MoodRules.MoodOf(world, colonist);
         mood.FloorNights = inBed ? 0 : mood.FloorNights + 1;
         var nights = mood.FloorNights;
         if (!inBed)
