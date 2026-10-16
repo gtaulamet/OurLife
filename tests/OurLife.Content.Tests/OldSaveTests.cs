@@ -1,4 +1,5 @@
 using OurLife.Core.Colony;
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Save;
@@ -7,36 +8,39 @@ using OurLife.Core.Sim;
 namespace OurLife.Content.Tests;
 
 /// <summary>
-/// A game saved by v0.2.5 (<c>Fixtures/v0.2.5.olsave</c>: seed 7, 20 000 ticks, written by the code
-/// and content of that release) loads with the content of today, and its colonists get what IP3
-/// adds (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
+/// Games saved by earlier versions load with the content of today, and their colonists get what
+/// came after (ADR-013, "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>). Each file
+/// was written by the code and content of its version, with seed 7 and 20 000 ticks:
+/// <c>v0.2.5.olsave</c> in format 1, and <c>h3.2.olsave</c> in format 2, by H3.2.
 /// </summary>
 public class OldSaveTests
 {
-    private static readonly string Fixture = RepoPaths.Combine("tests", "OurLife.Content.Tests", "Fixtures", "v0.2.5.olsave");
-
-    [Fact]
-    public void A_game_of_v0_2_5_loads_with_ages_surnames_and_the_default_pace()
+    [Theory]
+    [InlineData("v0.2.5.olsave", 1, "0.2.5")]
+    [InlineData("h3.2.olsave", 2, "0.3.0-dev")]
+    public void An_old_game_loads_with_ages_surnames_personalities_and_a_pace(string file, int format, string gameVersion)
     {
-        var simulation = Load(out var header);
+        var simulation = Load(file, out var header);
 
-        header.FormatVersion.ShouldBe(1);
-        header.GameVersion.ShouldBe("0.2.5");
+        header.FormatVersion.ShouldBe(format);
+        header.GameVersion.ShouldBe(gameVersion);
         simulation.CurrentTick.ShouldBe(20_000);
         simulation.LifePace.ShouldBe("fast");
         var colonists = Colonists(simulation);
         colonists.Count.ShouldBe(5);
-        colonists.Select(colonist => LifeRules.AgeYears(simulation, colonist)!.Value).ShouldAllBe(years => years >= 18 && years <= 40);
+        colonists.Select(colonist => LifeRules.AgeYears(simulation, colonist)!.Value).ShouldAllBe(years => years >= 18 && years <= 41);
         colonists.Select(colonist => simulation.World.Get<Colonist>(colonist).Surname).Distinct().Count().ShouldBe(5);
         colonists.Select(colonist => simulation.World.Get<Personality>(colonist).Traits.Count)
-            .ShouldAllBe(count => count == GameContent.Defs.All<Core.Defs.TraitDef>().Count);
+            .ShouldAllBe(count => count == GameContent.Defs.All<TraitDef>().Count);
     }
 
-    [Fact]
-    public void The_same_old_game_always_migrates_the_same_way_and_goes_on()
+    [Theory]
+    [InlineData("v0.2.5.olsave")]
+    [InlineData("h3.2.olsave")]
+    public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
-        var first = Load(out _);
-        var second = Load(out _);
+        var first = Load(file, out _);
+        var second = Load(file, out _);
 
         second.ComputeStateHash().ShouldBe(first.ComputeStateHash());
         first.Run(5_000);
@@ -45,10 +49,10 @@ public class OldSaveTests
         Colonists(first).ShouldNotBeEmpty();
     }
 
-    private static Simulation Load(out SaveHeader header)
+    private static Simulation Load(string file, out SaveHeader header)
     {
-        using var file = File.OpenRead(Fixture);
-        var simulation = SaveGame.Load(file, GameContent.Defs, out header);
+        using var stream = File.OpenRead(RepoPaths.Combine("tests", "OurLife.Content.Tests", "Fixtures", file));
+        var simulation = SaveGame.Load(stream, GameContent.Defs, out header);
         ColonySystems.AddTo(simulation);
         return simulation;
     }

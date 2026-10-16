@@ -111,6 +111,27 @@ public class PersonalityTests
         PersonalityRules.Value(bed.Simulation, stranger, "kindness").ShouldBe(PersonalityRules.Average);
     }
 
+    [Fact]
+    public void A_stage_that_halves_experiences_still_counts_a_small_one()
+    {
+        var json = ColonyTestBed.ContentJson.Replace(
+            "\"id\": \"elder\", \"fromYears\": 60, \"work\": \"all\",",
+            "\"id\": \"elder\", \"fromYears\": 60, \"work\": \"all\", \"traitDriftPercent\": 50,",
+            StringComparison.Ordinal);
+        json.ShouldNotBe(ColonyTestBed.ContentJson);
+        var content = TestContent.WithDefs(json);
+        var simulation = new Simulation(1, content);
+        var elder = simulation.World.CreateEntity();
+        simulation.World.Add(elder, new Life { AgeDays = 70 * 60, Stage = "elder" });
+        simulation.World.Add(elder, WithAll(50));
+        var rules = PersonalityRules.From(content);
+
+        // Half of 1 rounds to 1, half of 3 to 2, half of -1 to -1.
+        rules.Drift(simulation, elder, "kindness", 1).ShouldBe(1);
+        rules.Drift(simulation, elder, "patience", 3).ShouldBe(2);
+        rules.Drift(simulation, elder, "curiosity", -1).ShouldBe(-1);
+    }
+
     [Theory]
     [InlineData(50, 0)]
     [InlineData(100, -3)]

@@ -121,6 +121,46 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_game_of_format_2_gets_personalities_and_keeps_its_ages()
+    {
+        var bed = BusyColony();
+        bed.Simulation.Run(200);
+        var file = Rewrite(Save(bed.Simulation), "header.json", json => json.Replace(
+            $"\"FormatVersion\":{SaveGame.FormatVersion}", "\"FormatVersion\":2", StringComparison.Ordinal));
+        file = Rewrite(file, "state.json", json =>
+        {
+            var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            var stores = state["Components"]!.AsArray();
+            stores.Remove(stores.Single(store => (string)store!["Type"]! == "personality"));
+            return state.ToJsonString();
+        });
+
+        var loaded = Load(file);
+
+        foreach (var colonist in bed.Colonists())
+        {
+            loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
+            loaded.World.Get<Personality>(colonist).Traits.Count.ShouldBe(6);
+        }
+
+        Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+    }
+
+    [Theory]
+    [InlineData("\"MovedToday\":0", "\"MovedToday\":500")]
+    [InlineData("\"DriftDay\":0", "\"DriftDay\":-1")]
+    public void A_personality_out_of_range_is_corrupt(string from, string to)
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json =>
+        {
+            var at = json.IndexOf(from, StringComparison.Ordinal);
+            return json[..at] + to + json[(at + from.Length)..];
+        });
+
+        LoadFails(file).Reason.ShouldBe(SaveLoadError.Corrupt);
+    }
+
+    [Fact]
     public void A_negative_age_is_corrupt()
     {
         var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => System.Text.RegularExpressions.Regex.Replace(

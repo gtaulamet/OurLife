@@ -26,5 +26,5 @@ Hay dos lugares posibles para migrar:
 
 - Las migraciones no duplican reglas: si cambia cómo llegan los fundadores, cambia también lo que reciben los colonos de una partida vieja.
 - Una migración depende del contenido actual. Si un def que usaba una partida vieja desaparece, la carga falla con "falta contenido", como cualquier otra.
-- Durante IP3 el formato se queda en la versión 2 aunque cada hito sume estado: las partidas de desarrollo de un hito anterior pueden no cargar. Lo que se publica en `v0.3.0` migra desde la versión 1.
-- Los archivos de prueba se versionan: unos 30 KB por versión.
+- El formato sube cada vez que llega a `main` un cambio del estado, aunque sea a mitad de una IP: el usuario juega lo que hay en `main`, y sus partidas tienen que seguir cargando. Las migraciones se encadenan: una partida de la versión 1 pasa por la 2 y después por la 3. (Al principio se pensó dejar el formato en 2 durante IP3; la revisión de H3.3 mostró que las partidas de H3.2 se quedaban sin personalidad.)
+- Los archivos de prueba se versionan: unos 30 KB por versión. Hasta ahora, `v0.2.5.olsave` (versión 1) y `h3.2.olsave` (versión 2).

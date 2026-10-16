@@ -90,9 +90,7 @@ public sealed class PersonalityRules
             return 0;
         }
 
-        // The day of the calendar, from midnight to midnight.
-        var time = simulation.Time;
-        var day = ((time.StartHour * 60L) + (simulation.CurrentTick * time.MinutesPerTick)) / TimeSettings.MinutesPerDay;
+        var day = simulation.Calendar.DayNumberAt(simulation.CurrentTick);
         if (personality.DriftDay != day)
         {
             personality.DriftDay = day;
@@ -102,12 +100,15 @@ public sealed class PersonalityRules
             }
         }
 
-        var scaled = points * (LifeRules.Stage(simulation, colonist)?.TraitDriftPercent ?? 100) / 100;
+        // Rounded half away from zero, so a small experience still counts at a stage that halves it.
+        var scaled = points * (LifeRules.Stage(simulation, colonist)?.TraitDriftPercent ?? 100);
+        scaled = (scaled + (Math.Sign(scaled) * 50)) / 100;
         var cap = Config.MaxDriftPerDay;
-        var allowed = Math.Clamp(value.MovedToday + scaled, -cap, cap) - value.MovedToday;
+        var movedToday = Math.Clamp(value.MovedToday, -cap, cap);
+        var allowed = Math.Clamp(movedToday + scaled, -cap, cap) - movedToday;
         var moved = Math.Clamp(value.Value + allowed, 0, Max) - value.Value;
         value.Value += moved;
-        value.MovedToday += moved;
+        value.MovedToday = movedToday + moved;
         return moved;
     }
 
@@ -120,7 +121,7 @@ public sealed class PersonalityRules
             : Average;
     }
 
-    /// <summary>How fast a colonist works by its traits, in percent: the product of every trait with a <see cref="TraitDef.WorkSpeed"/>.</summary>
+    /// <summary>How fast a colonist works by its traits, in percent and at least 1: the product of every trait with a <see cref="TraitDef.WorkSpeed"/>.</summary>
     public static int WorkSpeedPercent(Simulation simulation, EntityId colonist)
     {
         ArgumentNullException.ThrowIfNull(simulation);
@@ -129,7 +130,7 @@ public sealed class PersonalityRules
         {
             if (trait.WorkSpeed is { } speed)
             {
-                percent = percent * speed.At(Value(simulation, colonist, trait.Id)) / 100;
+                percent = Math.Max(1, percent * speed.At(Value(simulation, colonist, trait.Id)) / 100);
             }
         }
 

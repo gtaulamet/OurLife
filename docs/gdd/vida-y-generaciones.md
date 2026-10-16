@@ -205,7 +205,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 ## Guardado y migración
 
-- El formato de guardado pasa a la versión 2. Una partida de la versión 1 (`v0.2.x`) se migra al cargarla: cada colono recibe edad, apellido, rasgos, orientación, habilidades y opiniones como los fundadores, sorteados con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido.
+- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, y en los hitos siguientes habilidades y opiniones) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido.
 - Las huellas del smoke cambian en H3.2 (la edad entra en el estado) y en cada hito que suma estado. La bitácora registra las nuevas.
 
 ## Contrato con la presentación

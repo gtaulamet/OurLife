@@ -36,7 +36,8 @@ public static class ColonyStart
     /// <exception cref="ArgumentException">The content has no LifePace def <paramref name="lifePace"/>.</exception>
     /// <exception cref="InvalidOperationException">
     /// The map is missing, the colony already arrived, there is nowhere to stand, or the content
-    /// lacks the rules of life (see <see cref="LifeRules.From"/>).
+    /// lacks the rules of life or of personality (see <see cref="LifeRules.From"/> and
+    /// <see cref="PersonalityRules.From"/>).
     /// </exception>
     public static IReadOnlyList<EntityId> Settle(Simulation simulation, ScenarioDef scenario, string colonyName, string? lifePace = null)
     {
@@ -104,29 +105,46 @@ public static class ColonyStart
     }
 
     /// <summary>
-    /// Gives the colonists of a game saved before IP3 (format 1) what IP3 adds, as if they had
-    /// arrived with it: an age in the range of the founders, a surname and a personality, drawn
-    /// from the random stream <c>life.migration</c> by ascending id. The pace is the default one.
+    /// Gives the colonists of a game saved before IP3 (format 1) what H3.2 added, as if they had
+    /// arrived with it: an age in the range of the founders and a surname, drawn from the random
+    /// stream <c>life.migration</c> by ascending id. The pace is the default one (ADR-013).
     /// </summary>
-    internal static void Migrate(Simulation simulation)
+    internal static void MigrateLives(Simulation simulation)
     {
         var life = LifeRules.From(simulation.Content);
-        var personalities = PersonalityRules.From(simulation.Content);
         var scenario = TheOnlyScenario(simulation.Content);
         var random = simulation.Random.Get(MigrationStream);
         var world = simulation.World;
-        var colonists = new List<EntityId>();
-        world.Query<Colonist>(colonists);
         var usedSurnames = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var colonist in colonists)
+        foreach (var colonist in ColonistsOf(world))
         {
             var person = world.Get<Colonist>(colonist);
             world.Add(colonist, FounderLife(simulation, scenario, life, random));
             person.Surname = PickSurname(simulation.Content, simulation.Content.Get<CreatureDef>(person.Creature), random, usedSurnames);
-            world.Add(colonist, personalities.Draw(random));
         }
 
         simulation.LifePace = life.DefaultPace.Id;
+    }
+
+    /// <summary>
+    /// Gives the colonists of a game saved before H3.3 (format 2) a personality drawn as on
+    /// arrival, from the random stream <c>life.migration</c> by ascending id (ADR-013).
+    /// </summary>
+    internal static void MigratePersonalities(Simulation simulation)
+    {
+        var personalities = PersonalityRules.From(simulation.Content);
+        var random = simulation.Random.Get(MigrationStream);
+        foreach (var colonist in ColonistsOf(simulation.World))
+        {
+            simulation.World.Add(colonist, personalities.Draw(random));
+        }
+    }
+
+    private static List<EntityId> ColonistsOf(World world)
+    {
+        var colonists = new List<EntityId>();
+        world.Query<Colonist>(colonists);
+        return colonists;
     }
 
     /// <summary>A founder of any day of life between the youngest and the end of the oldest year of the scenario.</summary>

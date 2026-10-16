@@ -24,11 +24,12 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 2;
+    public const int FormatVersion = 3;
 
     /// <summary>
-    /// The oldest format this game still reads. Format 1 (v0.2.x) is migrated on loading: its
-    /// colonists get what IP3 adds (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// The oldest format this game still reads. Older formats are migrated on loading, one step
+    /// after another (ADR-013): format 1 (v0.2.x) gets ages and surnames, format 2 (H3.2)
+    /// personalities (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -122,9 +123,14 @@ public static class SaveGame
             }
 
             var simulation = Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content);
-            if (header.FormatVersion == 1)
+            if (header.FormatVersion <= 1)
             {
                 MigrateFromVersion1(simulation);
+            }
+
+            if (header.FormatVersion <= 2)
+            {
+                ColonyStart.MigratePersonalities(simulation);
             }
 
             return (simulation, header);
@@ -295,9 +301,12 @@ public static class SaveGame
                     throw Corrupt($"{entity} has lived {life.AgeDays} days");
                 }
 
-                if (component is Personality personality && personality.Traits.Any(trait => trait?.Value is < 0 or > 100))
+                if (component is Personality personality
+                    && (personality.Traits.Any(trait => trait.Value is < 0 or > 100 || trait.MovedToday is < -100 or > 100)
+                        || personality.Traits.Select(trait => trait.Trait).Distinct(StringComparer.Ordinal).Count() != personality.Traits.Count
+                        || personality.DriftDay < 0))
                 {
-                    throw Corrupt($"{entity} has a trait out of 0 to 100");
+                    throw Corrupt($"{entity} has a trait out of range or twice");
                 }
 
                 saveType.AddTo!(simulation.World, entity, component);
@@ -317,7 +326,7 @@ public static class SaveGame
     /// <summary>
     /// A game of format 1 (v0.2.x), already restored, as if it had been saved in format 2: the
     /// walkers count their progress in thousandths of a tick instead of tenths, and the colonists
-    /// get what IP3 adds (ADR-013).
+    /// get ages and surnames (ADR-013).
     /// </summary>
     private static void MigrateFromVersion1(Simulation simulation)
     {
@@ -328,7 +337,7 @@ public static class SaveGame
             simulation.World.Get<Movement>(walker).Progress *= 100;
         }
 
-        ColonyStart.Migrate(simulation);
+        ColonyStart.MigrateLives(simulation);
     }
 
     private static GameMap RestoreMap(SavedMap saved, DefDatabase content)

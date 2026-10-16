@@ -118,9 +118,10 @@ El texto final de cada clave lo revisa el i18n-specialist; la tabla fija las cla
 | Versión | Juego | Cambios |
 |---|---|---|
 | 1 | `v0.2.0` a `v0.2.5` | Primera versión |
-| 2 | Desde H3.2 de IP3 | Ritmo de la vida en la partida, edad y etapa (`life`) y apellido de cada colono. Una partida de la versión 1 se migra al cargarla: ver "Guardado y migración" en `vida-y-generaciones.md` |
+| 2 | H3.2 de IP3 | Ritmo de la vida en la partida, edad y etapa (`life`) y apellido de cada colono. Una partida de la versión 1 se migra al cargarla: ver "Guardado y migración" en `vida-y-generaciones.md` |
+| 3 | Desde H3.3 de IP3 | Personalidad de cada colono (`personality`). Una partida de la versión 2 la recibe sorteada al cargarla |
 
 - `SaveGame.OldestFormatVersion` es la versión más vieja que el juego todavía carga; una más vieja se rechaza como "de una versión vieja".
-- `tests/OurLife.Content.Tests/Fixtures/v0.2.5.olsave` es una partida real de la versión 1, escrita con el código de `v0.2.5`. El test que la carga cuida la migración.
+- `tests/OurLife.Content.Tests/Fixtures/v0.2.5.olsave` (versión 1, escrita con el código de `v0.2.5`) y `h3.2.olsave` (versión 2, escrita con el de H3.2) son partidas reales. Los tests que las cargan cuidan las migraciones.
 - Guardado en la nube y capturas de pantalla en las ranuras.
 - Guardar con un nombre escrito por el jugador: las ranuras se nombran con la aldea.
