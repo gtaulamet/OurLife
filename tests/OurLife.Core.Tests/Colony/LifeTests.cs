@@ -27,6 +27,25 @@ public class LifeTests
     }
 
     [Fact]
+    public void Every_colony_arrives_with_a_woman_and_a_man()
+    {
+        var mixes = new HashSet<(int Women, int Men)>();
+        for (ulong seed = 1; seed <= 40; seed++)
+        {
+            var bed = ColonyTestBed.Flat(15, seed);
+            var colonists = ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content), "Valdeolmos");
+            var genders = colonists.Select(colonist => bed.World.Get<Colonist>(colonist).Gender).ToList();
+            var women = genders.Count(gender => gender == Gender.Female);
+            women.ShouldBeInRange(1, 4, $"seed {seed}");
+            mixes.Add((women, genders.Count - women));
+            genders[0].ShouldNotBe(genders[1], $"seed {seed}");
+        }
+
+        // Beyond the first two, the colony is still drawn.
+        mixes.Count.ShouldBeGreaterThan(2);
+    }
+
+    [Fact]
     public void Without_a_choice_the_colony_lives_at_the_default_pace()
     {
         var bed = ColonyTestBed.Flat(15);

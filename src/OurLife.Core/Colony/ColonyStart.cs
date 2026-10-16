@@ -30,7 +30,8 @@ public static class ColonyStart
     /// <summary>
     /// Creates the colonists and their items, names the village with the player's
     /// <paramref name="colonyName"/> and keeps the pace of life the player chose, or the default
-    /// one; returns the colonists by ascending id.
+    /// one; returns the colonists by ascending id. With two or more colonists, the first two are a
+    /// woman and a man, in either order, so the colony can have children; the rest are drawn.
     /// </summary>
     /// <exception cref="ArgumentException">The content has no LifePace def <paramref name="lifePace"/>.</exception>
     /// <exception cref="InvalidOperationException">
@@ -65,7 +66,9 @@ public static class ColonyStart
         {
             var colonist = simulation.World.CreateEntity();
             var spot = spots[i % spots.Count];
-            var gender = random.NextBool() ? Gender.Female : Gender.Male;
+            var gender = i == 1
+                ? Opposite(simulation.World.Get<Colonist>(colonists[0]).Gender)
+                : random.NextBool() ? Gender.Female : Gender.Male;
             simulation.World.Add(colonist, new Position { X = spot.X, Y = spot.Y, Z = spot.Z });
             var name = PickName(simulation.Content, creature, gender, random, usedNames);
             var founder = FounderLife(simulation, scenario, life, random);
@@ -185,6 +188,8 @@ public static class ColonyStart
 
         return spots;
     }
+
+    private static Gender Opposite(Gender gender) => gender == Gender.Female ? Gender.Male : Gender.Female;
 
     private static string PickName(DefDatabase content, CreatureDef creature, Gender gender, Pcg32 random, HashSet<string> used)
     {

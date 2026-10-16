@@ -41,6 +41,7 @@ El def `Scenario` suma la edad, los apellidos y la pareja de los fundadores:
 
 | Valor | Cantidad | Motivo |
 |---|---|---|
+| Sexo de los fundadores | Los dos primeros, una mujer y un varón en orden al azar; el resto, al azar (desde H3.2) | Pedido del usuario: una aldea sin mujeres o sin varones no puede tener hijos |
 | Edad de los fundadores | De 18 a 40 años, al azar | Adultos en edad de trabajar |
 | Pareja fundadora | 2 de los 5: una mujer y un varón de 20 a 30 años, con orientaciones compatibles | Decisión del usuario; la aldea puede crecer desde el principio |
 | Opinión inicial entre fundadores | De −10 a +20, al azar | Se conocen poco; las amistades se forman jugando |

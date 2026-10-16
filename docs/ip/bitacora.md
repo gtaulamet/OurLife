@@ -12,8 +12,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | En el cierre de H3.2, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 y H3.2 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 553 tests en verde, smoke con código 0 |
-| Huella del smoke | `7C61534966CC37FA` con `--seed 1 --ticks 5000`; `3984B7A57F47499E` con `--seed 42 --ticks 5000` (desde H3.2). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 554 tests en verde, smoke con código 0 |
+| Huella del smoke | `4D9981ED0F339C6D` con `--seed 1 --ticks 5000`; `B229DEF368992238` con `--seed 42 --ticks 5000` (desde los fundadores de los dos sexos). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
@@ -39,6 +39,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: fundadores de los dos sexos
+
+- El usuario probó una partida en la que todos los colonos eran mujeres. Pedido: asegurar siempre al menos una mujer y un varón al empezar.
+- `ColonyStart.Settle`: los dos primeros fundadores son una mujer y un varón, en orden al azar; el resto se sortea como antes. Así quedan listos para la pareja fundadora de H3.5 y H3.7. La spec lo dice en "Llegada".
+- Test con 40 semillas. Huellas nuevas: `4D9981ED0F339C6D` (semilla 1) y `B229DEF368992238` (semilla 42). 554 tests. Commit en `ip3/h3-2-edad` y `main` adelantado.
 
 ### 2026-10-16: cierre de H3.2
 
