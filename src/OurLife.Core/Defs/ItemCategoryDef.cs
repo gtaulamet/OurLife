@@ -8,6 +8,15 @@ namespace OurLife.Core.Defs;
 /// </summary>
 public sealed class ItemCategoryDef : Def
 {
-    /// <summary>Where the category goes in the stock of the HUD: lowest first, then by id.</summary>
+    /// <summary>Where the category goes in the lists of the interface: lowest first, then by id.</summary>
     public int Order { get; init; }
+
+    /// <summary>The categories of the content in the order of the interface (see <see cref="Order"/>).</summary>
+    public static IReadOnlyList<ItemCategoryDef> InOrder(DefDatabase content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        // The database gives them by id, and the sort keeps that order among equals.
+        return [.. content.All<ItemCategoryDef>().OrderBy(category => category.Order)];
+    }
 }

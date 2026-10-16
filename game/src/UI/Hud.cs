@@ -48,6 +48,8 @@ public partial class Hud : CanvasLayer
     private Control _fpsPanel = null!;
     private double _sinceFps;
     private int _framesSinceFps;
+    private bool _stockChanged;
+    private bool _stockWidthsChanged = true;
     private Label _hint = null!;
     private HBoxContainer _buildRow = null!;
     private VBoxContainer _alerts = null!;
@@ -64,6 +66,12 @@ public partial class Hud : CanvasLayer
     public EventLog Log { get; private set; } = null!;
 
     public ColonyPanel Colony { get; private set; } = null!;
+
+    /// <summary>Whether the frames per second show, for the smoke.</summary>
+    public bool ShowsFps => _fpsPanel.Visible && _fps.Text.Length > 0;
+
+    /// <summary>The lines of the stock as the player reads them, for the smoke.</summary>
+    public IEnumerable<string> StockTexts => _stock.Select(entry => entry.Label.Text);
 
     public static Hud Create(GameServices services, GameSession session, GameInput input, WorldView view, string colonyName)
     {
@@ -121,12 +129,24 @@ public partial class Hud : CanvasLayer
         _services.Settings.ShowFpsChanged -= RefreshFps;
     }
 
-    /// <summary>Follows the events of a frame: new messages for the log, and news for the inspector.</summary>
+    /// <summary>
+    /// Follows the events of a frame: new messages for the log, and news for the inspector. Items
+    /// only appear, change or go away with an event about an entity: then the stock is counted again.
+    /// </summary>
     public void Apply(IReadOnlyList<ISimEvent> events)
     {
+        ArgumentNullException.ThrowIfNull(events);
         Log.Apply(events, _session.Simulation.Calendar, _session.Simulation.World);
         Inspector.NoteChange();
         _alertsChanged = true;
+        foreach (var simEvent in events)
+        {
+            if (simEvent is EntitySpawnedEvent or EntityChangedEvent or EntityRemovedEvent)
+            {
+                _stockChanged = true;
+                break;
+            }
+        }
     }
 
     public override void _Process(double delta)
@@ -138,13 +158,22 @@ public partial class Hud : CanvasLayer
             RefreshFps();
         }
 
-        // The clock and the stock only change with a tick: no need to format them every frame.
+        if (_stockChanged)
+        {
+            RefreshStock();
+        }
+
+        if (_stockWidthsChanged)
+        {
+            FixStockWidths();
+        }
+
+        // The clock only changes with a tick: no need to format it every frame.
         var tick = _session.Simulation.CurrentTick;
         if (tick != _shownTick)
         {
             _shownTick = tick;
             RefreshDate();
-            RefreshStock();
 
             // An alert also ends without a message, like an idle colonist that took work.
             _alertsChanged = true;
@@ -184,9 +213,13 @@ public partial class Hud : CanvasLayer
         }
     }
 
-    /// <summary>The top of the full-width rows at the bottom: the hint, the build bar and the orders. The log sits on the left.</summary>
+    /// <summary>
+    /// The top of what is drawn at the bottom under the inspector: the full-width rows (the hint,
+    /// the build bar and the orders) and the frames per second on the right of the log's row. The
+    /// log itself sits on the left.
+    /// </summary>
     private float BottomBarsTop() =>
-        new Control[] { _hint, _buildRow, _ordersBar }.Where(row => row.Visible).Min(row => row.GetGlobalRect().Position.Y);
+        new Control[] { _hint, _buildRow, _ordersBar, _fpsPanel }.Where(row => row.Visible).Min(row => row.GetGlobalRect().Position.Y);
 
     private Control BuildTopBar(string colonyName)
     {
@@ -198,12 +231,13 @@ public partial class Hud : CanvasLayer
 
         // Everything fits in one line down to a canvas of 960 × 540 (docs/gdd/tamano-de-la-interfaz.md).
         var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
-        row.AddThemeConstantOverride("separation", Gap + (Gap / 2));
+        row.AddThemeConstantOverride("separation", Gap + (Gap / 4));
         panel.AddChild(row);
 
         // The village's name is a proper name: it is never translated.
         row.AddChild(new Label { Text = colonyName, AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled });
-        _date = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+        // The date gives way first: on a narrow canvas it is cut rather than pushing the buttons off the screen.
+        _date = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, ClipText = true };
         row.AddChild(_date);
 
         // What the colony has, by category of items, in the order of the content.
@@ -295,6 +329,7 @@ public partial class Hud : CanvasLayer
 
     private void OnLocaleChanged(string locale)
     {
+        _stockWidthsChanged = true;
         RefreshAll();
         RefreshBuildBar();
         RefreshAlerts(force: true);
@@ -446,16 +481,41 @@ public partial class Hud : CanvasLayer
         _date.Text = _services.Text.Format("ui.hud.date", ("date", _services.Text.Date(date)), ("clock", _services.Text.Clock(date)));
     }
 
-    /// <summary>What the colony has, by category of items.</summary>
+    /// <summary>What the colony has, by category of items, in the order the labels were built in.</summary>
     private void RefreshStock()
     {
-        var text = _services.Text;
+        _stockChanged = false;
         var stock = ColonyStock.ByCategory(_session.Simulation);
         for (var i = 0; i < _stock.Count; i++)
         {
-            var (category, label) = _stock[i];
-            var count = stock.FirstOrDefault(line => line.Category == category)?.Count ?? 0;
-            label.Text = text.Format("ui.hud.stock", ("category", text.Capitalized(text.Format(category.NameKey!))), ("count", count));
+            _stock[i].Label.Text = StockText(_stock[i].Category, stock[i].Count);
+        }
+    }
+
+    private string StockText(ItemCategoryDef category, int count)
+    {
+        var text = _services.Text;
+        return text.Format("ui.hud.stock", ("category", text.Capitalized(text.Format(category.NameKey!))), ("count", count));
+    }
+
+    /// <summary>
+    /// Each line of the stock at least as wide as with three digits, so the top bar does not move
+    /// while a count goes up to 999, and still fits on a canvas of 960 × 540. Measured with the
+    /// label's font, once it has one in the tree.
+    /// </summary>
+    private void FixStockWidths()
+    {
+        if (_stock.Count == 0 || !_stock[0].Label.IsInsideTree())
+        {
+            return;
+        }
+
+        _stockWidthsChanged = false;
+        foreach (var (category, label) in _stock)
+        {
+            var font = label.GetThemeFont("font");
+            var size = font.GetStringSize(StockText(category, 888), HorizontalAlignment.Left, -1, label.GetThemeFontSize("font_size"));
+            label.CustomMinimumSize = new Vector2(Mathf.Ceil(size.X), 0);
         }
     }
 

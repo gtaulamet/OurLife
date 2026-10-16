@@ -35,6 +35,7 @@ public partial class NewGameScreen : Control
         column.AddChild(UiBuilder.Title("ui.newgame.title"));
         column.AddChild(UiBuilder.Caption("ui.newgame.colony_name"));
         screen._name = Field(services.Text.Format("ui.newgame.default_name"));
+        screen._name.MaxLength = MaxColonyName;
         column.AddChild(screen._name);
 
         column.AddChild(UiBuilder.Caption("ui.newgame.seed"));
@@ -91,6 +92,9 @@ public partial class NewGameScreen : Control
             GetViewport().SetInputAsHandled();
         }
     }
+
+    /// <summary>The longest name of a village: with it the top bar of the HUD still fits on a canvas of 960 × 540.</summary>
+    private const int MaxColonyName = 24;
 
     private static LineEdit Field(string text)
     {

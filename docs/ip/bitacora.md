@@ -8,8 +8,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/indicadores-hud`: existencias y FPS en el HUD, pedido del usuario. H3.3 va en `ip3/h3-3-personalidad` |
-| `main` | En el cierre de H3.2, también en `origin` |
+| Rama de trabajo | `ip3/indicadores-hud`: existencias y FPS hechos, `main` adelantado. H3.3 va en `ip3/h3-3-personalidad` |
+| `main` | Con H3.2 y los indicadores del HUD, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 y H3.2 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
 | Validación | `dotnet build` sin advertencias, 557 tests en verde, smoke con código 0 |
@@ -47,6 +47,7 @@ En orden:
 - Opciones suma "Mostrar FPS", guardado. Comparte fila con "Ciclo de día y noche", porque a 720p otra fila no entraba. Los FPS van en un panel abajo a la derecha, junto al registro, contados sobre medio segundo. `--fps` para capturas.
 - La barra superior se apretó un poco para entrar en 960 × 540 con las existencias. Capturas a 1080p, 960 × 540 y 720p en es y en, revisadas.
 - 557 tests, misma huella del smoke.
+- Revisión de código: 6 hallazgos, todos corregidos. El inspector ya no tapa los FPS. Las cuentas tienen el ancho de tres dígitos, la fecha se recorta antes que los botones y el nombre de la aldea tiene como mucho 24 letras. El filtro de los almacenes usa el mismo orden de categorías (`ItemCategoryDef.InOrder`). Las existencias se cuentan sólo cuando llega un evento de entidad. El smoke comprueba los textos y que el panel de FPS aparece y desaparece. `main` adelantado.
 
 ### 2026-10-16: fundadores de los dos sexos
 

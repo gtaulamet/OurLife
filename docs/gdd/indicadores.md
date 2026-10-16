@@ -7,13 +7,15 @@ Pedido del usuario del 16 de octubre de 2026, durante IP3: ver cuánta comida, m
 - La barra superior del HUD muestra, después de la fecha, una cuenta por categoría de objetos: "Comida: 64", "Madera: 25", "Piedra: 0".
 - Cuenta las unidades de cada categoría que hay en todo el mapa, en un almacén o sueltas, más lo que llevan los colonos en las manos. No cuenta lo que ya se entregó a un plano: eso ya es parte de la obra.
 - Las categorías son las del contenido (`ItemCategory`), en el orden de su campo nuevo `order` y después por id. El código no conoce ninguna: una categoría nueva aparece sola. En IP3: comida (0), madera (1) y piedra (2).
-- Se actualiza con cada tick, como el reloj.
+- Se cuenta de nuevo cuando un evento dice que una entidad apareció, cambió o se fue: los objetos sólo cambian así.
+- Cada cuenta ocupa por lo menos el ancho de tres dígitos, para que la barra no se mueva hasta 999. Si la barra no entra, se recorta la fecha y no los botones; el nombre de la aldea tiene como mucho 24 letras.
+- El filtro de los almacenes del inspector usa el mismo orden de categorías.
 - Consulta de Core: `ColonyStock.ByCategory(simulation)`, de sólo lectura.
 
 ## FPS
 
 - Opciones suma "Mostrar FPS" (Sí / No), guardado en `settings.cfg`. Por defecto, No.
-- Con Sí, el HUD muestra "60 FPS" en un panel abajo a la derecha, en la fila del registro. Cuenta los cuadros dibujados en el último medio segundo; antes de la primera cuenta muestra la del motor.
+- Con Sí, el HUD muestra "60 FPS" en un panel abajo a la derecha, en la fila del registro. El inspector no baja hasta taparlo. Cuenta los cuadros dibujados en el último medio segundo; antes de la primera cuenta muestra la del motor.
 - Para no sumar una fila a Opciones, que a 720p no entraría (riesgo de `IP2.5.md`), "Ciclo de día y noche" y "Mostrar FPS" comparten una fila, uno al lado del otro.
 - `--fps` los muestra en una captura sin guardarlo.
 
@@ -30,4 +32,4 @@ Pedido del usuario del 16 de octubre de 2026, durante IP3: ver cuánta comida, m
 1. La cuenta suma las pilas sueltas, las almacenadas y lo que llevan los colonos, por categoría y en el orden del contenido (test de Core).
 2. Con el contenido real, el HUD muestra comida, madera y piedra en ese orden (test de contenido).
 3. La barra superior entra completa en un lienzo de 960 × 540, en es y en en; Opciones entra a 720p.
-4. El smoke muestra las existencias y prende y apaga los FPS.
+4. El smoke comprueba los textos de las existencias en el HUD y que el panel de FPS aparece y desaparece con la opción.

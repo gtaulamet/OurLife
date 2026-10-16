@@ -21,10 +21,7 @@ public static class ColonyStock
         ArgumentNullException.ThrowIfNull(simulation);
         var content = simulation.Content;
         var world = simulation.World;
-        var categories = content.All<ItemCategoryDef>()
-            .OrderBy(category => category.Order)
-            .ThenBy(category => category.Id, StringComparer.Ordinal)
-            .ToArray();
+        var categories = ItemCategoryDef.InOrder(content);
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
 
         var entities = new List<EntityId>();

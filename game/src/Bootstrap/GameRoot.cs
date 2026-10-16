@@ -911,12 +911,25 @@ public partial class GameRoot : Node
 
         // The colony's stock and the frames per second in the HUD (docs/gdd/indicadores.md).
         var stock = ColonyStock.ByCategory(screen.Session.Simulation);
-        GD.Print($"[smoke] stock in the HUD: {string.Join(", ", stock.Select(line => $"{line.Category.Id} {line.Count}"))}");
+        var stockTexts = screen.Hud.StockTexts.ToList();
+        if (stockTexts.Count != stock.Count || stockTexts.Any(line => line.Length == 0 || line.Contains('⟦')))
+        {
+            throw new InvalidOperationException($"the HUD shows the stock as [{string.Join(" | ", stockTexts)}]");
+        }
+
+        GD.Print($"[smoke] stock in the HUD: {string.Join(", ", stockTexts)}");
         var showFps = _services.Settings.ShowFps;
-        _services.Settings.SetShowFps(!showFps, save: false);
-        screen.Advance(1);
+        _services.Settings.SetShowFps(true, save: false);
+        var shown = screen.Hud.ShowsFps;
+        _services.Settings.SetShowFps(false, save: false);
+        var hidden = !screen.Hud.ShowsFps;
         _services.Settings.SetShowFps(showFps, save: false);
-        GD.Print("[smoke] the frames per second show and hide");
+        if (!shown || !hidden)
+        {
+            throw new InvalidOperationException($"the frames per second did not follow the option: shown {shown}, hidden {hidden}");
+        }
+
+        GD.Print("[smoke] the frames per second show and hide with the option");
 
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();

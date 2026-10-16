@@ -265,7 +265,7 @@ public partial class InspectorPanel : PanelContainer
             var text = _services.Text;
             var title = new Label { Text = text.Format("ui.inspector.stockpile"), AutoTranslateMode = AutoTranslateModeEnum.Disabled };
             _filters.AddChild(title);
-            foreach (var category in _simulation.Content.All<ItemCategoryDef>())
+            foreach (var category in ItemCategoryDef.InOrder(_simulation.Content))
             {
                 var row = new HBoxContainer();
                 row.AddChild(new Label
