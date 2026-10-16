@@ -4,13 +4,13 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-15.*
+*Actualizado el 2026-10-16.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-1-spec`: borrador de la spec de IP3 listo, espera la aprobación del usuario |
-| `main` | En el cierre de IP2.5 (`v0.2.5`), también en `origin` |
-| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) |
+| Rama de trabajo | `ip3/h3-2-edad`, desde el cierre de H3.1 |
+| `main` | En el cierre de H3.1 (spec de IP3 aprobada), también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
 | Validación | `dotnet build` sin advertencias, 515 tests en verde, smoke con código 0 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP3 las va a cambiar: edad, personalidad e interacciones entran en el estado |
@@ -20,8 +20,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **El usuario** revisa la spec `docs/gdd/vida-y-generaciones.md` (H3.1). Con su aprobación, H3.1 se cierra y sigue H3.2, edad y etapas de la vida, en `ip3/h3-2-edad`.
-2. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **H3.2, edad y etapas de la vida**, en `ip3/h3-2-edad`, según `docs/gdd/vida-y-generaciones.md`.
+2. **Los `.import` de dos texturas** (`barrel_small_dungeon_texture.png` y la `colormap.png` de Mini Characters) quedaron modificados sin versionar: el editor los pasó a compresión VRAM con mipmaps. No se incluyeron en el commit de H3.1; falta decidir si se versionan o se descartan.
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -39,6 +40,11 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: cierre de H3.1
+
+- El usuario aprobó la spec `docs/gdd/vida-y-generaciones.md`. Había sumado «inteligente» a los rasgos de `IP3.md`: la spec pasa a seis rasgos, con `intelligence` (Torpe a Inteligente), que decide la experiencia ganada de 75 % a 125 %, trabajando y aprendiendo de otro. `curiosity` queda para las ganas de aprender: el peso de enseñar como aprendiz y los deseos de aprender.
+- Hito de documentación, sin código: no lleva revisión de código. `main` adelantado al cierre de H3.1. Sigue H3.2 en `ip3/h3-2-edad`.
 
 ### 2026-10-15: IP2.5 completada también en la Mac
 

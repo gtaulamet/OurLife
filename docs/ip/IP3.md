@@ -9,14 +9,14 @@
 
 **Estimación:** 95 a 135 h. **Versión al cerrar:** `v0.3.0`, para Windows y macOS.
 
-**Estado:** en curso desde el 15 de octubre de 2026. H3.1 espera la aprobación de la spec.
+**Estado:** en curso desde el 15 de octubre de 2026. H3.1 cerrado el 16 de octubre con la spec aprobada; sigue H3.2.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| H3.1 Spec y contrato | En curso | `ip3/h3-1-spec` | Borrador de `docs/gdd/vida-y-generaciones.md` listo; falta la aprobación del usuario |
-| H3.2 Edad y etapas de la vida | Pendiente | `ip3/h3-2-edad` | |
+| H3.1 Spec y contrato | Hecho | `ip3/h3-1-spec` | `docs/gdd/vida-y-generaciones.md` aprobada el 16 de octubre de 2026, con el rasgo inteligencia que sumó el usuario |
+| H3.2 Edad y etapas de la vida | En curso | `ip3/h3-2-edad` | |
 | H3.3 Personalidad | Pendiente | `ip3/h3-3-personalidad` | |
 | H3.4 Habilidades | Pendiente | `ip3/h3-4-habilidades` | |
 | H3.5 Interacciones y relaciones | Pendiente | `ip3/h3-5-interacciones` | |
@@ -35,7 +35,7 @@
 - **Ritmo de la vida:** al crear la partida se elige cuántos años de vida pasan en un año del juego (un año del juego dura 60 días, unas 2,4 h a 1×). Los valores están en los defs; para empezar, Normal (1 año), Rápido (4 años) y Muy rápido (8 años). Con Rápido, un bebé es adulto en unas 11 h de juego y una vida dura unas 40 h. El ritmo se guarda con la partida y no cambia después.
 - **Etapas de la vida:** bebé, niño, adolescente, adulto y anciano, definidas en datos con sus edades. Cada etapa cambia qué puede hacer el colono (un bebé no camina solo, un niño juega y aprende pero no trabaja, un adolescente hace trabajos livianos, un anciano trabaja más despacio), cómo se ve y cuánto come y duerme.
 - **Muerte por vejez:** desde cierta edad, cada día hay una probabilidad creciente de morir de viejo, con la curva en los defs. Se avisa en el registro, como la muerte por hambre.
-- **Personalidad:** rasgos definidos en datos, como ejes de 0 a 100 (por ejemplo sociable, trabajador, amable, curioso, valiente, paciente). Se sortean al llegar; los hijos heredan en parte los de sus padres. Las vivencias los ajustan de a poco: una amistad, una pelea, la muerte de alguien cercano o un nacimiento.
+- **Personalidad:** rasgos definidos en datos, como ejes de 0 a 100 (por ejemplo sociable, trabajador, amable, curioso, valiente, paciente, inteligente). Se sortean al llegar; los hijos heredan en parte los de sus padres. Las vivencias los ajustan de a poco: una amistad, una pelea, la muerte de alguien cercano o un nacimiento.
 - **Interacciones:** dos colonos cerca y con un momento libre pueden interactuar: charlar, bromear, enseñar, discutir, consolar o cortejar. Los tipos son datos; la personalidad y la relación deciden cuál y con qué resultado.
 - **Relaciones:** cada colono tiene una opinión de cada otro, que suben o bajan las interacciones. Con la opinión aparecen amistades, rivalidades y parejas. También se registran los lazos de familia: padres, hijos y hermanos.
 - **Habilidades:** una por tipo de trabajo (excavar, talar, recolectar, construir, acarrear), con experiencia. Se ganan trabajando y enseñando o aprendiendo de otro colono que sabe más, y aceleran el trabajo. Oficios (IP4) suma la calidad y las habilidades de los talleres.

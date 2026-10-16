@@ -2,7 +2,7 @@
 
 Spec de IP3 (`docs/ip/IP3.md`): edad y etapas de la vida, ritmo de la vida, personalidad, habilidades, interacciones, relaciones y familia, pensamientos y ánimo, deseos, parejas, nacimientos, crianza y muerte por vejez. Las decisiones de diseño del usuario están en `docs/ip/IP3.md`. Los números son el punto de partida, viven en defs y se ajustan en H3.10 con pruebas de juego.
 
-**Estado:** borrador para aprobar (H3.1).
+**Estado:** aprobada por el usuario el 16 de octubre de 2026 (H3.1).
 
 ## Tiempo de la vida
 
@@ -60,7 +60,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | `sociability` | Reservado | Sociable | Probabilidad de iniciar una interacción |
 | `kindness` | Áspero | Amable | Elige consolar o discutir; peso de las interacciones amables |
 | `diligence` | Perezoso | Trabajador | Velocidad de trabajo de 90 % a 110 % |
-| `curiosity` | Distraído | Curioso | Experiencia ganada de 75 % a 125 %; deseos de aprender |
+| `curiosity` | Distraído | Curioso | Ganas de aprender: peso de enseñar como aprendiz y deseos de aprender |
+| `intelligence` | Torpe | Inteligente | Experiencia ganada de 75 % a 125 %, trabajando y aprendiendo de otro |
 | `patience` | Irritable | Paciente | Probabilidad de discutir y de entrar en crisis |
 
 - **Sorteo:** el promedio de tres tiradas de 0 a 100, que concentra los valores cerca de 50 sin cortarlos.
@@ -73,9 +74,9 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 - Una por tipo de trabajo: el `WorkType` suma `skill: true`. En IP3: excavar, talar, recolectar, construir, acarrear y criar. Sus nombres son los del tipo de trabajo.
 - **Niveles** de 0 a 20. Para pasar del nivel N al N+1 hacen falta `600 + 150 × N` puntos de experiencia (del 7 al 8: 1650).
-- **Experiencia trabajando:** 1 punto por tick de trabajo de ese tipo, por la curiosidad (de 75 % a 125 %). Un excavador de nivel 7 sube al 8 en unas 27 horas de excavar.
+- **Experiencia trabajando:** 1 punto por tick de trabajo de ese tipo, por la inteligencia (de 75 % a 125 %). Un excavador de nivel 7 sube al 8 en unas 27 horas de excavar.
 - **Velocidad:** `80 + 2 × nivel` por ciento (nivel 0: 80 %, nivel 10: 100 %, nivel 20: 120 %). Se multiplica con la etapa, la diligencia y el ánimo. Los trabajos duran `ticks × 100 / velocidad`, en enteros.
-- **Aprender de otro:** la interacción enseñar (abajo) da al aprendiz `100 + 30 × diferencia de niveles` puntos, por su curiosidad.
+- **Aprender de otro:** la interacción enseñar (abajo) da al aprendiz `100 + 30 × diferencia de niveles` puntos, por su inteligencia.
 - Subir de nivel deja el pensamiento "Aprendí algo" y se ve en la ficha; no se avisa en el registro.
 - Las habilidades no se pierden con el tiempo en IP3 (ver fuera de alcance).
 
