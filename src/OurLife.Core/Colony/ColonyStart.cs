@@ -36,8 +36,8 @@ public static class ColonyStart
     /// <exception cref="ArgumentException">The content has no LifePace def <paramref name="lifePace"/>.</exception>
     /// <exception cref="InvalidOperationException">
     /// The map is missing, the colony already arrived, there is nowhere to stand, or the content
-    /// lacks the rules of life or of personality (see <see cref="LifeRules.From"/> and
-    /// <see cref="PersonalityRules.From"/>).
+    /// lacks the rules of life, personality or skills (see <see cref="LifeRules.From"/>,
+    /// <see cref="PersonalityRules.From"/> and <see cref="SkillRules.From"/>).
     /// </exception>
     public static IReadOnlyList<EntityId> Settle(Simulation simulation, ScenarioDef scenario, string colonyName, string? lifePace = null)
     {
@@ -56,6 +56,7 @@ public static class ColonyStart
 
         var life = LifeRules.From(simulation.Content);
         var personalities = PersonalityRules.From(simulation.Content);
+        var skills = SkillRules.From(simulation.Content);
         var arrival = FindArrival(simulation);
         var creature = simulation.Content.Get<CreatureDef>(scenario.Creature);
         var random = simulation.Random.Get("colony.start");
@@ -83,6 +84,7 @@ public static class ColonyStart
             });
             simulation.World.Add(colonist, founder);
             simulation.World.Add(colonist, personalities.Draw(random));
+            simulation.World.Add(colonist, skills.Founder(scenario, random));
             simulation.World.Add(colonist, StartingNeeds(simulation.Content, creature, scenario, random));
             simulation.World.Add(colonist, new Movement());
             simulation.Events.Emit(new EntitySpawnedEvent(colonist));
@@ -137,6 +139,21 @@ public static class ColonyStart
         foreach (var colonist in ColonistsOf(simulation.World))
         {
             simulation.World.Add(colonist, personalities.Draw(random));
+        }
+    }
+
+    /// <summary>
+    /// Gives the colonists of a game saved before H3.4 (format 3) skills drawn as on arrival, from
+    /// the random stream <c>life.migration</c> by ascending id (ADR-013).
+    /// </summary>
+    internal static void MigrateSkills(Simulation simulation)
+    {
+        var skills = SkillRules.From(simulation.Content);
+        var scenario = TheOnlyScenario(simulation.Content);
+        var random = simulation.Random.Get(MigrationStream);
+        foreach (var colonist in ColonistsOf(simulation.World))
+        {
+            simulation.World.Add(colonist, skills.Founder(scenario, random));
         }
     }
 

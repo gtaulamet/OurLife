@@ -28,6 +28,15 @@ public sealed class ScenarioDef : Def
     /// <summary>The oldest age of a colonist on arrival: any day of life up to the end of this year.</summary>
     public required int FounderMaxYears { get; init; }
 
+    /// <summary>The lowest level of each skill of a colonist on arrival.</summary>
+    public required int FounderSkillMin { get; init; }
+
+    /// <summary>The highest level of each skill on arrival, before the bonus.</summary>
+    public required int FounderSkillMax { get; init; }
+
+    /// <summary>Levels added to one skill of each colonist, drawn, so each one has a strength.</summary>
+    public required int FounderSkillBonus { get; init; }
+
     /// <summary>Items left at the arrival point.</summary>
     public IReadOnlyList<ItemCount> Items { get; init; } = [];
 
@@ -55,6 +64,11 @@ public sealed class ScenarioDef : Def
         if (FounderMinYears < 0 || FounderMaxYears < FounderMinYears)
         {
             yield return "founder ages must satisfy 0 <= founderMinYears <= founderMaxYears.";
+        }
+
+        if (FounderSkillMin < 0 || FounderSkillMax < FounderSkillMin || FounderSkillBonus < 0)
+        {
+            yield return "founder skills must satisfy 0 <= founderSkillMin <= founderSkillMax, with founderSkillBonus zero or more.";
         }
 
         if (Items.Any(item => item.Count <= 0))

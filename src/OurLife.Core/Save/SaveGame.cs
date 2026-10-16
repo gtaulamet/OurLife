@@ -24,12 +24,12 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 3;
+    public const int FormatVersion = 4;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
     /// after another (ADR-013): format 1 (v0.2.x) gets ages and surnames, format 2 (H3.2)
-    /// personalities (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// personalities and format 3 (H3.3) skills (see "Guardado y migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -131,6 +131,11 @@ public static class SaveGame
             if (header.FormatVersion <= 2)
             {
                 ColonyStart.MigratePersonalities(simulation);
+            }
+
+            if (header.FormatVersion <= 3)
+            {
+                ColonyStart.MigrateSkills(simulation);
             }
 
             return (simulation, header);
@@ -307,6 +312,13 @@ public static class SaveGame
                         || personality.DriftDay < 0))
                 {
                     throw Corrupt($"{entity} has a trait out of range or twice");
+                }
+
+                if (component is Skills skills
+                    && (skills.Values.Any(skill => skill.Level < 0 || skill.Experience < 0)
+                        || skills.Values.Select(skill => skill.WorkType).Distinct(StringComparer.Ordinal).Count() != skills.Values.Count))
+                {
+                    throw Corrupt($"{entity} has a skill below zero or twice");
                 }
 
                 saveType.AddTo!(simulation.World, entity, component);

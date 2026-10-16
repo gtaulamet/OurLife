@@ -1,0 +1,14 @@
+[
+  {
+    "type": "SkillConfig",
+    "id": "default",
+    "maxLevel": 20,
+    "experienceBase": 600,
+    "experiencePerLevel": 150,
+    "speedBase": 80,
+    "speedPerLevel": 2,
+    "teachingMinLevels": 3,
+    "teachingBase": 100,
+    "teachingPerLevel": 30
+  }
+]

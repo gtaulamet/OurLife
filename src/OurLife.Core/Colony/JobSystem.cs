@@ -75,6 +75,13 @@ public sealed class JobSystem : ISimSystem
                 continue;
             }
 
+            // Carrying for the player is the work of hauling and of supplying a building.
+            var workType = _rules.WorkTypeOf(job);
+            if (workType is not null && job.Stage == JobStage.Carrying)
+            {
+                _rules.Skills.Gain(simulation, colonist, workType, 1);
+            }
+
             if (world.Get<Movement>(colonist).IsMoving)
             {
                 continue;
@@ -91,7 +98,16 @@ public sealed class JobSystem : ISimSystem
                 Start(simulation, job);
             }
 
-            if (Work(simulation, colonist, job))
+            var progress = job.Progress;
+            var finished = Work(simulation, colonist, job, workType);
+
+            // A tick of work that advanced it teaches; waiting for a cell to clear does not.
+            if (workType is not null && job.Progress > progress)
+            {
+                _rules.Skills.Gain(simulation, colonist, workType, 1);
+            }
+
+            if (finished)
             {
                 Drop(world, colonist);
             }
@@ -217,9 +233,9 @@ public sealed class JobSystem : ISimSystem
     /// a colonist who works slower (see <c>docs/gdd/vida-y-generaciones.md</c>); gathering to eat
     /// and eating do not.
     /// </summary>
-    private bool Work(Simulation simulation, EntityId colonist, Job job)
+    private bool Work(Simulation simulation, EntityId colonist, Job job, WorkTypeDef? workType)
     {
-        var speed = IsWork(job) ? WorkSpeed.PercentOf(simulation, colonist) : 100;
+        var speed = IsWork(job) ? WorkSpeed.PercentOf(simulation, colonist, workType, _rules.Skills) : 100;
         switch (job.Kind)
         {
             case JobKind.Mine:

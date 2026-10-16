@@ -13,11 +13,19 @@ public sealed class TraitDef : Def
     /// <summary>Below this value the colonist looks after its low needs before working; never if not set.</summary>
     public int? NeedsBeforeWorkBelow { get; init; }
 
+    /// <summary>The experience it gives, in percent, working and learning from others; none if not set.</summary>
+    public PercentRange? Experience { get; init; }
+
     internal override IEnumerable<string> Validate()
     {
         if (WorkSpeed is { } speed && (speed.Low <= 0 || speed.High <= 0))
         {
             yield return "workSpeed must be positive at both ends.";
+        }
+
+        if (Experience is { } experience && (experience.Low < 0 || experience.High < 0))
+        {
+            yield return "experience must be zero or more at both ends.";
         }
 
         if (NeedsBeforeWorkBelow is < 0 or > 100)

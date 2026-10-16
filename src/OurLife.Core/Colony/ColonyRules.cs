@@ -6,15 +6,19 @@ namespace OurLife.Core.Colony;
 /// <summary>The content the colony systems work with, checked once when they are added.</summary>
 public sealed class ColonyRules
 {
-    private ColonyRules(AiConfigDef ai, IReadOnlyList<WorkTypeDef> workTypes, IReadOnlySet<string> foodPlants)
+    private ColonyRules(AiConfigDef ai, IReadOnlyList<WorkTypeDef> workTypes, IReadOnlySet<string> foodPlants, SkillRules skills)
     {
         Ai = ai;
+        Skills = skills;
         WorkTypes = workTypes;
         FoodPlants = foodPlants;
         WorkJobs = workTypes.Select(type => (IReadOnlyList<JobKind>)type.JobKindsOf().ToArray()).ToArray();
     }
 
     public AiConfigDef Ai { get; }
+
+    /// <summary>The skills of the work types (see <see cref="SkillRules"/>).</summary>
+    public SkillRules Skills { get; }
 
     /// <summary>Work types in the order colonists look for work: by <c>order</c>, then id.</summary>
     public IReadOnlyList<WorkTypeDef> WorkTypes { get; }
@@ -46,8 +50,8 @@ public sealed class ColonyRules
     }
 
     /// <exception cref="InvalidOperationException">
-    /// The content has no AiConfig or several, or some job for the player's orders is in no work
-    /// type or in more than one.
+    /// The content has no AiConfig or several, no SkillConfig or several, or some job for the
+    /// player's orders is in no work type or in more than one.
     /// </exception>
     public static ColonyRules From(DefDatabase content)
     {
@@ -77,6 +81,6 @@ public sealed class ColonyRules
             .Select(plant => plant.Id)
             .ToHashSet(StringComparer.Ordinal);
 
-        return new ColonyRules(configs[0], workTypes, foodPlants);
+        return new ColonyRules(configs[0], workTypes, foodPlants, SkillRules.From(content));
     }
 }

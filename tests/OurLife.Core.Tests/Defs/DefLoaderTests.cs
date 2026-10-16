@@ -21,9 +21,11 @@ public class DefLoaderTests
           { "type": "NameList", "id": "test_names", "male": ["Rodrigo"], "female": ["Elvira"], "surnames": ["Pérez"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
-          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true },
+          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true, "skill": true },
+          { "type": "SkillConfig", "id": "default", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80,
+            "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 3, "startNeedsMin": 7000,
-            "founderMinYears": 18, "founderMaxYears": 40, "items": [{ "item": "berries", "count": 10 }] },
+            "founderMinYears": 18, "founderMaxYears": 40, "founderSkillMin": 3, "founderSkillMax": 10, "founderSkillBonus": 4, "items": [{ "item": "berries", "count": 10 }] },
           { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
           { "type": "LifeStage", "id": "child", "fromYears": 3, "work": "none", "moveSpeedPercent": 90,
             "needsPercent": { "hunger": 70 } },
@@ -71,6 +73,9 @@ public class DefLoaderTests
         defs.Get<TraitDef>("diligence").NeedsBeforeWorkBelow.ShouldBe(25);
         defs.Get<TraitDef>("diligence").NameKey.ShouldBe("def.trait.diligence.name");
         defs.Get<PersonalityConfigDef>("default").Orientations.Both.ShouldBe(12);
+        defs.Get<WorkTypeDef>("gathering").Skill.ShouldBeTrue();
+        defs.Get<SkillConfigDef>("default").ExperienceFor(7).ShouldBe(1_650);
+        defs.Get<SkillConfigDef>("default").SpeedAt(20).ShouldBe(120);
         defs.Get<MaterialDef>("granite").SourceFile.ShouldBe("defs/extra.json");
     }
 
@@ -124,7 +129,7 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 200, "lowThreshold": 3000, "criticalThreshold": 1000, "satisfiedBy": "eating", "recoveryPerHour": 5 }]""", "only needs satisfied by sleeping")]
     [InlineData("""[{ "type": "WorkType", "id": "cooking", "order": 0, "jobs": ["cook"] }]""", "'cook' is not a job")]
     [InlineData("""[{ "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "mine"] }]""", "jobs cannot repeat")]
-    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "dwarf", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 18, "founderMaxYears": 40 }]""", "creature points to 'dwarf'")]
+    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "dwarf", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 18, "founderMaxYears": 40, "founderSkillMin": 3, "founderSkillMax": 10, "founderSkillBonus": 4 }]""", "creature points to 'dwarf'")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 300, "wanderWaitMax": 60, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }]""", "wander waits")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 21, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }]""", "the night must last")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 24, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }]""", "hours from 0 to 23")]
@@ -151,11 +156,13 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "LifeStage", "id": "baby", "fromYears": 0, "work": "none", "moveSpeedPercent": 0 }]""", "moveSpeedPercent must be positive")]
     [InlineData("""[{ "type": "LifeConfig", "id": "life", "oldAge": [{ "years": 80, "percentPerYear": 10 }, { "years": 70, "percentPerYear": 20 }] }]""", "must go up in years")]
     [InlineData("""[{ "type": "LifeConfig", "id": "life", "oldAge": [{ "years": 80, "percentPerYear": 120 }] }]""", "percentPerYear between 0 and 100")]
-    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 40, "founderMaxYears": 18 }]""", "founderMinYears <= founderMaxYears")]
+    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 40, "founderMaxYears": 18, "founderSkillMin": 3, "founderSkillMax": 10, "founderSkillBonus": 4 }]""", "founderMinYears <= founderMaxYears")]
     [InlineData("""[{ "type": "Trait", "id": "grit", "workSpeed": { "low": 0, "high": 110 } }]""", "workSpeed must be positive")]
     [InlineData("""[{ "type": "Trait", "id": "grit", "needsBeforeWorkBelow": 120 }]""", "needsBeforeWorkBelow must be between")]
     [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 0, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 1, "same": 0, "both": 0 } }]""", "rolls must be positive")]
     [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 0, "same": 0, "both": 0 } }]""", "not all zero")]
+    [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 0, "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 }]""", "speedBase must be positive")]
+    [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80, "speedPerLevel": 2, "teachingMinLevels": 0, "teachingBase": 100, "teachingPerLevel": 30 }]""", "teachingMinLevels must be at least 1")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

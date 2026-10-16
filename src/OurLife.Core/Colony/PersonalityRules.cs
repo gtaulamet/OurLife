@@ -137,6 +137,22 @@ public sealed class PersonalityRules
         return percent;
     }
 
+    /// <summary>The experience a colonist gains by its traits, in percent: the product of every trait with a <see cref="TraitDef.Experience"/>.</summary>
+    public static int ExperiencePercent(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var percent = 100;
+        foreach (var trait in simulation.Content.All<TraitDef>())
+        {
+            if (trait.Experience is { } experience)
+            {
+                percent = percent * experience.At(Value(simulation, colonist, trait.Id)) / 100;
+            }
+        }
+
+        return percent;
+    }
+
     /// <summary>Whether a trait makes the colonist look after its low needs before working.</summary>
     public static bool NeedsBeforeWork(Simulation simulation, EntityId colonist)
     {

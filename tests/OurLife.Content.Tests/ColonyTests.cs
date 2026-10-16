@@ -75,6 +75,16 @@ public class ColonyTests
     }
 
     [Fact]
+    public void Every_work_of_the_player_has_a_skill_and_intelligence_sets_the_experience()
+    {
+        var skills = SkillRules.From(GameContent.Defs);
+
+        skills.WorkTypes.Select(type => type.Id).ShouldBe(new[] { "construction", "gathering", "hauling", "mining", "woodcutting" });
+        skills.Config.MaxLevel.ShouldBe(20);
+        GameContent.Defs.All<TraitDef>().Where(trait => trait.Experience is not null).Select(trait => trait.Id).ShouldBe(new[] { "intelligence" });
+    }
+
+    [Fact]
     public void The_hud_shows_food_wood_and_stone_in_that_order()
     {
         var simulation = new Simulation(1, GameContent.Defs);

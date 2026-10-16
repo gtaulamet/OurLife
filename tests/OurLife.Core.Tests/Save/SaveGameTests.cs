@@ -103,7 +103,7 @@ public class SaveGameTests
     {
         var bed = BusyColony();
         bed.Simulation.Run(200);
-        var file = AsFormat1(Save(bed.Simulation));
+        var file = AsFormat(1, Save(bed.Simulation));
 
         var loaded = Load(file);
 
@@ -120,20 +120,14 @@ public class SaveGameTests
         loaded.Run(3_000);
     }
 
-    [Fact]
-    public void A_game_of_format_2_gets_personalities_and_keeps_its_ages()
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    public void A_game_of_an_older_format_gets_what_came_later_and_keeps_the_rest(int format)
     {
         var bed = BusyColony();
         bed.Simulation.Run(200);
-        var file = Rewrite(Save(bed.Simulation), "header.json", json => json.Replace(
-            $"\"FormatVersion\":{SaveGame.FormatVersion}", "\"FormatVersion\":2", StringComparison.Ordinal));
-        file = Rewrite(file, "state.json", json =>
-        {
-            var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
-            var stores = state["Components"]!.AsArray();
-            stores.Remove(stores.Single(store => (string)store!["Type"]! == "personality"));
-            return state.ToJsonString();
-        });
+        var file = AsFormat(format, Save(bed.Simulation));
 
         var loaded = Load(file);
 
@@ -141,6 +135,12 @@ public class SaveGameTests
         {
             loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
             loaded.World.Get<Personality>(colonist).Traits.Count.ShouldBe(6);
+            loaded.World.Get<Skills>(colonist).Values.Count.ShouldBe(5);
+            if (format == 3)
+            {
+                loaded.World.Get<Personality>(colonist).Traits.Select(trait => trait.Value)
+                    .ShouldBe(bed.World.Get<Personality>(colonist).Traits.Select(trait => trait.Value));
+            }
         }
 
         Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
@@ -468,23 +468,37 @@ public class SaveGameTests
     private static SaveLoadException LoadFails(byte[] file) =>
         Should.Throw<SaveLoadException>(() => SaveGame.Load(new MemoryStream(file), ColonyTestBed.Content));
 
-    /// <summary>The saved game as v0.2.x wrote it: format 1, without pace of life, ages, surnames or personalities.</summary>
-    private static byte[] AsFormat1(byte[] file)
+    /// <summary>
+    /// The saved game as an older format wrote it, without what came after: format 1 (v0.2.x) had
+    /// no pace of life, ages or surnames, format 2 (H3.2) no personalities and format 3 (H3.3) no skills.
+    /// </summary>
+    private static byte[] AsFormat(int format, byte[] file)
     {
         var old = Rewrite(file, "header.json", json => json.Replace(
-            $"\"FormatVersion\":{SaveGame.FormatVersion}", "\"FormatVersion\":1", StringComparison.Ordinal));
+            $"\"FormatVersion\":{SaveGame.FormatVersion}", $"\"FormatVersion\":{format}", StringComparison.Ordinal));
         return Rewrite(old, "state.json", json =>
         {
             var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
-            state.Remove("LifePace");
             var stores = state["Components"]!.AsArray();
-            foreach (var added in new[] { "life", "personality" })
+            var added = new List<string> { "skills" };
+            if (format <= 2)
             {
-                stores.Remove(stores.Single(store => (string)store!["Type"]! == added));
+                added.Add("personality");
             }
-            foreach (var saved in stores.Single(store => (string)store!["Type"]! == "colonist")!["Entities"]!.AsArray())
+
+            if (format <= 1)
             {
-                saved!["Value"]!.AsObject().Remove("Surname");
+                added.Add("life");
+                state.Remove("LifePace");
+                foreach (var saved in stores.Single(store => (string)store!["Type"]! == "colonist")!["Entities"]!.AsArray())
+                {
+                    saved!["Value"]!.AsObject().Remove("Surname");
+                }
+            }
+
+            foreach (var type in added)
+            {
+                stores.Remove(stores.Single(store => (string)store!["Type"]! == type));
             }
 
             return state.ToJsonString();

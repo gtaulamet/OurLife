@@ -3,7 +3,7 @@
   { "type": "Trait", "id": "kindness" },
   { "type": "Trait", "id": "diligence", "workSpeed": { "low": 90, "high": 110 }, "needsBeforeWorkBelow": 25 },
   { "type": "Trait", "id": "curiosity" },
-  { "type": "Trait", "id": "intelligence" },
+  { "type": "Trait", "id": "intelligence", "experience": { "low": 75, "high": 125 } },
   { "type": "Trait", "id": "patience" },
   {
     "type": "PersonalityConfig",
