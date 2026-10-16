@@ -45,7 +45,7 @@ En orden:
 - Revisión de código: 9 hallazgos, 8 corregidos. Los bebés y los niños ya no disparan la alerta de "no tiene nada que hacer". Al cambiar de etapa, el colono suelta el trabajo que la etapa nueva no hace, y sólo se avisa si creció. Recolectar para comer ya no va más lento en los ancianos. Una edad negativa en un guardado es una partida dañada. El movimiento cuenta en milésimas de tick con la velocidad en el avance, sin perder la fracción (la migración de la versión 1 escala el avance guardado). `Def.DescKey` junto a `NameKey`. Se corrigieron dos comentarios mal codificados.
 - Queda sin cambiar: `LifeRules.From` se arma en Nueva partida, al llegar y al agregar los sistemas, como `ColonyRules`; cuesta microsegundos y sale del mismo contenido inmutable.
 - Mismas huellas (a los 5000 ticks nadie está a mitad de un paso). 553 tests. `main` adelantado.
-- Nota práctica: las herramientas Write y Edit no tuvieron veredicto del clasificador en esta sesión; los archivos se escribieron con Bash. Los comandos de más de unos 8 KB se cortan, y la herramienta reduce `\` a `\` dentro de los heredocs.
+- Nota práctica: las herramientas Write y Edit no tuvieron veredicto del clasificador en esta sesión; los archivos se escribieron con Bash. Los comandos de más de unos 8 KB se cortan, y las barras invertidas dobles pueden llegar simples: en C#, mejor una clase de caracteres como `[0-9]` que un escape.
 
 ### 2026-10-16: H3.2, Core de la edad y las etapas de la vida
 
