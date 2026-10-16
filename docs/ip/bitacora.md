@@ -21,8 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 1. **El usuario** revisa la spec `docs/gdd/vida-y-generaciones.md` (H3.1). Con su aprobación, H3.1 se cierra y sigue H3.2, edad y etapas de la vida, en `ip3/h3-2-edad`.
-2. **En la Mac** (el usuario lo está probando): la sección macOS de `docs/ip/playtest-ip2.5.md` con el zip de `v0.2.5` (abrir sin `chmod`, zoom con el trackpad y con + y -, smoke con la huella `974758E0263469A3`). Quedó en ➖ al cerrar IP2.5.
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+2. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -40,6 +39,10 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-15: IP2.5 completada también en la Mac
+
+- El usuario probó `v0.2.5` en la Mac y dio la sección de macOS de `docs/ip/playtest-ip2.5.md` por completada: los cuatro puntos pasan de ➖ a ✅. IP2.5 queda cerrada sin pendientes.
 
 ### 2026-10-15: H3.1, borrador de la spec de IP3
 

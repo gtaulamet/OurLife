@@ -58,10 +58,10 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 
 ### macOS (en una Mac con Apple Silicon)
 
-- [➖] Descomprimir `OurLife-v0.2.5-macos-universal.zip`, volver a firmar con los pasos del README (`codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`) y abrir la app, sin `chmod`: con el zip del 15 de octubre `OurLife.app/Contents/MacOS/OurLife` ya es ejecutable (hallazgo 1).
-- [➖] Zoom con el trackpad: pellizcar acerca y aleja, y deslizar dos dedos arriba y abajo también. Mantener + acerca y mantener - aleja (hallazgo 2). Anotar si la velocidad de cada uno resulta cómoda.
-- [➖] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `974758E0263469A3`, la misma que en Windows.
-- [➖] El terreno, la decoración y los aldeanos se ven como en Windows, y se juega sin tirones con la decoración en Normal. Si no, probar con Poca o Nada y anotar.
+- [✅] Descomprimir `OurLife-v0.2.5-macos-universal.zip`, volver a firmar con los pasos del README (`codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`) y abrir la app, sin `chmod`: con el zip del 15 de octubre `OurLife.app/Contents/MacOS/OurLife` ya es ejecutable (hallazgo 1).
+- [✅] Zoom con el trackpad: pellizcar acerca y aleja, y deslizar dos dedos arriba y abajo también. Mantener + acerca y mantener - aleja (hallazgo 2). Anotar si la velocidad de cada uno resulta cómoda.
+- [✅] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `974758E0263469A3`, la misma que en Windows.
+- [✅] El terreno, la decoración y los aldeanos se ven como en Windows, y se juega sin tirones con la decoración en Normal. Si no, probar con Poca o Nada y anotar.
 
 ### Rendimiento
 
@@ -80,7 +80,7 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 | Vista previa | Test de Core: `CellsToPlan` da las mismas celdas que el comando; el smoke muestra la vista previa de una cama | ✅ |
 | Decoración en vivo | El smoke pasa por los cuatro niveles de decoración sobre la partida | ✅ |
 | Paquete de Windows | `./tools/package-windows.ps1`: exporta, corre el smoke sobre el ejecutable exportado y arma `OurLife-v0.2.5-windows-x86_64.zip` (72,7 MB) | ✅ |
-| Paquete de macOS | `./tools/package-macos.ps1`: app universal con firma ad hoc (121,8 MB). Hay que volver a firmarla en la Mac. Rearmado el 15 de octubre por los hallazgos 1 y 2: las 387 entradas del zip quedan marcadas como Unix, con el ejecutable y los 28 archivos nativos de .NET en `rwxr-xr-x` | ✅ (falta probarlo en una Mac) |
+| Paquete de macOS | `./tools/package-macos.ps1`: app universal con firma ad hoc (121,8 MB). Hay que volver a firmarla en la Mac. Rearmado el 15 de octubre por los hallazgos 1 y 2: las 387 entradas del zip quedan marcadas como Unix, con el ejecutable y los 28 archivos nativos de .NET en `rwxr-xr-x` | ✅ (probado en la Mac por el usuario) |
 | Rendimiento | `--benchmark 20 --seed 42 --ticks 5000` a 1280×720 con decoración Normal: 261 FPS de media, 210 en el 1 % más lento, 0,046 ms por tick, dentro del presupuesto (RTX 4090 de portátil, que varió entre corridas). Decoración Nada contra Mucha: unos 325 contra 300 FPS | ✅ |
 | Capturas | Menú y partida en es, Opciones y construcción en en, a 1920×1080 (Automático 150 %); antes y después de cada hito en https://claude.ai/artifact/JkWuPmFMuosFSxV8TgAGiD | ✅ |
 
@@ -93,6 +93,6 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 ## Resultado
 
-- Fecha y PC: 15 de octubre de 2026, la PC con Windows y la Mac con Apple Silicon (antes de las correcciones de los hallazgos 1 y 2).
+- Fecha y PC: 15 de octubre de 2026, la PC con Windows y la Mac con Apple Silicon. La Mac se probó dos veces: con el zip anterior a las correcciones (hallazgos 1 y 2) y con el de `v0.2.5`.
 - Quién jugó: el usuario (gtaulamet).
-- ¿Se puede publicar `v0.2.5`? Sí. Windows aprobado; los hallazgos de la Mac se corrigieron y el usuario cerró IP2.5 sin volver a probar ahí. Los puntos de macOS quedan en ➖ para la próxima vez que use la Mac.
+- ¿Se puede publicar `v0.2.5`? Sí, publicada el 15 de octubre. Windows aprobado y, con el zip de `v0.2.5`, el usuario dio por completada la sección de macOS.
