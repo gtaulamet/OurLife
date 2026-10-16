@@ -84,8 +84,8 @@ public sealed record CommandLineOptions
 
     /// <summary>
     /// Open a screen for captures (milestone H2.1): <c>load</c> instead of the main menu,
-    /// <c>save</c> over the game with <c>--play</c> or <c>--load</c>, or <c>error</c> with a damaged
-    /// saved game.
+    /// <c>save</c> over the game with <c>--play</c> or <c>--load</c>, <c>error</c> with a damaged
+    /// saved game, or <c>newgame</c> (milestone H3.2).
     /// </summary>
     public string? Show { get; init; }
 
@@ -123,7 +123,7 @@ public sealed record CommandLineOptions
     public (int X, int Y)? DragTo { get; init; }
 
     /// <summary>The screens <c>--show</c> knows.</summary>
-    public static readonly IReadOnlyList<string> Screens = ["load", "save", "error"];
+    public static readonly IReadOnlyList<string> Screens = ["load", "save", "error", "newgame"];
 
     /// <summary>Arguments that were not recognized; the game warns and ignores them.</summary>
     public IReadOnlyList<string> UnknownArguments { get; init; } = [];

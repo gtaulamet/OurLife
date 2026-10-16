@@ -45,6 +45,26 @@ public class ColonyTests
     }
 
     [Fact]
+    public void The_name_of_every_stage_of_life_agrees_with_the_colonist_in_every_language()
+    {
+        foreach (var stage in GameContent.Defs.All<LifeStageDef>())
+        {
+            foreach (var catalog in GameContent.Catalogs.Values)
+            {
+                foreach (var gender in new[] { "female", "male" })
+                {
+                    var name = catalog.Format(catalog.Messages[stage.NameKey!], new Dictionary<string, object?> { ["gender"] = gender });
+                    name.ShouldNotContain("⟦", customMessage: $"{catalog.Locale}: {stage.NameKey} for {gender}");
+                    name.ShouldNotBeEmpty();
+                }
+            }
+        }
+
+        var spanish = GameContent.Spanish;
+        spanish.Format(spanish.Messages["def.life_stage.elder.name"], new Dictionary<string, object?> { ["gender"] = "female" }).ShouldBe("anciana");
+    }
+
+    [Fact]
     public void Every_job_has_its_report_in_every_language()
     {
         foreach (var kind in Enum.GetValues<JobKind>())

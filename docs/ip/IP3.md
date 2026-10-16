@@ -16,7 +16,7 @@
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | H3.1 Spec y contrato | Hecho | `ip3/h3-1-spec` | `docs/gdd/vida-y-generaciones.md` aprobada el 16 de octubre de 2026, con el rasgo inteligencia que sumó el usuario |
-| H3.2 Edad y etapas de la vida | En curso | `ip3/h3-2-edad` | |
+| H3.2 Edad y etapas de la vida | En curso | `ip3/h3-2-edad` | Core, Nueva partida, inspector, migración de v0.2.x y ADR-013 hechos; falta la revisión de código |
 | H3.3 Personalidad | Pendiente | `ip3/h3-3-personalidad` | |
 | H3.4 Habilidades | Pendiente | `ip3/h3-4-habilidades` | |
 | H3.5 Interacciones y relaciones | Pendiente | `ip3/h3-5-interacciones` | |

@@ -66,6 +66,8 @@ $LASTEXITCODE   # 0 = OK, 1 = fallo, 2 = argumentos inválidos
 & $env:GODOT_BIN --path game -- --screenshot out/cargar.png --locale es --saves out/saves --show load
 & $env:GODOT_BIN --path game -- --screenshot out/guardar.png --locale en --saves out/saves --load <ranura> --show save
 & $env:GODOT_BIN --path game -- --screenshot out/error.png --locale es --show error
+# Nueva partida, con el ritmo de la vida (IP3)
+& $env:GODOT_BIN --path game -- --screenshot out/nueva.png --locale es --show newgame
 # Tamaño de la interfaz (IP2.5): otra resolución con --resolution de Godot, antes de "--"; --ui-scale auto|100|150|200|250|300
 & $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080.png --locale es --seed 42 --play --inspect --colony
 & $env:GODOT_BIN --path game --resolution 1920x1080 -- --screenshot out/1080-200.png --locale en --ui-scale 200 --options
@@ -115,7 +117,7 @@ Van después de `--`:
 | `--hour <h>` | Con `--play` o `--load`, después de `--ticks`, lleva la partida hasta esa hora, para capturas del ciclo de día y noche | H2.2 |
 | `--saves <carpeta>` | Carpeta de las partidas guardadas en lugar de `user://saves`, relativa a `game/`. Las capturas y el benchmark sólo guardan y autoguardan si se da | H2.1 |
 | `--load <ranura>` | Carga la partida de esa ranura (el nombre del archivo sin `.olsave`) en lugar del menú. Si no carga, sale con 1 | H2.1 |
-| `--show <load\|save\|error>` | Abre Cargar partida en lugar del menú; Guardar partida sobre la partida de `--play` o `--load`; o el error de una partida dañada | H2.1 |
+| `--show <load\|save\|error\|newgame>` | Abre Cargar partida en lugar del menú; Guardar partida sobre la partida de `--play` o `--load`; el error de una partida dañada; o Nueva partida (desde H3.2) | H2.1 |
 | `--benchmark <s>` | Juega `<s>` segundos a 4× con las órdenes del smoke, sin vsync, y mide FPS y ms por tick. Sale con 1 si no llega a 60 FPS de media o pasa de 2 ms por tick. Necesita ventana | H1.8 |
 
 Sin argumentos, el juego abre el menú principal. El smoke, además de simular, guarda y carga la partida a mitad de los ticks (misma huella al cargar y al final), escribe y carga una ranura en una carpeta temporal, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones, Guardar, Cargar, el error y los menús; falla si falta un texto.

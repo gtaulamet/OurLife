@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-2-edad`: Core de H3.2 hecho y probado; falta la presentación |
+| Rama de trabajo | `ip3/h3-2-edad`: H3.2 hecho; falta la revisión de código |
 | `main` | En el cierre de H3.1 (spec de IP3 aprobada), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 546 tests en verde; el smoke se corre con la presentación de H3.2 |
-| Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP3 las va a cambiar: edad, personalidad e interacciones entran en el estado |
+| Validación | `dotnet build` sin advertencias, 547 tests en verde, smoke con código 0 |
+| Huella del smoke | `7C61534966CC37FA` con `--seed 1 --ticks 5000`; `3984B7A57F47499E` con `--seed 42 --ticks 5000` (desde H3.2). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **H3.2, presentación:** el ritmo de la vida en Nueva partida (`ColonyStart.Settle` ya lo recibe), la edad y la etapa en el inspector, las huellas nuevas del smoke, capturas en es y en, docs (`guardado.md`, `overview.md`) y `/code-review`.
+1. **H3.2:** la revisión de código, el commit de las correcciones y adelantar `main`. Después, H3.3 (personalidad) y H3.4 (habilidades), que pueden ir en paralelo, y H3.8 (arte de las etapas).
 2. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -50,6 +50,14 @@ En orden:
 - Los textos de los colonos usan nombre y apellido (`ColonyText.FullName`). Textos nuevos en es y en: ritmos, etapas, `event.life.stage.<etapa>`, `event.life.old_age`, `ui.newgame.life_pace` y `ui.inspector.life`.
 - Hasta H3.7 los bebés comen solos: no nace nadie todavía, y sólo los tests crean bebés.
 - 546 tests en verde.
+
+### 2026-10-16: H3.2, presentación
+
+- Nueva partida tiene "Ritmo de la vida" con Normal, Rápido y Muy rápido, y la descripción del elegido. `--show newgame` la abre para capturas.
+- El inspector muestra nombre y apellido, y la etapa con la edad ("Adulto, 25 años"); el nombre de la etapa concuerda con el colono. El registro y las alertas usan el nombre completo.
+- El smoke comprueba que los colonos llegan con edad y ritmo. Huellas nuevas: `7C61534966CC37FA` (semilla 1) y `3984B7A57F47499E` (semilla 42).
+- ADR-013: las partidas viejas se migran sobre la simulación cargada, con las reglas del Core, y cada versión migrable tiene un archivo real de prueba. `guardado.md` lista las versiones del formato.
+- Capturas en es y en a 1080p de Nueva partida y del inspector, revisadas. 547 tests.
 
 ### 2026-10-16: cierre de H3.1
 

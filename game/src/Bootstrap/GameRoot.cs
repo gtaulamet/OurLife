@@ -242,6 +242,10 @@ public partial class GameRoot : Node
         {
             ShowLoadError(new SaveLoadException(SaveLoadError.Corrupt, "--show error"));
         }
+        else if (options.Show == "newgame")
+        {
+            ShowNewGame();
+        }
         else if (options.Options)
         {
             ShowOptions();
@@ -307,7 +311,7 @@ public partial class GameRoot : Node
     private void ShowNewGame()
     {
         var screen = NewGameScreen.Create(_services!);
-        screen.StartRequested += (name, seed) => StartGame(name, seed, level: null, distance: null);
+        screen.StartRequested += (name, seed, lifePace) => StartGame(name, seed, lifePace, level: null, distance: null);
         screen.BackRequested += ShowMainMenu;
         ShowScreen(screen);
     }
@@ -382,10 +386,10 @@ public partial class GameRoot : Node
         ShowScreen(options);
     }
 
-    private GameScreen StartGame(string colonyName, ulong seed, int? level, int? distance)
+    private GameScreen StartGame(string colonyName, ulong seed, string? lifePace, int? level, int? distance)
     {
         _catalog ??= LoadVisualCatalog();
-        var screen = GameScreen.Create(_services!, _catalog, _slots, colonyName, seed, level, distance);
+        var screen = GameScreen.Create(_services!, _catalog, _slots, colonyName, seed, lifePace, level, distance);
         ShowGame(screen);
         return screen;
     }
@@ -413,7 +417,7 @@ public partial class GameRoot : Node
 
         var screen = options.LoadSlot is { } slotId
             ? LoadGame(slotId, options.Level, options.Zoom)
-            : StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, options.Level, options.Zoom);
+            : StartGame(_services!.Text.Format("ui.newgame.default_name"), options.Seed ?? DefaultSeed, lifePace: null, options.Level, options.Zoom);
         if (screen is null)
         {
             return;
@@ -585,6 +589,13 @@ public partial class GameRoot : Node
             var colonists = GameScreen.StartColony(simulation, SmokeColonyName(services));
             var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
             GD.Print($"[smoke] colony: {colonists.Count} colonists arrived at ({arrival.X}, {arrival.Y}, {arrival.Z})");
+            var ages = colonists.Select(colonist => LifeRules.AgeYears(simulation, colonist) ?? -1).ToArray();
+            if (simulation.LifePace.Length == 0 || ages.Any(years => years < 0))
+            {
+                throw new InvalidOperationException("the colonists arrived without a pace of life or without an age");
+            }
+
+            GD.Print($"[smoke] life: pace {simulation.LifePace}, ages {string.Join(", ", ages)}");
             var (stairSite, house) = OrderWorkAround(simulation, arrival);
 
             // Halfway, the game is saved and loaded, and the copy goes on beside it: both must

@@ -78,7 +78,7 @@ Las reglas 1 y la de determinismo se verifican con tests desde H1.1.
 ## Tick de simulación
 
 1. Aplicar los comandos encolados en orden de llegada.
-2. Ejecutar los sistemas en orden fijo: necesidades, decisión, ejecución de trabajos, movimiento, crecimiento de las plantas y alertas (`ColonySystems.AddTo`). La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado: se arma la primera vez que un tick lo consulta y de nuevo si un acarreador mueve una pila. Los trabajos quitan al empezar los planos que perdieron su lugar, sólo si cambió `NavigationVersion`. Lo construido se reconoce por su material (`MaterialDef.builtFrom`), sin estado aparte en el mapa. Los muebles son entidades; la marca `TileFlags.Furniture` dice qué celdas tienen uno, para no buscarlo en las demás.
+2. Ejecutar los sistemas en orden fijo: necesidades, vida (sólo a medianoche: edad, etapa y muerte por vejez), decisión, ejecución de trabajos, movimiento, crecimiento de las plantas y alertas (`ColonySystems.AddTo`). La etapa de la vida de cada colono (`LifeRules.Stage`) cambia lo que deciden los demás sistemas: qué trabajos toma, cuánto tardan, a qué velocidad camina y a qué ritmo bajan sus necesidades. La decisión y los trabajos comparten un índice de los almacenes (`StorageIndex`), derivado: se arma la primera vez que un tick lo consulta y de nuevo si un acarreador mueve una pila. Los trabajos quitan al empezar los planos que perdieron su lugar, sólo si cambió `NavigationVersion`. Lo construido se reconoce por su material (`MaterialDef.builtFrom`), sin estado aparte en el mapa. Los muebles son entidades; la marca `TileFlags.Furniture` dice qué celdas tienen uno, para no buscarlo en las demás.
 3. La conectividad se pone al día al consultarla después de un cambio: se unen regiones en el lugar si el cambio sólo abrió caminos, y se calcula de nuevo si no (ADR-011).
 4. Publicar los eventos y avanzar el contador.
 
@@ -157,3 +157,4 @@ simulation.AddSystem(new HungerSystem(), interval: 10, offset: 3);   // corre cu
 - [ADR-010: Guardado en JSON comprimido y versionado](adr/ADR-010-guardado-json-comprimido.md)
 - [ADR-011: Datos derivados de la colonia fuera de la huella](adr/ADR-011-datos-derivados-de-la-colonia.md)
 - [ADR-012: Terreno estilizado por shader y kits medievales](adr/ADR-012-terreno-estilizado-por-shader.md)
+- [ADR-013: Migración de partidas guardadas](adr/ADR-013-migracion-de-partidas.md)

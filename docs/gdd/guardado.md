@@ -59,7 +59,7 @@ Una partida que no se puede cargar no cierra el juego. Los motivos que se distin
 |---|---|
 | Dañada | El archivo no se puede leer o le faltan datos |
 | De una versión más nueva | La versión del formato es mayor que la del juego |
-| De una versión vieja | La versión del formato es menor y no hay migración |
+| De una versión vieja | La versión del formato es menor que la más vieja que el juego migra |
 | Falta contenido | La partida usa un def que el contenido actual no tiene; el mensaje dice cuál |
 
 Si el juego no puede arrancar porque el contenido no carga, muestra la pantalla de error con el detalle en lugar de cerrarse. Si lo que falla son los textos, el detalle se muestra tal cual, porque no hay con qué traducirlo.
@@ -111,6 +111,16 @@ El texto final de cada clave lo revisa el i18n-specialist; la tabla fija las cla
 
 ## Fuera de alcance
 
-- Migraciones entre versiones de formato: llegan con el primer cambio de formato después de `v0.2.0`. Hasta entonces una versión distinta se rechaza.
+- Migraciones entre versiones de formato, salvo las que se listan abajo.
+
+## Versiones del formato
+
+| Versión | Juego | Cambios |
+|---|---|---|
+| 1 | `v0.2.0` a `v0.2.5` | Primera versión |
+| 2 | Desde H3.2 de IP3 | Ritmo de la vida en la partida, edad y etapa (`life`) y apellido de cada colono. Una partida de la versión 1 se migra al cargarla: ver "Guardado y migración" en `vida-y-generaciones.md` |
+
+- `SaveGame.OldestFormatVersion` es la versión más vieja que el juego todavía carga; una más vieja se rechaza como "de una versión vieja".
+- `tests/OurLife.Content.Tests/Fixtures/v0.2.5.olsave` es una partida real de la versión 1, escrita con el código de `v0.2.5`. El test que la carga cuida la migración.
 - Guardado en la nube y capturas de pantalla en las ranuras.
 - Guardar con un nombre escrito por el jugador: las ranuras se nombran con la aldea.

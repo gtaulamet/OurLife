@@ -48,14 +48,15 @@ public partial class GameScreen : Node
 
     /// <summary>
     /// Generates the only world of the content with the seed, brings the colony of the only
-    /// scenario, named <paramref name="colonyName"/>, and builds the screen. <paramref name="level"/> is where the view starts, or the
+    /// scenario, named <paramref name="colonyName"/>, at the pace of life <paramref name="lifePace"/>
+    /// or the default one, and builds the screen. <paramref name="level"/> is where the view starts, or the
     /// highest surface; <paramref name="distance"/>, how far the camera starts from it.
     /// </summary>
     public static GameScreen Create(
-        GameServices services, VisualCatalog catalog, SaveSlots? slots, string colonyName, ulong seed, int? level, int? distance = null)
+        GameServices services, VisualCatalog catalog, SaveSlots? slots, string colonyName, ulong seed, string? lifePace, int? level, int? distance = null)
     {
         ArgumentNullException.ThrowIfNull(services);
-        return Create(services, catalog, slots, SaveSlots.NewGameId(), NewGame(services.Defs, seed, colonyName), level, distance);
+        return Create(services, catalog, slots, SaveSlots.NewGameId(), NewGame(services.Defs, seed, colonyName, lifePace), level, distance);
     }
 
     /// <summary>
@@ -178,13 +179,16 @@ public partial class GameScreen : Node
         return (date.Year, date.SeasonIndex, date.Day);
     }
 
-    /// <summary>A simulation with its world generated and its colonists arrived in the village <paramref name="colonyName"/>.</summary>
-    public static Simulation NewGame(DefDatabase content, ulong seed, string colonyName)
+    /// <summary>
+    /// A simulation with its world generated and its colonists arrived in the village
+    /// <paramref name="colonyName"/>, at the pace of life <paramref name="lifePace"/> or the default one.
+    /// </summary>
+    public static Simulation NewGame(DefDatabase content, ulong seed, string colonyName, string? lifePace = null)
     {
         ArgumentNullException.ThrowIfNull(content);
         var simulation = new Simulation(seed, content);
         GenerateTheOnlyWorld(simulation);
-        StartColony(simulation, colonyName);
+        StartColony(simulation, colonyName, lifePace);
         return simulation;
     }
 
@@ -207,10 +211,10 @@ public partial class GameScreen : Node
     }
 
     /// <summary>The second half of <see cref="NewGame"/>: brings the colonists of the only scenario and adds the colony systems.</summary>
-    public static IReadOnlyList<EntityId> StartColony(Simulation simulation, string colonyName)
+    public static IReadOnlyList<EntityId> StartColony(Simulation simulation, string colonyName, string? lifePace = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content), colonyName);
+        var colonists = ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(simulation.Content), colonyName, lifePace);
         ColonySystems.AddTo(simulation);
         return colonists;
     }

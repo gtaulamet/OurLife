@@ -12,7 +12,8 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// Shows what the player selected (see "Inspector" in <c>docs/gdd/interfaz-ip1.md</c>): a
-/// colonist's name, job, load and needs, or a cell's shape, material, orders, plant, items and
+/// colonist's full name, stage of life and age (<c>docs/gdd/vida-y-generaciones.md</c>), job, load
+/// and needs, or a cell's shape, material, orders, plant, items and
 /// blueprint (<c>docs/gdd/construccion.md</c>).
 /// On a stockpile cell it also lists the zone's categories, each with a Yes/No button that changes
 /// its filter (<c>docs/gdd/almacenes.md</c>). It refreshes a few times per second while time runs
@@ -115,7 +116,14 @@ public partial class InspectorPanel : PanelContainer
     {
         var world = _simulation.World;
         var text = _services.Text;
-        _lines.Add(world.Get<Colonist>(colonist).Name);
+        var person = world.Get<Colonist>(colonist);
+        _lines.Add(ColonyText.FullName(person));
+        if (LifeRules.Stage(_simulation, colonist) is { } stage)
+        {
+            var stageName = text.Format(stage.NameKey!, ("gender", ColonyText.GenderId(person.Gender)));
+            _lines.Add(text.Format("ui.inspector.life", ("stage", text.Capitalized(stageName)), ("years", LifeRules.AgeYears(_simulation, colonist))));
+        }
+
         _lines.Add(text.Activity(world, colonist));
         if (world.TryGet<Carried>(colonist, out var carried))
         {
