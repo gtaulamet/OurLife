@@ -115,6 +115,23 @@ public class ColonyTests
     }
 
     [Fact]
+    public void The_sheet_has_the_words_of_every_trait_and_interaction_in_every_language()
+    {
+        var keys = GameContent.Defs.All<TraitDef>().SelectMany(trait => new[] { $"def.trait.{trait.Id}.low", $"def.trait.{trait.Id}.high" })
+            .Concat(GameContent.Defs.All<InteractionDef>().Select(interaction => $"def.interaction.{interaction.Id}.started"));
+        foreach (var key in keys)
+        {
+            foreach (var catalog in GameContent.Catalogs.Values)
+            {
+                catalog.Messages.ContainsKey(key).ShouldBeTrue($"{catalog.Locale}: missing {key}");
+            }
+        }
+
+        PersonalityRules.From(GameContent.Defs).WordOf(90).ShouldBe(TraitWord.VeryHigh);
+        PersonalityRules.From(GameContent.Defs).WordOf(50).ShouldBe(TraitWord.Average);
+    }
+
+    [Fact]
     public void The_hud_shows_food_wood_and_stone_in_that_order()
     {
         var simulation = new Simulation(1, GameContent.Defs);

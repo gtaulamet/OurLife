@@ -119,6 +119,7 @@ Van después de `--`:
 | `--load <ranura>` | Carga la partida de esa ranura (el nombre del archivo sin `.olsave`) en lugar del menú. Si no carga, sale con 1 | H2.1 |
 | `--show <load\|save\|error\|newgame>` | Abre Cargar partida en lugar del menú; Guardar partida sobre la partida de `--play` o `--load`; el error de una partida dañada; o Nueva partida (desde H3.2) | H2.1 |
 | `--fps` | Muestra los cuadros por segundo en el HUD, sin guardarlo | IP3 |
+| `--sheet` | Con `--play` o `--load`, abre la ficha del primer colono | H3.9 |
 | `--benchmark <s>` | Juega `<s>` segundos a 4× con las órdenes del smoke, sin vsync, y mide FPS y ms por tick. Sale con 1 si no llega a 60 FPS de media o pasa de 2 ms por tick. Necesita ventana | H1.8 |
 
 Sin argumentos, el juego abre el menú principal. El smoke, además de simular, guarda y carga la partida a mitad de los ticks (misma huella al cargar y al final), escribe y carga una ranura en una carpeta temporal, arma la pantalla de partida sobre el mundo que trabajó, selecciona un colono con un clic y abre la pausa, las opciones, Guardar, Cargar, el error y los menús; falla si falta un texto.

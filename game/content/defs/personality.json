@@ -11,6 +11,7 @@
     "rolls": 3,
     "inheritedPercent": 50,
     "maxDriftPerDay": 3,
-    "orientations": { "opposite": 80, "same": 8, "both": 12 }
+    "orientations": { "opposite": 80, "same": 8, "both": 12 },
+    "words": [{ "upTo": 15, "word": "veryLow" }, { "upTo": 35, "word": "low" }, { "upTo": 64, "word": "average" }, { "upTo": 84, "word": "high" }, { "upTo": 100, "word": "veryHigh" }]
   }
 ]

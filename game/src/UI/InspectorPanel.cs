@@ -29,6 +29,7 @@ public partial class InspectorPanel : PanelContainer
     private Simulation _simulation = null!;
     private Label _text = null!;
     private VBoxContainer _filters = null!;
+    private Button _sheet = null!;
     private Action<ISimCommand> _enqueue = null!;
 
     // The zone whose filters are shown, and its buttons by category, to update them in place.
@@ -53,6 +54,15 @@ public partial class InspectorPanel : PanelContainer
         column.AddChild(panel._text);
         panel._filters = new VBoxContainer();
         column.AddChild(panel._filters);
+        panel._sheet = new Button { Text = "ui.inspector.sheet", FocusMode = FocusModeEnum.None, Visible = false };
+        panel._sheet.Pressed += () =>
+        {
+            if (panel._selection is { IsColonist: true } shown)
+            {
+                panel.SheetRequested?.Invoke(shown.Colonist);
+            }
+        };
+        column.AddChild(panel._sheet);
         return panel;
     }
 
@@ -66,6 +76,9 @@ public partial class InspectorPanel : PanelContainer
         Visible = selection is not null;
         Refresh();
     }
+
+    /// <summary>Raised when the player asks for the sheet of the colonist shown.</summary>
+    public event Action<EntityId>? SheetRequested;
 
     /// <summary>Something happened in the simulation, like an order given while paused: refresh even without a tick.</summary>
     public void NoteChange() => _changed = true;
@@ -109,6 +122,7 @@ public partial class InspectorPanel : PanelContainer
         }
 
         _text.Text = string.Join("\n", _lines);
+        _sheet.Visible = selection.IsColonist && _simulation.World.IsAlive(selection.Colonist);
         ShowFilters(zone);
     }
 

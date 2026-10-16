@@ -110,6 +110,9 @@ public sealed record CommandLineOptions
     /// <summary>Show the frames per second over the game for this session, without saving it (<c>docs/gdd/indicadores.md</c>).</summary>
     public bool Fps { get; init; }
 
+    /// <summary>With <c>--play</c> or <c>--load</c>, open the sheet of the first colonist (<c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    public bool Sheet { get; init; }
+
     /// <summary>
     /// Turn the build tool on with this piece of furniture, of its first material, to see its
     /// preview in screenshots (milestone V3, <c>docs/gdd/vista-previa-de-muebles.md</c>).
@@ -185,6 +188,9 @@ public sealed record CommandLineOptions
                     break;
                 case "--fps":
                     options = options with { Fps = true };
+                    break;
+                case "--sheet":
+                    options = options with { Sheet = true };
                     break;
                 case "--inspect-stockpile":
                     options = options with { InspectStockpile = true };
@@ -337,7 +343,7 @@ public sealed record CommandLineOptions
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ui-scale={(UiScale is null ? "-" : UiScale == UI.UiScaleRules.Auto ? "auto" : UiScale.Value.ToString(CultureInfo.InvariantCulture))}, " +
-        $"decoration={Decoration?.ToString().ToLowerInvariant() ?? "-"}, fps={Fps}, furniture={Furniture ?? "-"}, rotation={Rotation?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
+        $"decoration={Decoration?.ToString().ToLowerInvariant() ?? "-"}, fps={Fps}, sheet={Sheet}, furniture={Furniture ?? "-"}, rotation={Rotation?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"point={(Point is { } point ? $"{point.X},{point.Y}" : "-")}, drag-to={(DragTo is { } drag ? $"{drag.X},{drag.Y}" : "-")}";
 
     private static string ValueAfter(IReadOnlyList<string> args, ref int i)

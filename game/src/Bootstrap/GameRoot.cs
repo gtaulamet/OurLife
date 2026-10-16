@@ -456,9 +456,14 @@ public partial class GameRoot : Node
             screen.Advance((minutes + perTick - 1) / perTick);
         }
 
-        if (options.Inspect && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+        if ((options.Inspect || options.Sheet) && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
         {
             screen.Input.SelectColonist(colonists[0]);
+        }
+
+        if (options.Sheet && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+        {
+            screen.Hud.ToggleSheet(colonists[0]);
         }
 
         var zones = new List<EntityId>();
@@ -936,6 +941,23 @@ public partial class GameRoot : Node
         }
 
         GD.Print("[smoke] the frames per second show and hide with the option");
+
+        // The sheet of a colonist, with every part in words (docs/gdd/vida-y-generaciones.md).
+        var people = new List<EntityId>();
+        screen.Session.Simulation.World.Query<Colonist>(people);
+        var someone = people.FirstOrDefault();
+        if (!someone.IsNone)
+        {
+            screen.Hud.ToggleSheet(someone);
+            var lines = screen.Hud.Sheet.Texts.ToList();
+            if (!screen.Hud.Sheet.Visible || lines.Any(line => line.Length == 0 || line.Contains('⟦')))
+            {
+                throw new InvalidOperationException($"the sheet shows [{string.Join(" | ", lines)}]");
+            }
+
+            screen.Hud.ToggleSheet(someone);
+            GD.Print($"[smoke] the sheet of a colonist opens with {lines.Sum(line => line.Split('\n').Length)} lines and closes");
+        }
 
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();

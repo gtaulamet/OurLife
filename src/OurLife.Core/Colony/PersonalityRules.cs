@@ -115,6 +115,9 @@ public sealed class PersonalityRules
         return moved;
     }
 
+    /// <summary>The word of a value of a trait on the sheet; average without bands.</summary>
+    public TraitWord WordOf(int value) => Config.Words.FirstOrDefault(band => value <= band.UpTo)?.Word ?? TraitWord.Average;
+
     /// <summary>A trait of a colonist, from 0 to 100; average if it has none.</summary>
     public static int Value(Simulation simulation, EntityId colonist, string trait)
     {

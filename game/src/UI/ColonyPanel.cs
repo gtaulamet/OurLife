@@ -11,7 +11,8 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// The colony at a glance (see "Lista de la colonia" in <c>docs/gdd/gestion.md</c>): a row per
-/// colonist with its name, what it is doing and a button per work type with its priority. A click
+/// colonist with its name, age and mood (<c>docs/gdd/vida-y-generaciones.md</c>), what it is doing
+/// and a button per work type with its priority. A click
 /// moves it on (1 → 2 → 3 → 4 → No → 1), a right click back; a click on a name
 /// selects the colonist. The rows are built again when colonists come or go, or the language
 /// changes, and their texts refresh a few times per second while the panel is open.
@@ -21,7 +22,7 @@ public partial class ColonyPanel : PanelContainer
     private const double RefreshSeconds = 0.25;
 
     private readonly List<EntityId> _colonists = [];
-    private readonly List<(EntityId Colonist, Label Activity, List<(string WorkType, Button Button)> Priorities)> _rows = [];
+    private readonly List<(EntityId Colonist, Label Age, Label Mood, Label Activity, List<(string WorkType, Button Button)> Priorities)> _rows = [];
     private GameServices _services = null!;
     private GameSession _session = null!;
     private GameInput _input = null!;
@@ -119,8 +120,10 @@ public partial class ColonyPanel : PanelContainer
         _rows.Clear();
         var text = _services.Text;
         var workTypes = WorkTypes;
-        _grid.Columns = 2 + workTypes.Count;
+        _grid.Columns = 4 + workTypes.Count;
         _grid.AddChild(new Label { Text = "ui.colony.name" });
+        _grid.AddChild(new Label { Text = "ui.colony.age", HorizontalAlignment = HorizontalAlignment.Center });
+        _grid.AddChild(new Label { Text = "ui.colony.mood", HorizontalAlignment = HorizontalAlignment.Center });
         _grid.AddChild(new Label { Text = "ui.colony.activity", CustomMinimumSize = new Vector2(200, 0) });
         foreach (var type in workTypes)
         {
@@ -148,6 +151,11 @@ public partial class ColonyPanel : PanelContainer
             name.Pressed += () => _input.SelectColonist(selected);
             _grid.AddChild(name);
 
+            var age = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, HorizontalAlignment = HorizontalAlignment.Center };
+            _grid.AddChild(age);
+            var mood = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, HorizontalAlignment = HorizontalAlignment.Center };
+            _grid.AddChild(mood);
+
             var activity = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled };
             _grid.AddChild(activity);
 
@@ -168,7 +176,7 @@ public partial class ColonyPanel : PanelContainer
                 priorities.Add((id, button));
             }
 
-            _rows.Add((colonist, activity, priorities));
+            _rows.Add((colonist, age, mood, activity, priorities));
         }
 
         RefreshRows();
@@ -179,13 +187,16 @@ public partial class ColonyPanel : PanelContainer
     {
         var world = _session.Simulation.World;
         var text = _services.Text;
-        foreach (var (colonist, activity, priorities) in _rows)
+        foreach (var (colonist, age, mood, activity, priorities) in _rows)
         {
             if (!world.IsAlive(colonist))
             {
                 continue;
             }
 
+            // Numbers, the same in every language.
+            age.Text = LifeRules.AgeYears(_session.Simulation, colonist)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+            mood.Text = MoodRules.Value(_session.Simulation, colonist).ToString(System.Globalization.CultureInfo.InvariantCulture);
             activity.Text = text.Activity(world, colonist);
             foreach (var (workType, button) in priorities)
             {

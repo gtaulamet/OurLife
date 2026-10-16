@@ -77,7 +77,7 @@ internal sealed class ColonyTestBed
           { "type": "Trait", "id": "diligence", "workSpeed": { "low": 90, "high": 110 }, "needsBeforeWorkBelow": 25 },
           { "type": "Trait", "id": "curiosity" }, { "type": "Trait", "id": "intelligence", "experience": { "low": 75, "high": 125 } }, { "type": "Trait", "id": "patience" },
           { "type": "PersonalityConfig", "id": "default", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3,
-            "orientations": { "opposite": 80, "same": 8, "both": 12 } },
+            "orientations": { "opposite": 80, "same": 8, "both": 12 }, "words": [{ "upTo": 15, "word": "veryLow" }, { "upTo": 35, "word": "low" }, { "upTo": 64, "word": "average" }, { "upTo": 84, "word": "high" }, { "upTo": 100, "word": "veryHigh" }] },
           { "type": "Interaction", "id": "chat", "initiatorThought": "chatted", "receiverThought": "chatted", "desire": "befriend", "initiatorStages": ["child", "adolescent", "adult", "elder"],
             "receiverStages": ["child", "adolescent", "adult", "elder"], "weight": 60, "initiatorTraits": { "sociability": 2 },
             "opinion": { "min": 1, "max": 3 }, "backfire": { "trait": "patience", "below": 30, "chancePercent": 30, "opinion": { "min": -3, "max": -1 } } },

@@ -67,6 +67,12 @@ public partial class Hud : CanvasLayer
 
     public ColonyPanel Colony { get; private set; } = null!;
 
+    /// <summary>The sheet of a colonist, over the game (see <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    public ColonistSheet Sheet { get; private set; } = null!;
+
+    // The colonist selected now, if a colonist is: the sheet opens on it and follows it.
+    private EntityId _selectedColonist;
+
     /// <summary>Whether the frames per second show, for the smoke.</summary>
     public bool ShowsFps => _fpsPanel.Visible && _fps.Text.Length > 0;
 
@@ -107,7 +113,13 @@ public partial class Hud : CanvasLayer
         hud.Inspector.GrowHorizontal = Control.GrowDirection.Begin;
         root.AddChild(hud.Inspector);
 
+        hud.Sheet = ColonistSheet.Create(services, session.Simulation);
+        root.AddChild(hud.Sheet);
+
         input.SelectionChanged += hud.Inspector.Inspect;
+        input.SelectionChanged += hud.FollowSelection;
+        input.SheetRequested += () => hud.ToggleSheet(hud._selectedColonist);
+        hud.Inspector.SheetRequested += hud.ToggleSheet;
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
         input.ColonyPanelRequested += hud.Colony.Toggle;
@@ -115,6 +127,24 @@ public partial class Hud : CanvasLayer
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
         return hud;
+    }
+
+    /// <summary>Opens the sheet of a colonist, or closes it if it shows that one; nothing without a colonist.</summary>
+    public void ToggleSheet(EntityId colonist)
+    {
+        if (!colonist.IsNone)
+        {
+            Sheet.Toggle(colonist);
+        }
+    }
+
+    private void FollowSelection(Selection? selection)
+    {
+        _selectedColonist = selection is { IsColonist: true } chosen ? chosen.Colonist : EntityId.None;
+        if (Sheet.Visible && !_selectedColonist.IsNone)
+        {
+            Sheet.ShowColonist(_selectedColonist);
+        }
     }
 
     public override void _EnterTree()

@@ -6,7 +6,8 @@ namespace OurLife.Game.Input;
 /// <summary>
 /// Input actions of the game, registered in code so <c>project.godot</c> stays minimal. The keys
 /// follow <c>docs/gdd/interfaz-ip1.md</c>: WASD or arrows to move, Q/E to rotate, + and - to zoom, Page Up/Down to change level,
-/// M, B, T, R, Z, V, H and X for orders, C to build, G to turn furniture, P for the colony panel, Space and 1 to 3 for time.
+/// M, B, T, R, Z, V, H and X for orders, C to build, G to turn furniture, P for the colony panel, F for the sheet of the
+/// selected colonist, Space and 1 to 3 for time.
 /// </summary>
 public static class InputActions
 {
@@ -31,6 +32,9 @@ public static class InputActions
     /// <summary>Opens or closes the colony panel (see <c>docs/gdd/gestion.md</c>).</summary>
     public const string ToggleColony = "colony_toggle";
 
+    /// <summary>Opens or closes the sheet of the selected colonist (see <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    public const string ToggleSheet = "sheet_toggle";
+
     /// <summary>Turns the furniture about to be placed a quarter (see <c>docs/gdd/muebles-y-camas.md</c>).</summary>
     public const string RotateBuild = "build_rotate";
 
@@ -51,6 +55,7 @@ public static class InputActions
         (Build, [Key.C]),
         (RotateBuild, [Key.G]),
         (ToggleColony, [Key.P]),
+        (ToggleSheet, [Key.F]),
     ];
 
     /// <summary>

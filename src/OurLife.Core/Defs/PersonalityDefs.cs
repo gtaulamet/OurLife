@@ -69,6 +69,9 @@ public sealed class PersonalityConfigDef : Def
     /// <summary>The weights of each orientation when one is drawn.</summary>
     public required OrientationWeights Orientations { get; init; }
 
+    /// <summary>How the sheet words a trait: the first band whose <see cref="TraitBand.UpTo"/> reaches its value.</summary>
+    public IReadOnlyList<TraitBand> Words { get; init; } = [];
+
     internal override IEnumerable<string> Validate()
     {
         if (Rolls <= 0)
@@ -86,12 +89,35 @@ public sealed class PersonalityConfigDef : Def
             yield return "maxDriftPerDay must be zero or positive.";
         }
 
+        if (Words.Count > 0 && (Words[^1].UpTo < 100 || Words.Zip(Words.Skip(1)).Any(pair => pair.Second.UpTo <= pair.First.UpTo)))
+        {
+            yield return "words need bands going up to 100.";
+        }
+
         // Someone must be attracted to the other sex: a founding couple draws from those weights alone.
         if (Orientations.Opposite < 0 || Orientations.Same < 0 || Orientations.Both < 0 || Orientations.Opposite + Orientations.Both == 0)
         {
             yield return "orientations need weights of zero or more, and opposite or both above zero.";
         }
     }
+}
+
+/// <summary>The word a trait gets on the sheet, from very low to very high; an average one gets none.</summary>
+public enum TraitWord
+{
+    VeryLow,
+    Low,
+    Average,
+    High,
+    VeryHigh,
+}
+
+/// <summary>A range of a trait, up to <see cref="UpTo"/> included, and its word.</summary>
+public sealed class TraitBand
+{
+    public required int UpTo { get; init; }
+
+    public required TraitWord Word { get; init; }
 }
 
 /// <summary>The weights of the orientations: attracted to the other sex, to the same, or to both.</summary>

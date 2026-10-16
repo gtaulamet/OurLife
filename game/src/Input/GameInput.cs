@@ -86,6 +86,9 @@ public partial class GameInput : Node3D
     /// <summary>Raised when what to build changes; null means the build tool is off.</summary>
     public event Action<BuildChoice?>? BuildChanged;
 
+    /// <summary>Raised when the player asks for the sheet of the selected colonist.</summary>
+    public event Action? SheetRequested;
+
     /// <summary>Raised when Esc has nothing left to back out of.</summary>
     public event Action? PauseMenuRequested;
 
@@ -281,6 +284,11 @@ public partial class GameInput : Node3D
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleColony))
         {
             ColonyPanelRequested?.Invoke();
+        }
+
+        if (Godot.Input.IsActionJustPressed(InputActions.ToggleSheet))
+        {
+            SheetRequested?.Invoke();
         }
 
         if (Godot.Input.IsActionJustPressed(InputActions.RotateBuild) && Build is { } build
