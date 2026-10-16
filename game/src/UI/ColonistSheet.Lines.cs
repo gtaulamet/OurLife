@@ -43,7 +43,7 @@ public partial class ColonistSheet
         }
 
         // Orientation shows from the stages that work, as the teenager on (see the spec).
-        if (_simulation.World.TryGet<Personality>(colonist, out var personality) && stage?.Work != StageWork.None)
+        if (_simulation.World.TryGet<Personality>(colonist, out var personality) && stage is not null && stage.Work != StageWork.None)
         {
             var key = personality.Orientation switch
             {
@@ -110,10 +110,19 @@ public partial class ColonistSheet
         return lines;
     }
 
+    /// <summary>Each thought once, with how many times it adds up and its whole effect.</summary>
     private List<string> Thoughts(EntityId colonist)
     {
         var gender = GenderOf(colonist);
         return [.. MoodRules.Thoughts(_simulation, colonist)
-            .Select(thought => _services.Text.Format("ui.sheet.thought", ("thought", NameOf(thought, gender)), ("mood", Signed(thought.Mood))))];
+            .GroupBy(thought => thought.Id)
+            .Select(group =>
+            {
+                var thought = group.First();
+                var mood = Signed(group.Sum(each => each.Mood));
+                return group.Count() == 1
+                    ? _services.Text.Format("ui.sheet.thought", ("thought", NameOf(thought, gender)), ("mood", mood))
+                    : _services.Text.Format("ui.sheet.thought_many", ("thought", NameOf(thought, gender)), ("count", group.Count()), ("mood", mood));
+            })];
     }
 }

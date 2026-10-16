@@ -89,6 +89,12 @@ public partial class GameInput : Node3D
     /// <summary>Raised when the player asks for the sheet of the selected colonist.</summary>
     public event Action? SheetRequested;
 
+    /// <summary>
+    /// Asked first when Esc is pressed: true if it closed something over the game, like the sheet
+    /// of a colonist. While another screen is over the game this input is off, so that screen gets Esc.
+    /// </summary>
+    public Func<bool>? CloseFirst { get; set; }
+
     /// <summary>Raised when Esc has nothing left to back out of.</summary>
     public event Action? PauseMenuRequested;
 
@@ -245,6 +251,11 @@ public partial class GameInput : Node3D
                 BackOut();
                 break;
             case InputEventKey { Pressed: true, Echo: false } when @event.IsAction("ui_cancel"):
+                if (CloseFirst?.Invoke() == true)
+                {
+                    break;
+                }
+
                 if (!BackOut())
                 {
                     PauseMenuRequested?.Invoke();

@@ -191,5 +191,7 @@
   "ui.sheet.dead": "{gender, select, other {{name} (deceased)}}",
   "ui.sheet.recent_received": "{name} came to {verb}",
   "ui.colony.age": "Age",
-  "ui.colony.mood": "Mood"
+  "ui.colony.mood": "Mood",
+  "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
+  "ui.sheet.skill_from": "{skill}, from {name}"
 }

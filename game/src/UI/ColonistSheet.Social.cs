@@ -26,9 +26,9 @@ public partial class ColonistSheet
             }
 
             var days = (int)Math.Max(1, (active.UntilTick - _simulation.CurrentTick + day - 1) / day);
-            var about = !active.Target.IsNone && IsColonist(active.Target) ? TitleOf(active.Target)
-                : active.WorkType is { } type && _simulation.Content.TryGet<WorkTypeDef>(type, out var work) ? NameOf(work)
-                : null;
+            var who = !active.Target.IsNone && IsColonist(active.Target) ? TitleOf(active.Target) : null;
+            var what = active.WorkType is { } type && _simulation.Content.TryGet<WorkTypeDef>(type, out var work) ? NameOf(work) : null;
+            var about = who is not null && what is not null ? text.Format("ui.sheet.skill_from", ("skill", what), ("name", who)) : who ?? what;
             lines.Add(about is null
                 ? text.Format("ui.sheet.desire", ("desire", NameOf(desire)), ("days", days))
                 : text.Format("ui.sheet.desire_about", ("desire", NameOf(desire)), ("about", about), ("days", days)));
@@ -100,7 +100,7 @@ public partial class ColonistSheet
     /// <summary>A relative's name, marked as dead if it is gone.</summary>
     private string NameOf(Relative relative)
     {
-        var name = relative.Surname.Length == 0 ? relative.Name : $"{relative.Name} {relative.Surname}";
+        var name = ColonyText.FullName(relative.Name, relative.Surname);
         return relative.Dead || !IsColonist(relative.Entity)
             ? _services.Text.Format("ui.sheet.dead", ("name", name), ("gender", ColonyText.GenderId(relative.Gender)))
             : name;

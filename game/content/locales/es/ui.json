@@ -191,5 +191,7 @@
   "ui.sheet.dead": "{gender, select, female {{name} (fallecida)} other {{name} (fallecido)}}",
   "ui.sheet.recent_received": "{name} vino a {verb}",
   "ui.colony.age": "Edad",
-  "ui.colony.mood": "Ánimo"
+  "ui.colony.mood": "Ánimo",
+  "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
+  "ui.sheet.skill_from": "{skill}, de {name}"
 }

@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-9-ficha`: ficha del colono adelantada, falta la revisión de código |
-| `main` | En el cierre de H3.6, también en `origin` |
+| Rama de trabajo | `ip3/h3-9-ficha`: ficha del colono adelantada y revisada. H3.7 va en `ip3/h3-7-nacimientos` |
+| `main` | Con la ficha del colono, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.6 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 647 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 655 tests en verde, smoke con código 0 |
 | Huella del smoke | `ECB4B600749ABA31` con `--seed 1 --ticks 5000`; `57A3D947DB7DB434` con `--seed 42 --ticks 5000` (desde H3.6). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -20,10 +20,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Ficha (H3.9 adelantada):** revisión de código y adelantar `main`.
-2. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`, con el deseo de tener un hijo, el pensamiento "Nació mi hijo" y la opción de hijos en la ficha.
-3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`, con el deseo de tener un hijo, el pensamiento "Nació mi hijo" y la opción de hijos en la ficha.
+2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
+3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -49,6 +48,7 @@ En orden:
 - Datos nuevos: tramos `words` en `PersonalityConfig`, `Relationships.SiblingsOf`, textos `def.trait.<id>.low/high` y `def.interaction.<id>.started`, y `ui.sheet.*`.
 - Panel Colonia con Edad y Ánimo. `--sheet` para capturas; el smoke abre la ficha y revisa que no falte ningún texto.
 - Capturas en es y en a 1080p y a 960 × 540, revisadas. 647 tests, mismas huellas.
+- Revisión de código: 10 hallazgos, todos corregidos. F cierra la ficha aunque se haya seleccionado otra cosa; Esc la cierra a través de `GameInput.CloseFirst`, así no le quita Esc al menú de pausa ni a otras pantallas. La orientación no se muestra sin etapa. El deseo de aprender dice qué y de quién. Los pensamientos repetidos se agrupan. La ficha se rehace sólo cuando pasa el tiempo. `SiblingsOf` más simple, con un padre sin entidad que no empareja a nadie, y con tests. `ColonyText.FullName(name, surname)` para los parientes. El smoke detecta claves sin traducir. 655 tests. `main` adelantado.
 
 ### 2026-10-16: cierre de H3.6
 

@@ -243,7 +243,14 @@ public static class ColonyText
     public static string FullName(Colonist colonist)
     {
         ArgumentNullException.ThrowIfNull(colonist);
-        return colonist.Surname.Length == 0 ? colonist.Name : $"{colonist.Name} {colonist.Surname}";
+        return FullName(colonist.Name, colonist.Surname);
+    }
+
+    /// <summary>The same, for a name and a surname kept apart, as the family keeps those of the dead.</summary>
+    public static string FullName(string name, string surname)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        return string.IsNullOrEmpty(surname) ? name : $"{name} {surname}";
     }
 
     /// <summary>The gender of a colonist as texts select on it: <c>female</c> or <c>male</c>.</summary>

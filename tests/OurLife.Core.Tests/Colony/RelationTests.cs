@@ -165,6 +165,45 @@ public class RelationTests
         Relationships.IsFree(bed.Simulation, wife).ShouldBeTrue();
     }
 
+    [Fact]
+    public void Brothers_and_sisters_share_a_father_or_a_mother_and_a_parent_from_outside_matches_nobody()
+    {
+        var bed = ColonyTestBed.Flat(10);
+        var mother = bed.AddColonist(1, 1, 1);
+        var elder = bed.AddColonist(2, 2, 1, name: "Urraca");
+        var younger = bed.AddColonist(3, 3, 1, name: "Jimena");
+        var stranger = bed.AddColonist(4, 4, 1, name: "Edith");
+        var spouse = bed.AddColonist(5, 5, 1, name: "Agnes");
+        foreach (var child in new[] { elder, younger })
+        {
+            bed.World.Add(child, new Family { Mother = Relationships.RelativeOf(bed.Simulation, mother) });
+        }
+
+        // Both with a father from outside the colony, with no entity.
+        var outside = new Relative { Name = "Pedro" };
+        bed.World.Add(stranger, new Family { Father = outside });
+        bed.World.Add(spouse, new Family { Father = new Relative { Name = "Sancho" }, Partner = Relationships.RelativeOf(bed.Simulation, stranger) });
+
+        Relationships.SiblingsOf(bed.Simulation, elder).ShouldBe(new[] { younger });
+        Relationships.SiblingsOf(bed.Simulation, mother).ShouldBeEmpty();
+        Relationships.SiblingsOf(bed.Simulation, stranger).ShouldBeEmpty();
+        Relationships.SiblingsOf(bed.Simulation, spouse).ShouldBeEmpty();
+        Relationships.IsFamily(bed.Simulation, elder, younger).ShouldBeTrue();
+        Relationships.IsFamily(bed.Simulation, stranger, elder).ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(0, Core.Defs.TraitWord.VeryLow)]
+    [InlineData(15, Core.Defs.TraitWord.VeryLow)]
+    [InlineData(16, Core.Defs.TraitWord.Low)]
+    [InlineData(50, Core.Defs.TraitWord.Average)]
+    [InlineData(65, Core.Defs.TraitWord.High)]
+    [InlineData(100, Core.Defs.TraitWord.VeryHigh)]
+    public void A_trait_gets_the_word_of_its_band(int value, Core.Defs.TraitWord word)
+    {
+        PersonalityRules.From(ColonyTestBed.Content).WordOf(value).ShouldBe(word);
+    }
+
     private static void Love(ColonyTestBed bed, Core.Ecs.EntityId a, Core.Ecs.EntityId b, int opinion, int romance)
     {
         foreach (var (from, to) in new[] { (a, b), (b, a) })

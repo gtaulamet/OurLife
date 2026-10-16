@@ -88,8 +88,7 @@ public static class Relationships
         }
 
         return Names(ofA?.Partner, b) || Names(ofA?.Father, b) || Names(ofA?.Mother, b) || Names(ofB?.Father, a) || Names(ofB?.Mother, a)
-               || (ofA?.Father is { } fatherA && Names(ofB?.Father, fatherA.Entity))
-               || (ofA?.Mother is { } motherA && Names(ofB?.Mother, motherA.Entity));
+               || (ofA is not null && ofB is not null && SameParent(ofA, ofB));
     }
 
     /// <summary>The living brothers and sisters of a colonist: those with a father or a mother in common, by ascending id.</summary>
@@ -104,11 +103,13 @@ public static class Relationships
 
         var colonists = new List<EntityId>();
         world.Query<Colonist, Family>(colonists);
-        return [.. colonists.Where(other => other != colonist && IsFamily(simulation, colonist, other)
-                                           && world.Get<Family>(other) is var family
-                                           && ((own.Father is { } father && family.Father?.Entity == father.Entity)
-                                               || (own.Mother is { } mother && family.Mother?.Entity == mother.Entity)))];
+        return [.. colonists.Where(other => other != colonist && SameParent(own, world.Get<Family>(other)))];
     }
+
+    /// <summary>Whether two families name the same father or the same mother; a parent without an entity matches nobody.</summary>
+    private static bool SameParent(Family a, Family b) =>
+        (a.Father is { Entity.IsNone: false } father && b.Father?.Entity == father.Entity)
+        || (a.Mother is { Entity.IsNone: false } mother && b.Mother?.Entity == mother.Entity);
 
     /// <summary>Whether <paramref name="from"/> is attracted to <paramref name="to"/> by its orientation; a colonist without one, to the other sex.</summary>
     public static bool IsAttracted(Simulation simulation, EntityId from, EntityId to)

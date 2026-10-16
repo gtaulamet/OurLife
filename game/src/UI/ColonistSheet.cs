@@ -10,7 +10,8 @@ namespace OurLife.Game.UI;
 /// stage, age, mood and crisis; its personality in words, its skills and its family on the left;
 /// its thoughts, wishes, relations and last interactions on the right. It opens over the game with
 /// F or the inspector's button, follows the selected colonist, refreshes twice a second and closes
-/// with Esc, its button, or when the colonist dies.
+/// with F, Esc (through <see cref="Input.GameInput.CloseFirst"/>), its button, or when the colonist
+/// dies. It shows again only when time passed, the colonist changed or the language did.
 /// </summary>
 public partial class ColonistSheet : PanelContainer
 {
@@ -23,13 +24,14 @@ public partial class ColonistSheet : PanelContainer
     private Label _title = null!;
     private Label _summary = null!;
     private double _sinceRefresh;
+    private long _refreshedTick = -1;
 
     /// <summary>The colonist shown, or none.</summary>
     public EntityId Colonist { get; private set; }
 
-    /// <summary>Every line shown, for the smoke.</summary>
+    /// <summary>Every line shown, as the player reads it (the headers translated), for the smoke.</summary>
     public IEnumerable<string> Texts =>
-        new[] { _title.Text, _summary.Text }.Concat(_sections.SelectMany(section => new[] { section.Header.Text, section.Body.Text }));
+        new[] { _title.Text, _summary.Text }.Concat(_sections.SelectMany(section => new[] { (string)Tr(section.Header.Text), section.Body.Text }));
 
     public static ColonistSheet Create(GameServices services, Simulation simulation)
     {
@@ -138,18 +140,9 @@ public partial class ColonistSheet : PanelContainer
         }
 
         _sinceRefresh += delta;
-        if (_sinceRefresh >= RefreshSeconds)
+        if (_sinceRefresh >= RefreshSeconds && _simulation.CurrentTick != _refreshedTick)
         {
             Refresh();
-        }
-    }
-
-    public override void _Input(InputEvent @event)
-    {
-        if (Visible && @event is InputEventKey { Pressed: true, Echo: false } && @event.IsAction("ui_cancel"))
-        {
-            Close();
-            GetViewport().SetInputAsHandled();
         }
     }
 
@@ -175,6 +168,7 @@ public partial class ColonistSheet : PanelContainer
     private void Refresh()
     {
         _sinceRefresh = 0;
+        _refreshedTick = _simulation.CurrentTick;
         if (!IsColonist(Colonist))
         {
             Close();

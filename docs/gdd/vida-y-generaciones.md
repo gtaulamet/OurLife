@@ -222,10 +222,10 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en el juego lo que trajeron H3.2 a H3.6.
 
-- Se abre con **F** o con el botón "Ficha (F)" del inspector, sobre el colono seleccionado, y sigue a la selección. Se cierra con F, Esc, su botón "Cerrar", o cuando el colono muere.
+- Se abre con **F** o con el botón "Ficha (F)" del inspector, sobre el colono seleccionado, y sigue a la selección. Se cierra con F (aunque se haya seleccionado otra cosa), Esc, su botón "Cerrar", o cuando el colono muere. Se actualiza sólo cuando pasa el tiempo.
 - Arriba: nombre y apellido; etapa y edad, ánimo, crisis si la hay y, desde las etapas que trabajan, la orientación ("Le atraen las mujeres").
 - A la izquierda: **Personalidad** (sólo los rasgos que se apartan del promedio, en palabras: "Algo áspero", "Muy sociable", según los tramos `words` de `PersonalityConfig`: hasta 15 muy bajo, hasta 35 bajo, hasta 64 promedio, hasta 84 alto, hasta 100 muy alto), **Habilidades** (nivel y porcentaje hacia el siguiente) y **Familia** (padre, madre, pareja, parejas anteriores, hijos y hermanos; los muertos con "fallecido").
-- A la derecha: **Pensamientos** (con su efecto en el ánimo), **Deseos** (con de quién o de qué, y los días que quedan), **Relaciones** (de la mejor opinión a la peor, con el lazo) y **Últimas interacciones** ("Le enseñó a Alfonso Díaz", "Nuño vino a charlar").
+- A la derecha: **Pensamientos** (cada uno una vez, con "×2" si se suma y su efecto total), **Deseos** (con de quién o de qué, "Minería, de Alfonso Díaz", y los días que quedan), **Relaciones** (de la mejor opinión a la peor, con el lazo) y **Últimas interacciones** ("Le enseñó a Alfonso Díaz", "Nuño vino a charlar").
 - El panel Colonia suma las columnas Edad y Ánimo.
 - La opción de hijos se suma a la ficha con los nacimientos, en H3.7.
 - Textos: `def.trait.<id>.low` y `.high` (con concordancia), `def.interaction.<id>.started` y las claves `ui.sheet.*`.

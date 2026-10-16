@@ -166,6 +166,7 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Interaction", "id": "flirt", "initiatorStages": ["adult"], "receiverStages": ["adult"], "weight": 15, "romantic": true }]""", "needs romance")]
     [InlineData("""[{ "type": "Interaction", "id": "chat", "initiatorStages": ["toddler"], "receiverStages": ["toddler"], "weight": 60 }]""", "stages points to 'toddler'")]
     [InlineData("""[{ "type": "Interaction", "id": "chat", "initiatorStages": [], "receiverStages": [], "weight": 60, "opinion": { "min": 3, "max": 1 } }]""", "min <= max")]
+    [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 1, "same": 0, "both": 0 }, "words": [{ "upTo": 50, "word": "low" }] }]""", "words need bands going up to 100")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

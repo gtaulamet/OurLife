@@ -118,7 +118,17 @@ public partial class Hud : CanvasLayer
 
         input.SelectionChanged += hud.Inspector.Inspect;
         input.SelectionChanged += hud.FollowSelection;
-        input.SheetRequested += () => hud.ToggleSheet(hud._selectedColonist);
+        input.SheetRequested += hud.OnSheetKey;
+        input.CloseFirst = () =>
+        {
+            if (!hud.Sheet.Visible)
+            {
+                return false;
+            }
+
+            hud.Sheet.Close();
+            return true;
+        };
         hud.Inspector.SheetRequested += hud.ToggleSheet;
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
@@ -135,6 +145,19 @@ public partial class Hud : CanvasLayer
         if (!colonist.IsNone)
         {
             Sheet.Toggle(colonist);
+        }
+    }
+
+    /// <summary>F closes the sheet if it is open, whatever is selected, and else opens the selected colonist's.</summary>
+    private void OnSheetKey()
+    {
+        if (Sheet.Visible)
+        {
+            Sheet.Close();
+        }
+        else
+        {
+            ToggleSheet(_selectedColonist);
         }
     }
 

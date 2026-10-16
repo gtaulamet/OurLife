@@ -950,7 +950,9 @@ public partial class GameRoot : Node
         {
             screen.Hud.ToggleSheet(someone);
             var lines = screen.Hud.Sheet.Texts.ToList();
-            if (!screen.Hud.Sheet.Visible || lines.Any(line => line.Length == 0 || line.Contains('⟦')))
+            // A missing text shows as its key, or as ⟦name⟧ for a missing argument.
+            if (!screen.Hud.Sheet.Visible || lines.Any(line => line.Length == 0 || line.Contains('⟦') || line.StartsWith("ui.", StringComparison.Ordinal)
+                                                                  || line.Contains("def.", StringComparison.Ordinal)))
             {
                 throw new InvalidOperationException($"the sheet shows [{string.Join(" | ", lines)}]");
             }
