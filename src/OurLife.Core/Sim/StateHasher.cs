@@ -9,7 +9,7 @@ namespace OurLife.Core.Sim;
 
 /// <summary>
 /// 64-bit fingerprint (XxHash64) of the whole simulation state: tick, seed, random streams,
-/// colony name, progress, map, entity slots, every component and the pending commands. Two runs with the same seed and the
+/// colony name, pace of life, progress, map, entity slots, every component and the pending commands. Two runs with the same seed and the
 /// same commands must give the same fingerprint after the same number of ticks. Components and
 /// commands are hashed through their JSON form, so they must be plain data without cycles.
 /// </summary>
@@ -25,6 +25,7 @@ public static class StateHasher
         AppendInt64(hash, simulation.CurrentTick);
         AppendUInt64(hash, simulation.Seed);
         AppendString(hash, simulation.ColonyName);
+        AppendString(hash, simulation.LifePace);
 
         foreach (var (name, stream) in simulation.Random.Streams)
         {

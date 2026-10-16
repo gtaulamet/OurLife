@@ -197,6 +197,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | 90 | 40 % | |
 | 100 | 100 % | Nadie pasa de los 100 |
 
+- Antes de la primera fila no hay muerte por vejez; después de la última vale la última. Con 100 % por año la muerte es segura ese mismo día: nadie pasa de los 100 en ningún ritmo.
 - La muerte por vejez se avisa en el registro, libera su cama, deja viuda a su pareja y los pensamientos de muerte a su familia y amigos. Como la muerte por hambre, quita la entidad. Cadáveres y tumbas llegan en IP5.
 
 ## Guardado y migración
@@ -249,8 +250,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Def | Campos | Archivo |
 |---|---|---|
 | `LifePace` | `lifeDaysPerDay`, `default` | `life.json` |
-| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad, `interacts`, `visual` | `life.json` |
-| `LifeConfig` | Fertilidad, `conceptionChancePerYear`, `pregnancyLifeDays`, tabla de vejez, pesos de orientación, edades y opiniones de los fundadores | `life.json` |
+| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `interacts` (H3.5) y `visual` (H3.8) | `life.json` |
+| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); fertilidad, `conceptionChancePerYear`, `pregnancyLifeDays`, pesos de orientación y opiniones de los fundadores en los hitos que los usan | `life.json` |
 | `Trait` | Tramos de palabras para la ficha | `personality.json` |
 | `Interaction` | Quién, peso y coeficientes, condición, resultados, deriva | `social.json` |
 | `SocialConfig` | `interactionCheckTicks`, `interactionRadius`, `pairCooldownHours`, umbrales de amistad, rivalidad y pareja, olvido | `social.json` |
@@ -260,7 +261,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | `Desire` | Disparador, cumplimiento, probabilidad, `expireDays` | `mood.json` |
 | `WorkType` | `skill`, `light`; tipo nuevo `childcare` con `feed_baby` | `work_types.json` |
 | `NameList` | `surnames` | `names.json` |
-| `Scenario` | `foundingCouple` | `scenario.json` |
+| `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2), `foundingCouple` | `scenario.json` |
 | `Buildable` | `cradle`, con `forStages` | `buildables.json` |
 
 - Cada def con textos lleva `name`, `desc` y `gender` en es y en. Los defs entran en el hito que los usa, no en H3.1.
@@ -274,11 +275,11 @@ Las claves siguen `docs/i18n.md`. El i18n-specialist ajusta el texto final en ca
 | `ui.newgame.life_pace` | Ritmo de la vida | Pace of life |
 | `def.life_pace.normal.desc` | Un año del juego es un año de vida. | One game year is one year of life. |
 | `def.life_pace.fast.desc` | Cada año del juego pasan 4 años de vida. | Four years of life pass in each game year. |
-| `ui.inspector.age` | {years, plural, one {# año} other {# años}} | {years, plural, one {# year} other {# years}} old |
+| `ui.inspector.life` | {stage}, {years, plural, one {# año} other {# años}} | {stage}, {years, plural, one {# year} other {# years}} old |
 | `event.life.birth` | {mother} dio a luz a {child_gender, select, female {una niña} other {un niño}}: {child}. | {mother} gave birth to a {child_gender, select, female {girl} other {boy}}: {child}. |
 | `event.life.pregnant` | {colonist} está embarazada. | {colonist} is pregnant. |
-| `event.life.old_age` | {colonist} murió de {colonist_gender, select, female {vieja} other {viejo}}, a los {years} años. | {colonist} died of old age at {years}. |
-| `event.life.stage` | {colonist} creció: ya es {stage}. | {colonist} has grown up: now {stage}. |
+| `event.life.old_age` | {colonist} murió de vejez a los {years} años. | {colonist} died of old age at {years}. |
+| `event.life.stage.<etapa>` | Uno por etapa que no empieza a los 0 años, por ejemplo {colonist} ya es adolescente. | {colonist} is a teenager now. |
 | `event.social.couple` | {a} y {b} son pareja. | {a} and {b} are now a couple. |
 | `event.social.breakup` | {a} y {b} se separaron. | {a} and {b} broke up. |
 | `event.social.friends` | {a} y {b} se hicieron amigos. | {a} and {b} became friends. |

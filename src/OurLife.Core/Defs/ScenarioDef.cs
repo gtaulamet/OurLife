@@ -22,6 +22,12 @@ public sealed class ScenarioDef : Def
     /// <summary>Each need of a colonist starts at random between this value and its maximum.</summary>
     public required int StartNeedsMin { get; init; }
 
+    /// <summary>The youngest age of a colonist on arrival, in years (see <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    public required int FounderMinYears { get; init; }
+
+    /// <summary>The oldest age of a colonist on arrival: any day of life up to the end of this year.</summary>
+    public required int FounderMaxYears { get; init; }
+
     /// <summary>Items left at the arrival point.</summary>
     public IReadOnlyList<ItemCount> Items { get; init; } = [];
 
@@ -44,6 +50,11 @@ public sealed class ScenarioDef : Def
         if (StartNeedsMin < 0)
         {
             yield return "startNeedsMin must be zero or positive.";
+        }
+
+        if (FounderMinYears < 0 || FounderMaxYears < FounderMinYears)
+        {
+            yield return "founder ages must satisfy 0 <= founderMinYears <= founderMaxYears.";
         }
 
         if (Items.Any(item => item.Count <= 0))

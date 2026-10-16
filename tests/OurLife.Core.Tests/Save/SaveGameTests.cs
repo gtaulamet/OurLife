@@ -83,6 +83,43 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void Ages_surnames_and_the_pace_of_life_are_saved()
+    {
+        var bed = BusyColony();
+        var colonists = bed.Colonists();
+
+        var loaded = Load(Save(bed.Simulation));
+
+        loaded.LifePace.ShouldBe("fast");
+        foreach (var colonist in colonists)
+        {
+            loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
+            loaded.World.Get<Colonist>(colonist).Surname.ShouldBe(bed.World.Get<Colonist>(colonist).Surname);
+        }
+    }
+
+    [Fact]
+    public void A_game_of_format_1_gets_ages_and_surnames_when_it_is_loaded()
+    {
+        var bed = BusyColony();
+        bed.Simulation.Run(200);
+        var file = AsFormat1(Save(bed.Simulation));
+
+        var loaded = Load(file);
+
+        loaded.LifePace.ShouldBe("fast");
+        var colonists = bed.Colonists();
+        colonists.Select(colonist => LifeRules.AgeYears(loaded, colonist)!.Value).ShouldAllBe(years => years >= 18 && years <= 40);
+        colonists.Select(colonist => LifeRules.Stage(loaded, colonist)!.Id).ShouldAllBe(stage => stage == "adult");
+        colonists.Select(colonist => loaded.World.Get<Colonist>(colonist).Surname).Distinct().Count().ShouldBe(5);
+        Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+
+        // Saved again, it is a game of the current format that loads as it was.
+        Load(Save(loaded)).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+        loaded.Run(3_000);
+    }
+
+    [Fact]
     public void A_newer_format_with_new_header_fields_is_still_newer()
     {
         var file = Rewrite(Save(BusyColony().Simulation), "header.json", json => json.Replace(
@@ -380,6 +417,26 @@ public class SaveGameTests
 
     private static SaveLoadException LoadFails(byte[] file) =>
         Should.Throw<SaveLoadException>(() => SaveGame.Load(new MemoryStream(file), ColonyTestBed.Content));
+
+    /// <summary>The saved game as v0.2.x wrote it: format 1, without pace of life, ages or surnames.</summary>
+    private static byte[] AsFormat1(byte[] file)
+    {
+        var old = Rewrite(file, "header.json", json => json.Replace(
+            $"\"FormatVersion\":{SaveGame.FormatVersion}", "\"FormatVersion\":1", StringComparison.Ordinal));
+        return Rewrite(old, "state.json", json =>
+        {
+            var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            state.Remove("LifePace");
+            var stores = state["Components"]!.AsArray();
+            stores.Remove(stores.Single(store => (string)store!["Type"]! == "life"));
+            foreach (var saved in stores.Single(store => (string)store!["Type"]! == "colonist")!["Entities"]!.AsArray())
+            {
+                saved!["Value"]!.AsObject().Remove("Surname");
+            }
+
+            return state.ToJsonString();
+        });
+    }
 
     /// <summary>Changes the text of one entry of a saved game.</summary>
     private static byte[] Rewrite(byte[] file, string entryName, Func<string, string> change)

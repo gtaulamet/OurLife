@@ -10,6 +10,11 @@
     "female": [
       "Elvira", "Urraca", "Jimena", "Sancha", "Teresa", "Mencía", "Leonor", "Berenguela", "Aldonza", "María",
       "Toda", "Mayor", "Edith", "Matilda", "Agnes", "Cecily", "Margery", "Alice", "Emma", "Joan"
+    ],
+    "surnames": [
+      "Pérez", "Fernández", "González", "Martínez", "Sánchez", "Díaz", "Rodríguez", "Álvarez", "Núñez", "Gómez",
+      "Muñoz", "de Lara", "de Haro", "de Castro", "Navarro", "Smith", "Miller", "Fletcher", "Cooper", "Baker",
+      "Wright", "Thatcher", "Hill", "Ford", "Marsh", "Atwood", "Brook", "Shepherd"
     ]
   }
 ]

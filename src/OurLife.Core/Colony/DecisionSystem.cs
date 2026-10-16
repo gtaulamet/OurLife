@@ -550,7 +550,8 @@ public sealed class DecisionSystem : ISimSystem
     /// <summary>
     /// Looks for work by the colonist's priorities, from the highest (see <c>docs/gdd/gestion.md</c>):
     /// at each one, its work types of that priority in the order of the defs. A work type it never
-    /// does is skipped.
+    /// does, or does not do at its stage of life (see <c>docs/gdd/vida-y-generaciones.md</c>), is
+    /// skipped; its priorities still count when it grows up.
     /// </summary>
     private bool TryWork(Simulation simulation, EntityId colonist)
     {
@@ -561,9 +562,13 @@ public sealed class DecisionSystem : ISimSystem
             _priorities = new int[types];
         }
 
+        var stage = LifeRules.Stage(simulation, colonist);
         for (var type = 0; type < types; type++)
         {
-            _priorities[type] = WorkPriorityRules.Of(simulation.World, colonist, _rules.WorkTypes[type].Id, _rules.Ai.DefaultWorkPriority);
+            var workType = _rules.WorkTypes[type];
+            _priorities[type] = LifeRules.DoesWork(stage, workType)
+                ? WorkPriorityRules.Of(simulation.World, colonist, workType.Id, _rules.Ai.DefaultWorkPriority)
+                : WorkPriorityLevels.Never;
         }
 
         for (var priority = WorkPriorityLevels.Highest; priority <= WorkPriorityLevels.Lowest; priority++)

@@ -33,6 +33,7 @@ public static class SaveTypes
         Component<Furniture>("furniture");
         Component<Bed>("bed");
         Component<WorkPriorities>("work_priorities");
+        Component<Life>("life");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");

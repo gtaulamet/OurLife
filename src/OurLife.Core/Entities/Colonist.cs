@@ -16,6 +16,9 @@ public sealed class Colonist
     /// <summary>Proper name, from the creature's name list. Names are not translated.</summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>Family name, from the name list on arrival and the father's at birth. Not translated either; may be empty.</summary>
+    public string Surname { get; set; } = string.Empty;
+
     public Gender Gender { get; set; }
 
     /// <summary>Id of its <see cref="Defs.CreatureDef"/>.</summary>

@@ -18,12 +18,16 @@ public class DefLoaderTests
             "lowThreshold": 4000, "criticalThreshold": 1500, "deathAfterHoursAtZero": 72, "satisfiedBy": "eating" },
           { "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 600,
             "lowThreshold": 3000, "criticalThreshold": 1000, "satisfiedBy": "sleeping", "recoveryPerHour": 900 },
-          { "type": "NameList", "id": "test_names", "male": ["Rodrigo"], "female": ["Elvira"] },
+          { "type": "NameList", "id": "test_names", "male": ["Rodrigo"], "female": ["Elvira"], "surnames": ["Pérez"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
-          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
+          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 3, "startNeedsMin": 7000,
-            "items": [{ "item": "berries", "count": 10 }] },
+            "founderMinYears": 18, "founderMaxYears": 40, "items": [{ "item": "berries", "count": 10 }] },
+          { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
+          { "type": "LifeStage", "id": "child", "fromYears": 3, "work": "none", "moveSpeedPercent": 90,
+            "needsPercent": { "hunger": 70 } },
+          { "type": "LifeConfig", "id": "default", "oldAge": [{ "years": 60, "percentPerYear": 1 }, { "years": 100, "percentPerYear": 100 }] },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
             "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }
@@ -49,6 +53,17 @@ public class DefLoaderTests
         defs.Get<AiConfigDef>("default").WanderWaitMax.ShouldBe(300);
         defs.Get<WorkTypeDef>("gathering").NameKey.ShouldBe("def.work_type.gathering.name");
         defs.Get<NameListDef>("test_names").Female.ShouldBe(new[] { "Elvira" });
+        defs.Get<NameListDef>("test_names").Surnames.ShouldBe(new[] { "Pérez" });
+        defs.Get<WorkTypeDef>("gathering").Light.ShouldBeTrue();
+        defs.Get<ScenarioDef>("start").FounderMaxYears.ShouldBe(40);
+        defs.Get<LifePaceDef>("fast").LifeDaysPerDay.ShouldBe(4);
+        defs.Get<LifePaceDef>("fast").Default.ShouldBeTrue();
+        defs.Get<LifeStageDef>("child").Work.ShouldBe(StageWork.None);
+        defs.Get<LifeStageDef>("child").NeedPercent("hunger").ShouldBe(70);
+        defs.Get<LifeStageDef>("child").NeedPercent("rest").ShouldBe(100);
+        defs.Get<LifeStageDef>("child").WorkSpeedPercent.ShouldBe(100);
+        defs.Get<LifeStageDef>("child").NameKey.ShouldBe("def.life_stage.child.name");
+        defs.Get<LifeConfigDef>("default").OldAge[1].PercentPerYear.ShouldBe(100);
         defs.Get<MaterialDef>("granite").SourceFile.ShouldBe("defs/extra.json");
     }
 
@@ -102,7 +117,7 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Need", "id": "hunger", "max": 10000, "decayPerHour": 200, "lowThreshold": 3000, "criticalThreshold": 1000, "satisfiedBy": "eating", "recoveryPerHour": 5 }]""", "only needs satisfied by sleeping")]
     [InlineData("""[{ "type": "WorkType", "id": "cooking", "order": 0, "jobs": ["cook"] }]""", "'cook' is not a job")]
     [InlineData("""[{ "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "mine"] }]""", "jobs cannot repeat")]
-    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "dwarf", "colonists": 5, "startNeedsMin": 0 }]""", "creature points to 'dwarf'")]
+    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "dwarf", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 18, "founderMaxYears": 40 }]""", "creature points to 'dwarf'")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 300, "wanderWaitMax": 60, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }]""", "wander waits")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 21, "nightEndHour": 21, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }]""", "the night must last")]
     [InlineData("""[{ "type": "AiConfig", "id": "ai", "eatTicksPerUnit": 20, "wanderRadius": 6, "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30, "nightStartHour": 24, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 }]""", "hours from 0 to 23")]
@@ -124,6 +139,12 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 10 }, { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 1, "builtFrom": "log" }, { "type": "Buildable", "id": "bed", "shape": "furniture", "materials": ["timber"], "cost": 2, "workTicks": 10 }]""", "furniture needs a visual")]
     [InlineData("""[{ "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 10 }, { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 1, "builtFrom": "log" }, { "type": "Buildable", "id": "wall", "shape": "wall", "materials": ["timber"], "cost": 2, "workTicks": 10, "storage": true }]""", "only furniture can be a bed")]
     [InlineData("""[{ "type": "Item", "id": "log", "category": "wood", "kind": "raw", "visual": "item.log", "stackLimit": 10 }, { "type": "Material", "id": "timber", "kind": "wood", "color": "#9A6B40", "mineWorkTicks": 1, "builtFrom": "log" }, { "type": "Buildable", "id": "bed", "shape": "furniture", "materials": ["timber"], "cost": 2, "workTicks": 10, "visual": "furniture.bed", "restRecoveryPercent": 150, "storage": true }]""", "a bed or a chest, not both")]
+    [InlineData("""[{ "type": "LifePace", "id": "frozen", "lifeDaysPerDay": 0 }]""", "lifeDaysPerDay must be positive")]
+    [InlineData("""[{ "type": "LifeStage", "id": "baby", "fromYears": 0, "work": "none", "needsPercent": { "thirst": 50 } }]""", "needsPercent points to 'thirst'")]
+    [InlineData("""[{ "type": "LifeStage", "id": "baby", "fromYears": 0, "work": "none", "moveSpeedPercent": 0 }]""", "moveSpeedPercent must be positive")]
+    [InlineData("""[{ "type": "LifeConfig", "id": "life", "oldAge": [{ "years": 80, "percentPerYear": 10 }, { "years": 70, "percentPerYear": 20 }] }]""", "must go up in years")]
+    [InlineData("""[{ "type": "LifeConfig", "id": "life", "oldAge": [{ "years": 80, "percentPerYear": 120 }] }]""", "percentPerYear between 0 and 100")]
+    [InlineData("""[{ "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 0, "founderMinYears": 40, "founderMaxYears": 18 }]""", "founderMinYears <= founderMaxYears")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

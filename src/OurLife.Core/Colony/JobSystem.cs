@@ -212,13 +212,17 @@ public sealed class JobSystem : ISimSystem
         }
     }
 
-    /// <summary>Does one tick of work; true when the job is finished.</summary>
+    /// <summary>
+    /// Does one tick of work; true when the job is finished. Work for the player lasts longer for
+    /// a colonist who works slower (see <c>docs/gdd/vida-y-generaciones.md</c>); eating does not.
+    /// </summary>
     private bool Work(Simulation simulation, EntityId colonist, Job job)
     {
+        var speed = LifeRules.WorkSpeedPercent(simulation, colonist);
         switch (job.Kind)
         {
             case JobKind.Mine:
-                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(job.Cell))))
+                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(job.Cell)), speed))
                 {
                     return false;
                 }
@@ -227,7 +231,7 @@ public sealed class JobSystem : ISimSystem
                 return true;
             case JobKind.DigStairs:
                 var below = new TileCoord(job.Cell.X, job.Cell.Y, job.Cell.Z - 1);
-                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(below))))
+                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(below)), speed))
                 {
                     return false;
                 }
@@ -235,7 +239,7 @@ public sealed class JobSystem : ISimSystem
                 DigStairs(simulation, job.Cell);
                 return true;
             case JobKind.Chop:
-                if (!Advance(job, PlantOf(simulation, job.Target).Chop!.WorkTicks))
+                if (!Advance(job, PlantOf(simulation, job.Target).Chop!.WorkTicks, speed))
                 {
                     return false;
                 }
@@ -243,7 +247,7 @@ public sealed class JobSystem : ISimSystem
                 Chop(simulation, job.Target);
                 return true;
             case JobKind.Harvest:
-                if (!Advance(job, PlantOf(simulation, job.Target).Harvest!.WorkTicks))
+                if (!Advance(job, PlantOf(simulation, job.Target).Harvest!.WorkTicks, speed))
                 {
                     return false;
                 }
@@ -262,9 +266,9 @@ public sealed class JobSystem : ISimSystem
             case JobKind.Deliver:
                 return job.Stage == JobStage.Carrying ? Supply(simulation, colonist, job) : PickUp(simulation, colonist, job);
             case JobKind.Build:
-                return Build(simulation, colonist, job);
+                return Build(simulation, colonist, job, speed);
             case JobKind.Deconstruct:
-                return Deconstruct(simulation, colonist, job);
+                return Deconstruct(simulation, colonist, job, speed);
             case JobKind.Channel:
                 if (AnyColonistOn(simulation, job.Cell))
                 {
@@ -272,7 +276,7 @@ public sealed class JobSystem : ISimSystem
                 }
 
                 var under = simulation.Map.ShapeAt(job.Cell with { Z = job.Cell.Z - 1 }) == TileShape.Wall ? job.Cell with { Z = job.Cell.Z - 1 } : job.Cell;
-                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(under))))
+                if (!Advance(job, WorkTicksOf(simulation.Map.MaterialAt(under)), speed))
                 {
                     return false;
                 }
@@ -289,7 +293,7 @@ public sealed class JobSystem : ISimSystem
     /// Builds a blueprint with all its materials. A wall does not rise over a colonist: the work
     /// waits while someone stands on the cell.
     /// </summary>
-    private bool Build(Simulation simulation, EntityId colonist, Job job)
+    private bool Build(Simulation simulation, EntityId colonist, Job job, int speed)
     {
         var world = simulation.World;
         var buildable = simulation.Content.Get<BuildableDef>(world.Get<Blueprint>(job.Target).Buildable);
@@ -298,7 +302,7 @@ public sealed class JobSystem : ISimSystem
             return false;
         }
 
-        if (!Advance(job, buildable.WorkTicks))
+        if (!Advance(job, buildable.WorkTicks, speed))
         {
             return false;
         }
@@ -312,7 +316,7 @@ public sealed class JobSystem : ISimSystem
     /// Takes down what was built, in half the time it took to build. A floor, or the upper half of
     /// stairs, that turns into air waits while someone stands on it.
     /// </summary>
-    private bool Deconstruct(Simulation simulation, EntityId colonist, Job job)
+    private bool Deconstruct(Simulation simulation, EntityId colonist, Job job, int speed)
     {
         foreach (var open in Construction.CellsLeftOpen(simulation, job.Cell))
         {
@@ -323,7 +327,7 @@ public sealed class JobSystem : ISimSystem
         }
 
         var buildable = Construction.BuildableToTakeDown(simulation, job.Cell);
-        if (!Advance(job, Math.Max(1, buildable.WorkTicks / 2)))
+        if (!Advance(job, Math.Max(1, buildable.WorkTicks / 2), speed))
         {
             return false;
         }
@@ -380,6 +384,10 @@ public sealed class JobSystem : ISimSystem
         job.Progress++;
         return job.Progress >= workTicks;
     }
+
+    /// <summary>The same, for work that lasts <c>ticks Ã— 100 / speed</c> ticks, at least one.</summary>
+    private static bool Advance(Job job, int workTicks, int speedPercent) =>
+        Advance(job, (int)Math.Max(1, (long)workTicks * 100 / speedPercent));
 
     /// <summary>Ticks to dig a material; a cell without one, if it ever happens, takes one tick.</summary>
     private static int WorkTicksOf(MaterialDef? material) => material?.MineWorkTicks ?? 1;

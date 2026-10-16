@@ -3,5 +3,10 @@
   "event.need.hunger.death": "{colonist} starved to death.",
   "event.colony.lost": "No one is left in the village. The game is over.",
   "event.colonist.idle": "{colonist} has nothing to do.",
-  "event.need.hunger.critical": "{colonist} is starving."
+  "event.need.hunger.critical": "{colonist} is starving.",
+  "event.life.stage.child": "{colonist} is no longer a baby: now walking and playing.",
+  "event.life.stage.adolescent": "{colonist} is a teenager now.",
+  "event.life.stage.adult": "{colonist} has come of age: now a grown {colonist_gender, select, female {woman} other {man}}.",
+  "event.life.stage.elder": "{colonist} has grown old: now an old {colonist_gender, select, female {woman} other {man}}.",
+  "event.life.old_age": "{colonist} died of old age at {years}."
 }

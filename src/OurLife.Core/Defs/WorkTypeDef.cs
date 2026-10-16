@@ -20,6 +20,9 @@ public sealed class WorkTypeDef : Def
     /// <summary>Ids of the jobs of this type, like <c>mine</c> or <c>chop</c>.</summary>
     public required IReadOnlyList<string> Jobs { get; init; }
 
+    /// <summary>Light work, which colonists at a stage of life with <see cref="StageWork.Light"/> also do.</summary>
+    public bool Light { get; init; }
+
     /// <summary>The jobs of this type, in the order listed.</summary>
     public IEnumerable<JobKind> JobKindsOf() => Jobs.Select(id => OrderJobs.First(kind => JobKinds.Id(kind) == id));
 

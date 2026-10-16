@@ -5,6 +5,8 @@
     "creature": "human",
     "colonists": 5,
     "startNeedsMin": 7000,
+    "founderMinYears": 18,
+    "founderMaxYears": 40,
     "items": [{ "item": "provisions", "count": 30 }]
   }
 ]

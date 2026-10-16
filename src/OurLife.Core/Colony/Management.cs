@@ -211,7 +211,7 @@ public static class ColonyAlerts
 public static class ColonyText
 {
     /// <summary>
-    /// The text with each colonist argument replaced by its name, plus its gender in
+    /// The text with each colonist argument replaced by its full name, plus its gender in
     /// <c>&lt;argument&gt;_gender</c> (<c>female</c> or <c>male</c>): language-independent, so it can be
     /// translated again after the colonist is gone. Other entities, or colonists no longer alive,
     /// stay as they are; nested texts are fixed too.
@@ -225,7 +225,7 @@ public static class ColonyText
         {
             if (value is EntityId entity && world.IsAlive(entity) && world.TryGet<Colonist>(entity, out var colonist))
             {
-                frozen = frozen.With(name, colonist.Name).With($"{name}_gender", GenderId(colonist.Gender));
+                frozen = frozen.With(name, FullName(colonist)).With($"{name}_gender", GenderId(colonist.Gender));
             }
             else if (value is LocalizedText nested)
             {
@@ -234,6 +234,13 @@ public static class ColonyText
         }
 
         return frozen;
+    }
+
+    /// <summary>Name and surname, like "Elvira Pérez", or the name alone for a colonist without a surname.</summary>
+    public static string FullName(Colonist colonist)
+    {
+        ArgumentNullException.ThrowIfNull(colonist);
+        return colonist.Surname.Length == 0 ? colonist.Name : $"{colonist.Name} {colonist.Surname}";
     }
 
     /// <summary>The gender of a colonist as texts select on it: <c>female</c> or <c>male</c>.</summary>

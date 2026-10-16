@@ -10,7 +10,8 @@ namespace OurLife.Core.Colony;
 /// <summary>
 /// Walks the colonists along their routes. A straight step costs the creature's
 /// <c>moveTicksPerTile</c> ticks and a diagonal one 1.4 times that, counted in tenths of a tick
-/// so the leftover carries to the next step. A step the map no longer allows drops the job.
+/// so the leftover carries to the next step, and divided by the speed of the stage of life. A step
+/// the map no longer allows drops the job.
 /// </summary>
 public sealed class MovementSystem : ISimSystem
 {
@@ -72,7 +73,7 @@ public sealed class MovementSystem : ISimSystem
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var creature = simulation.Content.Get<CreatureDef>(simulation.World.Get<Colonist>(walker).Creature);
-        return creature.MoveTicksPerTile * PathFinder.StepCost(from, to);
+        return creature.MoveTicksPerTile * PathFinder.StepCost(from, to) * 100 / LifeRules.MoveSpeedPercent(simulation, walker);
     }
 
     private static bool IsNeighbour(GameMap map, TileCoord from, TileCoord to, Span<TileCoord> neighbours)

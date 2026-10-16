@@ -9,7 +9,7 @@ using OurLife.Core.Tests.Map;
 namespace OurLife.Core.Tests.Colony;
 
 /// <summary>
-/// A small world for colony scenarios: test content with the numbers of the IP1 content, a map
+/// A small world for colony scenarios: test content with the numbers of the game content, a map
 /// built from text (every solid cell is <c>rock</c>), the colony systems, and helpers to place
 /// colonists, plants and items. Rock always leaves a stone when dug, so tests can count them.
 /// </summary>
@@ -45,18 +45,34 @@ internal sealed class ColonyTestBed
             "criticalThreshold": 1500, "deathAfterHoursAtZero": 72, "satisfiedBy": "eating", "alertWhenCritical": true },
           { "type": "Need", "id": "rest", "max": 10000, "decayPerHour": 500, "lowThreshold": 3000,
             "criticalThreshold": 1000, "satisfiedBy": "sleeping", "recoveryPerHour": 1200, "nightThreshold": 10000 },
-          { "type": "NameList", "id": "test_names", "male": ["Rodrigo", "Sancho", "Pedro"], "female": ["Elvira", "Urraca", "Jimena"] },
+          { "type": "NameList", "id": "test_names", "male": ["Rodrigo", "Sancho", "Pedro", "Godric", "Hugh"],
+            "female": ["Elvira", "Urraca", "Jimena", "Edith", "Agnes"], "surnames": ["Pérez", "Smith", "de Lara", "Miller", "Núñez"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
           { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs", "channel"] },
           { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"] },
-          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"] },
+          { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true },
           { "type": "WorkType", "id": "construction", "order": 3, "jobs": ["deliver", "build", "deconstruct"] },
-          { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"] },
+          { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"], "light": true },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
             "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2 },
+          { "type": "LifePace", "id": "normal", "lifeDaysPerDay": 1 },
+          { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
+          { "type": "LifePace", "id": "very_fast", "lifeDaysPerDay": 8 },
+          { "type": "LifeStage", "id": "baby", "fromYears": 0, "work": "none", "moveSpeedPercent": 25,
+            "needsPercent": { "hunger": 40, "rest": 150 } },
+          { "type": "LifeStage", "id": "child", "fromYears": 3, "work": "none", "moveSpeedPercent": 90,
+            "needsPercent": { "hunger": 70, "rest": 110 } },
+          { "type": "LifeStage", "id": "adolescent", "fromYears": 13, "work": "light", "workSpeedPercent": 80 },
+          { "type": "LifeStage", "id": "adult", "fromYears": 18, "work": "all" },
+          { "type": "LifeStage", "id": "elder", "fromYears": 60, "work": "all", "workSpeedPercent": 80, "moveSpeedPercent": 80,
+            "needsPercent": { "hunger": 90 } },
+          { "type": "LifeConfig", "id": "default", "oldAge": [
+            { "years": 60, "percentPerYear": 1 }, { "years": 70, "percentPerYear": 4 }, { "years": 80, "percentPerYear": 15 },
+            { "years": 90, "percentPerYear": 40 }, { "years": 100, "percentPerYear": 100 } ] },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 7000,
+            "founderMinYears": 18, "founderMaxYears": 40,
             "items": [{ "item": "provisions", "count": 30 }] }
         ]
         """;

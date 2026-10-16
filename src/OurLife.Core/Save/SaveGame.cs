@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
@@ -23,7 +24,13 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 1;
+    public const int FormatVersion = 2;
+
+    /// <summary>
+    /// The oldest format this game still reads. Format 1 (v0.2.x) is migrated on loading: its
+    /// colonists get what IP3 adds (see "Guardado y migraciÃ³n" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// </summary>
+    public const int OldestFormatVersion = 1;
 
     private const string HeaderEntry = "header.json";
     private const string StateEntry = "state.json";
@@ -108,12 +115,19 @@ public static class SaveGame
                 throw new SaveLoadException(SaveLoadError.Newer, $"format {header.FormatVersion}, this game reads {FormatVersion}");
             }
 
-            if (header.FormatVersion < FormatVersion)
+            if (header.FormatVersion < OldestFormatVersion)
             {
-                throw new SaveLoadException(SaveLoadError.Older, $"format {header.FormatVersion}, this game reads {FormatVersion}");
+                throw new SaveLoadException(
+                    SaveLoadError.Older, $"format {header.FormatVersion}, this game reads {OldestFormatVersion} to {FormatVersion}");
             }
 
-            return (Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content), header);
+            var simulation = Restore(ReadEntry<SavedState>(archive, StateEntry, JsonOptions), content);
+            if (header.FormatVersion == 1)
+            {
+                ColonyStart.Migrate(simulation);
+            }
+
+            return (simulation, header);
         });
         return simulation;
     }
@@ -138,6 +152,7 @@ public static class SaveGame
             Tick = simulation.CurrentTick,
             Seed = simulation.Seed,
             ColonyName = simulation.ColonyName,
+            LifePace = simulation.LifePace,
             Era = simulation.Progress.CurrentEra,
             Knowledge = [.. simulation.Progress.Knowledge.Order(StringComparer.Ordinal)],
             Random = [.. simulation.Random.Streams.Select(entry => new SavedStream(entry.Key, entry.Value.State, entry.Value.Increment))],
@@ -209,7 +224,7 @@ public static class SaveGame
     private static Simulation Restore(SavedState state, DefDatabase content)
     {
         // Valid JSON can still hold null where a list belongs.
-        if (state.ColonyName is null || state.Era is null || state.Knowledge is null || state.Random is null
+        if (state.ColonyName is null || state.LifePace is null || state.Era is null || state.Knowledge is null || state.Random is null
             || state.Generations is null || state.FreeSlots is null || state.Components is null || state.Commands is null
             || state.Components.Any(store => store?.Type is null || store.Entities is null || store.Entities.Any(saved => saved is null))
             || state.Commands.Any(saved => saved?.Type is null)
@@ -223,6 +238,12 @@ public static class SaveGame
         if (state.Tick < 0)
         {
             throw Corrupt($"negative tick {state.Tick}");
+        }
+
+        if (state.LifePace.Length > 0)
+        {
+            RequireDef<LifePaceDef>(content, state.LifePace);
+            simulation.LifePace = state.LifePace;
         }
 
         RequireDef<EraDef>(content, state.Era);
@@ -473,6 +494,9 @@ public static class SaveGame
         public ulong Seed { get; set; }
 
         public string ColonyName { get; set; } = string.Empty;
+
+        /// <summary>Empty in format 1, which had no pace of life.</summary>
+        public string LifePace { get; set; } = string.Empty;
 
         public string Era { get; set; } = string.Empty;
 

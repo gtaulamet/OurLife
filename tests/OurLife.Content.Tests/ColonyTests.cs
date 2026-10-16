@@ -19,6 +19,32 @@ public class ColonyTests
     }
 
     [Fact]
+    public void The_content_has_the_rules_of_life_with_rapido_by_default()
+    {
+        var life = LifeRules.From(GameContent.Defs);
+
+        life.DefaultPace.Id.ShouldBe("fast");
+        life.Stages.Select(stage => stage.Id).ShouldBe(new[] { "baby", "child", "adolescent", "adult", "elder" });
+        var scenario = ColonyStart.TheOnlyScenario(GameContent.Defs);
+        life.StageAt(scenario.FounderMinYears * GameContent.Defs.Time.DaysPerYear, GameContent.Defs.Time.DaysPerYear).Id.ShouldBe("adult");
+        GameContent.Defs.Get<NameListDef>("medieval_names").Surnames.Count.ShouldBeGreaterThanOrEqualTo(scenario.Colonists);
+    }
+
+    [Fact]
+    public void Every_message_of_life_is_in_every_language()
+    {
+        var stages = LifeRules.From(GameContent.Defs).Stages.Where(stage => stage.FromYears > 0).Select(LifeSystem.GrownKey);
+        foreach (var key in stages.Append(LifeSystem.OldAgeDeathKey))
+        {
+            foreach (var catalog in GameContent.Catalogs.Values)
+            {
+                catalog.Messages.ContainsKey(key).ShouldBeTrue($"{catalog.Locale}: missing {key}");
+                catalog.Messages[key].ArgumentNames.ShouldContain("colonist");
+            }
+        }
+    }
+
+    [Fact]
     public void Every_job_has_its_report_in_every_language()
     {
         foreach (var kind in Enum.GetValues<JobKind>())

@@ -1,0 +1,43 @@
+[
+  { "type": "LifePace", "id": "normal", "lifeDaysPerDay": 1 },
+  { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
+  { "type": "LifePace", "id": "very_fast", "lifeDaysPerDay": 8 },
+  {
+    "type": "LifeStage",
+    "id": "baby",
+    "fromYears": 0,
+    "work": "none",
+    "moveSpeedPercent": 25,
+    "needsPercent": { "hunger": 40, "rest": 150 }
+  },
+  {
+    "type": "LifeStage",
+    "id": "child",
+    "fromYears": 3,
+    "work": "none",
+    "moveSpeedPercent": 90,
+    "needsPercent": { "hunger": 70, "rest": 110 }
+  },
+  { "type": "LifeStage", "id": "adolescent", "fromYears": 13, "work": "light", "workSpeedPercent": 80 },
+  { "type": "LifeStage", "id": "adult", "fromYears": 18, "work": "all" },
+  {
+    "type": "LifeStage",
+    "id": "elder",
+    "fromYears": 60,
+    "work": "all",
+    "workSpeedPercent": 80,
+    "moveSpeedPercent": 80,
+    "needsPercent": { "hunger": 90 }
+  },
+  {
+    "type": "LifeConfig",
+    "id": "default",
+    "oldAge": [
+      { "years": 60, "percentPerYear": 1 },
+      { "years": 70, "percentPerYear": 4 },
+      { "years": 80, "percentPerYear": 15 },
+      { "years": 90, "percentPerYear": 40 },
+      { "years": 100, "percentPerYear": 100 }
+    ]
+  }
+]

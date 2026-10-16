@@ -19,6 +19,7 @@ public class ColonyRulesTests
         bed.World.Get<Position>(colonists[0]).Cell.ShouldBe(new TileCoord(7, 7, 1));
         colonists.Select(colonist => bed.World.Get<Position>(colonist).Cell).Distinct().Count().ShouldBe(5);
         colonists.Select(colonist => bed.World.Get<Colonist>(colonist).Name).Distinct().Count().ShouldBe(5);
+        colonists.Select(colonist => bed.World.Get<Colonist>(colonist).Surname).Distinct().Count().ShouldBe(5);
         foreach (var colonist in colonists)
         {
             bed.World.Get<Needs>(colonist).Values.Select(need => need.Value).ShouldAllBe(value => value >= 7000 && value <= 10_000);

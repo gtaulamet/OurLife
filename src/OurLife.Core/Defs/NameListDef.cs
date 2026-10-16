@@ -10,6 +10,9 @@ public sealed class NameListDef : Def
 
     public required IReadOnlyList<string> Female { get; init; }
 
+    /// <summary>Family names for the colonists who arrive; children take their father's. Not translated either.</summary>
+    public IReadOnlyList<string> Surnames { get; init; } = [];
+
     internal override IEnumerable<string> Validate()
     {
         if (Male.Count == 0 || Female.Count == 0)
@@ -17,7 +20,7 @@ public sealed class NameListDef : Def
             yield return "male and female lists cannot be empty.";
         }
 
-        if (Male.Concat(Female).Any(string.IsNullOrWhiteSpace))
+        if (Male.Concat(Female).Concat(Surnames).Any(string.IsNullOrWhiteSpace))
         {
             yield return "names cannot be blank.";
         }

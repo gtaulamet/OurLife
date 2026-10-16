@@ -36,6 +36,12 @@ public sealed class Simulation
     /// </summary>
     public string ColonyName { get; internal set; } = string.Empty;
 
+    /// <summary>
+    /// Id of the <see cref="LifePaceDef"/> the player chose, set when the colony arrives and never
+    /// changed afterwards. Empty until then; the systems read it as the default pace.
+    /// </summary>
+    public string LifePace { get; internal set; } = string.Empty;
+
     /// <summary>Validated game content: materials, plants, items, eras, time settings…</summary>
     public DefDatabase Content { get; }
 

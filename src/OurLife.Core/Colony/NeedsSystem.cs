@@ -7,7 +7,8 @@ using OurLife.Core.Text;
 namespace OurLife.Core.Colony;
 
 /// <summary>
-/// Needs go down every tick; a need satisfied by sleeping goes up instead while its owner sleeps.
+/// Needs go down every tick, at the percent of the stage of life (see
+/// <c>docs/gdd/vida-y-generaciones.md</c>); a need satisfied by sleeping goes up instead while its owner sleeps.
 /// A need that kills ends the colonist's life after its hours at zero; when the last colonist
 /// dies the colony is lost. Integer arithmetic: the fraction of each tick is carried over.
 /// </summary>
@@ -32,12 +33,15 @@ public sealed class NeedsSystem : ISimSystem
         {
             var asleep = world.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Sleep && job.Stage == JobStage.Working;
             var bedPercent = asleep ? BedRecoveryPercent(simulation, colonist, job!) : 100;
+            var stage = LifeRules.Stage(simulation, colonist);
             NeedDef? killer = null;
             foreach (var state in world.Get<Needs>(colonist).Values)
             {
                 var need = simulation.Content.Get<NeedDef>(state.Need);
                 // In hundredths, so a bed's percent keeps its fraction in the remainder.
-                var perHour = asleep && need.SatisfiedBy == NeedSatisfaction.Sleeping ? need.RecoveryPerHour * bedPercent : -need.DecayPerHour * 100;
+                var perHour = asleep && need.SatisfiedBy == NeedSatisfaction.Sleeping
+                    ? need.RecoveryPerHour * bedPercent
+                    : -need.DecayPerHour * (stage?.NeedPercent(need.Id) ?? 100);
                 state.Remainder += perHour * minutes;
                 var whole = state.Remainder / RemainderPerPoint;
                 state.Remainder -= whole * RemainderPerPoint;
@@ -51,15 +55,14 @@ public sealed class NeedsSystem : ISimSystem
 
             if (killer is not null)
             {
-                Die(simulation, colonist, killer);
+                ColonistDeath.Die(simulation, colonist, LocalizedText.Of(DeathKey(killer)).With("colonist", colonist));
                 deaths++;
             }
         }
 
-        if (deaths > 0 && world.Store<Colonist>().Count == 0)
+        if (deaths > 0)
         {
-            simulation.Events.Emit(new NotificationEvent(simulation.CurrentTick, LocalizedText.Of("event.colony.lost"), NotificationSeverity.Danger));
-            simulation.Events.Emit(new ColonyLostEvent(simulation.CurrentTick));
+            ColonistDeath.CheckColonyLost(simulation);
         }
     }
 
@@ -84,21 +87,5 @@ public sealed class NeedsSystem : ISimSystem
         }
 
         return simulation.Content.Get<BuildableDef>(furniture.Buildable).RestRecoveryPercent ?? 100;
-    }
-
-    private static void Die(Simulation simulation, EntityId colonist, NeedDef need)
-    {
-        // The entity is gone once the message is read, so it carries the name and gender itself.
-        simulation.Events.Emit(new NotificationEvent(
-            simulation.CurrentTick,
-            ColonyText.Freeze(LocalizedText.Of(DeathKey(need)).With("colonist", colonist), simulation.World),
-            NotificationSeverity.Danger));
-        if (simulation.World.TryGet<Carried>(colonist, out var carried))
-        {
-            ItemPiles.Drop(simulation, carried.Def, carried.Count, simulation.World.Get<Position>(colonist).Cell);
-        }
-
-        simulation.Events.Emit(new EntityRemovedEvent(colonist));
-        simulation.World.DestroyEntity(colonist);
     }
 }

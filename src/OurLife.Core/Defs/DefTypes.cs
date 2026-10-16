@@ -20,6 +20,9 @@ internal static class DefTypes
         ("WorkType", typeof(WorkTypeDef), "work_type"),
         ("Scenario", typeof(ScenarioDef), null),
         ("AiConfig", typeof(AiConfigDef), null),
+        ("LifePace", typeof(LifePaceDef), "life_pace"),
+        ("LifeStage", typeof(LifeStageDef), "life_stage"),
+        ("LifeConfig", typeof(LifeConfigDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

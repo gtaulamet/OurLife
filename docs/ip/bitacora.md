@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-2-edad`, desde el cierre de H3.1 |
+| Rama de trabajo | `ip3/h3-2-edad`: Core de H3.2 hecho y probado; falta la presentación |
 | `main` | En el cierre de H3.1 (spec de IP3 aprobada), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 515 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 546 tests en verde; el smoke se corre con la presentación de H3.2 |
 | Huella del smoke | `889B6049962A78AD` con `--seed 1 --ticks 5000`; `974758E0263469A3` con `--seed 42 --ticks 5000`. IP3 las va a cambiar: edad, personalidad e interacciones entran en el estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -20,9 +20,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H3.2, edad y etapas de la vida**, en `ip3/h3-2-edad`, según `docs/gdd/vida-y-generaciones.md`.
-2. **Los `.import` de dos texturas** (`barrel_small_dungeon_texture.png` y la `colormap.png` de Mini Characters) quedaron modificados sin versionar: el editor los pasó a compresión VRAM con mipmaps. No se incluyeron en el commit de H3.1; falta decidir si se versionan o se descartan.
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **H3.2, presentación:** el ritmo de la vida en Nueva partida (`ColonyStart.Settle` ya lo recibe), la edad y la etapa en el inspector, las huellas nuevas del smoke, capturas en es y en, docs (`guardado.md`, `overview.md`) y `/code-review`.
+2. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -40,6 +39,17 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: H3.2, Core de la edad y las etapas de la vida
+
+- El usuario descartó los `.import` que había cambiado el editor.
+- Defs nuevos en `life.json`: `LifePace` (normal 1, rápido 4 por defecto, muy rápido 8), `LifeStage` (bebé, niño, adolescente, adulto, anciano, con trabajo, velocidades y porcentaje de cada necesidad) y `LifeConfig` con la tabla de vejez. `Scenario` suma `founderMinYears` y `founderMaxYears` (18 a 40), `NameList` los apellidos y `WorkType` el campo `light` (recolectar y acarrear).
+- Componente `Life` (días de vida y etapa), `Colonist.Surname` y `Simulation.LifePace`, en la huella y en el guardado. `LifeSystem` corre a medianoche: suma los días del ritmo, cambia de etapa con aviso y `EntityChangedEvent`, y sortea la muerte por vejez (flujo `life.aging`). Con 100 % por año la muerte es segura. `ColonistDeath` junta la muerte por hambre y por vejez.
+- La etapa decide qué trabajos toma el colono, cuánto tarda (`ticks × 100 / velocidad`), a qué velocidad camina y a qué ritmo bajan sus necesidades. Un colono sin `Life` vive como adulto.
+- Formato de guardado 2. Una partida de formato 1 se migra al cargarla (flujo `life.migration`). `tests/OurLife.Content.Tests/Fixtures/v0.2.5.olsave` es una partida real escrita con el código de `v0.2.5` (semilla 7, 20 000 ticks), y carga.
+- Los textos de los colonos usan nombre y apellido (`ColonyText.FullName`). Textos nuevos en es y en: ritmos, etapas, `event.life.stage.<etapa>`, `event.life.old_age`, `ui.newgame.life_pace` y `ui.inspector.life`.
+- Hasta H3.7 los bebés comen solos: no nace nadie todavía, y sólo los tests crean bebés.
+- 546 tests en verde.
 
 ### 2026-10-16: cierre de H3.1
 

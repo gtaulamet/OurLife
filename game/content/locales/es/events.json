@@ -3,5 +3,10 @@
   "event.need.hunger.death": "{colonist} murió de hambre.",
   "event.colony.lost": "Ya no queda nadie en la aldea. La partida terminó.",
   "event.colonist.idle": "{colonist} no tiene nada que hacer.",
-  "event.need.hunger.critical": "{colonist} tiene mucha hambre."
+  "event.need.hunger.critical": "{colonist} tiene mucha hambre.",
+  "event.life.stage.child": "{colonist} dejó de ser bebé: ya camina y juega.",
+  "event.life.stage.adolescent": "{colonist} ya es adolescente.",
+  "event.life.stage.adult": "{colonist} ya es {colonist_gender, select, female {una mujer adulta} other {un hombre adulto}}.",
+  "event.life.stage.elder": "{colonist} ya es {colonist_gender, select, female {anciana} other {anciano}}.",
+  "event.life.old_age": "{colonist} murió de vejez a los {years} años."
 }
