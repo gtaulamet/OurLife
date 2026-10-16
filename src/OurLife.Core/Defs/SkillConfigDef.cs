@@ -8,6 +8,9 @@ public sealed class SkillConfigDef : Def
 {
     public required int MaxLevel { get; init; }
 
+    /// <summary>The level of an average colonist: one without skills works at its speed.</summary>
+    public required int AverageLevel { get; init; }
+
     /// <summary>Experience to go from level 0 to 1; each level after that needs <see cref="ExperiencePerLevel"/> more.</summary>
     public required int ExperienceBase { get; init; }
 
@@ -37,6 +40,11 @@ public sealed class SkillConfigDef : Def
         if (MaxLevel <= 0 || ExperienceBase <= 0 || ExperiencePerLevel < 0)
         {
             yield return "maxLevel and experienceBase must be positive, and experiencePerLevel zero or more.";
+        }
+
+        if (AverageLevel < 0 || AverageLevel > MaxLevel)
+        {
+            yield return "averageLevel must be between 0 and maxLevel.";
         }
 
         if (SpeedBase <= 0 || SpeedPerLevel < 0)

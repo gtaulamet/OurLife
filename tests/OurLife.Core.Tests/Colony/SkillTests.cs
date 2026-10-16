@@ -149,6 +149,63 @@ public class SkillTests
             skill => skill.Level.ShouldBe(20), skill => skill.Experience.ShouldBe(0));
     }
 
+    [Fact]
+    public void The_speed_of_a_skill_stops_at_the_last_level_and_starts_at_0_for_one_still_missing()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var colonist = bed.AddColonist(2, 2, 1);
+        var average = bed.AddColonist(3, 2, 1);
+        bed.World.Add(colonist, new Skills { Values = [new SkillValue { WorkType = "mining", Level = 500 }] });
+        var rules = Rules;
+
+        rules.SpeedPercent(bed.Simulation, colonist, Type("mining")).ShouldBe(120);
+        rules.SpeedPercent(bed.Simulation, colonist, Type("woodcutting")).ShouldBe(80);
+        rules.SpeedPercent(bed.Simulation, average, Type("woodcutting")).ShouldBe(100);
+    }
+
+    [Fact]
+    public void A_skill_the_colonist_lacks_is_learned_from_level_0_and_a_new_level_is_told()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var colonist = bed.AddColonist(2, 2, 1);
+        bed.World.Add(colonist, new Skills { Values = [new SkillValue { WorkType = "construction", Level = 4 }, new SkillValue { WorkType = "mining", Level = 4 }] });
+        bed.DrainEvents();
+
+        Rules.Gain(bed.Simulation, colonist, Type("hauling"), 700).ShouldBe(1);
+
+        bed.World.Get<Skills>(colonist).Values.Select(skill => skill.WorkType).ShouldBe(new[] { "construction", "hauling", "mining" });
+        SkillRules.Level(bed.Simulation, colonist, "hauling").ShouldBe(1);
+        bed.DrainEvents().ShouldContain(new EntityChangedEvent(colonist));
+    }
+
+    [Fact]
+    public void A_skilled_hauler_carries_faster()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var rules = ColonyRules.From(bed.Simulation.Content);
+        var progress = new List<int>();
+        foreach (var level in new[] { 0, 10, 20 })
+        {
+            var colonist = bed.AddColonist(2, 2, 1);
+            bed.World.Add(colonist, new Skills { Values = [new SkillValue { WorkType = "hauling", Level = level }] });
+            bed.World.Add(colonist, new Job { Kind = JobKind.Haul, Stage = JobStage.Carrying });
+            progress.Add(MovementSystem.ProgressOf(bed.Simulation, colonist, rules));
+        }
+
+        progress.ShouldBe(new[] { 800, 1_000, 1_200 });
+    }
+
+    [Fact]
+    public void Founders_cannot_start_past_the_last_level()
+    {
+        var json = ColonyTestBed.ContentJson.Replace("\"founderSkillMax\": 10,", "\"founderSkillMax\": 18,", StringComparison.Ordinal);
+        json.ShouldNotBe(ColonyTestBed.ContentJson);
+        var content = TestContent.WithDefs(json);
+
+        Should.Throw<InvalidOperationException>(() => SkillRules.From(content).Founder(ColonyStart.TheOnlyScenario(content), new Core.Sim.Pcg32(1, 1)))
+            .Message.ShouldContain("past the last level");
+    }
+
     private static long TicksUntil(ColonyTestBed bed, Func<bool> done)
     {
         var start = bed.Simulation.CurrentTick;

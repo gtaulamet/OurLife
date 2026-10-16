@@ -123,6 +123,6 @@ El texto final de cada clave lo revisa el i18n-specialist; la tabla fija las cla
 | 4 | Desde H3.4 de IP3 | Habilidades de cada colono (`skills`). Una partida de la versión 3 las recibe sorteadas como las de los fundadores |
 
 - `SaveGame.OldestFormatVersion` es la versión más vieja que el juego todavía carga; una más vieja se rechaza como "de una versión vieja".
-- `tests/OurLife.Content.Tests/Fixtures/v0.2.5.olsave` (versión 1, escrita con el código de `v0.2.5`) `h3.2.olsave` (versión 2, escrita con el de H3.2) y `h3.3.olsave` (versión 3, con el de H3.3) son partidas reales. Los tests que las cargan cuidan las migraciones.
+- `tests/OurLife.Content.Tests/Fixtures/v0.2.5.olsave` (versión 1, escrita con el código de `v0.2.5`), `h3.2.olsave` (versión 2, escrita con el de H3.2) y `h3.3.olsave` (versión 3, con el de H3.3) son partidas reales. Los tests que las cargan cuidan las migraciones.
 - Guardado en la nube y capturas de pantalla en las ranuras.
 - Guardar con un nombre escrito por el jugador: las ranuras se nombran con la aldea.

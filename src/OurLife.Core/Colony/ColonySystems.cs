@@ -18,7 +18,7 @@ public static class ColonySystems
         var storage = new StorageIndex();
         simulation.AddSystem(new DecisionSystem(rules, storage));
         simulation.AddSystem(new JobSystem(rules, storage));
-        simulation.AddSystem(new MovementSystem());
+        simulation.AddSystem(new MovementSystem(rules));
         simulation.AddSystem(new PlantGrowthSystem());
         simulation.AddSystem(new AlertSystem(rules));
     }

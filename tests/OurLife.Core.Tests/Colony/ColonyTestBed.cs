@@ -54,7 +54,7 @@ internal sealed class ColonyTestBed
           { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true, "skill": true },
           { "type": "WorkType", "id": "construction", "order": 3, "jobs": ["deliver", "build", "deconstruct"], "skill": true },
           { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"], "light": true, "skill": true },
-          { "type": "SkillConfig", "id": "default", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80,
+          { "type": "SkillConfig", "id": "default", "maxLevel": 20, "averageLevel": 10, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80,
             "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,

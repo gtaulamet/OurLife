@@ -9,7 +9,7 @@
 
 **Estimación:** 95 a 135 h. **Versión al cerrar:** `v0.3.0`, para Windows y macOS.
 
-**Estado:** en curso desde el 15 de octubre de 2026. H3.1, H3.2 y H3.3 cerrados el 16 de octubre; sigue H3.4, y H3.8 en paralelo.
+**Estado:** en curso desde el 15 de octubre de 2026. H3.1 a H3.4 cerrados el 16 de octubre; sigue H3.5, y H3.8 en paralelo.
 
 ## Estado de los hitos
 
@@ -18,7 +18,7 @@
 | H3.1 Spec y contrato | Hecho | `ip3/h3-1-spec` | `docs/gdd/vida-y-generaciones.md` aprobada el 16 de octubre de 2026, con el rasgo inteligencia que sumó el usuario |
 | H3.2 Edad y etapas de la vida | Hecho | `ip3/h3-2-edad` | Edad, etapas, ritmo en Nueva partida, muerte por vejez, apellidos y migración de v0.2.x (ADR-013); revisión de código con 8 de 9 hallazgos corregidos |
 | H3.3 Personalidad | Hecho | `ip3/h3-3-personalidad` | Rasgos, sorteo, herencia, deriva con tope diario, velocidad por diligencia y perezosos que comen antes de trabajar; formato de guardado 3 |
-| H3.4 Habilidades | En curso | `ip3/h3-4-habilidades` | Una habilidad por tipo de trabajo, experiencia por la inteligencia, velocidad por nivel, fundadores con un fuerte, enseñanza lista para H3.5 y formato 4; falta la revisión de código |
+| H3.4 Habilidades | Hecho | `ip3/h3-4-habilidades` | Una habilidad por tipo de trabajo, experiencia por la inteligencia, velocidad por nivel (también al acarrear), fundadores con un fuerte, enseñanza lista para H3.5 y formato 4 |
 | H3.5 Interacciones y relaciones | Pendiente | `ip3/h3-5-interacciones` | |
 | H3.6 Pensamientos, ánimo y deseos | Pendiente | `ip3/h3-6-animo` | |
 | H3.7 Parejas, nacimientos y crianza | Pendiente | `ip3/h3-7-nacimientos` | |

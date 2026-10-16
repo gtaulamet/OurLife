@@ -11,11 +11,19 @@ namespace OurLife.Core.Colony;
 /// Walks the colonists along their routes. A straight step costs the creature's
 /// <c>moveTicksPerTile</c> ticks and a diagonal one 1.4 times that, counted in thousandths of a
 /// tick so the leftover carries to the next step. A colonist makes progress at the speed of its
-/// stage of life (see <c>docs/gdd/vida-y-generaciones.md</c>). A step the map no longer allows
-/// drops the job.
+/// stage of life (see <c>docs/gdd/vida-y-generaciones.md</c>), and while it carries a load for the
+/// player, also at the speed of its skill in that work. A step the map no longer allows drops the job.
 /// </summary>
 public sealed class MovementSystem : ISimSystem
 {
+    private readonly ColonyRules? _rules;
+
+    /// <param name="rules">The rules with the skills; without them, carrying goes at the speed of walking.</param>
+    public MovementSystem(ColonyRules? rules = null)
+    {
+        _rules = rules;
+    }
+
     /// <summary>Progress a creature makes in one tick at full speed: the units of <see cref="PathFinder.StepCost"/> times 100 %.</summary>
     public const int ProgressPerTick = PathFinder.StraightCost * FullSpeed;
 
@@ -39,7 +47,7 @@ public sealed class MovementSystem : ISimSystem
 
             var position = world.Get<Position>(walker);
             var ticksPerTile = TicksPerTile(simulation, walker);
-            movement.Progress += ProgressOf(simulation, walker);
+            movement.Progress += ProgressOf(simulation, walker, _rules);
             while (movement.IsMoving)
             {
                 var next = movement.Path[movement.Next];
@@ -79,11 +87,22 @@ public sealed class MovementSystem : ISimSystem
         return TicksPerTile(simulation, walker) * PathFinder.StepCost(from, to) * FullSpeed;
     }
 
-    /// <summary>The progress a colonist makes in one tick: <see cref="ProgressPerTick"/> at the speed of its stage of life.</summary>
-    public static int ProgressOf(Simulation simulation, EntityId walker)
+    /// <summary>
+    /// The progress a colonist makes in one tick: <see cref="ProgressPerTick"/> at the speed of its
+    /// stage of life and, with <paramref name="rules"/>, while it carries a load for the player, of
+    /// its skill in that work.
+    /// </summary>
+    public static int ProgressOf(Simulation simulation, EntityId walker, ColonyRules? rules = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        return PathFinder.StraightCost * LifeRules.MoveSpeedPercent(simulation, walker);
+        var progress = PathFinder.StraightCost * LifeRules.MoveSpeedPercent(simulation, walker);
+        if (rules is not null && simulation.World.TryGet<Job>(walker, out var job) && job.Stage == JobStage.Carrying
+            && rules.WorkTypeOf(job) is { Skill: true } workType)
+        {
+            progress = Math.Max(1, progress * rules.Skills.SpeedPercent(simulation, walker, workType) / 100);
+        }
+
+        return progress;
     }
 
     private static int TicksPerTile(Simulation simulation, EntityId walker) =>

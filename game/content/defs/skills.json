@@ -3,6 +3,7 @@
     "type": "SkillConfig",
     "id": "default",
     "maxLevel": 20,
+    "averageLevel": 10,
     "experienceBase": 600,
     "experiencePerLevel": 150,
     "speedBase": 80,

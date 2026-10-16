@@ -22,7 +22,7 @@ public class DefLoaderTests
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
           { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true, "skill": true },
-          { "type": "SkillConfig", "id": "default", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80,
+          { "type": "SkillConfig", "id": "default", "maxLevel": 20, "averageLevel": 10, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80,
             "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 },
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 3, "startNeedsMin": 7000,
             "founderMinYears": 18, "founderMaxYears": 40, "founderSkillMin": 3, "founderSkillMax": 10, "founderSkillBonus": 4, "items": [{ "item": "berries", "count": 10 }] },
@@ -161,8 +161,8 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Trait", "id": "grit", "needsBeforeWorkBelow": 120 }]""", "needsBeforeWorkBelow must be between")]
     [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 0, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 1, "same": 0, "both": 0 } }]""", "rolls must be positive")]
     [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 0, "same": 0, "both": 0 } }]""", "not all zero")]
-    [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 0, "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 }]""", "speedBase must be positive")]
-    [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80, "speedPerLevel": 2, "teachingMinLevels": 0, "teachingBase": 100, "teachingPerLevel": 30 }]""", "teachingMinLevels must be at least 1")]
+    [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "averageLevel": 10, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 0, "speedPerLevel": 2, "teachingMinLevels": 3, "teachingBase": 100, "teachingPerLevel": 30 }]""", "speedBase must be positive")]
+    [InlineData("""[{ "type": "SkillConfig", "id": "s", "maxLevel": 20, "averageLevel": 10, "experienceBase": 600, "experiencePerLevel": 150, "speedBase": 80, "speedPerLevel": 2, "teachingMinLevels": 0, "teachingBase": 100, "teachingPerLevel": 30 }]""", "teachingMinLevels must be at least 1")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));

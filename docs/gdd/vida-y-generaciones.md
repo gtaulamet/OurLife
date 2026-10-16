@@ -83,7 +83,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 - Subir de nivel deja el pensamiento "Aprendí algo" y se ve en la ficha; no se avisa en el registro.
 - Las habilidades no se pierden con el tiempo en IP3 (ver fuera de alcance).
 - **Qué cuenta como trabajo** (H3.4): cada tick que hace avanzar un trabajo para el jugador, y cada tick que un acarreador o un proveedor de obra lleva algo en las manos. Esperar a que se libere una celda no enseña. Recolectar para comer no es trabajo.
-- Un colono sin habilidades trabaja como uno de nivel 10 y no aprende. La enseñanza (`SkillRules.Teach`) está desde H3.4; la interacción enseñar que la usa llega en H3.5.
+- En el acarreo, y al llevar materiales a una obra, la habilidad apura el paso mientras se lleva la carga.
+- Un colono sin habilidades trabaja como uno de nivel promedio (`averageLevel`, 10) y no aprende. Si le falta la habilidad de un tipo de trabajo, por ejemplo uno que el contenido sumó después, trabaja como de nivel 0 y la aprende desde ahí. Subir de nivel emite `EntityChangedEvent`. La enseñanza (`SkillRules.Teach`) está desde H3.4; la interacción enseñar que la usa llega en H3.5.
 - Los números están en el def nuevo `SkillConfig` (`skills.json`): nivel máximo, experiencia por nivel, velocidad por nivel y enseñanza. La experiencia se guarda en centésimas de punto, para que la inteligencia no pierda la fracción.
 
 ## Interacciones
@@ -259,7 +260,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5) y `visual` (H3.8) | `life.json` |
 | `LifeConfig` | Tabla de vejez `oldAge` (H3.2); fertilidad, `conceptionChancePerYear`, `pregnancyLifeDays` y opiniones de los fundadores en los hitos que los usan | `life.json` |
 | `Trait` | `workSpeed` (`low` y `high`) y `needsBeforeWorkBelow` (H3.3); `experience` (H3.4); los coeficientes de interacciones y crisis en sus hitos; tramos de palabras para la ficha (H3.9) | `personality.json` |
-| `SkillConfig` | `maxLevel` (20), `experienceBase` (600), `experiencePerLevel` (150), `speedBase` (80), `speedPerLevel` (2), `teachingMinLevels` (3), `teachingBase` (100) y `teachingPerLevel` (30) (H3.4) | `skills.json` |
+| `SkillConfig` | `maxLevel` (20), `averageLevel` (10), `experienceBase` (600), `experiencePerLevel` (150), `speedBase` (80), `speedPerLevel` (2), `teachingMinLevels` (3), `teachingBase` (100) y `teachingPerLevel` (30) (H3.4) | `skills.json` |
 | `PersonalityConfig` | `rolls` (3), `inheritedPercent` (50), `maxDriftPerDay` (3) y los pesos de orientación `orientations` (H3.3) | `personality.json` |
 | `Interaction` | Quién, peso y coeficientes, condición, resultados, deriva | `social.json` |
 | `SocialConfig` | `interactionCheckTicks`, `interactionRadius`, `pairCooldownHours`, umbrales de amistad, rivalidad y pareja, olvido | `social.json` |
@@ -269,7 +270,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | `Desire` | Disparador, cumplimiento, probabilidad, `expireDays` | `mood.json` |
 | `WorkType` | `skill`, `light`; tipo nuevo `childcare` con `feed_baby` | `work_types.json` |
 | `NameList` | `surnames` | `names.json` |
-| `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2); `founderSkillMin` (3), `founderSkillMax` (10) y `founderSkillBonus` (4) (H3.4); `foundingCouple` | `scenario.json` |
+| `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2); `founderSkillMin` (3), `founderSkillMax` (10) y `founderSkillBonus` (4) (H3.4), con el máximo más el bonus hasta `maxLevel`; `foundingCouple` | `scenario.json` |
 | `Buildable` | `cradle`, con `forStages` | `buildables.json` |
 
 - Cada def con textos lleva `name`, `desc` y `gender` en es y en. Los defs entran en el hito que los usa, no en H3.1.

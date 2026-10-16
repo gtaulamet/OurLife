@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-4-habilidades`: H3.4 hecho, falta la revisión de código |
-| `main` | En el cierre de H3.3, también en `origin` |
-| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1, H3.2 y H3.3 |
+| Rama de trabajo | `ip3/h3-4-habilidades`: H3.4 cerrado. H3.5 va en `ip3/h3-5-interacciones` |
+| `main` | En el cierre de H3.4, también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.4 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 593 tests en verde, smoke con código 0 |
-| Huella del smoke | `054F77100603CE30` con `--seed 1 --ticks 5000`; `890D9729617952AA` con `--seed 42 --ticks 5000` (desde H3.4). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 597 tests en verde, smoke con código 0 |
+| Huella del smoke | `86682D524C6B7F9D` con `--seed 1 --ticks 5000`; `A22F92980217E726` con `--seed 42 --ticks 5000` (desde el cierre de H3.4). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **H3.4:** revisión de código y cierre. Después, H3.5 (interacciones y relaciones) en `ip3/h3-5-interacciones`; H3.8 (arte de las etapas) puede ir en paralelo.
+1. **H3.5, interacciones y relaciones**, en `ip3/h3-5-interacciones`: usa `SkillRules.Teach` y `PersonalityRules.Drift`. H3.8 (arte de las etapas) puede ir en paralelo.
 2. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -39,6 +39,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-16: cierre de H3.4
+
+- Revisión de código: 10 hallazgos, 9 corregidos. La velocidad de una habilidad se acota al último nivel. La habilidad de acarreo ahora sirve: apura el paso mientras se lleva la carga, y también la de construcción al llevar materiales. Una habilidad que falta se aprende desde nivel 0 (para tipos de trabajo nuevos, como la crianza de H3.7). Un colono sin habilidades usa `SkillConfig.averageLevel`. Se valida que los fundadores no pasen del último nivel. Subir de nivel emite `EntityChangedEvent`. El smoke compara la cantidad exacta de habilidades. `PersonalityRules.ProductOf` junta los porcentajes de los rasgos. Se corrigió la documentación del guardado y del ADR-013.
+- Queda sin cambiar: la búsqueda lineal por id repetida en `Personality` y `Skills`.
+- Huellas nuevas por el acarreo: `86682D524C6B7F9D` (semilla 1) y `A22F92980217E726` (semilla 42). 597 tests. `main` adelantado.
 
 ### 2026-10-16: H3.4, habilidades
 

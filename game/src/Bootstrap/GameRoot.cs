@@ -598,7 +598,8 @@ public partial class GameRoot : Node
             var traits = simulation.Content.All<TraitDef>().Count;
             if (simulation.LifePace.Length == 0 || ages.Any(years => years < 0)
                 || colonists.Any(colonist => !simulation.World.TryGet<Personality>(colonist, out var personality) || personality.Traits.Count != traits)
-                || colonists.Any(colonist => !simulation.World.TryGet<Skills>(colonist, out var skills) || skills.Values.Count == 0))
+                || colonists.Any(colonist => !simulation.World.TryGet<Skills>(colonist, out var skills)
+                    || skills.Values.Count != simulation.Content.All<WorkTypeDef>().Count(type => type.Skill)))
             {
                 throw new InvalidOperationException("the colonists arrived without a pace of life, an age, a personality or skills");
             }

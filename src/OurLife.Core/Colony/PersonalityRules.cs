@@ -122,36 +122,12 @@ public sealed class PersonalityRules
     }
 
     /// <summary>How fast a colonist works by its traits, in percent and at least 1: the product of every trait with a <see cref="TraitDef.WorkSpeed"/>.</summary>
-    public static int WorkSpeedPercent(Simulation simulation, EntityId colonist)
-    {
-        ArgumentNullException.ThrowIfNull(simulation);
-        var percent = 100;
-        foreach (var trait in simulation.Content.All<TraitDef>())
-        {
-            if (trait.WorkSpeed is { } speed)
-            {
-                percent = Math.Max(1, percent * speed.At(Value(simulation, colonist, trait.Id)) / 100);
-            }
-        }
-
-        return percent;
-    }
+    public static int WorkSpeedPercent(Simulation simulation, EntityId colonist) =>
+        Math.Max(1, ProductOf(simulation, colonist, trait => trait.WorkSpeed));
 
     /// <summary>The experience a colonist gains by its traits, in percent: the product of every trait with a <see cref="TraitDef.Experience"/>.</summary>
-    public static int ExperiencePercent(Simulation simulation, EntityId colonist)
-    {
-        ArgumentNullException.ThrowIfNull(simulation);
-        var percent = 100;
-        foreach (var trait in simulation.Content.All<TraitDef>())
-        {
-            if (trait.Experience is { } experience)
-            {
-                percent = percent * experience.At(Value(simulation, colonist, trait.Id)) / 100;
-            }
-        }
-
-        return percent;
-    }
+    public static int ExperiencePercent(Simulation simulation, EntityId colonist) =>
+        ProductOf(simulation, colonist, trait => trait.Experience);
 
     /// <summary>Whether a trait makes the colonist look after its low needs before working.</summary>
     public static bool NeedsBeforeWork(Simulation simulation, EntityId colonist)
@@ -166,6 +142,22 @@ public sealed class PersonalityRules
         }
 
         return false;
+    }
+
+    /// <summary>The product, in percent, of the range each trait has for an effect at the colonist's value.</summary>
+    private static int ProductOf(Simulation simulation, EntityId colonist, Func<TraitDef, PercentRange?> effect)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var percent = 100;
+        foreach (var trait in simulation.Content.All<TraitDef>())
+        {
+            if (effect(trait) is { } range)
+            {
+                percent = percent * range.At(Value(simulation, colonist, trait.Id)) / 100;
+            }
+        }
+
+        return percent;
     }
 
     private int Roll(Pcg32 random)
