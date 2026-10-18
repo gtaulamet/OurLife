@@ -40,9 +40,43 @@ public class VisualCatalogTests
             used.Add($"{plant.Visual}.harvested");
         }
 
+        // A creature may have a "<visual>.<stage>" model for each stage of life.
+        foreach (var creature in GameContent.Defs.All<CreatureDef>())
+        {
+            foreach (var stage in GameContent.Defs.All<LifeStageDef>())
+            {
+                used.Add($"{creature.Visual}.{stage.Id}");
+            }
+        }
+
         var unused = Catalog.Models.Select(model => BaseId(model.Id)).Where(id => !used.Contains(id)).ToList();
 
         unused.ShouldBeEmpty(string.Join(Environment.NewLine, unused));
+    }
+
+    [Fact]
+    public void Every_stage_of_life_but_the_adult_has_a_model_of_its_own()
+    {
+        // The adult is drawn with the creature's own model (see "Modelos y arte" in docs/gdd/vida-y-generaciones.md).
+        var adult = Core.Colony.LifeRules.From(GameContent.Defs).AdultStage;
+        var missing = GameContent.Defs.All<CreatureDef>()
+            .SelectMany(creature => GameContent.Defs.All<LifeStageDef>().Where(stage => stage != adult).Select(stage => $"{creature.Visual}.{stage.Id}"))
+            .Where(visual => !Catalog.TryResolve(visual, era: null, out _))
+            .ToList();
+
+        missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
+        Catalog.TryResolve($"creature.human.{adult.Id}", era: null, out _).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Every_interaction_has_the_icon_of_its_balloon()
+    {
+        var missing = GameContent.Defs.All<InteractionDef>()
+            .Select(interaction => RepoPaths.Combine("game", "assets", "icons", "interactions", $"{interaction.Id}.png"))
+            .Where(path => !File.Exists(path) || !File.Exists(path + ".import"))
+            .ToList();
+
+        missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
     }
 
     [Fact]
@@ -246,6 +280,24 @@ public class VisualCatalogTests
     }
 
     [Fact]
+    public void Bone_scales_and_own_animations_are_read()
+    {
+        var catalog = VisualCatalog.Parse("""
+            {
+              "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} },
+              "models": {
+                "baby": { "model": "res://a.glb", "boneScales": { "head": 1.35 }, "animations": { "walk": "crouch" } }
+              }
+            }
+            """);
+
+        catalog.TryResolve("baby", null, out var baby).ShouldBeTrue();
+        baby.BoneScales!["head"].ShouldBe(1.35f);
+        baby.AnimationFor("walk").ShouldBe("crouch");
+        baby.AnimationFor("idle").ShouldBe("idle");
+    }
+
+    [Fact]
     public void Patterns_grass_and_decoration_are_read()
     {
         var catalog = VisualCatalog.Parse("""
@@ -303,6 +355,8 @@ public class VisualCatalogTests
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "parts": [{ "model": "res://b.glb", "offset": [0, 1, 0], "scale": 0 }] } } }""")]
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "parts": [{ "model": "res://b.glb", "offset": [0, 1, 0], "tint": "#FF0000" }] } } }""")]
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "turn": 4 } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "boneScales": { "head": 0 } } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "animations": { "walk": 3 } } } }""")]
     public void An_invalid_catalog_is_rejected_with_a_format_error(string json)
     {
         Should.Throw<FormatException>(() => VisualCatalog.Parse(json));

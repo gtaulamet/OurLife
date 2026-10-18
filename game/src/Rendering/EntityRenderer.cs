@@ -17,7 +17,11 @@ namespace OurLife.Game.Rendering;
 /// of what they carry in front of them (see <c>docs/gdd/almacenes.md</c>). A sleeper lies on its
 /// back over its cell, along its bed if it sleeps in one (<c>docs/gdd/muebles-y-camas.md</c>).
 /// A colonist is one of the variants of its model for its gender, chosen by its id, and plays the
-/// animation of what it does, at the speed of the game (ADR-012).
+/// animation of what it does, at the speed of the game (ADR-012). At each stage of life it is drawn
+/// with the visual <c>&lt;visual&gt;.&lt;stage&gt;</c> when the catalog has one, like a smaller
+/// child or a grey-haired elder, and walks at the pace of its stage (<c>docs/gdd/vida-y-generaciones.md</c>).
+/// Two colonists who interact show a balloon with the icon of the interaction over their heads
+/// for a moment (<c>assets/icons/interactions/&lt;id&gt;.png</c>).
 /// </summary>
 public partial class EntityRenderer : Node3D
 {
@@ -39,7 +43,19 @@ public partial class EntityRenderer : Node3D
     private const string Handle = "interact-right";
     private const string PickUp = "pick-up";
     private const string Hold = "holding-both";
-    private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold];
+    private const string Play = "jump";
+    private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold, Play];
+
+    // The balloons of interactions: how long they show and fade, in real seconds, how big their
+    // pixels are and how far over a head they float, in the world's units.
+    private const string IconPath = "res://assets/icons/interactions/{0}.png";
+    private const double BalloonSeconds = 2.5;
+    private const double BalloonFadeSeconds = 0.5;
+    private const float BalloonPixel = 0.02f;
+    private const float BalloonGap = 0.35f;
+    private readonly Dictionary<string, Texture2D?> _icons = new(StringComparer.Ordinal);
+    private readonly Dictionary<EntityId, Balloon> _balloons = [];
+    private readonly List<EntityId> _expired = [];
 
     // The animation libraries whose animations were already set to loop, by their Godot id: they
     // are shared by every instance, and their C# wrappers are released after each use.
@@ -91,6 +107,12 @@ public partial class EntityRenderer : Node3D
         if (what == NotificationPredelete)
         {
             _models?.Dispose();
+            foreach (var icon in _icons.Values)
+            {
+                icon?.Dispose();
+            }
+
+            _icons.Clear();
         }
     }
 
@@ -107,6 +129,10 @@ public partial class EntityRenderer : Node3D
                 break;
             case EntityRemovedEvent removed:
                 Remove(removed.Entity);
+                break;
+            case InteractionEvent interaction:
+                ShowBalloon(interaction.Initiator, interaction.Interaction);
+                ShowBalloon(interaction.Receiver, interaction.Interaction);
                 break;
         }
     }
@@ -143,6 +169,7 @@ public partial class EntityRenderer : Node3D
         var world = _simulation.World;
         var glide = Math.Min(1f, (float)delta * GlideRate);
         var speed = _animationSpeed();
+        FadeBalloons(delta);
         foreach (var (entity, view) in _walkers)
         {
             if (!world.IsAlive(entity))
@@ -196,7 +223,7 @@ public partial class EntityRenderer : Node3D
         }
 
         AddChild(node);
-        var animator = AnimatorOf(node);
+        var animator = AnimatorOf(node, model);
         var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node))
         {
             HalfHeight = halfHeight,
@@ -273,7 +300,77 @@ public partial class EntityRenderer : Node3D
         if (_views.Remove(entity, out var view))
         {
             _walkers.Remove(entity);
+            _balloons.Remove(entity);
             view.Node.QueueFree();
+        }
+    }
+
+    /// <summary>
+    /// A balloon with the icon of an interaction over a colonist's head, replacing the one it had.
+    /// It is a child of the colonist, so it walks with it and hides with it; nothing shows for an
+    /// interaction without an icon.
+    /// </summary>
+    private void ShowBalloon(EntityId entity, string interaction)
+    {
+        if (!_views.TryGetValue(entity, out var view) || IconOf(interaction) is not { } icon)
+        {
+            return;
+        }
+
+        if (_balloons.Remove(entity, out var old))
+        {
+            old.Sprite.QueueFree();
+        }
+
+        // In the colonist's space, which its catalog scale shrinks or grows.
+        var scale = view.Model.Scale;
+        var sprite = new Sprite3D
+        {
+            Name = "Balloon",
+            Texture = icon,
+            Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+            TextureFilter = BaseMaterial3D.TextureFilterEnum.Nearest,
+            Shaded = false,
+            PixelSize = BalloonPixel / scale,
+            Position = new Vector3(0, ((2 * view.HalfHeight) + BalloonGap) / scale, 0),
+        };
+        view.Node.AddChild(sprite);
+        _balloons[entity] = new Balloon(sprite) { Left = BalloonSeconds };
+    }
+
+    /// <summary>The icon of an interaction, loaded once; null if it has none.</summary>
+    private Texture2D? IconOf(string interaction)
+    {
+        if (!_icons.TryGetValue(interaction, out var icon))
+        {
+            var path = string.Format(System.Globalization.CultureInfo.InvariantCulture, IconPath, interaction);
+            icon = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
+            _icons.Add(interaction, icon);
+        }
+
+        return icon;
+    }
+
+    /// <summary>Balloons fade out at the end of their time, in real seconds, and go.</summary>
+    private void FadeBalloons(double delta)
+    {
+        _expired.Clear();
+        foreach (var (entity, balloon) in _balloons)
+        {
+            balloon.Left -= delta;
+            if (balloon.Left <= 0)
+            {
+                balloon.Sprite.QueueFree();
+                _expired.Add(entity);
+                continue;
+            }
+
+            balloon.Sprite.Modulate = new Color(1, 1, 1, (float)Math.Min(1, balloon.Left / BalloonFadeSeconds));
+        }
+
+        foreach (var entity in _expired)
+        {
+            _balloons.Remove(entity);
         }
     }
 
@@ -299,6 +396,11 @@ public partial class EntityRenderer : Node3D
         else if (world.TryGet<Colonist>(entity, out var colonist))
         {
             visual = content.Get<CreatureDef>(colonist.Creature).Visual;
+            if (LifeRules.Stage(_simulation, entity) is { } stage
+                && _models.Catalog.TryResolve($"{visual}.{stage.Id}", _simulation.Progress.CurrentEra, out var staged))
+            {
+                return staged;
+            }
         }
         else if (world.TryGet<Furniture>(entity, out var furniture) && content.Get<BuildableDef>(furniture.Buildable).Visual is { } furnitureVisual)
         {
@@ -340,8 +442,11 @@ public partial class EntityRenderer : Node3D
         return files[(int)(hash % (uint)files.Count)];
     }
 
-    /// <summary>The animation player of a model, with the animations it has set to loop, or null for a model without one.</summary>
-    private AnimationPlayer? AnimatorOf(Node node)
+    /// <summary>
+    /// The animation player of a model, with the animations it has set to loop, its own for those
+    /// it plays instead (<see cref="VisualModel.Animations"/>) included; null for a model without one.
+    /// </summary>
+    private AnimationPlayer? AnimatorOf(Node node, VisualModel model)
     {
         var animator = FindAnimator(node);
         if (animator is null)
@@ -357,7 +462,7 @@ public partial class EntityRenderer : Node3D
                 continue;
             }
 
-            foreach (var animation in LoopingAnimations.Where(animation => library.HasAnimation(animation)))
+            foreach (var animation in LoopingAnimations.Select(model.AnimationFor).Where(animation => library.HasAnimation(animation)))
             {
                 using var clip = library.GetAnimation(animation);
                 clip.LoopMode = Animation.LoopModeEnum.Linear;
@@ -387,7 +492,9 @@ public partial class EntityRenderer : Node3D
 
     /// <summary>
     /// Plays the animation of what a colonist does: walking, striking to dig or chop, handling
-    /// to build, picking up to gather, holding what it carries, or standing; at the game's speed.
+    /// to build or to feed a baby, picking up to gather, jumping to play, holding what it carries,
+    /// or standing; the model's own one when it has it, like a baby crawling. At the game's speed,
+    /// and walking at the pace of its stage of life.
     /// </summary>
     private void Animate(EntityId entity, EntityView view, float speed)
     {
@@ -403,14 +510,22 @@ public partial class EntityRenderer : Node3D
         var name = moving ? Walk
             : working && job!.Kind is JobKind.Mine or JobKind.DigStairs or JobKind.Chop or JobKind.Deconstruct ? Strike
             : working && job!.Kind is JobKind.Build ? Handle
+            : job is { Kind: JobKind.FeedBaby, Stage: JobStage.Carrying } ? Handle
             : working && job!.Kind is JobKind.Harvest ? PickUp
+            : working && job!.Kind is JobKind.Play ? Play
             : world.Has<Carried>(entity) ? Hold
             : Idle;
 
         // Godot is asked only when something changes: its calls cost on every frame.
+        name = view.Model.AnimationFor(name);
         if (!view.Animations.Contains(name))
         {
-            name = Idle;
+            name = view.Model.AnimationFor(Idle);
+        }
+
+        if (moving)
+        {
+            speed *= LifeRules.MoveSpeedPercent(_simulation, entity) / 100f;
         }
 
         if (view.Playing != name && view.Animations.Contains(name))
@@ -505,6 +620,14 @@ public partial class EntityRenderer : Node3D
         hash ^= hash >> 13;
         hash = unchecked(hash * 0x5bd1e995);
         return hash % 360;
+    }
+
+    /// <summary>A balloon over a colonist and the real seconds it has left.</summary>
+    private sealed class Balloon(Sprite3D sprite)
+    {
+        public Sprite3D Sprite { get; } = sprite;
+
+        public double Left { get; set; }
     }
 
     private sealed class EntityView(Node3D node, VisualModel model, int level, IReadOnlyList<MeshInstance3D> meshes)

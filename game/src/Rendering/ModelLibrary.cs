@@ -44,13 +44,18 @@ public sealed class ModelLibrary : IDisposable
     /// A new instance of a model, scaled as the catalog says, from its own file or from
     /// <paramref name="file"/>, one of its variants. A model to centre goes inside a holder node,
     /// moved so the middle of its meshes lies over the holder's origin. A model with parts goes
-    /// inside an unscaled node, with each part at its offset and scale.
+    /// inside an unscaled node, with each part at its offset and scale. Bones the catalog scales,
+    /// like a child's head, are scaled in the skeleton.
     /// </summary>
     /// <exception cref="InvalidOperationException">The model or a part cannot be loaded.</exception>
     public Node3D Instantiate(VisualModel model, string? file = null)
     {
         ArgumentNullException.ThrowIfNull(model);
         var body = InstantiateBody(model, file ?? model.ModelPath);
+        if (model.BoneScales is { Count: > 0 } bones)
+        {
+            ScaleBones(body, bones);
+        }
 
         // Turned inside a holder: whoever places the instance sets the holder's own rotation.
         if (model.Turn != 0)
@@ -77,6 +82,35 @@ public sealed class ModelLibrary : IDisposable
         }
 
         return whole;
+    }
+
+    /// <summary>
+    /// Scales bones of the instance's skeleton, around their own joint. The rest is scaled too:
+    /// an animation that does not move a bone's scale leaves it at its rest, so it holds while the
+    /// colonist walks or works. Skinned meshes follow the bones; a bone the model lacks is skipped.
+    /// </summary>
+    private static void ScaleBones(Node node, IReadOnlyDictionary<string, float> bones)
+    {
+        if (node is Skeleton3D skeleton)
+        {
+            foreach (var (name, factor) in bones)
+            {
+                var bone = skeleton.FindBone(name);
+                if (bone < 0)
+                {
+                    continue;
+                }
+
+                var rest = skeleton.GetBoneRest(bone);
+                skeleton.SetBoneRest(bone, new Transform3D(rest.Basis.Scaled(Vector3.One * factor), rest.Origin));
+                skeleton.SetBonePoseScale(bone, skeleton.GetBonePoseScale(bone) * factor);
+            }
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            ScaleBones(child, bones);
+        }
     }
 
     private PackedScene LoadOrThrow(VisualModel model, string path) =>

@@ -293,7 +293,7 @@ Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en
 | Def | Campos | Archivo |
 |---|---|---|
 | `LifePace` | `lifeDaysPerDay`, `default` | `life.json` |
-| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5); `eatsAlone`, `crawlRadius` y `playRadius` (H3.7) y `visual` (H3.8) | `life.json` |
+| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5); `eatsAlone`, `crawlRadius` y `playRadius` (H3.7). El modelo de cada etapa va en el catálogo de visuales (H3.8) | `life.json` |
 | `LifeConfig` | Tabla de vejez `oldAge` (H3.2); bloque `birth` con fertilidad, concepción, embarazo y opiniones al nacer (H3.7) | `life.json` |
 | `Trait` | `workSpeed` (`low` y `high`) y `needsBeforeWorkBelow` (H3.3); `experience` (H3.4); los coeficientes de interacciones y crisis en sus hitos; tramos de palabras para la ficha (H3.9) | `personality.json` |
 | `SkillConfig` | `maxLevel` (20), `averageLevel` (10), `experienceBase` (600), `experiencePerLevel` (150), `speedBase` (80), `speedPerLevel` (2), `teachingMinLevels` (3), `teachingBase` (100) y `teachingPerLevel` (30) (H3.4) | `skills.json` |
@@ -338,14 +338,19 @@ Las claves siguen `docs/i18n.md`. El i18n-specialist ajusta el texto final en ca
 
 ## Modelos y arte (H3.8)
 
-| Visual | Qué es |
-|---|---|
-| `creature.human.baby` | Bebé envuelto, muy chico, que gatea |
-| `creature.human.child` | Aldeano a escala de niño, cabeza más grande |
-| `creature.human.adolescent` | Aldeano un poco más chico que el adulto |
-| `creature.human.elder` | Aldeano con canas y paso más lento |
-| `buildable.cradle` | Cuna medieval de madera |
-| Globo de interacción | Un ícono por interacción sobre los colonos |
+| Visual | Qué es | Cómo quedó (H3.8) |
+|---|---|---|
+| `creature.human.baby` | Bebé envuelto, muy chico, que gatea | El aldeano a escala 0,55 con la cabeza 1,35 veces más grande; quieto se sienta (`sit`) y al moverse gatea agachado (`crouch`) |
+| `creature.human.child` | Aldeano a escala de niño, cabeza más grande | Escala 0,85 y cabeza 1,2 veces más grande; al jugar salta (`jump`) |
+| `creature.human.adolescent` | Aldeano un poco más chico que el adulto | Escala 1,15 (el adulto, 1,3) |
+| `creature.human.elder` | Aldeano con canas y paso más lento | Los 12 aldeanos con el pelo en la franja gris de su textura, generados por `tools/make-elder-models.py`; camina más despacio |
+| `furniture.cradle` | Cuna medieval de madera | La cama de KayKit en chico (escala 0,2): se lee como una cuna en la vista de la aldea |
+| Globo de interacción | Un ícono por interacción sobre los colonos | Íconos pixel de 16 × 16 en `game/assets/icons/interactions/<id>.png`, dibujados por `tools/make-interaction-icons.py`; se ven dos segundos y medio sobre los dos colonos |
+
+- **Sin campo nuevo en `LifeStage`:** en lugar de un `visual` por etapa, el renderer busca en el catálogo `<visual de la criatura>.<etapa>` (como `creature.human.child`) y, si no está, usa el de la criatura, que es el del adulto. Así cada criatura tiene sus etapas y el Core no cambia.
+- **El catálogo suma dos campos:** `boneScales` agranda huesos del esqueleto (la cabeza de bebés y niños) y `animations` cambia una animación por otra del modelo (el bebé gatea donde los demás caminan).
+- **Animaciones:** quien alimenta a un bebé usa la de manipular; la de caminar va al ritmo de la etapa (el anciano al 80 %, el bebé al 25 %).
+- **Canas:** pelo, ojos y ropa comparten franjas de la textura, así que una textura recoloreada no servía. El script mueve, en la malla de la cabeza, los vértices del pelo a la franja gris; distingue los ojos por su lugar, que es el mismo en todas las cabezas del kit.
 
 ## Criterios de aceptación
 

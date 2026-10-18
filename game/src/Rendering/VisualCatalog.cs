@@ -17,6 +17,11 @@ namespace OurLife.Game.Rendering;
 /// Quarter turns, counterclockwise seen from above, that bring the model's front to +Z, where the
 /// furniture preview's arrow points before it is turned (<c>docs/gdd/vista-previa-de-muebles.md</c>).
 /// </param>
+/// <param name="BoneScales">How much bigger some bones of the model's skeleton are drawn, by name, like the head of a child.</param>
+/// <param name="Animations">
+/// The model's own animation for an animation the renderer asks for, by name, like a baby that
+/// crawls (<c>crouch</c>) when others walk; one left out plays as asked.
+/// </param>
 public sealed record VisualModel(
     string Id,
     string ModelPath,
@@ -25,8 +30,13 @@ public sealed record VisualModel(
     bool Center = false,
     IReadOnlyDictionary<string, IReadOnlyList<string>>? Variants = null,
     IReadOnlyList<VisualPart>? Parts = null,
-    int Turn = 0)
+    int Turn = 0,
+    IReadOnlyDictionary<string, float>? BoneScales = null,
+    IReadOnlyDictionary<string, string>? Animations = null)
 {
+    /// <summary>The animation the model plays when <paramref name="name"/> is asked for.</summary>
+    public string AnimationFor(string name) => Animations is not null && Animations.TryGetValue(name, out var own) ? own : name;
+
     /// <summary>Every model file this visual draws with: its own, its variants and its parts.</summary>
     public IEnumerable<string> Files =>
         new[] { ModelPath }
@@ -178,7 +188,7 @@ public sealed class VisualCatalog
             var models = new Dictionary<string, VisualModel>(StringComparer.Ordinal);
             foreach (var entry in root.GetProperty("models").EnumerateObject())
             {
-                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn");
+                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn", "boneScales", "animations");
                 var scale = entry.Value.TryGetProperty("scale", out var scaleValue) ? scaleValue.GetSingle() : 1f;
                 if (scale <= 0)
                 {
@@ -223,7 +233,28 @@ public sealed class VisualCatalog
                     throw new FormatException($"'{entry.Name}': turn must be from 0 to 3 quarter turns.");
                 }
 
-                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn));
+                Dictionary<string, float>? boneScales = null;
+                if (entry.Value.TryGetProperty("boneScales", out var bonesElement))
+                {
+                    boneScales = new Dictionary<string, float>(StringComparer.Ordinal);
+                    foreach (var bone in bonesElement.EnumerateObject())
+                    {
+                        var factor = bone.Value.GetSingle();
+                        boneScales.Add(bone.Name, factor > 0 ? factor : throw new FormatException($"'{entry.Name}': the scale of bone '{bone.Name}' must be positive."));
+                    }
+                }
+
+                Dictionary<string, string>? animations = null;
+                if (entry.Value.TryGetProperty("animations", out var animationsElement))
+                {
+                    animations = new Dictionary<string, string>(StringComparer.Ordinal);
+                    foreach (var animation in animationsElement.EnumerateObject())
+                    {
+                        animations.Add(animation.Name, StringValue(animation.Value, $"{entry.Name}.animations.{animation.Name}"));
+                    }
+                }
+
+                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn, boneScales, animations));
             }
 
             var palette = new Dictionary<string, string>(StringComparer.Ordinal);

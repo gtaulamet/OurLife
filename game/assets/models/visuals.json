@@ -60,6 +60,41 @@
         "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]
       }
     },
+    "creature.human.baby": {
+      "model": "res://assets/models/kenney_mini-characters/character-male-a.glb",
+      "scale": 0.55,
+      "boneScales": { "head": 1.35 },
+      "animations": { "walk": "crouch", "idle": "sit" },
+      "variants": {
+        "female": ["res://assets/models/kenney_mini-characters/character-female-a.glb", "res://assets/models/kenney_mini-characters/character-female-b.glb", "res://assets/models/kenney_mini-characters/character-female-c.glb", "res://assets/models/kenney_mini-characters/character-female-d.glb", "res://assets/models/kenney_mini-characters/character-female-e.glb", "res://assets/models/kenney_mini-characters/character-female-f.glb"],
+        "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]
+      }
+    },
+    "creature.human.child": {
+      "model": "res://assets/models/kenney_mini-characters/character-male-a.glb",
+      "scale": 0.85,
+      "boneScales": { "head": 1.2 },
+      "variants": {
+        "female": ["res://assets/models/kenney_mini-characters/character-female-a.glb", "res://assets/models/kenney_mini-characters/character-female-b.glb", "res://assets/models/kenney_mini-characters/character-female-c.glb", "res://assets/models/kenney_mini-characters/character-female-d.glb", "res://assets/models/kenney_mini-characters/character-female-e.glb", "res://assets/models/kenney_mini-characters/character-female-f.glb"],
+        "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]
+      }
+    },
+    "creature.human.adolescent": {
+      "model": "res://assets/models/kenney_mini-characters/character-male-a.glb",
+      "scale": 1.15,
+      "variants": {
+        "female": ["res://assets/models/kenney_mini-characters/character-female-a.glb", "res://assets/models/kenney_mini-characters/character-female-b.glb", "res://assets/models/kenney_mini-characters/character-female-c.glb", "res://assets/models/kenney_mini-characters/character-female-d.glb", "res://assets/models/kenney_mini-characters/character-female-e.glb", "res://assets/models/kenney_mini-characters/character-female-f.glb"],
+        "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]
+      }
+    },
+    "creature.human.elder": {
+      "model": "res://assets/models/kenney_mini-characters/character-male-a-elder.glb",
+      "scale": 1.25,
+      "variants": {
+        "female": ["res://assets/models/kenney_mini-characters/character-female-a-elder.glb", "res://assets/models/kenney_mini-characters/character-female-b-elder.glb", "res://assets/models/kenney_mini-characters/character-female-c-elder.glb", "res://assets/models/kenney_mini-characters/character-female-d-elder.glb", "res://assets/models/kenney_mini-characters/character-female-e-elder.glb", "res://assets/models/kenney_mini-characters/character-female-f-elder.glb"],
+        "male": ["res://assets/models/kenney_mini-characters/character-male-a-elder.glb", "res://assets/models/kenney_mini-characters/character-male-b-elder.glb", "res://assets/models/kenney_mini-characters/character-male-c-elder.glb", "res://assets/models/kenney_mini-characters/character-male-d-elder.glb", "res://assets/models/kenney_mini-characters/character-male-e-elder.glb", "res://assets/models/kenney_mini-characters/character-male-f-elder.glb"]
+      }
+    },
     "furniture.bed": { "model": "res://assets/models/kaykit_dungeon-remastered/bed_frame.glb", "scale": 0.33 },
     "furniture.cradle": { "model": "res://assets/models/kaykit_dungeon-remastered/bed_frame.glb", "scale": 0.2 },
     "furniture.table": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },

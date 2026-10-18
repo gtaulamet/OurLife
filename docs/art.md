@@ -58,6 +58,9 @@ Formato fijado en H1.5 y ampliado en IP2.5 (`game/assets/models/visuals.json`):
   - `turn` (0 a 3) son cuartos de vuelta, antihorarios vistos desde arriba, que llevan el frente del modelo hacia +Z, adonde apunta la flecha de la vista previa de muebles sin girar. El baúl de KayKit tiene `turn: 3`.
   - `variants` da otros archivos del mismo modelo por etiqueta; para los colonos, la etiqueta es el género (`female`, `male`) y cada colono toma uno de sus archivos según su id, siempre el mismo.
   - `parts` agrega modelos al principal, cada uno con su `offset` en celdas y su `scale`, sin heredar la escala del principal: las cerezas sobre el arbusto de bayas.
+  - `boneScales` agranda o achica huesos del esqueleto por su nombre, alrededor de su articulación: la cabeza de bebés y niños (H3.8). Se escala también el reposo del hueso, así la animación no lo deshace.
+  - `animations` cambia una animación que pide el juego (`idle`, `walk`, `jump`…) por otra del modelo: el bebé gatea (`crouch`) donde los demás caminan.
+  - Un colono se dibuja con `<visual>.<etapa>` si existe, como `creature.human.elder`; si no, con el `visual` de su criatura (H3.8).
 - `decoration`: modelos que visten el pasto, como matas, flores y piedritas. `chance` dice en cuántas celdas de pasto de cada mil aparece cada uno; la suma no pasa de mil. Un hash de la celda elige el modelo, su giro, su tamaño y su lugar dentro de la celda, así que una celda siempre se ve igual. No son entidades, no se guardan y no cambian la simulación. No aparecen bajo un mueble ni bajo una planta. Los modelos de la decoración no deben ser los de un objeto (la flor roja de las bayas, la piedra chica), para no confundirse con algo que se puede levantar, y no llevan texturas: se dibujan con un color por material. Las matas toman el `grass` de la paleta, a propósito un poco más oscuro que los verdes de `terrain.grass`, para que se distingan del suelo. El jugador elige cuánta decoración ver (`docs/gdd/decoracion-del-pasto.md`): la opción multiplica estas probabilidades.
 - El terreno no tiene modelos: sus piezas se generan en código, se tiñen con el `color` del `MaterialDef` y el shader les pinta el patrón (ADR-009 y ADR-012).
 
@@ -100,8 +103,9 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
 | Muebles | Resuelto: cama, mesa, silla y baúl de KayKit Dungeon Remastered, con la madera entonada por la paleta (`texture`) | — |
-| Cuna (H3.7) | Provisorio: `furniture.cradle` es la cama de KayKit a escala 0,2 | Una cuna medieval de madera en H3.8 |
-| Bebés y niños (H3.7) | Pendiente: se dibujan como adultos | H3.8, con el arte de las etapas |
+| Cuna (H3.7) | Resuelto en H3.8: la cama de KayKit a escala 0,2 se lee como cuna en la vista de la aldea | Una cuna propia si algún kit CC0 la trae |
+| Etapas de la vida (H3.8) | Resuelto: los aldeanos de Mini Characters a otra escala, con la cabeza más grande en bebés y niños, y 12 modelos de anciano con canas derivados del kit (`tools/make-elder-models.py`) | — |
+| Globos de interacción (H3.8) | Resuelto: íconos pixel propios de 16 × 16 (`tools/make-interaction-icons.py`) | — |
 
 **Recoloreo de los aldeanos.** La textura `kenney_mini-characters/Textures/colormap.png` es la de Kenney con las franjas de ropa cambiadas a tonos de época (musgo, ocre, óxido, rubia, glasto, lana cruda, lino, ciruela y rosa viejo), conservando el degradé de cada franja. La piel, los grises y el pelo no se tocan. La comparten los 12 aldeanos.
 

@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-7-nacimientos`: H3.7 cerrado. Sigue H3.8 en `ip3/h3-8-arte` |
+| Rama de trabajo | `ip3/h3-8-arte`: H3.8 hecho salvo la revisión de código |
 | `main` | Con H3.7, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.7 y H3.9 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 688 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 693 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick) |
 | Huella del smoke | `D8FD3784066AEE12` con `--seed 1 --ticks 5000`; `14212A5A5466DDB7` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H3.8, arte de las etapas**, en `ip3/h3-8-arte`: bebés y niños se dibujan todavía como adultos, y la cuna es la cama de KayKit en chico.
+1. **H3.8, arte de las etapas**, en `ip3/h3-8-arte`: falta la revisión de código y adelantar `main`. Después, H3.10.
 2. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción.
 3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -41,6 +41,17 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.8, arte de las etapas
+
+- Sin campo nuevo en el Core: un colono se dibuja con `<visual>.<etapa>` del catálogo si existe (`creature.human.baby`, `.child`, `.adolescent`, `.elder`); el adulto usa el de la criatura.
+- Catálogo: `boneScales` (huesos más grandes, con el reposo escalado para que la animación no lo deshaga) y `animations` (otra animación del modelo). Bebé a escala 0,55 con la cabeza ×1,35, que se sienta y gatea agachado; niño 0,85 con la cabeza ×1,2; adolescente 1,15; adulto 1,3.
+- Canas: pelo, ojos y ropa comparten franjas de la textura, así que una textura recoloreada no servía. `tools/make-elder-models.py` genera 12 `*-elder.glb` que llevan los vértices del pelo de la cabeza a la franja gris; los ojos se reconocen por su lugar, igual en todas las cabezas. La primera versión los separaba por UV y dejaba la coronilla oscura; se vio en las capturas.
+- Animaciones: alimentar usa la de manipular, jugar la de saltar, y caminar va al ritmo de la etapa.
+- Globos de interacción: siete íconos pixel de 16 × 16 (`tools/make-interaction-icons.py`), sobre los dos colonos durante 2,5 s, que se desvanecen al final.
+- La cuna sigue siendo la cama de KayKit en chico: se lee como cuna en la vista de la aldea.
+- Capturas con partidas generadas por el Core (cinco etapas en fila, filas de una etapa con cinco variantes) y `--load`, sin tocar el estado desde la presentación. Una "mancha" color piel resultó ser una niña pelirroja vista desde arriba.
+- Tests: modelo propio para cada etapa menos la adulta, ícono para cada interacción, lectura de los campos nuevos y rechazo de los inválidos. 693 tests; smoke con 18 modelos; benchmark de 30 s con 377 FPS y 0,07 ms por tick.
 
 ### 2026-10-18: cierre de H3.7
 
