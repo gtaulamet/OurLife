@@ -14,7 +14,7 @@ namespace OurLife.Core.Colony;
 public sealed partial class DecisionSystem
 {
     // The food found for feeding in the current search, if it was looked for.
-    private (EntityId Food, TileCoord Cell, bool Held)? _food;
+    private (EntityId Food, TileCoord Cell, int Free, bool Held)? _food;
 
     /// <summary>Babies hungry under the low threshold whom nobody is bringing food to yet.</summary>
     private void AddHungryBabies(Simulation simulation)
@@ -30,8 +30,8 @@ public sealed partial class DecisionSystem
 
     /// <summary>
     /// Whether a parent of the baby, other than this colonist, will feed it: the mother or the
-    /// father go first while they are free (idle, wandering or playing), do this work and can reach
-    /// the baby. A parent who failed to reach it, or to find food, leaves it to the others for a while.
+    /// father go first while they are free (idle, wandering or playing), look for this work before
+    /// any other and can reach the baby. A parent who failed to reach it, or to find food, leaves it to the others for a while.
     /// </summary>
     private bool ParentWillFeed(Simulation simulation, EntityId colonist, EntityId baby)
     {
@@ -65,11 +65,40 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    /// <summary>Whether a colonist does the work of feeding babies: its stage, its priority and no crisis allow it.</summary>
-    private bool FeedsBabies(Simulation simulation, EntityId colonist) =>
-        LifeRules.DoesWork(LifeRules.Stage(simulation, colonist), _childcare)
-        && WorkPriorityRules.Of(simulation.World, colonist, _childcare.Id, _rules.Ai.DefaultWorkPriority) != WorkPriorityLevels.Never
-        && MoodRules.CrisisOf(simulation, colonist) is null;
+    /// <summary>
+    /// Whether a colonist looks for babies to feed before any other work: its stage does this work,
+    /// no crisis stops it and no work type it does has a higher priority (childcare goes first
+    /// among equals).
+    /// </summary>
+    private bool FeedsBabies(Simulation simulation, EntityId colonist)
+    {
+        var stage = LifeRules.Stage(simulation, colonist);
+        var priority = WorkPriorityRules.Of(simulation.World, colonist, _childcare.Id, _rules.Ai.DefaultWorkPriority);
+        if (!LifeRules.DoesWork(stage, _childcare) || priority == WorkPriorityLevels.Never || MoodRules.CrisisOf(simulation, colonist) is not null)
+        {
+            return false;
+        }
+
+        foreach (var type in _rules.WorkTypes)
+        {
+            var other = WorkPriorityRules.Of(simulation.World, colonist, type.Id, _rules.Ai.DefaultWorkPriority);
+            if (other != WorkPriorityLevels.Never && other < priority && LifeRules.DoesWork(stage, type))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>A baby someone now brings food to stops crawling and waits where it is.</summary>
+    private void WaitForFood(Simulation simulation, EntityId baby)
+    {
+        if (simulation.World.TryGet<Job>(baby, out var job) && job.Kind == JobKind.Wander)
+        {
+            Assign(simulation, baby, new Job { Kind = JobKind.Wander, Cell = simulation.World.Get<Position>(baby).Cell }, []);
+        }
+    }
 
     /// <summary>
     /// The food a feeder takes to a baby: the pile nearest the colonist, in its region, with a unit
@@ -78,7 +107,7 @@ public sealed partial class DecisionSystem
     /// the colonist leaves the baby alone for a while, so a parent who cannot feed it does not keep
     /// the others from it; food that others only hold for now does not count as none.
     /// </summary>
-    private bool TryFood(Simulation simulation, EntityId colonist, Candidate baby, int region, out EntityId food, out TileCoord cell)
+    private bool TryFood(Simulation simulation, EntityId colonist, Candidate baby, int region, out EntityId food, out TileCoord cell, out int free)
     {
         var person = simulation.World.Get<Colonist>(colonist);
         if (_food is not { } found || (!found.Food.IsNone && IsIgnored(person, found.Food, found.Cell)))
@@ -87,7 +116,7 @@ public sealed partial class DecisionSystem
             _food = found;
         }
 
-        (food, cell) = (found.Food, found.Cell);
+        (food, cell, free) = (found.Food, found.Cell, found.Free);
         if (!food.IsNone)
         {
             return true;
@@ -106,11 +135,11 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    /// <summary>The free food nearest <paramref name="from"/>, and whether some food in reach was only held by others.</summary>
-    private (EntityId Food, TileCoord Cell, bool Held) NearestFood(Simulation simulation, Colonist person, TileCoord from, int region)
+    /// <summary>The free food nearest <paramref name="from"/>, with its units nobody holds, and whether some food in reach was only held by others.</summary>
+    private (EntityId Food, TileCoord Cell, int Free, bool Held) NearestFood(Simulation simulation, Colonist person, TileCoord from, int region)
     {
         var world = simulation.World;
-        var (food, cell, held) = (EntityId.None, default(TileCoord), false);
+        var (food, cell, free, held) = (EntityId.None, default(TileCoord), 0, false);
         var best = int.MaxValue;
         world.Query<ItemStack, Position>(_entities);
         foreach (var pile in _entities)
@@ -123,7 +152,8 @@ public sealed partial class DecisionSystem
             }
 
             var distance = PathFinder.Estimate(from, at);
-            var taken = _hauledPiles.Contains(pile) || _entityUses.GetValueOrDefault(pile) >= stack.Count;
+            var units = stack.Count - _entityUses.GetValueOrDefault(pile);
+            var taken = _hauledPiles.Contains(pile) || units <= 0;
             if ((!taken && distance >= best) || (taken && held))
             {
                 continue;
@@ -141,17 +171,17 @@ public sealed partial class DecisionSystem
             }
             else
             {
-                (best, food, cell) = (distance, pile, at);
+                (best, food, cell, free) = (distance, pile, at, units);
             }
         }
 
-        return (food, cell, held);
+        return (food, cell, free, held);
     }
 
     /// <summary>
     /// A colonist at a stage that plays, like a child, goes to play with someone on its level
-    /// within the stage's radius: another who plays, or family, awake and not met lately (so the
-    /// two can interact when they meet, see <see cref="SocialSystem"/>). The playmate is drawn, so a
+    /// within the stage's radius: another who plays, or family, who can interact now and was not met
+    /// lately by the rules of <see cref="SocialSystem"/>, so the two do interact when they meet. The playmate is drawn, so a
     /// child does not follow the same one around. True if it set off.
     /// </summary>
     private bool TryPlay(Simulation simulation, EntityId colonist)
@@ -175,11 +205,11 @@ public sealed partial class DecisionSystem
             }
 
             var cell = world.Get<Position>(other).Cell;
-            var stage = LifeRules.Stage(simulation, other);
-            var asleep = world.TryGet<Job>(other, out var job) && job.Kind == JobKind.Sleep && job.Stage == JobStage.Working;
-            if (cell.Z != from.Z || Math.Max(Math.Abs(cell.X - from.X), Math.Abs(cell.Y - from.Y)) > radius || asleep
-                || stage?.Interacts == false || !(stage?.PlayRadius is not null || Relationships.IsFamily(simulation, colonist, other))
-                || MetLately(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell))
+            if (cell.Z != from.Z || Math.Max(Math.Abs(cell.X - from.X), Math.Abs(cell.Y - from.Y)) > radius
+                || !SocialSystem.CanInteract(simulation, other)
+                || !(LifeRules.Stage(simulation, other)?.PlayRadius is not null || Relationships.IsFamily(simulation, colonist, other))
+                || SocialSystem.Met(simulation, colonist, other, cooldown) || SocialSystem.Met(simulation, other, colonist, cooldown)
+                || !connectivity.AreConnected(from, cell))
             {
                 continue;
             }
@@ -213,9 +243,6 @@ public sealed partial class DecisionSystem
 
         return false;
     }
-
-    private static bool MetLately(Simulation simulation, EntityId a, EntityId b, long cooldown) =>
-        Relationships.Of(simulation, a, b)?.LastInteractionTick is { } last && simulation.CurrentTick - last < cooldown;
 
     /// <summary>Where a baby crawls around: its mother, if she is alive and it can reach her; else where it is.</summary>
     private static TileCoord CrawlCentre(Simulation simulation, EntityId baby, TileCoord from)

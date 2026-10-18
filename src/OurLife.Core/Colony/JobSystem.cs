@@ -75,7 +75,7 @@ public sealed class JobSystem : ISimSystem
                 continue;
             }
 
-            // Carrying for the player is the work of hauling and of supplying a building.
+            // Carrying for the player is the work of hauling, of supplying a building and of feeding a baby.
             var workType = _rules.WorkTypeOf(job);
             if (workType is not null && job.Stage == JobStage.Carrying)
             {
@@ -101,8 +101,9 @@ public sealed class JobSystem : ISimSystem
             var progress = job.Progress;
             var finished = Work(simulation, colonist, job, workType);
 
-            // A tick of work that advanced it teaches; waiting for a cell to clear does not.
-            if (workType is not null && job.Progress > progress)
+            // A tick of work that advanced it teaches, once (a tick carrying taught already);
+            // waiting for a cell to clear does not.
+            if (workType is not null && job.Progress > progress && job.Stage != JobStage.Carrying)
             {
                 _rules.Skills.Gain(simulation, colonist, workType, 1);
             }
@@ -316,7 +317,7 @@ public sealed class JobSystem : ISimSystem
             case JobKind.Play:
                 return simulation.CurrentTick >= job.UntilTick;
             case JobKind.FeedBaby:
-                return job.Stage == JobStage.Carrying ? Feed(simulation, colonist, job) : PickUpFood(simulation, colonist, job);
+                return job.Stage == JobStage.Carrying ? Feed(simulation, colonist, job, speed) : PickUpFood(simulation, colonist, job);
             case JobKind.Haul:
                 return job.Stage == JobStage.Carrying ? Deliver(simulation, colonist, job) : PickUp(simulation, colonist, job);
             case JobKind.Deliver:
@@ -444,7 +445,7 @@ public sealed class JobSystem : ISimSystem
     /// <summary>Whether the job is work for the player, which goes at the speed of the worker.</summary>
     private static bool IsWork(Job job) => job.Kind switch
     {
-        JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct => true,
+        JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct or JobKind.FeedBaby => true,
         JobKind.Harvest => !job.ForFood,
         _ => false,
     };
@@ -678,8 +679,9 @@ public sealed class JobSystem : ISimSystem
     }
 
     /// <summary>
-    /// Lifts from the food pile what the baby needs to be fed, as many units as it lacks, and sets
-    /// off to it (see "Crianza" in <c>docs/gdd/vida-y-generaciones.md</c>). True, ending the job
+    /// Lifts from the food pile what the baby needs to be fed, as many units as it lacks and no
+    /// more than the job holds (<see cref="Job.Count"/>), and sets off to it (see "Crianza" in
+    /// <c>docs/gdd/vida-y-generaciones.md</c>). True, ending the job
     /// with nothing lifted, if the baby is fed already or there is no way to it; in the second case
     /// the colonist leaves the baby alone for a while.
     /// </summary>
@@ -688,7 +690,8 @@ public sealed class JobSystem : ISimSystem
         var world = simulation.World;
         var stack = world.Get<ItemStack>(job.Target);
         var item = stack.Def;
-        var count = Math.Min(stack.Count, Hunger.UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(item).Nutrition));
+        var units = Hunger.UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(item).Nutrition);
+        var count = Math.Min(units, Math.Min(stack.Count, Math.Max(1, job.Count)));
         if (count <= 0)
         {
             return true;
@@ -716,10 +719,10 @@ public sealed class JobSystem : ISimSystem
 
     /// <summary>
     /// Beside the baby, gives it a unit of what it carries every <see cref="AiConfigDef.EatTicksPerUnit"/>
-    /// ticks, until it is fed or the food runs out. If the baby crawled off, follows it. Food left
+    /// ticks at the speed of the feeder's work, until it is fed or the food runs out. If the baby crawled off, follows it. Food left
     /// over stays carried and falls where the colonist stands when the job ends.
     /// </summary>
-    private bool Feed(Simulation simulation, EntityId colonist, Job job)
+    private bool Feed(Simulation simulation, EntityId colonist, Job job, int speed)
     {
         var world = simulation.World;
         if (!world.TryGet<Carried>(colonist, out var carried))
@@ -739,7 +742,7 @@ public sealed class JobSystem : ISimSystem
             return !TrySetOffTo(simulation, colonist, job.Recipient);
         }
 
-        if (!Advance(job, _rules.Ai.EatTicksPerUnit))
+        if (!Advance(job, _rules.Ai.EatTicksPerUnit, speed))
         {
             return false;
         }

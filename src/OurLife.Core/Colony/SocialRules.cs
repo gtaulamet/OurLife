@@ -157,6 +157,9 @@ public sealed class SocialRules
 
             family.Partner = Relationships.RelativeOf(simulation, partner);
             family.WidowedAtAgeDays = null;
+
+            // The choice of children is the couple's: a new couple starts with the default.
+            family.ChildrenAllowed = true;
         }
     }
 

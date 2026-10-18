@@ -271,6 +271,30 @@ public class BirthTests
         Frustrations(bed, husband).ShouldBe(frustrated);
     }
 
+    [Fact]
+    public void A_new_couple_starts_with_children_allowed_whatever_an_earlier_one_chose()
+    {
+        var (bed, wife, husband) = Couple(seed: 1, pace: "very_fast");
+        var rules = SocialRules.From(bed.Simulation.Content);
+        bed.Simulation.Commands.Enqueue(new SetChildrenAllowedCommand(wife, Allowed: false));
+        bed.Simulation.ApplyCommandsNow();
+        rules.Change(bed.Simulation, wife, husband, -90, 0);
+        var other = bed.AddColonist(7, 7, 1, name: "Sancho");
+        bed.World.Get<Colonist>(other).Gender = Gender.Male;
+        bed.World.Add(other, new Life { AgeDays = 25 * DaysPerYear, Stage = "adult" });
+        foreach (var (from, to) in new[] { (wife, other), (other, wife) })
+        {
+            var relation = Relationships.Ensure(bed.Simulation, from, to);
+            relation.Opinion = 60;
+            relation.Romance = 95;
+        }
+
+        rules.Change(bed.Simulation, wife, other, 1, 1, romance: 5);
+
+        Relationships.PartnerOf(bed.Simulation, wife).ShouldBe(other);
+        LifeRules.ChildrenAllowed(bed.Simulation, wife, other).ShouldBeTrue();
+    }
+
     private static int Frustrations(ColonyTestBed bed, EntityId colonist) =>
         MoodRules.Thoughts(bed.Simulation, colonist).Count(thought => thought.Id == "desire_frustrated");
 

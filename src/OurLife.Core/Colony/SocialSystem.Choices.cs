@@ -35,7 +35,8 @@ public sealed partial class SocialSystem
         }
     }
 
-    private static bool Met(Simulation simulation, EntityId from, EntityId to, long cooldown) =>
+    /// <summary>Whether <paramref name="from"/> interacted with <paramref name="to"/> less than <paramref name="cooldown"/> ticks ago.</summary>
+    internal static bool Met(Simulation simulation, EntityId from, EntityId to, long cooldown) =>
         Relationships.Of(simulation, from, to)?.LastInteractionTick is { } last && simulation.CurrentTick - last < cooldown;
 
     private bool Allowed(Simulation simulation, InteractionDef interaction, EntityId initiator, EntityId receiver)

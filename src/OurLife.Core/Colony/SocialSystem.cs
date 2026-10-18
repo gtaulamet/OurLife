@@ -60,7 +60,8 @@ public sealed partial class SocialSystem : ISimSystem
         }
     }
 
-    private static bool CanInteract(Simulation simulation, EntityId colonist)
+    /// <summary>Whether a colonist can take part in an interaction now: awake, at a stage that interacts and not keeping away.</summary>
+    internal static bool CanInteract(Simulation simulation, EntityId colonist)
     {
         var asleep = simulation.World.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Sleep && job.Stage == JobStage.Working;
         return !asleep && (LifeRules.Stage(simulation, colonist)?.Interacts ?? true) && !MoodRules.Isolates(simulation, colonist);

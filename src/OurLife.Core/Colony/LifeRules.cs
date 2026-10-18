@@ -77,6 +77,15 @@ public sealed class LifeRules
         return simulation.LifePace.Length == 0 ? DefaultPace : simulation.Content.Get<LifePaceDef>(simulation.LifePace);
     }
 
+    /// <summary>The same, for callers without the rules: the content's default pace before the colony arrives.</summary>
+    public static LifePaceDef PaceIn(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return simulation.LifePace.Length == 0
+            ? simulation.Content.All<LifePaceDef>().Single(pace => pace.Default)
+            : simulation.Content.Get<LifePaceDef>(simulation.LifePace);
+    }
+
     /// <summary>The stage an age, in days of life, falls in.</summary>
     public LifeStageDef StageAt(int ageDays, int daysPerYear)
     {

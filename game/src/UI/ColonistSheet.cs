@@ -20,6 +20,8 @@ namespace OurLife.Game.UI;
 public partial class ColonistSheet : PanelContainer
 {
     private const double RefreshSeconds = 0.5;
+    private const string AllowedKey = "ui.sheet.children_allowed";
+    private const string ForbiddenKey = "ui.sheet.children_forbidden";
     private const int ColumnWidth = 340;
 
     private readonly List<(Label Header, Label Body)> _sections = [];
@@ -161,7 +163,12 @@ public partial class ColonistSheet : PanelContainer
         }
     }
 
-    /// <summary>Allows or forbids children to the couple of the colonist shown (see <see cref="SetChildrenAllowedCommand"/>).</summary>
+    /// <summary>
+    /// Allows or forbids children to the couple of the colonist shown (see <see cref="SetChildrenAllowedCommand"/>),
+    /// the opposite of what the button shows. While time runs the choice applies on the next tick:
+    /// the button shows it at once, so pressing twice before that gives the choice back, and the
+    /// sheet refreshes as soon as the tick passed.
+    /// </summary>
     private void ToggleChildren()
     {
         if (!IsColonist(Colonist))
@@ -169,11 +176,9 @@ public partial class ColonistSheet : PanelContainer
             return;
         }
 
-        var partner = Relationships.PartnerOf(_simulation, Colonist);
-        _session.Enqueue(new SetChildrenAllowedCommand(Colonist, !LifeRules.ChildrenAllowed(_simulation, Colonist, partner)));
-        Refresh();
-
-        // While time runs the choice applies on the next tick: show it as soon as that tick passed.
+        var allowed = _children.Text == AllowedKey;
+        _session.Enqueue(new SetChildrenAllowedCommand(Colonist, !allowed));
+        _children.Text = allowed ? ForbiddenKey : AllowedKey;
         _sinceRefresh = RefreshSeconds;
     }
 
@@ -186,9 +191,7 @@ public partial class ColonistSheet : PanelContainer
         var world = _simulation.World;
         var partner = Relationships.PartnerOf(_simulation, Colonist);
         _children.Visible = !partner.IsNone && world.Get<Colonist>(partner).Gender != world.Get<Colonist>(Colonist).Gender;
-        _children.Text = !partner.IsNone && LifeRules.ChildrenAllowed(_simulation, Colonist, partner)
-            ? "ui.sheet.children_allowed"
-            : "ui.sheet.children_forbidden";
+        _children.Text = !partner.IsNone && LifeRules.ChildrenAllowed(_simulation, Colonist, partner) ? AllowedKey : ForbiddenKey;
     }
 
     private static VBoxContainer Column(HBoxContainer columns)

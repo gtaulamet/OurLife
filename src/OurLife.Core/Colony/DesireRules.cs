@@ -83,11 +83,7 @@ public static class DesireRules
             return config.DesireExpireDays;
         }
 
-        var content = simulation.Content;
-        var pace = simulation.LifePace.Length > 0 && content.TryGet<LifePaceDef>(simulation.LifePace, out var chosen)
-            ? chosen
-            : content.All<LifePaceDef>().FirstOrDefault(each => each.Default);
-        return Math.Max(1, years * simulation.Time.DaysPerYear / (pace?.LifeDaysPerDay ?? 1));
+        return Math.Max(1, years * simulation.Time.DaysPerYear / LifeRules.PaceIn(simulation).LifeDaysPerDay);
     }
 
     /// <summary>The desires of a colonist, created empty if it had none.</summary>

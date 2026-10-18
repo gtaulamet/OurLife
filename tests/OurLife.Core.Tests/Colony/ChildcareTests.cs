@@ -234,6 +234,51 @@ public class ChildcareTests
         }
     }
 
+    [Fact]
+    public void A_feeder_holds_only_the_units_nobody_else_holds()
+    {
+        var bed = ColonyTestBed.Flat(15);
+        bed.AddColonist(4, 4, 1, hunger: 1_000);
+        var feeder = bed.AddColonist(2, 2, 1, name: "Urraca");
+        Baby(bed, EntityId.None, 12, 12, hunger: 0);
+        bed.AddItems("provisions", 3, 1, 1, 1);
+
+        bed.Simulation.Tick();
+
+        bed.JobOf(feeder).ShouldNotBeNull().Kind.ShouldBe(JobKind.FeedBaby);
+        bed.JobOf(feeder)!.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void A_parent_with_other_work_first_leaves_the_baby_to_the_others()
+    {
+        // Mining comes first for the mother, so she would look for it before the baby.
+        var bed = ColonyTestBed.Flat(15);
+        var neighbour = bed.AddColonist(2, 3, 1, name: "Urraca");
+        var mother = bed.AddColonist(12, 12, 1);
+        var baby = Baby(bed, mother, 3, 3, hunger: 3_000);
+        bed.AddItems("provisions", 10, 1, 1, 1);
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(mother, "mining", 1));
+
+        RunUntilFed(bed, baby).ShouldBe(neighbour);
+    }
+
+    [Fact]
+    public void A_child_does_not_go_to_play_with_family_in_a_crisis()
+    {
+        var bed = ColonyTestBed.Flat(16, seed: 2);
+        var father = bed.AddColonist(13, 13, 1, name: "Rodrigo");
+        bed.World.Add(father, new Crisis { Kind = "isolate", UntilTick = long.MaxValue });
+        var child = Child(bed, 1, 1, "Sancho");
+        bed.World.Add(child, new Family { Father = Relationships.RelativeOf(bed.Simulation, father) });
+
+        for (var tick = 0; tick < 600; tick++)
+        {
+            bed.Simulation.Tick();
+            bed.JobOf(child)?.Kind.ShouldNotBe(JobKind.Play);
+        }
+    }
+
     /// <summary>A baby of a few months, the child of the mother if there is one, with no traits.</summary>
     private static EntityId Baby(ColonyTestBed bed, EntityId mother, int x, int y, int hunger)
     {

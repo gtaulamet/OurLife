@@ -204,7 +204,7 @@ public sealed partial class DecisionSystem : ISimSystem
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
-            _entityUses[held] = _entityUses.GetValueOrDefault(held) + UsesOf(simulation, job);
+            _entityUses[held] = _entityUses.GetValueOrDefault(held) + UsesOf(job);
             if (job.Kind is JobKind.Haul or JobKind.Deliver)
             {
                 _hauledPiles.Add(held);
@@ -243,7 +243,7 @@ public sealed partial class DecisionSystem : ISimSystem
                 _hauledPiles.Remove(held);
             }
 
-            ReleaseEntity(held, UsesOf(simulation, job));
+            ReleaseEntity(held, UsesOf(job));
         }
         else if (IsCellOrder(job.Kind))
         {
@@ -315,23 +315,8 @@ public sealed partial class DecisionSystem : ISimSystem
         }
     }
 
-    /// <summary>
-    /// How many uses of its target a job holds: one, but for a feeder on its way to the food, the
-    /// units the baby lacks, at least one. Needs only change between ticks, so reserving and
-    /// releasing in one decision count the same.
-    /// </summary>
-    private static int UsesOf(Simulation simulation, Job job)
-    {
-        var world = simulation.World;
-        if (job.Kind != JobKind.FeedBaby || !world.IsAlive(job.Target) || !world.TryGet<ItemStack>(job.Target, out var food)
-            || !Relationships.IsLivingColonist(world, job.Recipient))
-        {
-            return 1;
-        }
-
-        var units = Hunger.UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(food.Def).Nutrition);
-        return Math.Clamp(units, 1, Math.Max(1, food.Count));
-    }
+    /// <summary>How many uses of its target a job holds: one, but for a feeder on its way to the food, the units it holds for the baby.</summary>
+    private static int UsesOf(Job job) => job.Kind == JobKind.FeedBaby ? Math.Max(1, job.Count) : 1;
 
     private void ReleaseEntity(EntityId entity, int count = 1)
     {
@@ -905,15 +890,19 @@ public sealed partial class DecisionSystem : ISimSystem
             }
 
             // A feeder walks to the food first, then to the baby.
-            var (target, cell) = (candidate.Target, candidate.Cell);
+            var (target, cell, count) = (candidate.Target, candidate.Cell, 0);
             if (candidate.Kind == JobKind.FeedBaby)
             {
-                if (ParentWillFeed(simulation, colonist, candidate.Target) || !TryFood(simulation, colonist, candidate, region, out target, out cell))
+                if (ParentWillFeed(simulation, colonist, candidate.Target)
+                    || !TryFood(simulation, colonist, candidate, region, out target, out cell, out var free))
                 {
                     continue;
                 }
 
+                // It holds the units the baby lacks, of those nobody else holds.
                 recipient = candidate.Target;
+                var nutrition = simulation.Content.Get<ItemDef>(simulation.World.Get<ItemStack>(target).Def).Nutrition;
+                count = Math.Clamp(Hunger.UnitsToFeed(simulation, recipient, nutrition), 1, free);
             }
 
             attempts++;
@@ -930,8 +919,14 @@ public sealed partial class DecisionSystem : ISimSystem
                     ForFood = forFood,
                     Destination = destination,
                     Recipient = recipient,
+                    Count = count,
                 };
                 Assign(simulation, colonist, job, _path);
+                if (job.Kind == JobKind.FeedBaby)
+                {
+                    WaitForFood(simulation, recipient);
+                }
+
                 return true;
             }
 
