@@ -238,6 +238,38 @@ public class BirthTests
         Run(8).ShouldBe(Run(8));
     }
 
+    [Fact]
+    public void A_couple_expecting_a_child_does_not_wish_for_another_and_a_widow_drops_the_wish()
+    {
+        var content = TestContent.WithDefs(ColonyTestBed.ContentJson
+            .Replace("\"id\": \"have_child\", \"kind\": \"haveChild\", \"chancePercent\": 30", "\"id\": \"have_child\", \"kind\": \"haveChild\", \"chancePercent\": 100", StringComparison.Ordinal)
+            .Replace("\"conceptionChancePerYear\": 40", "\"conceptionChancePerYear\": 0", StringComparison.Ordinal));
+        var (bed, wife, husband) = Couple(seed: 1, pace: "very_fast", content: content);
+        bed.World.Add(wife, new Pregnancy { Father = Relationships.RelativeOf(bed.Simulation, husband) });
+
+        bed.Simulation.Run(TicksPerDay);
+
+        Wishes(bed, wife).ShouldBeEmpty();
+        Wishes(bed, husband).ShouldBeEmpty();
+
+        bed.World.Remove<Pregnancy>(wife);
+        bed.Simulation.Run(15 * TicksPerDay);
+        Wishes(bed, husband).ShouldBe(new[] { "have_child" });
+        bed.World.Get<Desires>(husband).Active.Single().Target.ShouldBe(wife);
+
+        var frustrated = Frustrations(bed, husband);
+        bed.World.Get<Needs>(wife).Values.ForEach(need => need.Value = 0);
+        bed.World.Get<Needs>(wife).Find("hunger")!.MinutesAtZero = 72 * 60;
+        bed.Simulation.Run(2 * 60);
+
+        bed.World.IsAlive(wife).ShouldBeFalse();
+        Wishes(bed, husband).ShouldBeEmpty();
+        Frustrations(bed, husband).ShouldBe(frustrated);
+    }
+
+    private static int Frustrations(ColonyTestBed bed, EntityId colonist) =>
+        MoodRules.Thoughts(bed.Simulation, colonist).Count(thought => thought.Id == "desire_frustrated");
+
     /// <summary>
     /// A woman and a man of 25 in a couple, Elvira Smith and Rodrigo Pérez, with average traits,
     /// on an open floor with food for a long while unless told otherwise.

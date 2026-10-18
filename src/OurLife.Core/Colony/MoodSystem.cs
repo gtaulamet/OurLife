@@ -168,7 +168,7 @@ public sealed class MoodSystem : ISimSystem
 
         foreach (var active in desires.Active.ToList())
         {
-            if (DesireRules.IsMoot(simulation, active))
+            if (DesireRules.IsMoot(simulation, colonist, active))
             {
                 desires.Active.Remove(active);
             }
@@ -187,7 +187,8 @@ public sealed class MoodSystem : ISimSystem
 
     /// <summary>
     /// Once a year of life, a colonist at the right stage may wish for a partner if it is single,
-    /// or for a child if its couple can have one and may (a forbidden child is not even wished for).
+    /// or for a child with its partner if their couple could conceive one: they can and may (a
+    /// forbidden child is not even wished for), nobody is expecting and there is no baby too young.
     /// </summary>
     private void ConsiderYearly(Simulation simulation, EntityId colonist)
     {
@@ -198,7 +199,7 @@ public sealed class MoodSystem : ISimSystem
 
         var partner = Relationships.PartnerOf(simulation, colonist);
         var single = Relationships.IsFree(simulation, colonist);
-        if ((!single && (partner.IsNone || !_life.CanHaveChildren(simulation, colonist, partner)))
+        if ((!single && (partner.IsNone || !_life.CouldConceive(simulation, colonist, partner)))
             || (simulation.World.TryGet<Desires>(colonist, out var existing) && existing.LastYearlyYear == years))
         {
             return;
@@ -212,7 +213,7 @@ public sealed class MoodSystem : ISimSystem
         else
         {
             DesireRules.Consider(
-                simulation, colonist, DesireKind.HaveChild, eligible: desire => desire.Stages.Contains(stage.Id),
+                simulation, colonist, DesireKind.HaveChild, partner, eligible: desire => desire.Stages.Contains(stage.Id),
                 level: DesireRules.ChildrenOf(simulation, colonist));
         }
     }

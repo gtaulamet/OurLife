@@ -190,7 +190,8 @@ public sealed partial class DecisionSystem : ISimSystem
     private void Reserve(GameMap map, Job job)
     {
         // A hauler holds both the pile and the stockpile cell it carries to; a deliverer, the
-        // pile and the blueprint; a feeder, the food and the baby.
+        // pile and the blueprint; a feeder, the food and the baby. The three may lift a whole
+        // pile, so nobody else goes to it.
         if (job.Kind == JobKind.Haul)
         {
             ReserveCell(map, job.Destination);
@@ -203,7 +204,7 @@ public sealed partial class DecisionSystem : ISimSystem
         if (HeldEntity(job) is { IsNone: false } held)
         {
             _entityUses[held] = _entityUses.GetValueOrDefault(held) + 1;
-            if (job.Kind is JobKind.Haul or JobKind.Deliver)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby)
             {
                 _hauledPiles.Add(held);
             }
@@ -235,7 +236,7 @@ public sealed partial class DecisionSystem : ISimSystem
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
-            if (job.Kind is JobKind.Haul or JobKind.Deliver)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby)
             {
                 _hauledPiles.Remove(held);
             }
@@ -390,13 +391,14 @@ public sealed partial class DecisionSystem : ISimSystem
             }
         }
 
-        if (job.Kind != JobKind.Wander)
+        // Critical needs were tried above. Work and low needs interrupt wandering and playing;
+        // a wanderer may also go to play, but a player keeps its playmate.
+        return job.Kind switch
         {
-            return false;
-        }
-
-        // Critical needs were tried above, and the job is wandering, which they always interrupt.
-        return TryWorkOrLowNeeds(simulation, colonist) || TryPlay(simulation, colonist);
+            JobKind.Wander => TryWorkOrLowNeeds(simulation, colonist) || TryPlay(simulation, colonist),
+            JobKind.Play => TryWorkOrLowNeeds(simulation, colonist),
+            _ => false,
+        };
     }
 
     private void Decide(Simulation simulation, EntityId colonist)
@@ -890,7 +892,7 @@ public sealed partial class DecisionSystem : ISimSystem
                     continue;
                 }
 
-                (recipient, destination) = (candidate.Target, candidate.Cell);
+                recipient = candidate.Target;
             }
 
             attempts++;
@@ -912,10 +914,11 @@ public sealed partial class DecisionSystem : ISimSystem
                 return true;
             }
 
+            // What it could not reach: for a feeder, the food, so it may try another pile.
             person.Unreachable.Add(new IgnoredTarget
             {
-                Entity = candidate.Target,
-                Cell = candidate.Cell,
+                Entity = target,
+                Cell = cell,
                 UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
             });
         }

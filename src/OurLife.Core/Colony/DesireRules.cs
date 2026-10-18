@@ -114,12 +114,21 @@ public static class DesireRules
         LifeRules.PregnancyOf(simulation, colonist) is not null
         || (Relationships.PartnerOf(simulation, colonist) is { IsNone: false } partner && LifeRules.PregnancyOf(simulation, partner) is not null);
 
-    /// <summary>A desire about someone who is gone can no longer come true, nor be frustrated.</summary>
-    public static bool IsMoot(Simulation simulation, ActiveDesire active)
+    /// <summary>
+    /// A desire about someone who is gone can no longer come true, nor be frustrated; nor can a
+    /// wish for a child with a partner the colonist is no longer with.
+    /// </summary>
+    public static bool IsMoot(Simulation simulation, EntityId colonist, ActiveDesire active)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(active);
-        return !active.Target.IsNone && !Alive(simulation, active.Target);
+        if (!active.Target.IsNone && !Alive(simulation, active.Target))
+        {
+            return true;
+        }
+
+        return simulation.Content.TryGet<DesireDef>(active.Desire, out var desire) && desire.Kind == DesireKind.HaveChild
+               && Relationships.PartnerOf(simulation, colonist) != active.Target;
     }
 
     private static bool Alive(Simulation simulation, EntityId colonist) =>

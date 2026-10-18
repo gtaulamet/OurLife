@@ -690,7 +690,7 @@ public sealed class JobSystem : ISimSystem
         var world = simulation.World;
         var stack = world.Get<ItemStack>(job.Target);
         var item = stack.Def;
-        var count = Math.Min(stack.Count, UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(item).Nutrition));
+        var count = Math.Min(stack.Count, Hunger.UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(item).Nutrition));
         if (count <= 0)
         {
             return true;
@@ -730,7 +730,7 @@ public sealed class JobSystem : ISimSystem
         }
 
         var nutrition = simulation.Content.Get<ItemDef>(carried.Def).Nutrition;
-        if (UnitsToFeed(simulation, job.Recipient, nutrition) == 0)
+        if (Hunger.UnitsToFeed(simulation, job.Recipient, nutrition) == 0)
         {
             return true;
         }
@@ -755,24 +755,7 @@ public sealed class JobSystem : ISimSystem
         }
 
         simulation.Events.Emit(new EntityChangedEvent(colonist));
-        return carried.Count == 0 || UnitsToFeed(simulation, job.Recipient, nutrition) == 0;
-    }
-
-    /// <summary>The units of food of this nutrition a colonist lacks to be fed: rounded, so less than half a unit is none.</summary>
-    private static int UnitsToFeed(Simulation simulation, EntityId colonist, int nutrition)
-    {
-        var units = 0;
-        foreach (var state in simulation.World.Get<Needs>(colonist).Values)
-        {
-            var need = simulation.Content.Get<NeedDef>(state.Need);
-            if (need.SatisfiedBy == NeedSatisfaction.Eating)
-            {
-                var perUnit = Math.Max(1, nutrition);
-                units = Math.Max(units, (need.Max - state.Value + (perUnit / 2)) / perUnit);
-            }
-        }
-
-        return units;
+        return carried.Count == 0 || Hunger.UnitsToFeed(simulation, job.Recipient, nutrition) == 0;
     }
 
     /// <summary>Walks the colonist to beside the baby, or stops it there; false if there is no way.</summary>
@@ -836,19 +819,7 @@ public sealed class JobSystem : ISimSystem
         }
     }
 
-    private static bool IsFed(Simulation simulation, EntityId colonist, int nutrition)
-    {
-        foreach (var state in simulation.World.Get<Needs>(colonist).Values)
-        {
-            var need = simulation.Content.Get<NeedDef>(state.Need);
-            if (need.SatisfiedBy == NeedSatisfaction.Eating && state.Value < need.Max - (nutrition / 2))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
+    private static bool IsFed(Simulation simulation, EntityId colonist, int nutrition) => Hunger.UnitsToFeed(simulation, colonist, nutrition) == 0;
 
     private static bool NeedsFull(Simulation simulation, EntityId colonist, NeedSatisfaction way)
     {

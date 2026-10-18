@@ -18,25 +18,11 @@ public sealed partial class DecisionSystem
     {
         foreach (var baby in _colonists)
         {
-            if (simulation.World.IsAlive(baby) && LifeRules.Stage(simulation, baby) is { EatsAlone: false } && HungerIsLow(simulation, baby))
+            if (simulation.World.IsAlive(baby) && LifeRules.Stage(simulation, baby) is { EatsAlone: false } && Hunger.IsLow(simulation, baby))
             {
                 AddEntity(simulation, JobKind.FeedBaby, baby, capacity: 1);
             }
         }
-    }
-
-    private static bool HungerIsLow(Simulation simulation, EntityId colonist)
-    {
-        foreach (var state in simulation.World.Get<Needs>(colonist).Values)
-        {
-            var need = simulation.Content.Get<NeedDef>(state.Need);
-            if (need.SatisfiedBy == NeedSatisfaction.Eating && state.Value < need.LowThreshold)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>

@@ -1233,7 +1233,7 @@ public partial class GameRoot : Node
 
         var beds = new List<EntityId>();
         simulation.World.Query<Bed>(beds);
-        var taken = beds.Count(bed => simulation.World.IsAlive(simulation.World.Get<Bed>(bed).Owner));
+        var taken = beds.Count(bed => Beds.IsTaken(simulation, bed));
         GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors, "
                  + $"{simulation.World.Store<Furniture>().Count} pieces of furniture, {taken} beds taken");
     }

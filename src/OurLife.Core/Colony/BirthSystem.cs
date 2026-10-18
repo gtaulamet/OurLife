@@ -10,7 +10,7 @@ namespace OurLife.Core.Colony;
 /// Runs at midnight, after <see cref="LifeSystem"/> (see "Parejas, embarazo y nacimiento" in
 /// <c>docs/gdd/vida-y-generaciones.md</c>): pregnancies go on by the days of life of the pace and
 /// end in a birth, and a fertile couple of a woman and a man who may have children can conceive,
-/// unless one of them is hungry or the mother has a child too young. Conception is abstract: it is
+/// unless one of them is hungry (food is what limits the colony) or the mother has a child too young. Conception is abstract: it is
 /// not shown. Women are visited by ascending id. Draws from the random stream <c>life.birth</c>.
 /// </summary>
 public sealed class BirthSystem : ISimSystem
@@ -71,8 +71,7 @@ public sealed class BirthSystem : ISimSystem
     private void TryConceive(Simulation simulation, EntityId mother, BirthConfig birth, int pace)
     {
         var father = Relationships.PartnerOf(simulation, mother);
-        if (father.IsNone || !_life.CanHaveChildren(simulation, mother, father) || Hungry(simulation, mother) || Hungry(simulation, father)
-            || HasYoungChild(simulation, mother, birth))
+        if (father.IsNone || !_life.CouldConceive(simulation, mother, father) || Hunger.IsLow(simulation, mother) || Hunger.IsLow(simulation, father))
         {
             return;
         }
@@ -89,34 +88,6 @@ public sealed class BirthSystem : ISimSystem
         Notify(simulation, LocalizedText.Of(PregnantKey).With("colonist", mother));
     }
 
-    /// <summary>Hunger under its low threshold keeps a couple from conceiving: food is what limits the colony.</summary>
-    private static bool Hungry(Simulation simulation, EntityId colonist)
-    {
-        if (!simulation.World.TryGet<Needs>(colonist, out var needs))
-        {
-            return false;
-        }
-
-        foreach (var state in needs.Values)
-        {
-            var need = simulation.Content.Get<NeedDef>(state.Need);
-            if (need.SatisfiedBy == NeedSatisfaction.Eating && state.Value < need.LowThreshold)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool HasYoungChild(Simulation simulation, EntityId mother, BirthConfig birth)
-    {
-        var world = simulation.World;
-        var young = (long)birth.YearsBetweenChildren * simulation.Time.DaysPerYear;
-        return world.TryGet<Family>(mother, out var family)
-               && family.Children.Exists(child => !child.Dead && world.IsAlive(child.Entity) && world.TryGet<Life>(child.Entity, out var life)
-                                                  && life.AgeDays < young);
-    }
 
     /// <summary>
     /// A baby is born on the mother's cell: of a sex drawn, with a name of the list no living

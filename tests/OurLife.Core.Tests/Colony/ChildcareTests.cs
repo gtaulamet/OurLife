@@ -143,6 +143,42 @@ public class ChildcareTests
         }
     }
 
+    [Fact]
+    public void Nobody_goes_to_eat_from_the_pile_a_feeder_is_taking_to_a_baby()
+    {
+        var bed = ColonyTestBed.Flat(15);
+        var mother = bed.AddColonist(12, 12, 1);
+        var baby = Baby(bed, mother, 12, 11, hunger: 0);
+        var hungry = bed.AddColonist(6, 6, 1, hunger: 1_000, name: "Urraca");
+        bed.AddItems("provisions", 3, 1, 1, 1);
+
+        for (var tick = 0; tick < 400; tick++)
+        {
+            bed.Simulation.Tick();
+            if (bed.JobOf(mother) is { Kind: JobKind.FeedBaby, Stage: JobStage.Moving } feeding)
+            {
+                (bed.JobOf(hungry) is { Kind: JobKind.Eat } eating && eating.Target == feeding.Target).ShouldBeFalse();
+            }
+        }
+
+        bed.Need(baby, "hunger").Value.ShouldBeGreaterThan(5_000);
+    }
+
+    [Fact]
+    public void A_child_at_play_leaves_it_to_eat_when_hungry()
+    {
+        var bed = ColonyTestBed.Flat(15);
+        var child = Child(bed, 3, 3, "Sancho");
+        var playmate = Child(bed, 4, 4, "Jimena");
+        bed.AddItems("provisions", 5, 6, 6, 1);
+        bed.World.Add(child, new Job { Kind = JobKind.Play, Stage = JobStage.Working, Target = playmate, Cell = new TileCoord(4, 4, 1), UntilTick = long.MaxValue });
+        bed.Need(child, "hunger").Value = 3_000;
+
+        bed.Simulation.Run(60);
+
+        bed.JobOf(child)?.Kind.ShouldBe(JobKind.Eat);
+    }
+
     /// <summary>A baby of a few months, the child of the mother if there is one, with no traits.</summary>
     private static EntityId Baby(ColonyTestBed bed, EntityId mother, int x, int y, int hunger)
     {

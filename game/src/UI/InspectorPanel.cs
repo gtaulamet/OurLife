@@ -149,7 +149,7 @@ public partial class InspectorPanel : PanelContainer
             var item = NameOf(_simulation.Content.Get<ItemDef>(carried.Def), carried.Count);
             _lines.Add(text.Format("ui.inspector.carrying", ("count", carried.Count), ("item", item)));
         }
-        _lines.Add(text.Format(Beds.HasBed(_simulation, colonist) ? "ui.inspector.has_bed" : "ui.inspector.no_bed"));
+        _lines.Add(text.Format(Beds.HasBed(_simulation, colonist, _entities) ? "ui.inspector.has_bed" : "ui.inspector.no_bed"));
         foreach (var state in world.Get<Needs>(colonist).Values)
         {
             var need = _simulation.Content.Get<NeedDef>(state.Need);
@@ -238,8 +238,9 @@ public partial class InspectorPanel : PanelContainer
                     ("material", NameOf(_simulation.Content.Get<MaterialDef>(furniture.Material))))));
                 if (world.TryGet<Bed>(entity, out var bed))
                 {
-                    _lines.Add(world.IsAlive(bed.Owner) && world.TryGet<Colonist>(bed.Owner, out var owner)
-                        ? text.Format("ui.inspector.bed_owner", ("name", owner.Name))
+                    // A bed whose owner grew out of it, like a cradle, is free (see Beds).
+                    _lines.Add(Beds.IsTaken(_simulation, entity)
+                        ? text.Format("ui.inspector.bed_owner", ("name", world.Get<Colonist>(bed.Owner).Name))
                         : text.Format("ui.inspector.bed_free"));
                 }
             }

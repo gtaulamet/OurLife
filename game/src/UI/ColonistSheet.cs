@@ -169,20 +169,26 @@ public partial class ColonistSheet : PanelContainer
             return;
         }
 
-        _session.Enqueue(new SetChildrenAllowedCommand(Colonist, !LifeRules.ChildrenAllowed(_simulation, Colonist)));
+        var partner = Relationships.PartnerOf(_simulation, Colonist);
+        _session.Enqueue(new SetChildrenAllowedCommand(Colonist, !LifeRules.ChildrenAllowed(_simulation, Colonist, partner)));
         Refresh();
 
         // While time runs the choice applies on the next tick: show it as soon as that tick passed.
         _sinceRefresh = RefreshSeconds;
     }
 
-    /// <summary>The choice shows for a colonist with a living partner of the other sex: only they can have children.</summary>
+    /// <summary>
+    /// The choice shows for a colonist with a living partner of the other sex: only they can have
+    /// children. It is the couple's: allowed only if both allow it, as a couple conceives.
+    /// </summary>
     private void RefreshChildren()
     {
         var world = _simulation.World;
         var partner = Relationships.PartnerOf(_simulation, Colonist);
         _children.Visible = !partner.IsNone && world.Get<Colonist>(partner).Gender != world.Get<Colonist>(Colonist).Gender;
-        _children.Text = LifeRules.ChildrenAllowed(_simulation, Colonist) ? "ui.sheet.children_allowed" : "ui.sheet.children_forbidden";
+        _children.Text = !partner.IsNone && LifeRules.ChildrenAllowed(_simulation, Colonist, partner)
+            ? "ui.sheet.children_allowed"
+            : "ui.sheet.children_forbidden";
     }
 
     private static VBoxContainer Column(HBoxContainer columns)

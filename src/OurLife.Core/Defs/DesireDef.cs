@@ -19,8 +19,9 @@ public enum DesireKind
     Reconcile,
 
     /// <summary>
-    /// In a couple that can have children and may, once a year of life at a stage of
-    /// <see cref="DesireDef.Stages"/>; fulfilled when the couple expects a child or one is born.
+    /// In a couple that could conceive, once a year of life at a stage of <see cref="DesireDef.Stages"/>,
+    /// about the partner; fulfilled when the couple expects a child or one is born, and dropped if
+    /// the couple is no more.
     /// </summary>
     HaveChild,
 }

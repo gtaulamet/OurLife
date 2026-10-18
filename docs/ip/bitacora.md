@@ -12,8 +12,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | Con la ficha del colono, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.6 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 677 tests en verde, smoke con código 0 |
-| Huella del smoke | `CBD31D910E8019D7` con `--seed 1 --ticks 5000`; `95A5B6F5A5B40D9F` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 680 tests en verde, smoke con código 0 |
+| Huella del smoke | `3312BA81E1022B34` con `--seed 1 --ticks 5000`; `95A5B6F5A5B40D9F` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
@@ -40,6 +40,20 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.7, primera ronda de revisión
+
+- 10 hallazgos, todos corregidos:
+  - El deseo de un hijo nace sólo si la pareja podría concebir: nadie espera un hijo y no hay un bebé de menos de un año (`LifeRules.CouldConceive`). Guarda a la pareja como objetivo y se descarta sin frustrarse si ella muere o se separan.
+  - El botón de la ficha muestra la opción de la pareja: permitidos sólo si los dos los permiten.
+  - El inspector y el smoke dan por libre la cuna de quien ya creció (`Beds.IsTaken`).
+  - Quien alimenta a un bebé reserva la pila entera, como el acarreo, porque puede llevarse varias unidades.
+  - Si no encuentra camino a la comida, ignora esa pila y no al bebé.
+  - Un niño que juega deja el juego por una necesidad baja.
+  - El hambre se consulta en un solo lugar (`Hunger.IsLow` y `Hunger.UnitsToFeed`, que también usa comer).
+  - `Beds.HasBed` reutiliza la lista del inspector.
+  - El trabajo de alimentar ya no guarda una celda de destino que nadie lee.
+- 3 tests nuevos, 680 en total. La huella de la semilla 1 pasa a `3312BA81E1022B34`, porque el deseo de un hijo ahora guarda a la pareja; la de la 42 no cambia.
 
 ### 2026-10-18: H3.7, la ficha y el inspector
 

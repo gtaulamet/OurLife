@@ -73,7 +73,7 @@ public sealed class Job
     /// <summary>True when the colonist gathers to eat, not because the player ordered it.</summary>
     public bool ForFood { get; set; }
 
-    /// <summary>For hauling, the stockpile cell where the load goes; for delivering, the blueprint's cell; for feeding, the baby's.</summary>
+    /// <summary>For hauling, the stockpile cell where the load goes; for delivering, the blueprint's cell.</summary>
     public TileCoord Destination { get; set; }
 
     /// <summary>For delivering, the blueprint the materials go to; for feeding, the baby.</summary>

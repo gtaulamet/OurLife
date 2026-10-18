@@ -176,6 +176,36 @@ public sealed class LifeRules
                && ChildrenAllowed(simulation, a) && ChildrenAllowed(simulation, b);
     }
 
+    /// <summary>
+    /// Whether a couple could conceive now, but for hunger: they can have children, neither of
+    /// them expects one, and the woman has no child younger than <see cref="BirthConfig.YearsBetweenChildren"/>.
+    /// </summary>
+    public bool CouldConceive(Simulation simulation, EntityId a, EntityId b)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        if (!CanHaveChildren(simulation, a, b) || PregnancyOf(simulation, a) is not null || PregnancyOf(simulation, b) is not null)
+        {
+            return false;
+        }
+
+        var mother = simulation.World.Get<Colonist>(a).Gender == Gender.Female ? a : b;
+        return !HasYoungChild(simulation, mother);
+    }
+
+    /// <summary>Whether a colonist has a living child younger than <see cref="BirthConfig.YearsBetweenChildren"/>.</summary>
+    public bool HasYoungChild(Simulation simulation, EntityId parent)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        var young = (long)(Config.Birth?.YearsBetweenChildren ?? 0) * simulation.Time.DaysPerYear;
+        return world.TryGet<Family>(parent, out var family)
+               && family.Children.Exists(child => !child.Dead && world.IsAlive(child.Entity) && world.TryGet<Life>(child.Entity, out var life)
+                                                  && life.AgeDays < young);
+    }
+
+    /// <summary>Whether a couple may have children: both allow it, as the player chose; on by default.</summary>
+    public static bool ChildrenAllowed(Simulation simulation, EntityId a, EntityId b) => ChildrenAllowed(simulation, a) && ChildrenAllowed(simulation, b);
+
     /// <summary>Whether a colonist's couple may have children; on unless the player said no.</summary>
     public static bool ChildrenAllowed(Simulation simulation, EntityId colonist)
     {

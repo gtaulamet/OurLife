@@ -15,6 +15,7 @@ public static class Beds
     /// <summary>Whether the bed is for a colonist at the colonist's stage of life.</summary>
     public static bool Fits(Simulation simulation, EntityId bed, EntityId colonist)
     {
+        ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
         if (!world.TryGet<Furniture>(bed, out var furniture))
         {
@@ -34,15 +35,17 @@ public static class Beds
     /// <summary>Whether a bed belongs to a living colonist it is for.</summary>
     public static bool IsTaken(Simulation simulation, EntityId bed)
     {
+        ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
         var owner = world.Get<Bed>(bed).Owner;
         return !owner.IsNone && world.IsAlive(owner) && world.Has<Colonist>(owner) && Fits(simulation, bed, owner);
     }
 
-    /// <summary>Whether a colonist owns a bed it is still for.</summary>
-    public static bool HasBed(Simulation simulation, EntityId colonist)
+    /// <summary>Whether a colonist owns a bed it is still for; <paramref name="buffer"/>, if given, is reused for the query.</summary>
+    public static bool HasBed(Simulation simulation, EntityId colonist, List<EntityId>? buffer = null)
     {
-        var beds = new List<EntityId>();
+        ArgumentNullException.ThrowIfNull(simulation);
+        var beds = buffer ?? [];
         simulation.World.Query<Bed>(beds);
         return beds.Exists(bed => simulation.World.Get<Bed>(bed).Owner == colonist && Fits(simulation, bed, colonist));
     }
