@@ -24,7 +24,7 @@
 | H3.7 Parejas, nacimientos y crianza | Hecho | `ip3/h3-7-nacimientos` | Embarazo, parto, alimentar bebés, gateo, juego, cuna, deseo de un hijo y opción de hijos en la ficha; formato 7. Cuatro rondas de revisión, 37 hallazgos corregidos y uno descartado con su motivo |
 | H3.8 Arte de las etapas | Hecho | `ip3/h3-8-arte` | Etapas con escala y cabeza más grande, ancianos con canas derivados del kit, animaciones de estar sentado, jugar y alimentar, caminar al paso real, globos de interacción; benchmark dentro del presupuesto. Cuatro rondas de revisión, 33 hallazgos corregidos |
 | H3.9 Ficha del colono | Hecho | `ip3/h3-9-ficha` | Adelantada a pedido del usuario: ficha (F) y columnas Edad y Ánimo; la opción de hijos llegó con H3.7 |
-| H3.10 Integración | Pendiente | `ip3/h3-10-integracion` | |
+| H3.10 Integración | En curso | `ip3/h3-10-integracion` | Balance de diez años con dos decisiones del usuario y un tope por lo que da la tierra, benchmark de una partida larga, paquetes de `v0.3.0` y checklist (`docs/ip/playtest-ip3.md`). Falta el playtest del usuario |
 
 **Ruta crítica:** H3.1 → H3.2 → (H3.3 ∥ H3.4) → H3.5 → H3.6 → H3.9 (adelantada el 16 de octubre, a pedido del usuario) → H3.7 → H3.10. H3.8 se hace en paralelo desde H3.2, apenas estén fijadas las etapas.
 
