@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-7-nacimientos`: H3.7 en curso, con el Core y sus tests hechos; faltan la ficha, el inspector, QA y la revisión |
+| Rama de trabajo | `ip3/h3-7-nacimientos`: H3.7 hecho salvo la revisión de código |
 | `main` | Con la ficha del colono, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.6 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 677 tests en verde; smoke pendiente para H3.7 |
-| Huella del smoke | `ECB4B600749ABA31` con `--seed 1 --ticks 5000`; `57A3D947DB7DB434` con `--seed 42 --ticks 5000` (desde H3.6). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 677 tests en verde, smoke con código 0 |
+| Huella del smoke | `CBD31D910E8019D7` con `--seed 1 --ticks 5000`; `95A5B6F5A5B40D9F` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`: falta la opción de hijos en la ficha, el embarazo en el inspector, la spec al día, el smoke con las huellas nuevas, capturas y la revisión de código.
+1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`: falta la revisión de código y adelantar `main`. Bebés y niños se dibujan como adultos hasta H3.8, y la cuna es la cama de KayKit en chico.
 2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -40,6 +40,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.7, la ficha y el inspector
+
+- La ficha muestra "Hijos: permitidos / no" junto a "Cerrar" a quien tiene pareja viva del otro sexo; con el tiempo corriendo se refresca apenas se aplica el comando. Ficha e inspector muestran "Embarazada (N %)" (`LifeRules.PregnancyPercent`). El inspector usa `Beds.HasBed`, y una cama dice "Es de Elvira", que vale también para la cuna.
+- El smoke abre la ficha de un fundador en pareja, aprieta el botón dos veces y comprueba que la opción cambia y vuelve. Huellas nuevas: `CBD31D910E8019D7` (semilla 1) y `95A5B6F5A5B40D9F` (semilla 42).
+- Capturas revisadas: la ficha en es a 1080p y en en a 960 × 540, y el panel Colonia a 960 × 540 con la columna Crianza.
+- Documentación: "Cómo está hecho (H3.7)" en la spec, con dos ajustes (se llevan al bebé las unidades que le faltan, y el deseo de un hijo se cumple con el embarazo); `guardado.md` y ADR-013 con el formato 7; la cuna en `muebles-y-camas.md`; la cuna provisoria y los bebés en `art.md`.
+- Los scripts de Python de la sesión dejaban CRLF en la copia de trabajo; se normalizó a LF (`.gitattributes` ya lo pide). Escribir siempre con `newline=''`.
 
 ### 2026-10-18: H3.7, el Core
 
