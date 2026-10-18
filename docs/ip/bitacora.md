@@ -41,6 +41,12 @@ En orden:
 
 ## Historial
 
+### 2026-10-17: IP3.5, decisiones y bosque que vuelve
+
+- Decisiones del usuario: las metas de existencias se eligen en el panel Colonia; "cerca de la aldea" es un círculo de 40 celdas de diámetro.
+- Pedido nuevo: que los árboles vuelvan a crecer sin llenar el mapa, con un tope como porcentaje del terreno. Va a IP3.5 como hito L4b: retoños junto a los árboles adultos, que crecen en días, con un tope por especie propuesto igual a la densidad con que la genera el valle (robles 3,5 %, pinos 4 %); nunca sobre construcciones, almacenes ni órdenes. Sembrar con semillas queda para la agricultura de IP4.
+- IP3.5 pasa a 40–58 h; plan maestro y `docs/gdd/libre-albedrio.md` actualizados. Propuestas a confirmar en L1: el centro del círculo de la aldea (el lugar de llegada) y retoños sólo junto a árboles adultos.
+
 ### 2026-10-16: IP3.5 "Libre albedrío" planificada
 
 - Respuestas del usuario: el interruptor va en Opciones para toda la aldea; por ahora sólo recolectar, talar y acarrear; las metas de existencias se eligen en el juego; la iniciativa respeta las prioridades; va como IP3.5, después de IP3.

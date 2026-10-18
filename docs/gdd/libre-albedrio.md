@@ -51,6 +51,18 @@ En el tiempo libre (sin órdenes, o de noche antes de dormir):
 
 Respondidas el 16 de octubre de 2026: el interruptor va en Opciones, para toda la aldea; por ahora sólo recolectar, talar y acarrear; el jugador elige en el juego cuánto alcanza; la iniciativa respeta las prioridades; y va como IP3.5, con las tres partes (el balance de H3.10 se hace sin ellas). Como la simulación tiene que saber si está prendido (determinismo y guardado), la preferencia de Opciones llega a la partida como un comando, al cambiarla y al cargar; se cierra en L1.
 
+Respondidas el 17 de octubre de 2026: las metas se eligen en el panel Colonia, y "cerca de la aldea" es un círculo de 40 celdas de diámetro.
+
+## D. Bosque que vuelve
+
+Pedido del 17 de octubre de 2026: que los árboles vuelvan a crecer, sin que llenen el mapa. Hoy un árbol talado no vuelve nunca; las plantas sólo nacen al generar el valle.
+
+- **Retoños solos:** cada día, un árbol adulto puede dejar un retoño en una celda libre de pasto o tierra a pocas celdas, que crece hasta árbol en unos días. Un retoño no bloquea el paso hasta crecer.
+- **Tope:** cada especie tiene un porcentaje máximo del terreno donde puede crecer, por datos. Propuesta: el mismo con que la genera el valle (robles 3,5 %, pinos 4 %), para que el bosque vuelva a su estado natural y no pase de ahí.
+- **Dónde no:** nunca sobre construcciones, almacenes, muebles, planos ni celdas con órdenes del jugador.
+- **Sembrar a pedido**, con semillas, queda para la agricultura de IP4.
+- Con la iniciativa de talar (parte A), la aldea tiene madera sin vaciar el valle.
+
 ## Preguntas que se hicieron
 
 1. **Interruptor:** ¿el libre albedrío se prende y apaga para toda la aldea, por colono, o siempre está?
@@ -74,10 +86,11 @@ Elegida: IP3.5, con las tres partes.
 | Parte | Horas |
 |---|---|
 | A. Trabajo por iniciativa, con defs de tareas y umbrales | 12–18 |
+| D. Bosque que vuelve, con tope por especie | 8–12 |
 | B. Buscar compañía, evitar rivales y lugar de reunión | 10–14 |
 | C. Preferencias por rasgos y ánimo | 4–6 |
 | Interruptor, textos, tests de escenario y balance | 6–8 |
-| **Total** | **32–46** |
+| **Total** | **40–58** |
 
 ## Riesgos
 

@@ -475,13 +475,13 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 | IP2 | Asentamiento | Almacenes, acarreo, construcción y muebles, guardar y cargar, prioridades, día y noche | 77–101 | 8–10 / 4–5 / 2–3 | dic 2026 |
 | IP2.5 | Pulido visual | Terreno con textura y decoración, muebles medievales, colonos animados, vista previa de muebles y tamaño de la interfaz | 38–55 | 4–6 / 2–3 / 1 | nov 2026 |
 | IP3 | Vida y generaciones | Edad y etapas de la vida, personalidad, interacciones, relaciones, habilidades, ánimo, deseos, parejas, nacimientos y muerte por vejez | 95–135 | 10–14 / 5–7 / 3–4 | feb 2027 |
-| IP3.5 | Libre albedrío | Colonos con iniciativa: recolectan, talan y acarrean solos según sus prioridades, buscan a quienes aprecian y evitan a sus rivales | 32–46 | 3–5 / 2 / 1 | mar 2027 |
+| IP3.5 | Libre albedrío | Colonos con iniciativa: recolectan, talan y acarrean solos según sus prioridades, buscan a quienes aprecian y evitan a sus rivales; el bosque vuelve a crecer | 40–58 | 4–6 / 2–3 / 1–2 | mar 2027 |
 | IP4 | Oficios | Talleres, recetas, producción, agricultura, metales, conocimientos, habitaciones y comedor | 105–130 | 11–13 / 6–7 / 3–4 | mar 2027 |
 | IP5 | Peligros | Salud, combate, fauna y caza, bandidos, milicia, medicina | 90–120 | 9–12 / 5–6 / 2–3 | abr 2027 |
 | IP6 | Estaciones | Estaciones, clima, temperatura, antorchas, agua, migrantes, comercio | 80–110 | 8–11 / 4–6 / 2–3 | jun 2027 |
 | IP7 | Mundo y leyendas | Mapa del mundo, facciones, historia generada, elección de sitio, crónicas | 90–130 | 9–13 / 5–7 / 2–3 | jul 2027 |
 | IP8 | Publicación 1.0 | Rendimiento, audio, tutorial, accesibilidad, mods, QA de idiomas, exportación | 80–120 | 8–12 / 4–6 / 2–3 | ago 2027 |
-| **Total 1.0** | | | **799–1 100** | **80–111 / 41–55 / 21–28** | **sep 2027; nov 2027 con margen** |
+| **Total 1.0** | | | **807–1 112** | **81–112 / 41–56 / 21–29** | **sep 2027; nov 2027 con margen** |
 
 **Fase 2: progreso de épocas (futuro, posterior a la 1.0)**
 
@@ -489,9 +489,9 @@ Las horas son dedicación del desarrollador trabajando con agentes: decisiones, 
 |---|---|---|---|---|---|
 | IP9 | Edad Moderna | Cambio de época, linajes, imprenta, pólvora, la aldea se vuelve villa | 105–140 | 11–14 / 6–7 / 3–4 | oct 2027 |
 | IP10 | Edad Contemporánea | Revolución Industrial: vapor, electricidad, fábricas, saneamiento | 140–190 | 14–19 / 7–10 / 4–5 | nov 2027 |
-| **Total con épocas** | | | **1 044–1 430** | **105–144 / 53–72 / 27–36** | **dic 2027; mar 2028 con margen** |
+| **Total con épocas** | | | **1 052–1 442** | **106–145 / 53–73 / 27–37** | **dic 2027; mar 2028 con margen** |
 
-IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. IP2.5 se sumó el 14-oct-2026, a pedido del usuario, entre IP2 e IP3: corre las fechas siguientes unas dos semanas y adelanta la escala de UI de IP8. El 15-oct-2026, a pedido del usuario, la vida de los colonos pasa antes de los oficios: la nueva IP3 "Vida y generaciones" junta los rasgos, las relaciones y el ánimo de la antigua IP4, las habilidades de la antigua IP3 y las generaciones de IP9, y suma la personalidad que cambia con las vivencias, los deseos y el ritmo de la vida elegido al crear la partida. Oficios pasa a IP4, con las habitaciones y el comedor de la antigua IP4. El total crece de 40 a 65 h y las fechas siguientes se corren unas tres semanas. El 16-oct-2026, a pedido del usuario, se suma IP3.5 "Libre albedrío" entre IP3 e IP4 (32 a 46 h, `docs/ip/IP3.5.md`): corre las fechas siguientes unas dos semanas. Las fechas siguen siendo aproximadas.
+IP1 sumó 12 a 18 h el 9-oct-2026 por el paso a 3D low-poly (ADR-009). IP2 sumó 7 a 11 h el 11-oct-2026: el ciclo de día y noche visual, adelantado de IP6, y el sueño nocturno de los colonos. IP6 conserva sus horas. IP2.5 se sumó el 14-oct-2026, a pedido del usuario, entre IP2 e IP3: corre las fechas siguientes unas dos semanas y adelanta la escala de UI de IP8. El 15-oct-2026, a pedido del usuario, la vida de los colonos pasa antes de los oficios: la nueva IP3 "Vida y generaciones" junta los rasgos, las relaciones y el ánimo de la antigua IP4, las habilidades de la antigua IP3 y las generaciones de IP9, y suma la personalidad que cambia con las vivencias, los deseos y el ritmo de la vida elegido al crear la partida. Oficios pasa a IP4, con las habitaciones y el comedor de la antigua IP4. El total crece de 40 a 65 h y las fechas siguientes se corren unas tres semanas. El 16-oct-2026, a pedido del usuario, se suma IP3.5 "Libre albedrío" entre IP3 e IP4 (`docs/ip/IP3.5.md`); el 17-oct-2026 suma el bosque que vuelve a crecer, y queda en 40 a 58 h: corre las fechas siguientes unas dos semanas y media. Las fechas siguen siendo aproximadas.
 
 El arte de las épocas Moderna y Contemporánea probablemente requiera encargar o comprar modelos 3D. Ese costo no está incluido en las horas.
 
@@ -586,11 +586,12 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - Ficha del colono con edad, rasgos, habilidades, ánimo, deseos, relaciones y familia. Textos con concordancia de género y número, con tests dedicados.
 - **Jugable:** ver crecer una familia en la aldea, de los fundadores a sus nietos.
 
-**IP3.5 · Libre albedrío (32–46 h).** Agentes: game-designer, sim-engineer, godot-engineer, i18n-specialist, qa-tester. Detalle en `docs/ip/IP3.5.md`.
+**IP3.5 · Libre albedrío (40–58 h).** Agentes: game-designer, sim-engineer, godot-engineer, i18n-specialist, qa-tester. Detalle en `docs/ip/IP3.5.md`.
 - Interruptor para toda la aldea en Opciones y metas de existencias elegidas en el juego.
 - Trabajo por iniciativa por datos: recolectar comida, talar y acarrear, dentro de las prioridades de cada colono y según su diligencia y su ánimo.
 - Vida social con intención: buscar a quienes aprecia y alejarse de los rivales, según la sociabilidad y el ánimo.
-- **Jugable:** una aldea sin órdenes se mantiene en lo básico, y las amistades se forman en días.
+- Bosque que vuelve: retoños junto a los árboles adultos, con un tope por especie como porcentaje del terreno.
+- **Jugable:** una aldea sin órdenes se mantiene en lo básico, las amistades se forman en días y el valle no se queda sin árboles.
 
 **IP4 · Oficios (105–130 h).** Agentes: game-designer, sim-engineer, art-integrator, i18n-specialist.
 - Calidad de lo producido según la habilidad, sobre las habilidades de IP3, y habilidades de los talleres.
