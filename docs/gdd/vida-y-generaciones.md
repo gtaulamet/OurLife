@@ -341,7 +341,7 @@ Las claves siguen `docs/i18n.md`. El i18n-specialist ajusta el texto final en ca
 | Visual | Qué es | Cómo quedó (H3.8) |
 |---|---|---|
 | `creature.human.baby` | Bebé envuelto, muy chico, que gatea | El aldeano a escala 0,55 con la cabeza 1,35 veces más grande; quieto se sienta (`sit`) y camina despacio, como quien aprende. El kit no trae una animación de gatear: `crouch` es una pose fija, y con ella el bebé se deslizaba |
-| `creature.human.child` | Aldeano a escala de niño, cabeza más grande | Escala 0,85 y cabeza 1,2 veces más grande; al jugar salta (`jump`) |
+| `creature.human.child` | Aldeano a escala de niño, cabeza más grande | Escala 0,85 y cabeza 1,2 veces más grande; al jugar festeja (`emote-yes`): `jump` es una pose fija en el aire |
 | `creature.human.adolescent` | Aldeano un poco más chico que el adulto | Escala 1,15 (el adulto, 1,3) |
 | `creature.human.elder` | Aldeano con canas y paso más lento | Los 12 aldeanos con el pelo en la franja gris de su textura, generados por `tools/make-elder-models.py`; camina más despacio |
 | `furniture.cradle` | Cuna medieval de madera | La cama de KayKit en chico (escala 0,2): se lee como una cuna en la vista de la aldea |

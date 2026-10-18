@@ -65,13 +65,14 @@ public partial class WorldView : Node3D
             var sun = new DirectionalLight3D { Name = "Sun", ShadowEnabled = true };
             view.AddChild(sun);
             // The sun keeps the night of the colonists.
-            var ai = ColonyRules.From(simulation.Content).Ai;
+            var rules = ColonyRules.From(simulation.Content);
+            var ai = rules.Ai;
             view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, ai.NightEndHour, ai.NightStartHour, dayNight));
 
             view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration));
             view.AddChild(view._map);
 
-            view._entities = EntityRenderer.Create(simulation, new ModelLibrary(catalog), viewLevel, animationSpeed);
+            view._entities = EntityRenderer.Create(simulation, rules, new ModelLibrary(catalog), viewLevel, animationSpeed);
             view.AddChild(view._entities);
             view._orders = OrderMarkers.Create(simulation, catalog, viewLevel);
             view.AddChild(view._orders);

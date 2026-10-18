@@ -149,6 +149,57 @@ public sealed class ModelLibrary : IDisposable
     /// <summary>The box around the meshes of an instance, in its parent's space: with its scale, before it is placed.</summary>
     public static Aabb? BoundsOf(Node3D instance) => BoundsOf(instance, Transform3D.Identity);
 
+    /// <summary>
+    /// The height of an instance as drawn, in its parent's space. The meshes are measured as
+    /// modelled, so a bone the catalog enlarges (<see cref="VisualModel.BoneScales"/>), like a
+    /// child's head, raises the top by what lies over its joint times its growth.
+    /// </summary>
+    public static float HeightOf(Node3D instance, VisualModel model)
+    {
+        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(model);
+        if (BoundsOf(instance) is not { } bounds)
+        {
+            return 0f;
+        }
+
+        var top = bounds.End.Y;
+        if (model.BoneScales is { Count: > 0 } bones && FindSkeleton(instance, Transform3D.Identity) is { } found)
+        {
+            foreach (var (name, factor) in bones)
+            {
+                var bone = found.Skeleton.FindBone(name);
+                if (bone >= 0)
+                {
+                    var joint = (found.ToParent * found.Skeleton.GetBoneGlobalRest(bone)).Origin.Y;
+                    top = Math.Max(top, joint + ((bounds.End.Y - joint) * factor));
+                }
+            }
+        }
+
+        return top - bounds.Position.Y;
+    }
+
+    /// <summary>The first skeleton under a node, with the transform from its space to the node's parent's.</summary>
+    private static (Skeleton3D Skeleton, Transform3D ToParent)? FindSkeleton(Node node, Transform3D toParent)
+    {
+        var transform = node is Node3D spatial ? toParent * spatial.Transform : toParent;
+        if (node is Skeleton3D skeleton)
+        {
+            return (skeleton, transform);
+        }
+
+        foreach (var child in node.GetChildren())
+        {
+            if (FindSkeleton(child, transform) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>The box around the meshes under a node, in the space <paramref name="toParent"/> leads to.</summary>
     private static Aabb? BoundsOf(Node node, Transform3D toParent)
     {

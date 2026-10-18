@@ -83,6 +83,18 @@ public class VisualCatalogTests
     }
 
     [Fact]
+    public void Every_bed_says_how_high_a_sleeper_lies_on_it()
+    {
+        var flat = GameContent.Defs.All<BuildableDef>()
+            .Where(buildable => buildable.RestRecoveryPercent is not null)
+            .Where(bed => !Catalog.TryResolve(bed.Visual!, era: null, out var model) || model.RestHeight <= 0)
+            .Select(bed => bed.Id)
+            .ToList();
+
+        flat.ShouldBeEmpty(string.Join(Environment.NewLine, flat));
+    }
+
+    [Fact]
     public void Every_interaction_has_the_icon_of_its_balloon()
     {
         var missing = GameContent.Defs.All<InteractionDef>()
@@ -300,12 +312,13 @@ public class VisualCatalogTests
             {
               "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} },
               "models": {
-                "baby": { "model": "res://a.glb", "boneScales": { "head": 1.35 }, "animations": { "walk": "crouch" } }
+                "baby": { "model": "res://a.glb", "boneScales": { "head": 1.35 }, "animations": { "walk": "crouch" }, "restHeight": 0.1 }
               }
             }
             """);
 
         catalog.TryResolve("baby", null, out var baby).ShouldBeTrue();
+        baby.RestHeight.ShouldBe(0.1f);
         baby.BoneScales!["head"].ShouldBe(1.35f);
         baby.AnimationFor("walk").ShouldBe("crouch");
         baby.AnimationFor("idle").ShouldBe("idle");
@@ -371,6 +384,7 @@ public class VisualCatalogTests
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "turn": 4 } } }""")]
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "boneScales": { "head": 0 } } } }""")]
     [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "animations": { "walk": 3 } } } }""")]
+    [InlineData("""{ "terrain": { "cutColor": "#000000", "grass": { "lush": "#00FF00", "dry": "#00FF00", "deep": "#00FF00" }, "materials": {} }, "models": { "a": { "model": "res://a.glb", "restHeight": -0.1 } } }""")]
     public void An_invalid_catalog_is_rejected_with_a_format_error(string json)
     {
         Should.Throw<FormatException>(() => VisualCatalog.Parse(json));

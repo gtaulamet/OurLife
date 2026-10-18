@@ -22,6 +22,7 @@ namespace OurLife.Game.Rendering;
 /// The model's own animation for an animation the renderer asks for, by name, like a baby that
 /// sits (<c>sit</c>) where others stand; one left out plays as asked.
 /// </param>
+/// <param name="RestHeight">For a bed, how high over the floor a sleeper lies on it, in the world's units.</param>
 public sealed record VisualModel(
     string Id,
     string ModelPath,
@@ -32,7 +33,8 @@ public sealed record VisualModel(
     IReadOnlyList<VisualPart>? Parts = null,
     int Turn = 0,
     IReadOnlyDictionary<string, float>? BoneScales = null,
-    IReadOnlyDictionary<string, string>? Animations = null)
+    IReadOnlyDictionary<string, string>? Animations = null,
+    float RestHeight = 0f)
 {
     /// <summary>The animation the model plays when <paramref name="name"/> is asked for.</summary>
     public string AnimationFor(string name) => Animations is not null && Animations.TryGetValue(name, out var own) ? own : name;
@@ -188,7 +190,7 @@ public sealed class VisualCatalog
             var models = new Dictionary<string, VisualModel>(StringComparer.Ordinal);
             foreach (var entry in root.GetProperty("models").EnumerateObject())
             {
-                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn", "boneScales", "animations");
+                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn", "boneScales", "animations", "restHeight");
                 var scale = entry.Value.TryGetProperty("scale", out var scaleValue) ? scaleValue.GetSingle() : 1f;
                 if (scale <= 0)
                 {
@@ -254,7 +256,13 @@ public sealed class VisualCatalog
                     }
                 }
 
-                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn, boneScales, animations));
+                var restHeight = entry.Value.TryGetProperty("restHeight", out var restValue) ? restValue.GetSingle() : 0f;
+                if (restHeight < 0)
+                {
+                    throw new FormatException($"'{entry.Name}': restHeight must be zero or positive.");
+                }
+
+                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn, boneScales, animations, restHeight));
             }
 
             var palette = new Dictionary<string, string>(StringComparer.Ordinal);

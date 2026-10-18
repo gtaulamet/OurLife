@@ -33,10 +33,6 @@ public partial class EntityRenderer : Node3D
     private const float LoadSize = 0.7f;
     private static readonly Vector3 LoadOffset = new(0f, 0.45f, 0.3f);
 
-    // How much a sleeper rises on a bed, to the mattress, for each unit of the bed model's scale:
-    // 0.22 for the bed of the catalog, at scale 0.33, and less for the smaller cradle.
-    private const float MattressPerScale = 0.22f / 0.33f;
-
     // The animations of the Mini Characters kit that loop, by what a colonist does.
     private const string Idle = "idle";
     private const string Walk = "walk";
@@ -44,19 +40,18 @@ public partial class EntityRenderer : Node3D
     private const string Handle = "interact-right";
     private const string PickUp = "pick-up";
     private const string Hold = "holding-both";
-    private const string Play = "jump";
+    private const string Play = "emote-yes";
     private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold, Play];
 
-    // The balloons of interactions: how long they show and fade, in real seconds, how big their
-    // pixels are and how far over a head they float, in the world's units.
+    // The balloons of interactions: their icons, how long they show and fade, in real seconds, how
+    // big their pixels are and how far over a head they float, in the world's units.
     private const string IconPath = "res://assets/icons/interactions/{0}.png";
-
-
     private const double BalloonSeconds = 2.5;
     private const double BalloonFadeSeconds = 0.5;
     private const float BalloonPixel = 0.02f;
     private const float BalloonGap = 0.35f;
     private readonly Dictionary<EntityId, Balloon> _balloons = [];
+    private readonly List<EntityId> _expired = [];
 
     // The model of each visual and stage in an era, found once: "<visual>.<stage>", or null if the catalog has none.
     private readonly Dictionary<(string Visual, string Stage, string? Era), VisualModel?> _staged = [];
@@ -64,7 +59,6 @@ public partial class EntityRenderer : Node3D
     // The animations that loop: those the renderer asks for and those the catalog plays instead.
     private HashSet<string> _loopingAnimations = null!;
     private ColonyRules _rules = null!;
-    private readonly List<EntityId> _expired = [];
 
     // The animation libraries whose animations were already set to loop, by their Godot id: they
     // are shared by every instance, and their C# wrappers are released after each use.
@@ -80,16 +74,18 @@ public partial class EntityRenderer : Node3D
     private int _viewLevel;
 
     /// <summary>Draws the entities of a simulation. The renderer owns the library from this call on.</summary>
+    /// <param name="rules">The colony's rules, for how fast a carrier walks.</param>
     /// <param name="animationSpeed">How fast the colonists move their bodies: the game's speed, 0 when it stands still. Read every frame.</param>
-    public static EntityRenderer Create(Simulation simulation, ModelLibrary models, int viewLevel, Func<float> animationSpeed)
+    public static EntityRenderer Create(Simulation simulation, ColonyRules rules, ModelLibrary models, int viewLevel, Func<float> animationSpeed)
     {
         ArgumentNullException.ThrowIfNull(simulation);
+        ArgumentNullException.ThrowIfNull(rules);
         ArgumentNullException.ThrowIfNull(models);
         ArgumentNullException.ThrowIfNull(animationSpeed);
         var renderer = new EntityRenderer
         {
             Name = nameof(EntityRenderer), _simulation = simulation, _models = models, _viewLevel = viewLevel, _animationSpeed = animationSpeed,
-            _rules = ColonyRules.From(simulation.Content),
+            _rules = rules,
             _loopingAnimations = LoopingAnimations
                 .Concat(models.Catalog.Models.SelectMany(model => model.Animations?.Values ?? []))
                 .ToHashSet(StringComparer.Ordinal),
@@ -159,10 +155,19 @@ public partial class EntityRenderer : Node3D
             bounds = bounds is { } merged ? merged.Merge(box) : box;
         }
 
-        // Bones the catalog enlarges, like a child's head, reach above the meshes as modelled.
-        return bounds is { } drawn && view.HeightFactor > 1f
-            ? new Aabb(drawn.Position, drawn.Size with { Y = drawn.Size.Y * view.HeightFactor })
-            : bounds;
+        // Bones the catalog enlarges, like a child's head, reach past the meshes as modelled: above
+        // them when it stands, and along its body, either way, when it lies.
+        if (bounds is not { } drawn || view.HeightFactor <= 1f)
+        {
+            return bounds;
+        }
+
+        if (Mathf.IsZeroApprox(view.Node.Rotation.X))
+        {
+            return new Aabb(drawn.Position, drawn.Size with { Y = drawn.Size.Y * view.HeightFactor });
+        }
+
+        return drawn.Grow(2 * view.HalfHeight * (1f - (1f / view.HeightFactor)));
     }
 
     public void SetViewLevel(int viewLevel)
@@ -227,9 +232,10 @@ public partial class EntityRenderer : Node3D
 
         var node = _models.Instantiate(model, FileOf(entity, model));
 
-        // Measured before it is placed: half its height is how far a sleeper's feet move back. The
-        // meshes are measured as modelled, so bones the catalog enlarges, like a child's head, add on.
-        var halfHeight = (ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f) / 2 * HeightFactor(model);
+        // Measured before it is placed, with the bones the catalog enlarges: half its height is how
+        // far a sleeper's feet move back.
+        var modelled = ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f;
+        var height = ModelLibrary.HeightOf(node, model);
         var position = _simulation.World.Get<Position>(entity);
         var moves = _simulation.World.Has<Movement>(entity);
         node.Position = moves ? WalkingPosition(entity, out _) : CellBase(position.X, position.Y, position.Z);
@@ -244,8 +250,8 @@ public partial class EntityRenderer : Node3D
         var animator = AnimatorOf(node);
         var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node))
         {
-            HeightFactor = HeightFactor(model),
-            HalfHeight = halfHeight,
+            HeightFactor = modelled > 0 ? Math.Max(1f, height / modelled) : 1f,
+            HalfHeight = height / 2,
             Animator = animator,
             Animations = animator is null ? [] : animator.GetAnimationList().ToHashSet(StringComparer.Ordinal),
         };
@@ -479,9 +485,6 @@ public partial class EntityRenderer : Node3D
         return model;
     }
 
-    /// <summary>How much taller than its meshes as modelled a model is drawn: as much as its most enlarged bone, at least 1.</summary>
-    private static float HeightFactor(VisualModel model) => model.BoneScales is { Count: > 0 } bones ? Math.Max(1f, bones.Values.Max()) : 1f;
-
     /// <summary>
     /// The file of a model a colonist is drawn with: one of the variants for its gender, picked by
     /// its id, so it keeps its look; the model's own file for anything else.
@@ -579,10 +582,16 @@ public partial class EntityRenderer : Node3D
 
         // A sleeper lies still with the plain pose: a baby's own one for standing is sitting.
         var asleep = job is { Kind: JobKind.Sleep, Stage: JobStage.Working };
+        // A model without its own one falls back to its own standing pose, then to the plain one.
         name = asleep ? Idle : view.Model.AnimationFor(name);
         if (!view.Animations.Contains(name))
         {
             name = asleep ? Idle : view.Model.AnimationFor(Idle);
+        }
+
+        if (!view.Animations.Contains(name))
+        {
+            name = Idle;
         }
 
         // Walking at the pace it really goes: its stage's, and its skill's while it carries.
@@ -592,7 +601,6 @@ public partial class EntityRenderer : Node3D
         }
 
         // Godot is asked only when something changes: its calls cost on every frame.
-
         if (view.Playing != name && view.Animations.Contains(name))
         {
             animator.Play(name);
@@ -624,7 +632,7 @@ public partial class EntityRenderer : Node3D
             && world.Get<Position>(job.Target).Cell == world.Get<Position>(entity).Cell)
         {
             yaw = Mathf.DegToRad(bed.Rotation * 90f);
-            lift = MattressPerScale * (_views.TryGetValue(job.Target, out var bedView) ? bedView.Model.Scale : 0.33f);
+            lift = _views.TryGetValue(job.Target, out var bedView) ? bedView.Model.RestHeight : 0f;
         }
 
         // Lying back, the head points the way the feet had behind them: the feet go the other way.
