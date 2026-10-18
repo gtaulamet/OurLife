@@ -43,7 +43,7 @@ El def `Scenario` suma la edad, los apellidos y la pareja de los fundadores:
 |---|---|---|
 | Sexo de los fundadores | Los dos primeros, una mujer y un varón en orden al azar; el resto, al azar (desde H3.2) | Pedido del usuario: una aldea sin mujeres o sin varones no puede tener hijos |
 | Edad de los fundadores | De 18 a 40 años, al azar | Adultos en edad de trabajar |
-| Pareja fundadora | 2 de los 5: una mujer y un varón de 20 a 30 años, con orientaciones compatibles | Decisión del usuario; la aldea puede crecer desde el principio |
+| Parejas fundadoras | 4 de los 5, en dos parejas de una mujer y un varón de 20 a 30 años, con orientaciones compatibles (`foundingCouple.count`, desde H3.10; antes, una) | Decisión del usuario; la aldea puede crecer desde el principio, y los hijos de las dos familias pueden formar pareja entre sí |
 | Opinión inicial entre fundadores | De −10 a +20, al azar | Se conocen poco; las amistades se forman jugando |
 | Opinión y romance de la pareja | 70 y 100 | Ya son pareja |
 | Habilidades | De 3 a 10 en cada una, y una al azar con 4 más | Cada fundador tiene un fuerte; el promedio ronda la velocidad de IP2 |
@@ -89,8 +89,8 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 
 ## Interacciones
 
-- Cada `interactionCheckTicks` (30) ticks, escalonados por colono, un colono despierto, que no es bebé ni está en crisis de aislamiento, puede iniciar una interacción con otro despierto a `interactionRadius` (4) celdas o menos en el mismo nivel. No interrumpen el trabajo: se charla mientras se trabaja.
-- **Probabilidad de iniciar:** `20 % × sociabilidad / 50` por revisión, si hay alguien cerca. Un mismo par no repite antes de `pairCooldownHours` (2) horas.
+- Cada `interactionCheckTicks` (30) ticks, escalonados por colono, un colono despierto, que no es bebé ni está en crisis de aislamiento, puede iniciar una interacción con otro despierto a `radius` (6, desde H3.10; antes 4) celdas o menos en el mismo nivel. No interrumpen el trabajo: se charla mientras se trabaja.
+- **Probabilidad de iniciar:** `30 % × sociabilidad / 50` por revisión (desde H3.10; antes 20 %), si hay alguien cerca. Un mismo par no repite antes de `pairCooldownHours` (2) horas.
 - **Con quién:** al azar entre los cercanos, con peso doble para la familia y los amigos.
 - **Qué interacción:** al azar entre las permitidas, con peso `weight + Σ coef × (rasgo − 50) / 10`, nunca menos de 0. El def nuevo `Interaction` define:
 
@@ -191,10 +191,22 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 ## Parejas, embarazo y nacimiento
 
 - **Fertilidad:** mujeres de 18 a 45 años y varones de 18 a 60, adultos.
-- **Concepción:** a medianoche, una pareja de mujer y varón fértiles, con hijos permitidos, sin embarazo en curso y sin un hijo de menos de un año de vida, concibe con probabilidad `conceptionChancePerYear` (40 % por año de vida) llevada al día: `40 % × lifeDaysPerDay / 60`. Si alguno de los dos tiene hambre bajo el umbral bajo, no concibe: la comida es el tope de la población (decisión del usuario). Es un evento abstracto: no se muestra.
+- **Concepción:** a medianoche, una pareja de mujer y varón fértiles, con hijos permitidos, sin embarazo en curso y sin un hijo de menos de un año de vida, concibe con probabilidad `conceptionChancePerYear` (40 % por año de vida) llevada al día: `40 % × lifeDaysPerDay / 60`. Si alguno de los dos tiene hambre bajo el umbral bajo, no concibe: la comida es el tope de la población (decisión del usuario). Desde H3.10 tampoco concibe si la aldea no tiene comida guardada para `foodReserveDays` (30) días por colono, ni si el mapa no tiene `foodPlantsPerColonist` (9) plantas de comida por colono, contando al que va a nacer (ver "Balance de población y comida"). Es un evento abstracto: no se muestra.
 - **Embarazo:** 45 días de vida (nueve meses del año de 60 días): 45 días del juego en Normal, 12 en Rápido y 6 en Muy rápido. Se avisa al empezar, se ve en el inspector y la madre trabaja al 90 % en el último tercio.
 - **Parto:** al cumplirse, nace un bebé en la celda de la madre, con sexo al azar, nombre de la lista que no lleve ningún colono vivo mientras queden, el apellido del padre, rasgos heredados y orientación sorteada. Habilidades en 0, necesidades llenas. Se avisa en el registro.
 - **Opción del jugador:** "Hijos: permitidos / no" en la ficha de cada colono en pareja; vale para la pareja. Por defecto, permitidos.
+
+## Balance de población y comida (H3.10)
+
+Medido con partidas de diez años del juego en el valle real, semillas 1 y 42, con un jugador que mantiene la orden de recolectar en un radio de 25 celdas (la orden de un arbusto se cumple al recolectarlo, así que la repite cada dos días) y un almacén.
+
+- **Sin cambios**, la aldea moría entera de hambre en un invierno en dos de cuatro partidas: los chicos nacían mientras había comida y después el valle no alcanzaba. El valle tiene unos 55 arbustos de bayas, que sin agricultura alimentan a unas 7 personas. Además había 2 o 3 interacciones por día y, en la semilla 1, ninguna amistad en años.
+- **Decisiones del usuario (18 de octubre de 2026):** reserva de comida para concebir (30 días por colono), más vida social (radio 6 y 30 % de iniciar) y dos parejas fundadoras, para que los hijos de dos familias puedan formar pareja.
+- **La reserva sola no alcanzaba:** se mide al concebir, en verano u otoño, y los chicos comen más al crecer. Con dos parejas, una aldea llegó a 12 y murió en el séptimo invierno. Por eso se suma un tope por lo que da la tierra: 9 plantas de comida por colono, contando al que va a nacer. Así el valle sostiene unas 6 personas.
+- **Resultado:** ninguna aldea murió de hambre en diez años. En Rápido la aldea se mantiene entre 6 y 7 personas, con nacimientos que reemplazan a los que mueren de viejos. Hay de 4 a 16 interacciones por día y amistades en todas las partidas.
+- **Límite conocido:** en Muy rápido los fundadores salen de la edad fértil en dos o tres años del juego y nacen pocos chicos; la aldea tiende a extinguirse en unos diez años. La agricultura (IP4) sube el tope de comida y los migrantes (IP6) traen gente nueva.
+- **Rendimiento:** la simulación de diez años en Rápido corre a 0,017 ms por tick; en Godot, con esa partida cargada, 331 FPS y 0,10 ms por tick (presupuesto: 60 FPS y 2 ms).
+- `BalanceTests` juega diez años en Rápido y comprueba que nadie muere de hambre, que nace alguien y que quedan al menos cinco colonos.
 
 ## Crianza
 
@@ -294,7 +306,7 @@ Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en
 |---|---|---|
 | `LifePace` | `lifeDaysPerDay`, `default` | `life.json` |
 | `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5); `eatsAlone`, `crawlRadius` y `playRadius` (H3.7). El modelo de cada etapa va en el catálogo de visuales (H3.8) | `life.json` |
-| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); bloque `birth` con fertilidad, concepción, embarazo y opiniones al nacer (H3.7) | `life.json` |
+| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); bloque `birth` con fertilidad, concepción, embarazo y opiniones al nacer (H3.7), y `foodReserveDays` y `foodPlantsPerColonist` (H3.10) | `life.json` |
 | `Trait` | `workSpeed` (`low` y `high`) y `needsBeforeWorkBelow` (H3.3); `experience` (H3.4); los coeficientes de interacciones y crisis en sus hitos; tramos de palabras para la ficha (H3.9) | `personality.json` |
 | `SkillConfig` | `maxLevel` (20), `averageLevel` (10), `experienceBase` (600), `experiencePerLevel` (150), `speedBase` (80), `speedPerLevel` (2), `teachingMinLevels` (3), `teachingBase` (100) y `teachingPerLevel` (30) (H3.4) | `skills.json` |
 | `PersonalityConfig` | `rolls` (3), `inheritedPercent` (50), `maxDriftPerDay` (3) y los pesos de orientación `orientations` (H3.3) | `personality.json` |
@@ -306,7 +318,7 @@ Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en
 | `Desire` | `kind`, `chancePercent`, `scaledBy` y los números de cada clase (H3.6) | `mood.json` |
 | `WorkType` | `skill`, `light`; tipo nuevo `childcare` con `feed_baby` | `work_types.json` |
 | `NameList` | `surnames` | `names.json` |
-| `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2); `founderSkillMin` (3), `founderSkillMax` (10) y `founderSkillBonus` (4) (H3.4), con el máximo más el bonus hasta `maxLevel`; `foundingCouple` | `scenario.json` |
+| `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2); `founderSkillMin` (3), `founderSkillMax` (10) y `founderSkillBonus` (4) (H3.4), con el máximo más el bonus hasta `maxLevel`; `foundingCouple`, con `count` desde H3.10 | `scenario.json` |
 | `Buildable` | `cradle`, con `forStages`; la cama también lo lleva (H3.7) | `buildables.json` |
 
 - Cada def con textos lleva `name`, `desc` y `gender` en es y en. Los defs entran en el hito que los usa, no en H3.1.

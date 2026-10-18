@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-8-arte`: H3.8 cerrado. Sigue H3.10 en `ip3/h3-10-integracion` |
+| Rama de trabajo | `ip3/h3-10-integracion`: balance hecho; faltan la checklist, los paquetes, el playtest del usuario y `v0.3.0` |
 | `main` | Con H3.8, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.9 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 696 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick) |
-| Huella del smoke | `D8FD3784066AEE12` con `--seed 1 --ticks 5000`; `14212A5A5466DDB7` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 702 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick) |
+| Huella del smoke | `5C715E8411C7DFC8` con `--seed 1 --ticks 5000`; `40A56EC5ADD2BA9E` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **H3.10, integración**, en `ip3/h3-10-integracion`: balance de población y comida con los tres ritmos, benchmark con una población de partida larga, checklist de playtest (`docs/ip/playtest-ip3.md`), playtest del usuario en Windows y macOS, paquetes y `v0.3.0`.
+1. **H3.10, integración**, en `ip3/h3-10-integracion`: balance y benchmark hechos; faltan la checklist (`docs/ip/playtest-ip3.md`), los paquetes, el playtest del usuario en Windows y macOS y `v0.3.0`.
 2. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción.
 3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -41,6 +41,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.10, balance de población y comida
+
+- Partidas de diez años del juego (semillas 1 y 42, Rápido y Muy rápido, con un jugador que repite la orden de recolectar cada dos días en 25 celdas): sin cambios, dos de cuatro aldeas morían enteras de hambre en un invierno, en la semilla 1 no había amistades en años (2 o 3 interacciones por día) y con una sola pareja los hijos son hermanos.
+- Decisiones del usuario: reserva de comida de 30 días por colono para concebir, radio de interacción 6 y 30 % de iniciar, y dos parejas fundadoras (`foundingCouple.count`).
+- La reserva sola no alcanzó (con dos parejas una aldea llegó a 12 y murió). Se suma un tope por lo que da la tierra: `foodPlantsPerColonist` 9, contando al que va a nacer. Con eso ninguna aldea murió de hambre en diez años; en Rápido se mantiene en 6 o 7. En Muy rápido tiende a extinguirse: anotado en el backlog para IP4 e IP6, igual que los avisos de hambre crítica frecuentes.
+- Tests: reserva, tierra, dos parejas, validaciones y `BalanceTests` (diez años en Rápido, unos 10 s). 702 tests. Huellas nuevas: `5C715E8411C7DFC8` y `40A56EC5ADD2BA9E`.
+- Rendimiento de una partida de diez años: 0,017 ms por tick en la simulación; en Godot, 331 FPS y 0,10 ms por tick.
 
 ### 2026-10-18: cierre de H3.8
 

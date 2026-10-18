@@ -22,4 +22,6 @@ Ideas y tareas fuera del alcance de la IP en curso. Se revisan al planificar cad
 - ¿Retroceso de época tras un colapso de la colonia?
 - Siglo XX y actualidad, después de IP10.
 - Fluidos dinámicos, multijugador, modo aventura y mundos persistentes entre partidas.
+- Generaciones en Muy rápido (H3.10): los fundadores salen de la edad fértil en dos o tres años del juego, el valle sostiene unas 6 personas y la aldea tiende a extinguirse en unos diez años. Revisar con la agricultura (IP4), que sube el tope de comida, y con los migrantes (IP6).
+- Avisos de hambre crítica (H3.10): como los colonos trabajan hasta el umbral crítico, en una partida larga hay unos 8 avisos por mes. Ver en el playtest si molestan; podrían avisar sólo si nadie puede comer.
 - Vida de los colonos, fuera de IP3 (`docs/gdd/vida-y-generaciones.md`): habilidades que se olvidan sin práctica, necesidad de ocio, camas dobles, casamientos y ceremonias, adopción, herencia de bienes y mellizos. Escuela en IP10, partos difíciles en IP5 y duelo con tumbas en IP5.

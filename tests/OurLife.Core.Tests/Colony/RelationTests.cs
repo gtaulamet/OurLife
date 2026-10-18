@@ -36,6 +36,26 @@ public class RelationTests
     }
 
     [Fact]
+    public void Two_founding_couples_arrive_as_two_couples_of_a_woman_and_a_man()
+    {
+        var content = TestContent.WithDefs(ColonyTestBed.ContentJson.Replace(
+            "\"foundingCouple\": { \"minYears\"", "\"foundingCouple\": { \"count\": 2, \"minYears\"", StringComparison.Ordinal));
+        var bed = ColonyTestBed.Flat(15, seed: 4, content);
+
+        var colonists = ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content), "Valdeolmos");
+
+        foreach (var (a, b) in new[] { (colonists[0], colonists[1]), (colonists[2], colonists[3]) })
+        {
+            Relationships.PartnerOf(bed.Simulation, a).ShouldBe(b);
+            bed.World.Get<Colonist>(a).Gender.ShouldNotBe(bed.World.Get<Colonist>(b).Gender);
+            Relationships.IsAttracted(bed.Simulation, a, b).ShouldBeTrue();
+            Relationships.IsAttracted(bed.Simulation, b, a).ShouldBeTrue();
+        }
+
+        Relationships.PartnerOf(bed.Simulation, colonists[4]).IsNone.ShouldBeTrue();
+    }
+
+    [Fact]
     public void Two_who_love_each_other_form_a_couple_and_split_when_one_turns_against_the_other()
     {
         var (bed, a, b) = SocialTests.TwoInAHut(1, 50, 50, 50);

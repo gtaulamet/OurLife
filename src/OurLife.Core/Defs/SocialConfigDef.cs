@@ -83,9 +83,12 @@ public sealed class SocialConfigDef : Def
     }
 }
 
-/// <summary>Two founders who arrive as a couple, a woman and a man (see "Llegada" in <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+/// <summary>Founders who arrive as couples of a woman and a man (see "Llegada" in <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
 public sealed class FoundingCouple
 {
+    /// <summary>How many couples arrive: the first two colonists, then the next two, and so on.</summary>
+    public int Count { get; init; } = 1;
+
     public required int MinYears { get; init; }
 
     public required int MaxYears { get; init; }

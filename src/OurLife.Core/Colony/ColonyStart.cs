@@ -31,7 +31,8 @@ public static class ColonyStart
     /// Creates the colonists and their items, names the village with the player's
     /// <paramref name="colonyName"/> and keeps the pace of life the player chose, or the default
     /// one; returns the colonists by ascending id. With two or more colonists, the first two are a
-    /// woman and a man, in either order, so the colony can have children; the rest are drawn.
+    /// woman and a man, in either order, so the colony can have children, and so is each founding
+    /// couple, two by two; the rest are drawn.
     /// </summary>
     /// <exception cref="ArgumentException">The content has no LifePace def <paramref name="lifePace"/>.</exception>
     /// <exception cref="InvalidOperationException">
@@ -70,13 +71,14 @@ public static class ColonyStart
         {
             var colonist = simulation.World.CreateEntity();
             var spot = spots[i % spots.Count];
-            var gender = i == 1
-                ? Opposite(simulation.World.Get<Colonist>(colonists[0]).Gender)
+            // The couples come first, two by two.
+            var couples = scenario.FoundingCouple?.Count ?? 0;
+            var gender = i == 1 || (i % 2 == 1 && i < 2 * couples)
+                ? Opposite(simulation.World.Get<Colonist>(colonists[i - 1]).Gender)
                 : random.NextBool() ? Gender.Female : Gender.Male;
             simulation.World.Add(colonist, new Position { X = spot.X, Y = spot.Y, Z = spot.Z });
             var name = PickName(simulation.Content, creature, gender, random, usedNames);
-            // The first two are the founding couple, if the scenario has one.
-            var couple = i < 2 ? scenario.FoundingCouple : null;
+            var couple = i < 2 * couples ? scenario.FoundingCouple : null;
             var founder = couple is null
                 ? FounderLife(simulation, scenario.FounderMinYears, scenario.FounderMaxYears, life, random)
                 : FounderLife(simulation, couple.MinYears, couple.MaxYears, life, random);

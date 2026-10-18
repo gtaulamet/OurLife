@@ -17,7 +17,7 @@ public static class ColonySystems
         simulation.AddSystem(new LifeSystem(life, rules), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
         var personalities = PersonalityRules.From(simulation.Content);
         simulation.AddSystem(
-            new BirthSystem(life, personalities, rules.Skills), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
+            new BirthSystem(life, personalities, rules.Skills, rules.FoodPlants), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
         var storage = new StorageIndex();
         simulation.AddSystem(new DecisionSystem(rules, storage));
         simulation.AddSystem(new JobSystem(rules, storage));

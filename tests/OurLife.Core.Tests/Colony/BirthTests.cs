@@ -17,12 +17,14 @@ public class BirthTests
     /// The test content with a pace of a year of life a day and a conception that never fails, so a
     /// fertile couple conceives at the first midnight and the child is born at the next.
     /// </summary>
-    internal static readonly Lazy<DefDatabase> Certain = new(() => TestContent.WithDefs(ColonyTestBed.ContentJson
+    private static readonly string CertainJson = ColonyTestBed.ContentJson
         .Replace("\"conceptionChancePerYear\": 40", "\"conceptionChancePerYear\": 100", StringComparison.Ordinal)
         .Replace(
             "{ \"type\": \"LifePace\", \"id\": \"normal\", \"lifeDaysPerDay\": 1 },",
             "{ \"type\": \"LifePace\", \"id\": \"normal\", \"lifeDaysPerDay\": 1 }, { \"type\": \"LifePace\", \"id\": \"yearly\", \"lifeDaysPerDay\": 60 },",
-            StringComparison.Ordinal)));
+            StringComparison.Ordinal);
+
+    internal static readonly Lazy<DefDatabase> Certain = new(() => TestContent.WithDefs(CertainJson));
 
     [Fact]
     public void A_couple_with_food_has_a_child_with_the_father_surname_traits_from_both_and_a_free_name()
@@ -293,6 +295,44 @@ public class BirthTests
 
         Relationships.PartnerOf(bed.Simulation, wife).ShouldBe(other);
         LifeRules.ChildrenAllowed(bed.Simulation, wife, other).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Without_food_stored_for_the_village_a_couple_does_not_conceive()
+    {
+        var content = TestContent.WithDefs(CertainJson.Replace(
+            "\"siblingOpinion\": 30", "\"siblingOpinion\": 30, \"foodReserveDays\": 30", StringComparison.Ordinal));
+        var (bed, wife, _) = Couple(seed: 1, pace: "yearly", content: content, food: false);
+        bed.AddItems("provisions", 50, 1, 13, 1);
+
+        // 50 provisions feed two adults some 13 days: short of 30.
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
+
+        bed.AddItems("provisions", 50, 3, 13, 1);
+        bed.AddItems("provisions", 50, 5, 13, 1);
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Without_land_to_feed_one_more_a_couple_does_not_conceive()
+    {
+        var content = TestContent.WithDefs(CertainJson.Replace(
+            "\"siblingOpinion\": 30", "\"siblingOpinion\": 30, \"foodPlantsPerColonist\": 4", StringComparison.Ordinal));
+        var (bed, wife, _) = Couple(seed: 1, pace: "yearly", content: content);
+        for (var x = 1; x < 12; x++)
+        {
+            bed.AddPlant("bush", x, 1, 1);
+        }
+
+        // Eleven bushes feed two colonists, not three.
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
+
+        bed.AddPlant("bush", 12, 1, 1);
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
     }
 
     private static int Frustrations(ColonyTestBed bed, EntityId colonist) =>

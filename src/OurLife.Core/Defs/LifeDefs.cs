@@ -195,6 +195,19 @@ public sealed class BirthConfig
     /// <summary>What a newborn and its brothers and sisters think of each other.</summary>
     public required int SiblingOpinion { get; init; }
 
+    /// <summary>
+    /// A couple conceives only while the colony has food for this many days for each colonist, at
+    /// an adult's appetite; 0 does not look at the colony's food.
+    /// </summary>
+    public int FoodReserveDays { get; init; }
+
+    /// <summary>
+    /// A couple conceives only while the map has this many plants that give food for each
+    /// colonist, the child to be born included: what the land can feed caps the colony. 0 does not
+    /// count them.
+    /// </summary>
+    public int FoodPlantsPerColonist { get; init; }
+
     internal IEnumerable<string> Validate()
     {
         if (FemaleFertileYears.Min > FemaleFertileYears.Max || MaleFertileYears.Min > MaleFertileYears.Max
@@ -208,9 +221,9 @@ public sealed class BirthConfig
             yield return "birth.conceptionChancePerYear must be between 0 and 100, and lateWorkSpeedPercent positive.";
         }
 
-        if (PregnancyLifeDays <= 0 || LateFromLifeDays < 0 || YearsBetweenChildren < 0)
+        if (PregnancyLifeDays <= 0 || LateFromLifeDays < 0 || YearsBetweenChildren < 0 || FoodReserveDays < 0 || FoodPlantsPerColonist < 0)
         {
-            yield return "birth.pregnancyLifeDays must be positive, and lateFromLifeDays and yearsBetweenChildren zero or more.";
+            yield return "birth.pregnancyLifeDays must be positive, and lateFromLifeDays, yearsBetweenChildren, foodReserveDays and foodPlantsPerColonist zero or more.";
         }
 
         if (ParentOpinion is < -100 or > 100 || SiblingOpinion is < -100 or > 100)

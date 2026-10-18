@@ -53,7 +53,9 @@
       "lateWorkSpeedPercent": 90,
       "yearsBetweenChildren": 1,
       "parentOpinion": 40,
-      "siblingOpinion": 30
+      "siblingOpinion": 30,
+      "foodReserveDays": 30,
+      "foodPlantsPerColonist": 9
     }
   }
 ]

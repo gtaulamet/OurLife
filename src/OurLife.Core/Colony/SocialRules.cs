@@ -41,8 +41,8 @@ public sealed class SocialRules
 
     /// <summary>
     /// Colonists who arrive together know each other a little: each thinks of each other a drawn
-    /// opinion, in ascending order of both ids. With a <paramref name="couple"/>, the first two
-    /// arrive as a couple.
+    /// opinion, in ascending order of both ids. With a <paramref name="couple"/>, the first ones
+    /// arrive as couples, two by two.
     /// </summary>
     internal void Introduce(Simulation simulation, IReadOnlyList<EntityId> colonists, FoundingCouple? couple, Pcg32 random)
     {
@@ -58,9 +58,9 @@ public sealed class SocialRules
             }
         }
 
-        if (couple is not null && colonists.Count >= 2)
+        for (var pair = 0; couple is not null && pair < couple.Count && (2 * pair) + 1 < colonists.Count; pair++)
         {
-            var (a, b) = (colonists[0], colonists[1]);
+            var (a, b) = (colonists[2 * pair], colonists[(2 * pair) + 1]);
             foreach (var (from, to) in new[] { (a, b), (b, a) })
             {
                 var relation = Relationships.Ensure(simulation, from, to);

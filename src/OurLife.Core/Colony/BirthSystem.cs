@@ -26,16 +26,21 @@ public sealed class BirthSystem : ISimSystem
     private readonly LifeRules _life;
     private readonly PersonalityRules _personalities;
     private readonly SkillRules _skills;
+    private readonly IReadOnlySet<string> _foodPlants;
     private readonly List<EntityId> _colonists = [];
+    private readonly List<EntityId> _plants = [];
 
-    public BirthSystem(LifeRules life, PersonalityRules personalities, SkillRules skills)
+    /// <param name="foodPlants">Ids of the plant defs that give food (see <see cref="ColonyRules.FoodPlants"/>).</param>
+    public BirthSystem(LifeRules life, PersonalityRules personalities, SkillRules skills, IReadOnlySet<string> foodPlants)
     {
         ArgumentNullException.ThrowIfNull(life);
         ArgumentNullException.ThrowIfNull(personalities);
         ArgumentNullException.ThrowIfNull(skills);
+        ArgumentNullException.ThrowIfNull(foodPlants);
         _life = life;
         _personalities = personalities;
         _skills = skills;
+        _foodPlants = foodPlants;
     }
 
     public void Tick(Simulation simulation)
@@ -63,15 +68,16 @@ public sealed class BirthSystem : ISimSystem
             }
             else if (world.Get<Colonist>(colonist).Gender == Gender.Female)
             {
-                TryConceive(simulation, colonist, pace);
+                TryConceive(simulation, colonist, birth, pace);
             }
         }
     }
 
-    private void TryConceive(Simulation simulation, EntityId mother, int pace)
+    private void TryConceive(Simulation simulation, EntityId mother, BirthConfig birth, int pace)
     {
         var father = Relationships.PartnerOf(simulation, mother);
-        if (father.IsNone || !_life.CouldConceive(simulation, mother, father) || Hunger.IsLow(simulation, mother) || Hunger.IsLow(simulation, father))
+        if (father.IsNone || !_life.CouldConceive(simulation, mother, father) || Hunger.IsLow(simulation, mother) || Hunger.IsLow(simulation, father)
+            || !HasFoodReserve(simulation, mother, birth) || !LandFeedsOneMore(simulation, birth))
         {
             return;
         }
@@ -154,6 +160,45 @@ public sealed class BirthSystem : ISimSystem
             relation.Opinion = opinion;
             relation.LastInteractionTick = simulation.CurrentTick;
         }
+    }
+
+    /// <summary>
+    /// Whether the colony has food for <see cref="BirthConfig.FoodReserveDays"/> for each colonist,
+    /// at the appetite of an adult like the mother: a child is not born to starve in the next winter.
+    /// </summary>
+    private static bool HasFoodReserve(Simulation simulation, EntityId mother, BirthConfig birth)
+    {
+        if (birth.FoodReserveDays == 0)
+        {
+            return true;
+        }
+
+        long perDay = 0;
+        foreach (var state in simulation.World.Get<Needs>(mother).Values)
+        {
+            var need = simulation.Content.Get<NeedDef>(state.Need);
+            perDay += need.SatisfiedBy == NeedSatisfaction.Eating ? (long)need.DecayPerHour * 24 : 0;
+        }
+
+        var colonists = simulation.World.Store<Colonist>().Count;
+        return ColonyStock.FoodNutrition(simulation) >= perDay * birth.FoodReserveDays * colonists;
+    }
+
+    /// <summary>
+    /// Whether the map has <see cref="BirthConfig.FoodPlantsPerColonist"/> plants that give food
+    /// for each colonist and the child to be born.
+    /// </summary>
+    private bool LandFeedsOneMore(Simulation simulation, BirthConfig birth)
+    {
+        if (birth.FoodPlantsPerColonist == 0)
+        {
+            return true;
+        }
+
+        var world = simulation.World;
+        world.Query<Plant>(_plants);
+        var foodPlants = _plants.Count(plant => _foodPlants.Contains(world.Get<Plant>(plant).Def));
+        return foodPlants >= (long)birth.FoodPlantsPerColonist * (world.Store<Colonist>().Count + 1);
     }
 
     private static Personality PersonalityOf(World world, EntityId colonist) =>
