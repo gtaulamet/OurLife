@@ -113,7 +113,7 @@ public partial class Hud : CanvasLayer
         hud.Inspector.GrowHorizontal = Control.GrowDirection.Begin;
         root.AddChild(hud.Inspector);
 
-        hud.Sheet = ColonistSheet.Create(services, session.Simulation);
+        hud.Sheet = ColonistSheet.Create(services, session);
         root.AddChild(hud.Sheet);
 
         input.SelectionChanged += hud.Inspector.Inspect;

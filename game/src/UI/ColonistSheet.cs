@@ -1,14 +1,18 @@
 using Godot;
+using OurLife.Core.Colony;
 using OurLife.Core.Ecs;
+using OurLife.Core.Entities;
 using OurLife.Core.Sim;
 using OurLife.Game.Bootstrap;
+using OurLife.Game.Session;
 
 namespace OurLife.Game.UI;
 
 /// <summary>
 /// The sheet of a colonist (see "Ficha del colono" in <c>docs/gdd/vida-y-generaciones.md</c>): its
 /// stage, age, mood and crisis; its personality in words, its skills and its family on the left;
-/// its thoughts, wishes, relations and last interactions on the right. It opens over the game with
+/// its thoughts, wishes, relations and last interactions on the right. A colonist in a couple of a
+/// woman and a man has the choice of children at the top. It opens over the game with
 /// F or the inspector's button, follows the selected colonist, refreshes twice a second and closes
 /// with F, Esc (through <see cref="Input.GameInput.CloseFirst"/>), its button, or when the colonist
 /// dies. It shows again only when time passed, the colonist changed or the language did.
@@ -20,9 +24,11 @@ public partial class ColonistSheet : PanelContainer
 
     private readonly List<(Label Header, Label Body)> _sections = [];
     private GameServices _services = null!;
+    private GameSession _session = null!;
     private Simulation _simulation = null!;
     private Label _title = null!;
     private Label _summary = null!;
+    private Button _children = null!;
     private double _sinceRefresh;
     private long _refreshedTick = -1;
 
@@ -33,11 +39,17 @@ public partial class ColonistSheet : PanelContainer
     public IEnumerable<string> Texts =>
         new[] { _title.Text, _summary.Text }.Concat(_sections.SelectMany(section => new[] { (string)Tr(section.Header.Text), section.Body.Text }));
 
-    public static ColonistSheet Create(GameServices services, Simulation simulation)
+    /// <summary>The button of the choice of children, for the smoke.</summary>
+    public Button ChildrenButton => _children;
+
+    public static ColonistSheet Create(GameServices services, GameSession session)
     {
         ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(simulation);
-        var sheet = new ColonistSheet { Name = nameof(ColonistSheet), _services = services, _simulation = simulation, Visible = false };
+        ArgumentNullException.ThrowIfNull(session);
+        var sheet = new ColonistSheet
+        {
+            Name = nameof(ColonistSheet), _services = services, _session = session, _simulation = session.Simulation, Visible = false,
+        };
         sheet.SetAnchorsPreset(LayoutPreset.Center);
         sheet.GrowHorizontal = GrowDirection.Both;
         sheet.GrowVertical = GrowDirection.Both;
@@ -65,6 +77,9 @@ public partial class ColonistSheet : PanelContainer
         sheet._title = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         sheet._title.AddThemeFontSizeOverride("font_size", 24);
         top.AddChild(sheet._title);
+        sheet._children = new Button { FocusMode = FocusModeEnum.None, Visible = false };
+        sheet._children.Pressed += sheet.ToggleChildren;
+        top.AddChild(sheet._children);
         var close = new Button { Text = "ui.sheet.close", FocusMode = FocusModeEnum.None };
         close.Pressed += sheet.Close;
         top.AddChild(close);
@@ -146,6 +161,30 @@ public partial class ColonistSheet : PanelContainer
         }
     }
 
+    /// <summary>Allows or forbids children to the couple of the colonist shown (see <see cref="SetChildrenAllowedCommand"/>).</summary>
+    private void ToggleChildren()
+    {
+        if (!IsColonist(Colonist))
+        {
+            return;
+        }
+
+        _session.Enqueue(new SetChildrenAllowedCommand(Colonist, !LifeRules.ChildrenAllowed(_simulation, Colonist)));
+        Refresh();
+
+        // While time runs the choice applies on the next tick: show it as soon as that tick passed.
+        _sinceRefresh = RefreshSeconds;
+    }
+
+    /// <summary>The choice shows for a colonist with a living partner of the other sex: only they can have children.</summary>
+    private void RefreshChildren()
+    {
+        var world = _simulation.World;
+        var partner = Relationships.PartnerOf(_simulation, Colonist);
+        _children.Visible = !partner.IsNone && world.Get<Colonist>(partner).Gender != world.Get<Colonist>(Colonist).Gender;
+        _children.Text = LifeRules.ChildrenAllowed(_simulation, Colonist) ? "ui.sheet.children_allowed" : "ui.sheet.children_forbidden";
+    }
+
     private static VBoxContainer Column(HBoxContainer columns)
     {
         var column = new VBoxContainer { CustomMinimumSize = new Vector2(ColumnWidth, 0) };
@@ -155,7 +194,7 @@ public partial class ColonistSheet : PanelContainer
     }
 
     private bool IsColonist(EntityId colonist) =>
-        !colonist.IsNone && _simulation.World.IsAlive(colonist) && _simulation.World.Has<OurLife.Core.Entities.Colonist>(colonist);
+        !colonist.IsNone && _simulation.World.IsAlive(colonist) && _simulation.World.Has<Colonist>(colonist);
 
     private void OnLocaleChanged(string locale)
     {
@@ -176,6 +215,7 @@ public partial class ColonistSheet : PanelContainer
         }
 
         _title.Text = TitleOf(Colonist);
+        RefreshChildren();
         _summary.Text = string.Join("   ", SummaryOf(Colonist));
         var bodies = new[] { Traits(Colonist), Skills(Colonist), Family(Colonist), Thoughts(Colonist), Desires(Colonist), Relations(Colonist), Recent(Colonist) };
         for (var i = 0; i < _sections.Count; i++)

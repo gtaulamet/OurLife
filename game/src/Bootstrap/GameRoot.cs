@@ -961,6 +961,31 @@ public partial class GameRoot : Node
             GD.Print($"[smoke] the sheet of a colonist opens with {lines.Sum(line => line.Split('\n').Length)} lines and closes");
         }
 
+        // The founding couple has the choice of children, and pressing it twice gives it back.
+        var game = screen.Session.Simulation;
+        var founder = people.FirstOrDefault(colonist => !Relationships.PartnerOf(game, colonist).IsNone);
+        if (!founder.IsNone)
+        {
+            screen.Hud.ToggleSheet(founder);
+            var button = screen.Hud.Sheet.ChildrenButton;
+            var allowed = LifeRules.ChildrenAllowed(game, founder);
+            button.EmitSignal(BaseButton.SignalName.Pressed);
+            screen.Advance(1);
+            var toggled = LifeRules.ChildrenAllowed(game, founder);
+            screen.Hud.Sheet.ShowColonist(founder);
+            var label = button.Tr(button.Text).ToString();
+            button.EmitSignal(BaseButton.SignalName.Pressed);
+            screen.Advance(1);
+            if (!button.Visible || toggled == allowed || LifeRules.ChildrenAllowed(game, founder) != allowed
+                || label.StartsWith("ui.", StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"the choice of children did not work: shown {button.Visible}, '{label}', {allowed} -> {toggled}");
+            }
+
+            screen.Hud.ToggleSheet(founder);
+            GD.Print($"[smoke] the sheet of a founder in a couple offers the choice of children: '{label}'");
+        }
+
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();
         screen.Advance(10);

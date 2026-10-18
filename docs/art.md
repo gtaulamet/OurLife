@@ -100,6 +100,8 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
 | Muebles | Resuelto: cama, mesa, silla y baúl de KayKit Dungeon Remastered, con la madera entonada por la paleta (`texture`) | — |
+| Cuna (H3.7) | Provisorio: `furniture.cradle` es la cama de KayKit a escala 0,2 | Una cuna medieval de madera en H3.8 |
+| Bebés y niños (H3.7) | Pendiente: se dibujan como adultos | H3.8, con el arte de las etapas |
 
 **Recoloreo de los aldeanos.** La textura `kenney_mini-characters/Textures/colormap.png` es la de Kenney con las franjas de ropa cambiadas a tonos de época (musgo, ocre, óxido, rubia, glasto, lana cruda, lino, ciruela y rosa viejo), conservando el degradé de cada franja. La piel, los grises y el pelo no se tocan. La comparten los 12 aldeanos.
 

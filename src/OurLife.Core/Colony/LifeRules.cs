@@ -190,6 +190,12 @@ public sealed class LifeRules
         return simulation.World.TryGet<Pregnancy>(colonist, out var pregnancy) ? pregnancy : null;
     }
 
+    /// <summary>How far along a colonist's pregnancy is, in percent, or null if it expects no child.</summary>
+    public static int? PregnancyPercent(Simulation simulation, EntityId colonist) =>
+        PregnancyOf(simulation, colonist) is { } pregnancy && simulation.Content.All<LifeConfigDef>() is [{ Birth: { } birth }]
+            ? Math.Min(100, pregnancy.LifeDays * 100 / birth.PregnancyLifeDays)
+            : null;
+
     /// <summary>How fast a colonist works for its pregnancy, in percent: slower in the last part of it.</summary>
     public static int PregnancyWorkSpeedPercent(Simulation simulation, EntityId colonist) =>
         PregnancyOf(simulation, colonist) is { } pregnancy && simulation.Content.All<LifeConfigDef>() is [{ Birth: { } birth }]

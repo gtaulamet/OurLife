@@ -36,6 +36,11 @@ public partial class ColonistSheet
             yield return text.Format("ui.inspector.life", ("stage", NameOf(stage, gender)), ("years", LifeRules.AgeYears(_simulation, colonist)));
         }
 
+        if (LifeRules.PregnancyPercent(_simulation, colonist) is { } pregnant)
+        {
+            yield return text.Format("ui.inspector.pregnant", ("percent", pregnant));
+        }
+
         yield return text.Format("ui.sheet.mood", ("mood", MoodRules.Value(_simulation, colonist)));
         if (MoodRules.CrisisOf(_simulation, colonist) is { } crisis)
         {

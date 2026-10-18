@@ -12,6 +12,7 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 | `visual` | Modelo del mueble en el catálogo de visuales (obligatorio en un mueble, prohibido en lo demás) |
 | `restRecoveryPercent` | Si está, el mueble es una cama: quien duerme en ella recupera el descanso a ese porcentaje del normal |
 | `storage` | El mueble es un cofre: un almacén de una celda |
+| `forStages` | Sólo en una cama: las etapas de la vida cuyos colonos la toman, como la cuna para los bebés; vacío, todas (H3.7) |
 
 - Contenido de IP2, todo de madera:
 
@@ -21,6 +22,9 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 | Mesa (`table`) | 3 | 150 | | `table` del Furniture Kit |
 | Silla (`chair`) | 2 | 90 | | `chair` del Furniture Kit |
 | Cofre (`chest`) | 4 | 150 | `storage` | `chest` del Survival Kit |
+| Cuna (`cradle`), desde H3.7 | 2 | 90 | `restRecoveryPercent` 150, `forStages` bebé | Provisorio: la cama de KayKit más chica, hasta H3.8 |
+
+- Desde H3.7 la cama es para niños, adolescentes, adultos y ancianos (`forStages`), y la cuna sólo para bebés. Una cama de una etapa que su dueño dejó atrás, como la cuna de un niño, queda libre (`Beds` en el Core).
 
 - Mesa y silla son decorativas en IP2: comer en la mesa llega con la cocina, más adelante.
 
@@ -54,7 +58,7 @@ Spec de H2.5 de IP2: cama, mesa, silla y cofre, colocados como planos con orient
 - Un colono que duerme se dibuja acostado boca arriba, centrado en su celda: en su cama, a lo largo de ella y sobre el colchón; en el suelo, con el rumbo que traía. Al despertar se vuelve a parar. Es sólo presentación.
 - El plano de un mueble es una caja translúcida baja del color del material.
 - La barra de Construir muestra los muebles después de las formas del terreno.
-- Inspector de una celda con mueble: "Cama de madera", y en una cama "Cama de Elvira" o "Libre". En un cofre, los filtros del almacén.
+- Inspector de una celda con mueble: "Cama de madera", y en una cama "Es de Elvira" (desde H3.7, que vale también para la cuna) o "Libre". En un cofre, los filtros del almacén.
 - Inspector de un colono: "Duerme en su cama" o "Sin cama".
 
 ## Comandos y eventos

@@ -138,13 +138,18 @@ public partial class InspectorPanel : PanelContainer
             _lines.Add(text.Format("ui.inspector.life", ("stage", text.Capitalized(stageName)), ("years", LifeRules.AgeYears(_simulation, colonist))));
         }
 
+        if (LifeRules.PregnancyPercent(_simulation, colonist) is { } pregnant)
+        {
+            _lines.Add(text.Format("ui.inspector.pregnant", ("percent", pregnant)));
+        }
+
         _lines.Add(text.Activity(world, colonist));
         if (world.TryGet<Carried>(colonist, out var carried))
         {
             var item = NameOf(_simulation.Content.Get<ItemDef>(carried.Def), carried.Count);
             _lines.Add(text.Format("ui.inspector.carrying", ("count", carried.Count), ("item", item)));
         }
-        _lines.Add(text.Format(HasBed(colonist) ? "ui.inspector.has_bed" : "ui.inspector.no_bed"));
+        _lines.Add(text.Format(Beds.HasBed(_simulation, colonist) ? "ui.inspector.has_bed" : "ui.inspector.no_bed"));
         foreach (var state in world.Get<Needs>(colonist).Values)
         {
             var need = _simulation.Content.Get<NeedDef>(state.Need);
@@ -190,13 +195,6 @@ public partial class InspectorPanel : PanelContainer
         // What stands on the cell, or on the floor above a wall's top.
         var above = map.ShapeAt(cell) == TileShape.Wall ? new TileCoord(cell.X, cell.Y, cell.Z + 1) : cell;
         DescribeEntitiesAt(cell, above);
-    }
-
-    private bool HasBed(EntityId colonist)
-    {
-        var world = _simulation.World;
-        world.Query<Bed>(_entities);
-        return _entities.Exists(bed => world.Get<Bed>(bed).Owner == colonist);
     }
 
     /// <summary>The plants, piles, furniture and blueprints on either cell, in one pass over the entities.</summary>

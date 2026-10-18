@@ -184,6 +184,7 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 | Reconciliarse (`reconcile`) | Tras discutir con alguien de quien tenía opinión ≥ 10, si la opinión bajó (H3.6) | Su opinión vuelve a la de antes de la discusión | 40 %, por la amabilidad |
 
 - "Tener un hijo" no nace si los hijos están impedidos para esa pareja: la opción del jugador no castiga el ánimo. Este deseo llega con la fertilidad, en H3.7.
+- **Ajuste de H3.7:** el deseo de un hijo se cumple con el embarazo, no con el parto. En Normal el embarazo dura 45 días del juego, más que los 10 que espera un deseo: esperar al parto lo frustraría casi siempre.
 - **Cómo está hecho (H3.6):** el def `Desire` tiene un `kind` que el código conoce (`learnFrom`, `befriend`, `findPartner`, `ownBed`, `reconcile`) y los números en datos (`chancePercent`, `scaledBy`, `minLevels`, `minOpinion`, `maxOpinion`, `nights`, `stages`). Las interacciones dicen qué deseo pueden despertar (`desire`). Un deseo sobre alguien que murió se descarta sin frustrarse.
 - Los deseos se ven en la ficha; no van al registro.
 
@@ -202,6 +203,18 @@ Def nuevo `Trait`: cada rasgo es un eje de 0 a 100. Contenido de IP3:
 - **Cuna** (`cradle`): mueble nuevo de madera, costo 2 y trabajo 90, cama sólo para bebés (`forStages: [baby]`, `restRecoveryPercent` 150). Un bebé toma una cuna libre como un colono toma una cama.
 - **Niños:** comen y duermen solos. En lugar de trabajar, juegan: van hacia otro niño o un familiar a 15 celdas o menos e interactúan con él; si no hay nadie, deambulan.
 - Un bebé con hambre en cero muere como cualquier colono, y deja los pensamientos de muerte a su familia.
+
+### Cómo está hecho (H3.7)
+
+- **Etapas:** el def `LifeStage` suma `eatsAlone` (el bebé, `false`: no busca comida y otros lo alimentan), `crawlRadius` (el bebé, 3) y `playRadius` (el niño, 15). El código no nombra etapas.
+- **Nacimientos:** `BirthSystem` corre a medianoche, después del envejecimiento, y recorre a las mujeres por `EntityId`. Los números están en el bloque `birth` de `LifeConfig`: `femaleFertileYears` y `maleFertileYears`, `conceptionChancePerYear`, `pregnancyLifeDays`, `lateFromLifeDays` y `lateWorkSpeedPercent` (el último tercio), `yearsBetweenChildren`, `parentOpinion` y `siblingOpinion`. Sin el bloque no nace nadie. Fértil quiere decir adulto de una etapa que hace todo trabajo y dentro de los años de su sexo.
+- **Embarazo:** el componente `Pregnancy` de la madre guarda al padre con su nombre, por si muere antes del parto, y los días de vida que lleva. Si el padre murió, el hijo hereda la mitad de los rasgos de la madre y la otra mitad del promedio.
+- **Parto:** padres, hermanos y bebé cuentan como que se encontraron al nacer, así la opinión no se olvida esa misma noche. Los padres sienten "Nació mi bebé" y su amabilidad sube 2 (`parenthood` en `MoodConfig`).
+- **Alimentar:** quien cría va a la pila de comida más cercana, levanta las unidades que le faltan al bebé (no una sola, para no hacer un viaje por baya) y se las da de a una, al ritmo de comer. Si el bebé gateó, lo sigue. Mientras le traen comida, el bebé espera quieto. La madre o el padre van primero si están libres (sin trabajo, paseando o jugando), hacen crianza y llegan al bebé; si no, lo toma el primer colono libre que lo encuentra entre sus trabajos más cercanos. Quien no encuentra comida o camino deja al bebé a los demás por un rato.
+- **Jugar:** un niño sin nada que hacer sortea un compañero en su nivel a 15 celdas o menos, otro niño o un familiar, despierto y con quien no interactuó en las últimas `pairCooldownHours`. Va a su lado y se queda un rato, como al pasear; ahí la interacción jugar sale sola. Así no sigue siempre al mismo.
+- **Camas:** `forStages` en la cama (niño, adolescente, adulto y anciano) y en la cuna (bebé). `Beds` decide qué cama le corresponde a cada uno; la cuna de un bebé que creció queda libre.
+- **Opción de hijos:** `SetChildrenAllowedCommand` cambia la opción del colono y de su pareja viva. Prohibir borra el deseo de tener un hijo sin frustrarlo; un embarazo en curso sigue.
+- **Presentación:** la ficha muestra el botón "Hijos: permitidos / no" a quien tiene pareja viva del otro sexo; la ficha y el inspector muestran "Embarazada (N %)".
 
 ## Vejez y muerte
 
@@ -232,7 +245,7 @@ Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en
 
 ## Guardado y migración
 
-- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, habilidades desde la 3 y opiniones desde la 4; la 5 sólo empieza sin pensamientos ni deseos) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido. El formato es 6 desde H3.6.
+- El formato de guardado sube con cada hito que suma estado (ADR-013): 2 en H3.2 y 3 en H3.3. Una partida vieja se migra al cargarla, paso por paso: cada colono recibe lo que le falta (edad y apellido desde la versión 1, personalidad desde la 2, habilidades desde la 3 y opiniones desde la 4; la 5 sólo empieza sin pensamientos ni deseos) como los fundadores, sorteado con el flujo `life.migration` en orden de `EntityId`. No hay pareja fundadora y el ritmo es Rápido. El formato es 6 desde H3.6 y 7 desde H3.7: la 6 recibe la habilidad de crianza, sorteada como la de un fundador, y empieza sin embarazos.
 - Las huellas del smoke cambian en H3.2 (la edad entra en el estado) y en cada hito que suma estado. La bitácora registra las nuevas.
 
 ## Contrato con la presentación
@@ -280,8 +293,8 @@ Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en
 | Def | Campos | Archivo |
 |---|---|---|
 | `LifePace` | `lifeDaysPerDay`, `default` | `life.json` |
-| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5) y `visual` (H3.8) | `life.json` |
-| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); fertilidad, `conceptionChancePerYear`, `pregnancyLifeDays` y opiniones de los fundadores en los hitos que los usan | `life.json` |
+| `LifeStage` | `fromYears`, `work` (`none`, `light`, `all`), `workSpeedPercent`, `moveSpeedPercent`, `needsPercent` por necesidad (H3.2); `traitDriftPercent` (H3.3); `interacts` (H3.5); `eatsAlone`, `crawlRadius` y `playRadius` (H3.7) y `visual` (H3.8) | `life.json` |
+| `LifeConfig` | Tabla de vejez `oldAge` (H3.2); bloque `birth` con fertilidad, concepción, embarazo y opiniones al nacer (H3.7) | `life.json` |
 | `Trait` | `workSpeed` (`low` y `high`) y `needsBeforeWorkBelow` (H3.3); `experience` (H3.4); los coeficientes de interacciones y crisis en sus hitos; tramos de palabras para la ficha (H3.9) | `personality.json` |
 | `SkillConfig` | `maxLevel` (20), `averageLevel` (10), `experienceBase` (600), `experiencePerLevel` (150), `speedBase` (80), `speedPerLevel` (2), `teachingMinLevels` (3), `teachingBase` (100) y `teachingPerLevel` (30) (H3.4) | `skills.json` |
 | `PersonalityConfig` | `rolls` (3), `inheritedPercent` (50), `maxDriftPerDay` (3) y los pesos de orientación `orientations` (H3.3) | `personality.json` |
@@ -289,12 +302,12 @@ Adelantada a H3.7 por pedido del usuario (16 de octubre de 2026): quería ver en
 | `SocialConfig` | `checkTicks`, `radius`, `pairCooldownHours`, `startChancePercent`, `closeWeightPercent`, umbrales de amistad, rivalidad y pareja, `retellMargin`, `breakupBelow`, olvido, `founderOpinion`, `widowYears` y `recentInteractions` (H3.5) | `social.json` |
 | `Thought` | `mood`, `durationHours`, `stackLimit`; para los de una situación, `need`, `below` (`low` o `critical`) y `replaces` (H3.6) | `mood.json` |
 | `Crisis` | `weight`, `traits`, `durationHours`, `behavior` (`refuseWork`, `isolate`) y `drift` (H3.6) | `mood.json` |
-| `MoodConfig` | `base`, bandas de `workSpeed`, `crisisBelow`, `crisisChancePercent`, `maxDesires`, `daysBetweenDesires`, `desireExpireDays`, `grief` y el pensamiento de cada hecho (H3.6) | `mood.json` |
+| `MoodConfig` | `base`, bandas de `workSpeed`, `crisisBelow`, `crisisChancePercent`, `maxDesires`, `daysBetweenDesires`, `desireExpireDays`, `grief` y el pensamiento de cada hecho (H3.6); `childBorn` y `parenthood` (H3.7) | `mood.json` |
 | `Desire` | `kind`, `chancePercent`, `scaledBy` y los números de cada clase (H3.6) | `mood.json` |
 | `WorkType` | `skill`, `light`; tipo nuevo `childcare` con `feed_baby` | `work_types.json` |
 | `NameList` | `surnames` | `names.json` |
 | `Scenario` | `founderMinYears` y `founderMaxYears` (H3.2); `founderSkillMin` (3), `founderSkillMax` (10) y `founderSkillBonus` (4) (H3.4), con el máximo más el bonus hasta `maxLevel`; `foundingCouple` | `scenario.json` |
-| `Buildable` | `cradle`, con `forStages` | `buildables.json` |
+| `Buildable` | `cradle`, con `forStages`; la cama también lo lleva (H3.7) | `buildables.json` |
 
 - Cada def con textos lleva `name`, `desc` y `gender` en es y en. Los defs entran en el hito que los usa, no en H3.1.
 
@@ -346,7 +359,7 @@ Escritos como tests de escenario con el contenido de prueba o el real, salvo los
 6. Un aprendiz junto a un maestro con 5 niveles más gana experiencia por enseñanza; un colono que tala sube de nivel y tala más rápido.
 7. Comer con hambre baja y charlar sube el ánimo; con ánimo bajo 15 durante un día aparece una crisis.
 8. Un deseo de cama propia se cumple al tomar una cama y deja su pensamiento; si vence, deja el de frustración.
-9. La pareja fundadora, con comida, tiene un hijo con el apellido del padre, rasgos en el rango de los padres y nombre que no lleva ningún colono vivo.
+9. La pareja fundadora, con comida, tiene un hijo con el apellido del padre, rasgos heredados (la mitad del promedio de los padres más la mitad de un sorteo) y nombre que no lleva ningún colono vivo.
 10. Con los hijos impedidos, una pareja no concibe ni le nace el deseo de tener un hijo; con hambre baja, tampoco concibe.
 11. Dos mujeres en pareja no conciben; una pareja con orientaciones incompatibles no se forma.
 12. Un bebé con hambre recibe comida de su madre o su padre si están libres; si no, del colono libre más cercano.
