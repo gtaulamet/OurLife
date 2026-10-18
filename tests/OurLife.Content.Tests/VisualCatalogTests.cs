@@ -65,7 +65,21 @@ public class VisualCatalogTests
             .ToList();
 
         missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
-        Catalog.TryResolve($"creature.human.{adult.Id}", era: null, out _).ShouldBeFalse();
+        var adultModels = GameContent.Defs.All<CreatureDef>().Where(creature => Catalog.TryResolve($"{creature.Visual}.{adult.Id}", null, out _));
+        adultModels.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Every_animation_a_model_plays_instead_is_in_each_of_its_files()
+    {
+        var missing = Catalog.Models
+            .Where(model => model.Animations is not null)
+            .SelectMany(model => model.Files.SelectMany(file => model.Animations!.Values
+                .Where(animation => !AnimationsOf(file).Contains(animation))
+                .Select(animation => $"'{model.Id}': {file} has no animation '{animation}'")))
+            .ToList();
+
+        missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
     }
 
     [Fact]
@@ -360,6 +374,17 @@ public class VisualCatalogTests
     public void An_invalid_catalog_is_rejected_with_a_format_error(string json)
     {
         Should.Throw<FormatException>(() => VisualCatalog.Parse(json));
+    }
+
+    /// <summary>The names of the animations of a .glb file, read from its JSON chunk.</summary>
+    private static HashSet<string> AnimationsOf(string resourcePath)
+    {
+        var bytes = File.ReadAllBytes(RepoPaths.Combine("game", resourcePath[ResourcePrefix.Length..]));
+        var length = BitConverter.ToInt32(bytes, 12);
+        using var document = JsonDocument.Parse(bytes.AsMemory(20, length));
+        return document.RootElement.TryGetProperty("animations", out var animations)
+            ? animations.EnumerateArray().Select(animation => animation.GetProperty("name").GetString()!).ToHashSet(StringComparer.Ordinal)
+            : [];
     }
 
     private static IEnumerable<(Def Def, string Visual)> VisualDefs() =>

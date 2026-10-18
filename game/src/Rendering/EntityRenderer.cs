@@ -3,6 +3,7 @@ using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
+using OurLife.Core.Pathfinding;
 using OurLife.Core.Sim;
 
 namespace OurLife.Game.Rendering;
@@ -49,12 +50,21 @@ public partial class EntityRenderer : Node3D
     // The balloons of interactions: how long they show and fade, in real seconds, how big their
     // pixels are and how far over a head they float, in the world's units.
     private const string IconPath = "res://assets/icons/interactions/{0}.png";
+
+    // What a walker covers in a tick at full speed, so the walk plays at the pace it really goes.
+    private const float FullStride = PathFinder.StraightCost * 100f;
     private const double BalloonSeconds = 2.5;
     private const double BalloonFadeSeconds = 0.5;
     private const float BalloonPixel = 0.02f;
     private const float BalloonGap = 0.35f;
-    private readonly Dictionary<string, Texture2D?> _icons = new(StringComparer.Ordinal);
     private readonly Dictionary<EntityId, Balloon> _balloons = [];
+
+    // The model of each visual and stage, found once: "<visual>.<stage>", or null if the catalog has none.
+    private readonly Dictionary<(string Visual, string Stage), VisualModel?> _staged = [];
+
+    // The animations that loop: those the renderer asks for and those the catalog plays instead.
+    private HashSet<string> _loopingAnimations = null!;
+    private ColonyRules _rules = null!;
     private readonly List<EntityId> _expired = [];
 
     // The animation libraries whose animations were already set to loop, by their Godot id: they
@@ -80,6 +90,10 @@ public partial class EntityRenderer : Node3D
         var renderer = new EntityRenderer
         {
             Name = nameof(EntityRenderer), _simulation = simulation, _models = models, _viewLevel = viewLevel, _animationSpeed = animationSpeed,
+            _rules = ColonyRules.From(simulation.Content),
+            _loopingAnimations = LoopingAnimations
+                .Concat(models.Catalog.Models.SelectMany(model => model.Animations?.Values ?? []))
+                .ToHashSet(StringComparer.Ordinal),
         };
 
         try
@@ -107,12 +121,6 @@ public partial class EntityRenderer : Node3D
         if (what == NotificationPredelete)
         {
             _models?.Dispose();
-            foreach (var icon in _icons.Values)
-            {
-                icon?.Dispose();
-            }
-
-            _icons.Clear();
         }
     }
 
@@ -152,7 +160,10 @@ public partial class EntityRenderer : Node3D
             bounds = bounds is { } merged ? merged.Merge(box) : box;
         }
 
-        return bounds;
+        // Bones the catalog enlarges, like a child's head, reach above the meshes as modelled.
+        return bounds is { } drawn && view.HeightFactor > 1f
+            ? new Aabb(drawn.Position, drawn.Size with { Y = drawn.Size.Y * view.HeightFactor })
+            : bounds;
     }
 
     public void SetViewLevel(int viewLevel)
@@ -210,8 +221,9 @@ public partial class EntityRenderer : Node3D
 
         var node = _models.Instantiate(model, FileOf(entity, model));
 
-        // Measured before it is placed: half its height is how far a sleeper's feet move back.
-        var halfHeight = (ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f) / 2;
+        // Measured before it is placed: half its height is how far a sleeper's feet move back. The
+        // meshes are measured as modelled, so bones the catalog enlarges, like a child's head, add on.
+        var halfHeight = (ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f) / 2 * HeightFactor(model);
         var position = _simulation.World.Get<Position>(entity);
         var moves = _simulation.World.Has<Movement>(entity);
         node.Position = moves ? WalkingPosition(entity, out _) : CellBase(position.X, position.Y, position.Z);
@@ -223,9 +235,10 @@ public partial class EntityRenderer : Node3D
         }
 
         AddChild(node);
-        var animator = AnimatorOf(node, model);
+        var animator = AnimatorOf(node);
         var view = new EntityView(node, model, position.Z, ModelLibrary.MeshesOf(node))
         {
+            HeightFactor = HeightFactor(model),
             HalfHeight = halfHeight,
             Animator = animator,
             Animations = animator is null ? [] : animator.GetAnimationList().ToHashSet(StringComparer.Ordinal),
@@ -286,8 +299,15 @@ public partial class EntityRenderer : Node3D
 
         if (ModelOf(entity) is { } model && model != view.Model)
         {
+            // A balloon outlives the model, as when a colonist grows up while it chats.
+            var balloon = _balloons.GetValueOrDefault(entity);
             Remove(entity);
             Spawn(entity);
+            if (balloon is not null)
+            {
+                ShowBalloon(entity, balloon.Interaction, balloon.Left);
+            }
+
             return;
         }
 
@@ -310,9 +330,10 @@ public partial class EntityRenderer : Node3D
     /// It is a child of the colonist, so it walks with it and hides with it; nothing shows for an
     /// interaction without an icon.
     /// </summary>
-    private void ShowBalloon(EntityId entity, string interaction)
+    private void ShowBalloon(EntityId entity, string interaction, double seconds = BalloonSeconds)
     {
-        if (!_views.TryGetValue(entity, out var view) || IconOf(interaction) is not { } icon)
+        var path = string.Format(System.Globalization.CultureInfo.InvariantCulture, IconPath, interaction);
+        if (!_views.TryGetValue(entity, out var view) || _models.LoadTexture(path) is not { } icon)
         {
             return;
         }
@@ -335,20 +356,7 @@ public partial class EntityRenderer : Node3D
             Position = new Vector3(0, ((2 * view.HalfHeight) + BalloonGap) / scale, 0),
         };
         view.Node.AddChild(sprite);
-        _balloons[entity] = new Balloon(sprite) { Left = BalloonSeconds };
-    }
-
-    /// <summary>The icon of an interaction, loaded once; null if it has none.</summary>
-    private Texture2D? IconOf(string interaction)
-    {
-        if (!_icons.TryGetValue(interaction, out var icon))
-        {
-            var path = string.Format(System.Globalization.CultureInfo.InvariantCulture, IconPath, interaction);
-            icon = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
-            _icons.Add(interaction, icon);
-        }
-
-        return icon;
+        _balloons[entity] = new Balloon(sprite, interaction) { Left = seconds };
     }
 
     /// <summary>Balloons fade out at the end of their time, in real seconds, and go.</summary>
@@ -396,8 +404,7 @@ public partial class EntityRenderer : Node3D
         else if (world.TryGet<Colonist>(entity, out var colonist))
         {
             visual = content.Get<CreatureDef>(colonist.Creature).Visual;
-            if (LifeRules.Stage(_simulation, entity) is { } stage
-                && _models.Catalog.TryResolve($"{visual}.{stage.Id}", _simulation.Progress.CurrentEra, out var staged))
+            if (LifeRules.Stage(_simulation, entity) is { } stage && StagedModel(visual, stage.Id) is { } staged)
             {
                 return staged;
             }
@@ -422,6 +429,21 @@ public partial class EntityRenderer : Node3D
             : throw new InvalidOperationException($"The visual catalog has no model for '{visual}'.");
     }
 
+    /// <summary>The model of a visual for a stage of life, <c>&lt;visual&gt;.&lt;stage&gt;</c>, or null if the catalog has none; found once per era.</summary>
+    private VisualModel? StagedModel(string visual, string stage)
+    {
+        if (!_staged.TryGetValue((visual, stage), out var model))
+        {
+            model = _models.Catalog.TryResolve($"{visual}.{stage}", _simulation.Progress.CurrentEra, out var found) ? found : null;
+            _staged.Add((visual, stage), model);
+        }
+
+        return model;
+    }
+
+    /// <summary>How much taller than its meshes as modelled a model is drawn: as much as its most enlarged bone, at least 1.</summary>
+    private static float HeightFactor(VisualModel model) => model.BoneScales is { Count: > 0 } bones ? Math.Max(1f, bones.Values.Max()) : 1f;
+
     /// <summary>
     /// The file of a model a colonist is drawn with: one of the variants for its gender, picked by
     /// its id, so it keeps its look; the model's own file for anything else.
@@ -443,10 +465,11 @@ public partial class EntityRenderer : Node3D
     }
 
     /// <summary>
-    /// The animation player of a model, with the animations it has set to loop, its own for those
-    /// it plays instead (<see cref="VisualModel.Animations"/>) included; null for a model without one.
+    /// The animation player of a model, with the animations it has set to loop: those the renderer
+    /// asks for and every one the catalog plays instead (<see cref="VisualModel.Animations"/>), as
+    /// the library is shared by every visual of the file. Null for a model without one.
     /// </summary>
-    private AnimationPlayer? AnimatorOf(Node node, VisualModel model)
+    private AnimationPlayer? AnimatorOf(Node node)
     {
         var animator = FindAnimator(node);
         if (animator is null)
@@ -462,7 +485,7 @@ public partial class EntityRenderer : Node3D
                 continue;
             }
 
-            foreach (var animation in LoopingAnimations.Select(model.AnimationFor).Where(animation => library.HasAnimation(animation)))
+            foreach (var animation in _loopingAnimations.Where(animation => library.HasAnimation(animation)))
             {
                 using var clip = library.GetAnimation(animation);
                 clip.LoopMode = Animation.LoopModeEnum.Linear;
@@ -516,17 +539,21 @@ public partial class EntityRenderer : Node3D
             : world.Has<Carried>(entity) ? Hold
             : Idle;
 
-        // Godot is asked only when something changes: its calls cost on every frame.
-        name = view.Model.AnimationFor(name);
+        // A sleeper lies still with the plain pose: a baby's own one for standing is sitting.
+        var asleep = job is { Kind: JobKind.Sleep, Stage: JobStage.Working };
+        name = asleep ? Idle : view.Model.AnimationFor(name);
         if (!view.Animations.Contains(name))
         {
-            name = view.Model.AnimationFor(Idle);
+            name = asleep ? Idle : view.Model.AnimationFor(Idle);
         }
 
+        // Walking at the pace it really goes: its stage's, and its skill's while it carries.
         if (moving)
         {
-            speed *= LifeRules.MoveSpeedPercent(_simulation, entity) / 100f;
+            speed *= MovementSystem.ProgressOf(_simulation, entity, _rules) / FullStride;
         }
+
+        // Godot is asked only when something changes: its calls cost on every frame.
 
         if (view.Playing != name && view.Animations.Contains(name))
         {
@@ -622,10 +649,12 @@ public partial class EntityRenderer : Node3D
         return hash % 360;
     }
 
-    /// <summary>A balloon over a colonist and the real seconds it has left.</summary>
-    private sealed class Balloon(Sprite3D sprite)
+    /// <summary>A balloon over a colonist, of an interaction, and the real seconds it has left.</summary>
+    private sealed class Balloon(Sprite3D sprite, string interaction)
     {
         public Sprite3D Sprite { get; } = sprite;
+
+        public string Interaction { get; } = interaction;
 
         public double Left { get; set; }
     }
@@ -650,6 +679,9 @@ public partial class EntityRenderer : Node3D
 
         /// <summary>Half the height of its model as drawn, to lay a sleeper centred on its cell.</summary>
         public float HalfHeight { get; init; }
+
+        /// <summary>How much taller than its meshes as modelled it is drawn, for enlarged bones.</summary>
+        public float HeightFactor { get; init; } = 1f;
 
         /// <summary>The player of the model's animations, for a colonist; null for a model without them.</summary>
         public AnimationPlayer? Animator { get; init; }

@@ -12,6 +12,7 @@ namespace OurLife.Game.Rendering;
 public sealed class ModelLibrary : IDisposable
 {
     private readonly Dictionary<string, PackedScene> _scenes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Texture2D?> _textures = new(StringComparer.Ordinal);
     private readonly Dictionary<(Material Source, int Depth, bool SrgbAsLinear), Material> _shaded = [];
     private readonly Dictionary<(Material Source, Color? Color, float Alpha, bool OnTop), Material> _ghosts = [];
 
@@ -38,6 +39,18 @@ public sealed class ModelLibrary : IDisposable
         }
 
         return scene;
+    }
+
+    /// <summary>A texture, like the icon of a balloon, or null if there is none at the path; cached and released with the library.</summary>
+    public Texture2D? LoadTexture(string path)
+    {
+        if (!_textures.TryGetValue(path, out var texture))
+        {
+            texture = ResourceLoader.Exists(path) ? GD.Load<Texture2D>(path) : null;
+            _textures.Add(path, texture);
+        }
+
+        return texture;
     }
 
     /// <summary>
@@ -210,6 +223,7 @@ public sealed class ModelLibrary : IDisposable
     {
         // A source material appears once per depth, and an unconverted one is its own copy.
         var resources = new HashSet<Resource>(_scenes.Values);
+        resources.UnionWith(_textures.Values.OfType<Texture2D>());
         foreach (var ((source, _, _), shaded) in _shaded)
         {
             resources.Add(source);
@@ -230,6 +244,7 @@ public sealed class ModelLibrary : IDisposable
         _shaded.Clear();
         _ghosts.Clear();
         _scenes.Clear();
+        _textures.Clear();
     }
 
     private static void CollectMeshes(Node node, List<MeshInstance3D> meshes)
