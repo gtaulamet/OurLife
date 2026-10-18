@@ -12,8 +12,9 @@
 - Las metas de existencias se eligen en el panel Colonia (respondido el 17 de octubre).
 - "Cerca de la aldea" es un círculo de 40 celdas de diámetro (radio 20) (respondido el 17 de octubre).
 - Los árboles vuelven a crecer, sin llenar el mapa: con un tope de cobertura del terreno (pedido del 17 de octubre).
+- El valle cambia de color con la estación: árboles amarillos y rojizos en otoño, pasto y árboles blanquecinos en invierno y cumbres nevadas (pedido del 18 de octubre; propuesta en `docs/gdd/estaciones-visibles.md`). Se adelanta de IP6, que conserva el clima, la nieve que cae y sus horas.
 
-**Estimación:** 40 a 58 h. **Versión al cerrar:** `v0.3.5`, para Windows y macOS.
+**Estimación:** 48 a 70 h. **Versión al cerrar:** `v0.3.5`, para Windows y macOS.
 
 **Estado:** planificada; empieza al cerrar IP3.
 
@@ -26,9 +27,10 @@
 | L3 Trabajo por iniciativa | Pendiente | `ip3.5/l3-iniciativa` | |
 | L4 Vida social con intención | Pendiente | `ip3.5/l4-social` | |
 | L4b Bosque que vuelve | Pendiente | `ip3.5/l4b-bosque` | |
+| L4c Estaciones visibles | Pendiente | `ip3.5/l4c-estaciones` | |
 | L5 Integración | Pendiente | `ip3.5/l5-integracion` | |
 
-**Ruta crítica:** L1 → L2 → (L3 ∥ L4 ∥ L4b) → L5.
+**Ruta crítica:** L1 → L2 → (L3 ∥ L4 ∥ L4b ∥ L4c) → L5. L4c es sólo de presentación y puede empezar apenas se apruebe la spec.
 
 ## Hitos en detalle
 
@@ -39,6 +41,7 @@
 | L3 Trabajo por iniciativa | Tareas por datos (recolectar comida, talar árboles sueltos cerca de la aldea, acarrear) con su condición de existencias; sólo en el tiempo libre y dentro de las prioridades; ganas por la diligencia y el ánimo | sim-engineer, game-designer | 10–14 | Escenario: sin órdenes y con poca comida, un colono recolecta por su cuenta; con recolectar en "nunca", no; con la opción apagada, no |
 | L4 Vida social con intención | En el tiempo libre, buscar a quienes aprecia (amigos, familia, pareja, deseos de amistad o de reconciliarse) y alejarse de los rivales; ganas por la sociabilidad y el ánimo | sim-engineer | 8–12 | Escenario: dos colonos que se aprecian, en trabajos lejanos, se hacen amigos en días; un colono se aleja de su rival |
 | L4b Bosque que vuelve | Retoños que aparecen solos cerca de los árboles adultos de su especie y crecen hasta árboles en unos días; tope por especie como porcentaje del terreno donde puede crecer, por datos; nunca sobre construcciones, almacenes ni órdenes del jugador | sim-engineer, art-integrator | 8–12 | Escenario: un valle talado vuelve a tener bosque con el tiempo y nunca pasa del tope; misma semilla, mismo bosque |
+| L4c Estaciones visibles | El pasto, las copas y la roca cambian de color con la estación, con transición de unos días: otoño amarillo y rojizo con variación entre árboles, invierno blanco y cumbres nevadas por encima de una altura; tintes por datos en el catálogo de visuales; `--season` para las capturas | godot-engineer, art-integrator | 8–12 | Capturas del mismo valle en las cuatro estaciones; la huella del smoke no cambia; los FPS no bajan más de un 5 % |
 | L5 Integración | Balance de iniciativa, de vida social y del bosque en una aldea real; benchmark; checklist de playtest; paquetes y release `v0.3.5` | qa-tester, game-designer, `/code-review`, humano | 4–6 | Checklist completo y `v0.3.5` publicada |
 
 ## Decisiones de diseño a cerrar en L1
@@ -47,10 +50,12 @@
 - **Metas:** en el panel Colonia (decidido). Falta el detalle: una meta por categoría de objetos (comida, madera, piedra), con botones de más y menos.
 - **Cerca de la aldea:** radio de 20 celdas (decidido). Propuesta para el centro: el lugar de llegada de los colonos, fijo; se puede revisar si la aldea crece hacia un lado.
 - **Bosque:** el tope por especie, propuesto igual a la densidad con que la genera el valle (robles 3,5 % y pinos 4 % de las celdas donde pueden crecer), para que el bosque vuelva a su estado natural y no pase de ahí. ¿Retoños sólo junto a árboles adultos de su especie, o en cualquier lugar? Propuesta: a pocas celdas de uno adulto, así el bosque se extiende desde donde quedó. Sembrar a pedido del jugador, con semillas, queda para la agricultura de IP4.
+- **Estaciones visibles:** ¿el pasto se blanquea de a poco hasta el centro del invierno o queda blanco desde el primer día? Propuesta: de a poco. ¿Desde qué altura hay nieve en la roca? Propuesta: el último tercio de la altura del valle.
 
 ## Riesgos
 
 - **El jugador pierde el control:** un colono que tala un árbol que el jugador quería conservar. Mitigación: sólo cerca de la aldea, el interruptor y las metas.
 - **Rendimiento:** buscar con quién estar y qué hacer recorre a todos los colonos; se hace cada tanto y con un radio.
 - **Balance:** demasiada iniciativa vacía el valle de árboles; muy poca no se nota. El bosque que vuelve lo compensa; se ajusta en L5 con partidas largas.
+- **Pinos y robles iguales en invierno:** si todo queda blanco, el valle pierde lectura. Mitigación: los pinos guardan su verde oscuro debajo de la nieve y las paredes de roca siguen grises.
 - **Rendimiento del bosque:** revisar el terreno para hacer crecer retoños cuesta; se hace una vez por día y por partes, y el tope se cuenta en un dato derivado.

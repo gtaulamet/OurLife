@@ -4,7 +4,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-16.*
+*Actualizado el 2026-10-18.*
 
 | Dato | Valor |
 |---|---|
@@ -40,6 +40,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: estaciones visibles en el plan
+
+- Pedido del usuario: que el suelo, los árboles y las plantas cambien de color con la estación. En otoño, árboles amarillos y rojizos; en invierno, pasto y árboles blanquecinos y cumbres de roca nevadas.
+- Es factible y barato. Es sólo de presentación: el shader del terreno ya recibe los verdes del pasto como uniformes, y las copas usan materiales compartidos de la paleta. Se cambian una vez por hora del juego, con una transición de unos días. No toca la simulación ni las huellas.
+- Va a IP3.5 como hito L4c (8–12 h, adelantado de IP6, que conserva el clima y la nieve que cae). Propuesta en `docs/gdd/estaciones-visibles.md`. IP3.5 pasa a 48–70 h y el total de la 1.0 a 815–1 124 h.
 
 ### 2026-10-17: IP3.5, decisiones y bosque que vuelve
 
