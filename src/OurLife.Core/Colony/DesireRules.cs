@@ -67,9 +67,27 @@ public static class DesireRules
                 Target = target,
                 WorkType = workType,
                 Level = level ?? (workType is null ? 0 : SkillRules.Level(simulation, colonist, workType) ?? 0),
-                UntilTick = simulation.CurrentTick + ((long)config.DesireExpireDays * simulation.Time.TicksPerDay),
+                UntilTick = simulation.CurrentTick + ((long)ExpireDays(simulation, desire, config) * simulation.Time.TicksPerDay),
             });
         }
+    }
+
+    /// <summary>
+    /// The game days a desire waits: those of the mood config, or its years of life at the pace of
+    /// the game (a year of life is 60 game days at Normal and 7 at Very fast), at least one.
+    /// </summary>
+    private static int ExpireDays(Simulation simulation, DesireDef desire, MoodConfigDef config)
+    {
+        if (desire.ExpireYears is not { } years)
+        {
+            return config.DesireExpireDays;
+        }
+
+        var content = simulation.Content;
+        var pace = simulation.LifePace.Length > 0 && content.TryGet<LifePaceDef>(simulation.LifePace, out var chosen)
+            ? chosen
+            : content.All<LifePaceDef>().FirstOrDefault(each => each.Default);
+        return Math.Max(1, years * simulation.Time.DaysPerYear / (pace?.LifeDaysPerDay ?? 1));
     }
 
     /// <summary>The desires of a colonist, created empty if it had none.</summary>
@@ -131,6 +149,5 @@ public static class DesireRules
                && Relationships.PartnerOf(simulation, colonist) != active.Target;
     }
 
-    private static bool Alive(Simulation simulation, EntityId colonist) =>
-        !colonist.IsNone && simulation.World.IsAlive(colonist) && simulation.World.Has<Colonist>(colonist);
+    private static bool Alive(Simulation simulation, EntityId colonist) => Relationships.IsLivingColonist(simulation.World, colonist);
 }

@@ -182,16 +182,17 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             if (simulation.World.TryGet<Job>(colonist, out var job))
             {
-                Reserve(simulation.Map, job);
+                Reserve(simulation, job);
             }
         }
     }
 
-    private void Reserve(GameMap map, Job job)
+    private void Reserve(Simulation simulation, Job job)
     {
-        // A hauler holds both the pile and the stockpile cell it carries to; a deliverer, the
-        // pile and the blueprint; a feeder, the food and the baby. The three may lift a whole
-        // pile, so nobody else goes to it.
+        // A hauler holds both the pile and the stockpile cell it carries to, and a deliverer the
+        // pile and the blueprint: both may lift a whole pile, so nobody goes to eat from it. A
+        // feeder holds the baby and, of the food, the units the baby lacks.
+        var map = simulation.Map;
         if (job.Kind == JobKind.Haul)
         {
             ReserveCell(map, job.Destination);
@@ -203,8 +204,8 @@ public sealed partial class DecisionSystem : ISimSystem
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
-            _entityUses[held] = _entityUses.GetValueOrDefault(held) + 1;
-            if (job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby)
+            _entityUses[held] = _entityUses.GetValueOrDefault(held) + UsesOf(simulation, job);
+            if (job.Kind is JobKind.Haul or JobKind.Deliver)
             {
                 _hauledPiles.Add(held);
             }
@@ -223,8 +224,9 @@ public sealed partial class DecisionSystem : ISimSystem
     }
 
     /// <summary>Undoes <see cref="Reserve"/>, for a job the colonist may give up.</summary>
-    private void Unreserve(GameMap map, Job job)
+    private void Unreserve(Simulation simulation, Job job)
     {
+        var map = simulation.Map;
         if (job.Kind == JobKind.Haul)
         {
             UnreserveCell(map, job.Destination);
@@ -236,12 +238,12 @@ public sealed partial class DecisionSystem : ISimSystem
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
-            if (job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver)
             {
                 _hauledPiles.Remove(held);
             }
 
-            ReleaseEntity(held);
+            ReleaseEntity(held, UsesOf(simulation, job));
         }
         else if (IsCellOrder(job.Kind))
         {
@@ -313,9 +315,27 @@ public sealed partial class DecisionSystem : ISimSystem
         }
     }
 
-    private void ReleaseEntity(EntityId entity)
+    /// <summary>
+    /// How many uses of its target a job holds: one, but for a feeder on its way to the food, the
+    /// units the baby lacks, at least one. Needs only change between ticks, so reserving and
+    /// releasing in one decision count the same.
+    /// </summary>
+    private static int UsesOf(Simulation simulation, Job job)
     {
-        var uses = _entityUses.GetValueOrDefault(entity) - 1;
+        var world = simulation.World;
+        if (job.Kind != JobKind.FeedBaby || !world.IsAlive(job.Target) || !world.TryGet<ItemStack>(job.Target, out var food)
+            || !Relationships.IsLivingColonist(world, job.Recipient))
+        {
+            return 1;
+        }
+
+        var units = Hunger.UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(food.Def).Nutrition);
+        return Math.Clamp(units, 1, Math.Max(1, food.Count));
+    }
+
+    private void ReleaseEntity(EntityId entity, int count = 1)
+    {
+        var uses = _entityUses.GetValueOrDefault(entity) - count;
         if (uses > 0)
         {
             _entityUses[entity] = uses;
@@ -368,10 +388,10 @@ public sealed partial class DecisionSystem : ISimSystem
             return;
         }
 
-        Unreserve(simulation.Map, job);
+        Unreserve(simulation, job);
         if (!TryInterrupt(simulation, colonist, job))
         {
-            Reserve(simulation.Map, job);
+            Reserve(simulation, job);
         }
     }
 
@@ -872,6 +892,7 @@ public sealed partial class DecisionSystem : ISimSystem
         // Only searches for a path count as attempts: a pile with nowhere to go is skipped for free.
         _noDestination.Clear();
         _noRecipient.Clear();
+        _food = null;
         for (int i = 0, attempts = 0; i < reachable.Count && attempts < PathAttempts; i++)
         {
             var candidate = reachable[i].Candidate;
@@ -1035,13 +1056,14 @@ public sealed partial class DecisionSystem : ISimSystem
         var region = connectivity.RegionAt(from);
         var random = simulation.Random.Get("colony.decision");
         var radius = _rules.Ai.WanderRadius;
-        if (MoodRules.Isolates(simulation, colonist) && TryWanderAway(simulation, colonist, from, region, random, radius))
+        var crawl = LifeRules.Stage(simulation, colonist)?.CrawlRadius;
+        if (crawl is null && MoodRules.Isolates(simulation, colonist) && TryWanderAway(simulation, colonist, from, region, random, radius))
         {
             return;
         }
 
         var centre = from;
-        if (LifeRules.Stage(simulation, colonist)?.CrawlRadius is { } crawl)
+        if (crawl is not null)
         {
             if (_entityUses.GetValueOrDefault(colonist) > 0)
             {
@@ -1049,7 +1071,7 @@ public sealed partial class DecisionSystem : ISimSystem
                 return;
             }
 
-            (centre, radius) = (CrawlCentre(simulation, colonist, from), crawl);
+            (centre, radius) = (CrawlCentre(simulation, colonist, from), crawl.Value);
         }
 
         for (var attempt = 0; attempt < WanderAttempts; attempt++)
@@ -1137,7 +1159,7 @@ public sealed partial class DecisionSystem : ISimSystem
         var movement = world.Get<Movement>(colonist);
         movement.Stop();
         movement.Path.AddRange(path);
-        Reserve(simulation.Map, job);
+        Reserve(simulation, job);
     }
 
     private readonly record struct Candidate(JobKind Kind, EntityId Target, TileCoord Cell);

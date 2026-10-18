@@ -8,7 +8,7 @@ namespace OurLife.Core.Colony;
 /// <summary>
 /// Which beds a colonist takes (see <c>docs/gdd/muebles-y-camas.md</c>): a bed for some stages of
 /// life, like a cradle for babies, only takes colonists at those stages, and one whose owner grew
-/// out of it is free. A colonist without a stage counts as the youngest that does every work.
+/// out of it is free. A colonist without a stage counts as <see cref="LifeRules.AdultOf"/>.
 /// </summary>
 public static class Beds
 {
@@ -28,8 +28,9 @@ public static class Beds
             return true;
         }
 
-        var stage = LifeRules.Stage(simulation, colonist)?.Id ?? AdultStage(simulation.Content);
-        return stage is not null && stages.Contains(stage);
+        var stage = LifeRules.Stage(simulation, colonist)?.Id
+                    ?? LifeRules.AdultOf([.. simulation.Content.All<LifeStageDef>().OrderBy(each => each.FromYears)]).Id;
+        return stages.Contains(stage);
     }
 
     /// <summary>Whether a bed belongs to a living colonist it is for.</summary>
@@ -38,7 +39,7 @@ public static class Beds
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
         var owner = world.Get<Bed>(bed).Owner;
-        return !owner.IsNone && world.IsAlive(owner) && world.Has<Colonist>(owner) && Fits(simulation, bed, owner);
+        return Relationships.IsLivingColonist(world, owner) && Fits(simulation, bed, owner);
     }
 
     /// <summary>Whether a colonist owns a bed it is still for; <paramref name="buffer"/>, if given, is reused for the query.</summary>
@@ -49,7 +50,4 @@ public static class Beds
         simulation.World.Query<Bed>(beds);
         return beds.Exists(bed => simulation.World.Get<Bed>(bed).Owner == colonist && Fits(simulation, bed, colonist));
     }
-
-    private static string? AdultStage(DefDatabase content) =>
-        content.All<LifeStageDef>().OrderBy(stage => stage.FromYears).FirstOrDefault(stage => stage.Work == StageWork.All)?.Id;
 }

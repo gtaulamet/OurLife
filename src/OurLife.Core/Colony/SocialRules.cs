@@ -149,7 +149,7 @@ public sealed class SocialRules
     {
         foreach (var (colonist, partner) in new[] { (a, b), (b, a) })
         {
-            var family = FamilyOf(simulation, colonist);
+            var family = Relationships.FamilyOf(simulation.World, colonist);
             if (family.Partner is { Dead: true } late)
             {
                 family.LatePartners.Add(late);
@@ -163,24 +163,13 @@ public sealed class SocialRules
     /// <summary>The couple breaks up, and the romance is gone: to be a couple again, they must court again.</summary>
     private void Split(Simulation simulation, EntityId a, EntityId b)
     {
-        FamilyOf(simulation, a).Partner = null;
-        FamilyOf(simulation, b).Partner = null;
+        Relationships.FamilyOf(simulation.World, a).Partner = null;
+        Relationships.FamilyOf(simulation.World, b).Partner = null;
         Relationships.Ensure(simulation, a, b).Romance = 0;
         Relationships.Ensure(simulation, b, a).Romance = 0;
         MoodRules.Feel(simulation, a, config => config.Breakup);
         MoodRules.Feel(simulation, b, config => config.Breakup);
         Notify(simulation, BreakupKey, a, b);
-    }
-
-    private static Family FamilyOf(Simulation simulation, EntityId colonist)
-    {
-        if (!simulation.World.TryGet<Family>(colonist, out var family))
-        {
-            family = new Family();
-            simulation.World.Add(colonist, family);
-        }
-
-        return family;
     }
 
     private static void Notify(Simulation simulation, string key, EntityId a, EntityId b) =>

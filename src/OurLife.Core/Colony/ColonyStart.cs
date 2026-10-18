@@ -276,7 +276,8 @@ public static class ColonyStart
 
     private static Gender Opposite(Gender gender) => gender == Gender.Female ? Gender.Male : Gender.Female;
 
-    private static string PickName(DefDatabase content, CreatureDef creature, Gender gender, Pcg32 random, HashSet<string> used)
+    /// <summary>A name of the creature's list for the sex that is not in <paramref name="used"/>, or any of them once all are; added to it.</summary>
+    internal static string PickName(DefDatabase content, CreatureDef creature, Gender gender, Pcg32 random, HashSet<string> used)
     {
         if (creature.NameList is null)
         {

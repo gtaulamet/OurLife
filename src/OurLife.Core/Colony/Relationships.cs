@@ -144,6 +144,25 @@ public static class Relationships
                  && life.AgeDays - widowed < Config(simulation).WidowYears * simulation.Time.DaysPerYear);
     }
 
+    /// <summary>Whether an entity is a colonist still alive: one that can be a relative, a partner or a target.</summary>
+    public static bool IsLivingColonist(World world, EntityId entity)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        return !entity.IsNone && world.IsAlive(entity) && world.Has<Colonist>(entity);
+    }
+
+    /// <summary>The family of a colonist, created empty if it had none.</summary>
+    internal static Family FamilyOf(World world, EntityId colonist)
+    {
+        if (!world.TryGet<Family>(colonist, out var family))
+        {
+            family = new Family();
+            world.Add(colonist, family);
+        }
+
+        return family;
+    }
+
     /// <summary>The relation of <paramref name="from"/> towards <paramref name="to"/>, created at 0 if it did not know it.</summary>
     internal static Relation Ensure(Simulation simulation, EntityId from, EntityId to)
     {

@@ -63,12 +63,12 @@ public sealed class BirthSystem : ISimSystem
             }
             else if (world.Get<Colonist>(colonist).Gender == Gender.Female)
             {
-                TryConceive(simulation, colonist, birth, pace);
+                TryConceive(simulation, colonist, pace);
             }
         }
     }
 
-    private void TryConceive(Simulation simulation, EntityId mother, BirthConfig birth, int pace)
+    private void TryConceive(Simulation simulation, EntityId mother, int pace)
     {
         var father = Relationships.PartnerOf(simulation, mother);
         if (father.IsNone || !_life.CouldConceive(simulation, mother, father) || Hunger.IsLow(simulation, mother) || Hunger.IsLow(simulation, father))
@@ -76,9 +76,7 @@ public sealed class BirthSystem : ISimSystem
             return;
         }
 
-        // The chance of a year of life, in millionths, spread over the days of life of a game day.
-        var chance = (long)birth.ConceptionChancePerYear * (LifeRules.Certain / 100) * pace / simulation.Time.DaysPerYear;
-        if (simulation.Random.Get(RandomStream).NextInt(LifeRules.Certain) >= chance)
+        if (simulation.Random.Get(RandomStream).NextInt(LifeRules.Certain) >= _life.ConceptionChance(pace, simulation.Time.DaysPerYear))
         {
             return;
         }
@@ -100,7 +98,7 @@ public sealed class BirthSystem : ISimSystem
         var random = simulation.Random.Get(RandomStream);
         var person = world.Get<Colonist>(mother);
         var creature = simulation.Content.Get<CreatureDef>(person.Creature);
-        var father = pregnancy.Father.Dead || !world.IsAlive(pregnancy.Father.Entity) ? EntityId.None : pregnancy.Father.Entity;
+        var father = !pregnancy.Father.Dead && Relationships.IsLivingColonist(world, pregnancy.Father.Entity) ? pregnancy.Father.Entity : EntityId.None;
         var gender = random.NextBool() ? Gender.Female : Gender.Male;
 
         var baby = world.CreateEntity();
@@ -108,7 +106,7 @@ public sealed class BirthSystem : ISimSystem
         world.Add(baby, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
         world.Add(baby, new Colonist
         {
-            Name = PickName(simulation, creature, gender, random),
+            Name = ColonyStart.PickName(simulation.Content, creature, gender, random, LivingNames(world)),
             Surname = pregnancy.Father.Surname,
             Gender = gender,
             Creature = creature.Id,
@@ -127,7 +125,7 @@ public sealed class BirthSystem : ISimSystem
 
         foreach (var parent in father.IsNone ? [mother] : new[] { mother, father })
         {
-            FamilyOf(world, parent).Children.Add(Relationships.RelativeOf(simulation, baby));
+            Relationships.FamilyOf(world, parent).Children.Add(Relationships.RelativeOf(simulation, baby));
             Meet(simulation, parent, baby, birth.ParentOpinion);
             MoodRules.Feel(simulation, parent, config => config.ChildBorn);
             if (MoodRules.ConfigOf(simulation.Content)?.Parenthood is { } shift)
@@ -161,21 +159,12 @@ public sealed class BirthSystem : ISimSystem
     private static Personality PersonalityOf(World world, EntityId colonist) =>
         !colonist.IsNone && world.TryGet<Personality>(colonist, out var personality) ? personality : new Personality();
 
-    /// <summary>A name of the creature's list for the sex that no living colonist bears, or any of them once all are taken.</summary>
-    private static string PickName(Simulation simulation, CreatureDef creature, Gender gender, Pcg32 random)
+    /// <summary>The names the living colonists bear: a newborn gets another while the list has some.</summary>
+    private static HashSet<string> LivingNames(World world)
     {
-        if (creature.NameList is null)
-        {
-            return string.Empty;
-        }
-
-        var list = simulation.Content.Get<NameListDef>(creature.NameList);
-        var names = gender == Gender.Female ? list.Female : list.Male;
         var colonists = new List<EntityId>();
-        simulation.World.Query<Colonist>(colonists);
-        var taken = colonists.Select(colonist => simulation.World.Get<Colonist>(colonist).Name).ToHashSet(StringComparer.Ordinal);
-        var free = names.Where(name => !taken.Contains(name)).ToArray();
-        return free.Length > 0 ? free[random.NextInt(free.Length)] : names[random.NextInt(names.Count)];
+        world.Query<Colonist>(colonists);
+        return colonists.Select(colonist => world.Get<Colonist>(colonist).Name).ToHashSet(StringComparer.Ordinal);
     }
 
     private static Needs FullNeeds(Simulation simulation, CreatureDef creature)
@@ -187,17 +176,6 @@ public sealed class BirthSystem : ISimSystem
         }
 
         return needs;
-    }
-
-    private static Family FamilyOf(World world, EntityId colonist)
-    {
-        if (!world.TryGet<Family>(colonist, out var family))
-        {
-            family = new Family();
-            world.Add(colonist, family);
-        }
-
-        return family;
     }
 
     private static Relative Copy(Relative relative) => new()

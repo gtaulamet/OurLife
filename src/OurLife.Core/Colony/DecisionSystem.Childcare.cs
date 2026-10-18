@@ -13,6 +13,9 @@ namespace OurLife.Core.Colony;
 /// </summary>
 public sealed partial class DecisionSystem
 {
+    // The food found for feeding in the current search, if it was looked for.
+    private (EntityId Food, TileCoord Cell, bool Held)? _food;
+
     /// <summary>Babies hungry under the low threshold whom nobody is bringing food to yet.</summary>
     private void AddHungryBabies(Simulation simulation)
     {
@@ -41,7 +44,7 @@ public sealed partial class DecisionSystem
         var babyCell = world.Get<Position>(baby).Cell;
         foreach (var relative in new[] { family.Mother, family.Father })
         {
-            if (relative is not { Dead: false } parent || !world.IsAlive(parent.Entity) || !world.Has<Colonist>(parent.Entity))
+            if (relative is not { Dead: false } parent || !Relationships.IsLivingColonist(world, parent.Entity))
             {
                 continue;
             }
@@ -69,54 +72,80 @@ public sealed partial class DecisionSystem
         && MoodRules.CrisisOf(simulation, colonist) is null;
 
     /// <summary>
-    /// The food pile nearest the colonist, in its region, with a unit nobody else takes and not
-    /// about to be hauled; ties to the lowest id. Without one, the colonist leaves the baby alone
-    /// for a while, so a parent who cannot feed it does not keep the others from it.
+    /// The food a feeder takes to a baby: the pile nearest the colonist, in its region, with a unit
+    /// nobody else holds, not about to be hauled and not one it failed to reach; ties to the lowest
+    /// id. It does not depend on the baby, so it is looked for once per decision. Without any food,
+    /// the colonist leaves the baby alone for a while, so a parent who cannot feed it does not keep
+    /// the others from it; food that others only hold for now does not count as none.
     /// </summary>
     private bool TryFood(Simulation simulation, EntityId colonist, Candidate baby, int region, out EntityId food, out TileCoord cell)
     {
+        var person = simulation.World.Get<Colonist>(colonist);
+        if (_food is not { } found || (!found.Food.IsNone && IsIgnored(person, found.Food, found.Cell)))
+        {
+            found = NearestFood(simulation, person, simulation.World.Get<Position>(colonist).Cell, region);
+            _food = found;
+        }
+
+        (food, cell) = (found.Food, found.Cell);
+        if (!food.IsNone)
+        {
+            return true;
+        }
+
+        if (!found.Held)
+        {
+            person.Unreachable.Add(new IgnoredTarget
+            {
+                Entity = baby.Target,
+                Cell = baby.Cell,
+                UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
+            });
+        }
+
+        return false;
+    }
+
+    /// <summary>The free food nearest <paramref name="from"/>, and whether some food in reach was only held by others.</summary>
+    private (EntityId Food, TileCoord Cell, bool Held) NearestFood(Simulation simulation, Colonist person, TileCoord from, int region)
+    {
         var world = simulation.World;
-        var person = world.Get<Colonist>(colonist);
-        var from = world.Get<Position>(colonist).Cell;
-        food = EntityId.None;
-        cell = default;
+        var (food, cell, held) = (EntityId.None, default(TileCoord), false);
         var best = int.MaxValue;
         world.Query<ItemStack, Position>(_entities);
         foreach (var pile in _entities)
         {
             var stack = world.Get<ItemStack>(pile);
             var at = world.Get<Position>(pile).Cell;
-            if (simulation.Content.Get<ItemDef>(stack.Def).Kind != ItemKind.Food || _hauledPiles.Contains(pile)
-                || _entityUses.GetValueOrDefault(pile) >= stack.Count || IsIgnored(person, pile, at))
+            if (simulation.Content.Get<ItemDef>(stack.Def).Kind != ItemKind.Food || IsIgnored(person, pile, at))
             {
                 continue;
             }
 
             var distance = PathFinder.Estimate(from, at);
-            if (distance >= best)
+            var taken = _hauledPiles.Contains(pile) || _entityUses.GetValueOrDefault(pile) >= stack.Count;
+            if ((!taken && distance >= best) || (taken && held))
             {
                 continue;
             }
 
             WorkSites.Find(simulation.Map, JobKind.FeedBaby, at, _recipientSites);
-            if (AnyInRegion(_recipientSites, simulation.Connectivity, region))
+            if (!AnyInRegion(_recipientSites, simulation.Connectivity, region))
+            {
+                continue;
+            }
+
+            if (taken)
+            {
+                held = true;
+            }
+            else
             {
                 (best, food, cell) = (distance, pile, at);
             }
         }
 
-        if (!food.IsNone)
-        {
-            return true;
-        }
-
-        person.Unreachable.Add(new IgnoredTarget
-        {
-            Entity = baby.Target,
-            Cell = baby.Cell,
-            UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
-        });
-        return false;
+        return (food, cell, held);
     }
 
     /// <summary>

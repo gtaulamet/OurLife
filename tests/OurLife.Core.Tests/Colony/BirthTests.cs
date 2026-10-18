@@ -180,6 +180,10 @@ public class BirthTests
         Wishes(bed, wife).ShouldBe(new[] { "have_child" });
         Wishes(bed, husband).ShouldBe(new[] { "have_child" });
 
+        // It waits a year of life: 60 days of life at 8 a day are 7 game days.
+        var left = bed.World.Get<Desires>(wife).Active.Single().UntilTick - bed.Simulation.CurrentTick;
+        left.ShouldBeInRange(6L * TicksPerDay, 7L * TicksPerDay);
+
         bed.World.Add(wife, new Pregnancy { Father = Relationships.RelativeOf(bed.Simulation, husband) });
         bed.Simulation.Run(2 * 60);
 

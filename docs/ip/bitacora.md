@@ -12,8 +12,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | Con la ficha del colono, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.6 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 680 tests en verde, smoke con código 0 |
-| Huella del smoke | `3312BA81E1022B34` con `--seed 1 --ticks 5000`; `95A5B6F5A5B40D9F` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
+| Validación | `dotnet build` sin advertencias, 683 tests en verde, smoke con código 0 |
+| Huella del smoke | `049E2C1B43ACAEBB` con `--seed 1 --ticks 5000`; `95A5B6F5A5B40D9F` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
@@ -40,6 +40,16 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.7, segunda ronda de revisión
+
+- 10 hallazgos, todos corregidos:
+  - Comida reservada por otro por un momento ya no hace ignorar al bebé; la comida se busca una vez por decisión.
+  - Un bebé en crisis de aislamiento sigue gateando cerca de su madre.
+  - Quien alimenta reserva sólo las unidades que le faltan al bebé, no la pila entera: los demás comen del resto.
+  - El deseo de un hijo espera un año de vida (`expireYears` en el def `Desire`), hasta la próxima ocasión, en lugar de 10 días que casi siempre lo frustraban. El balance va a H3.10.
+  - Código compartido: `LifeRules.AdultOf`, `LifeRules.ConceptionChance` (con la misma conversión por día que la vejez), `Relationships.IsLivingColonist`, `Relationships.FamilyOf` y `ColonyStart.PickName` para los recién nacidos.
+- 3 tests nuevos, 683 en total. Huella de la semilla 1: `049E2C1B43ACAEBB`; la 42 no cambia.
 
 ### 2026-10-18: H3.7, primera ronda de revisión
 

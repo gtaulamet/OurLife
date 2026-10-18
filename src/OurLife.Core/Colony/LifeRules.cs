@@ -33,7 +33,7 @@ public sealed class LifeRules
     public LifePaceDef DefaultPace { get; }
 
     /// <summary>The stage a colonist without <see cref="Life"/> counts as: the youngest that does every work.</summary>
-    public LifeStageDef AdultStage => Stages.FirstOrDefault(stage => stage.Work == StageWork.All) ?? Stages[^1];
+    public LifeStageDef AdultStage => AdultOf(Stages);
 
     /// <exception cref="InvalidOperationException">
     /// The content has no LifeConfig or several, not exactly one default pace, no stage from
@@ -122,8 +122,30 @@ public sealed class LifeRules
             }
         }
 
-        return perYear >= Certain ? Certain : (int)Math.Min(Certain, perYear * lifeDaysPerDay / daysPerYear);
+        return PerGameDay(perYear, lifeDaysPerDay, daysPerYear);
     }
+
+    /// <summary>
+    /// The chance, in millionths, that a couple who could conceive does so on a game day: the
+    /// chance per year of <see cref="BirthConfig.ConceptionChancePerYear"/>, spread like
+    /// <see cref="OldAgeChance"/>. None without the rules of birth.
+    /// </summary>
+    public int ConceptionChance(int lifeDaysPerDay, int daysPerYear) =>
+        Config.Birth is { } birth ? PerGameDay((long)birth.ConceptionChancePerYear * PerMillionPerPercent, lifeDaysPerDay, daysPerYear) : 0;
+
+    /// <summary>
+    /// The stage a colonist without <see cref="Life"/> counts as: the youngest of the stages, by
+    /// age, that does every work, or the oldest if none does.
+    /// </summary>
+    public static LifeStageDef AdultOf(IReadOnlyList<LifeStageDef> stagesByAge)
+    {
+        ArgumentNullException.ThrowIfNull(stagesByAge);
+        return stagesByAge.FirstOrDefault(stage => stage.Work == StageWork.All) ?? stagesByAge[^1];
+    }
+
+    /// <summary>A chance per year of life, in millionths, as a chance per game day; a certain one stays certain.</summary>
+    private static int PerGameDay(long perYear, int lifeDaysPerDay, int daysPerYear) =>
+        perYear >= Certain ? Certain : (int)Math.Min(Certain, perYear * lifeDaysPerDay / daysPerYear);
 
     /// <summary>The age of a colonist in whole years, or null if it does not age.</summary>
     public static int? AgeYears(Simulation simulation, EntityId colonist)
@@ -153,7 +175,7 @@ public sealed class LifeRules
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
-        if (Config.Birth is not { } birth || !world.IsAlive(colonist) || !world.TryGet<Colonist>(colonist, out var person)
+        if (Config.Birth is not { } birth || !Relationships.IsLivingColonist(world, colonist) || !world.TryGet<Colonist>(colonist, out var person)
             || Stage(simulation, colonist) is not { Work: StageWork.All } || AgeYears(simulation, colonist) is not { } years)
         {
             return false;
@@ -173,7 +195,7 @@ public sealed class LifeRules
         var world = simulation.World;
         return IsFertile(simulation, a) && IsFertile(simulation, b)
                && world.Get<Colonist>(a).Gender != world.Get<Colonist>(b).Gender
-               && ChildrenAllowed(simulation, a) && ChildrenAllowed(simulation, b);
+               && ChildrenAllowed(simulation, a, b);
     }
 
     /// <summary>
@@ -199,8 +221,8 @@ public sealed class LifeRules
         var world = simulation.World;
         var young = (long)(Config.Birth?.YearsBetweenChildren ?? 0) * simulation.Time.DaysPerYear;
         return world.TryGet<Family>(parent, out var family)
-               && family.Children.Exists(child => !child.Dead && world.IsAlive(child.Entity) && world.TryGet<Life>(child.Entity, out var life)
-                                                  && life.AgeDays < young);
+               && family.Children.Exists(child => !child.Dead && Relationships.IsLivingColonist(world, child.Entity)
+                                                  && world.TryGet<Life>(child.Entity, out var life) && life.AgeDays < young);
     }
 
     /// <summary>Whether a couple may have children: both allow it, as the player chose; on by default.</summary>

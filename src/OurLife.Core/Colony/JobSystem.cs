@@ -221,10 +221,10 @@ public sealed class JobSystem : ISimSystem
                        && Construction.Needs(simulation, built).Missing == 0;
             case JobKind.FeedBaby:
                 // The baby must still be there and, before lifting, so must the food.
-                return IsColonist(world, job.Recipient)
+                return Relationships.IsLivingColonist(world, job.Recipient)
                        && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
             case JobKind.Play:
-                return IsColonist(world, job.Target);
+                return Relationships.IsLivingColonist(world, job.Target);
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -233,8 +233,6 @@ public sealed class JobSystem : ISimSystem
                 return true;
         }
     }
-
-    private static bool IsColonist(World world, EntityId entity) => !entity.IsNone && world.IsAlive(entity) && world.Has<Colonist>(entity);
 
     /// <summary>True if the cell keeps its order and the order still makes sense; a senseless order is cleared.</summary>
     private static bool StillOrdered(Simulation simulation, TileCoord cell, TileFlags order, bool makesSense)

@@ -50,6 +50,12 @@ public sealed class DesireDef : Def
 
     public IReadOnlyList<string> Stages { get; init; } = [];
 
+    /// <summary>
+    /// How long the desire waits to be fulfilled, in years of life, instead of
+    /// <see cref="MoodConfigDef.DesireExpireDays"/>: for a desire of a time of life, like a child.
+    /// </summary>
+    public int? ExpireYears { get; init; }
+
     internal override IEnumerable<DefReference> References() =>
         Stages.Select(stage => new DefReference(typeof(LifeStageDef), stage, "stages"))
             .Append(new DefReference(typeof(TraitDef), ScaledBy, "scaledBy"));
@@ -59,6 +65,11 @@ public sealed class DesireDef : Def
         if (ChancePercent is < 0 or > 100)
         {
             yield return "chancePercent must be between 0 and 100.";
+        }
+
+        if (ExpireYears is <= 0)
+        {
+            yield return "expireYears must be positive.";
         }
 
         if (Kind == DesireKind.Befriend && MinOpinion > MaxOpinion)

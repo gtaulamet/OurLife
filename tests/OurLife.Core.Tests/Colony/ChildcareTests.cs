@@ -144,7 +144,7 @@ public class ChildcareTests
     }
 
     [Fact]
-    public void Nobody_goes_to_eat_from_the_pile_a_feeder_is_taking_to_a_baby()
+    public void Nobody_goes_to_eat_the_units_a_feeder_is_taking_to_a_baby()
     {
         var bed = ColonyTestBed.Flat(15);
         var mother = bed.AddColonist(12, 12, 1);
@@ -177,6 +177,61 @@ public class ChildcareTests
         bed.Simulation.Run(60);
 
         bed.JobOf(child)?.Kind.ShouldBe(JobKind.Eat);
+    }
+
+    [Fact]
+    public void A_hungry_colonist_still_eats_from_a_pile_a_feeder_takes_a_few_units_from()
+    {
+        var bed = ColonyTestBed.Flat(15);
+        var feeder = bed.AddColonist(2, 2, 1, name: "Urraca");
+        var hungry = bed.AddColonist(4, 4, 1, hunger: 1_000);
+        Baby(bed, EntityId.None, 12, 12, hunger: 3_900);
+        bed.AddItems("provisions", 10, 1, 1, 1);
+
+        bed.Simulation.Tick();
+
+        bed.JobOf(feeder).ShouldNotBeNull().Kind.ShouldBe(JobKind.FeedBaby);
+        bed.JobOf(hungry).ShouldNotBeNull().Kind.ShouldBe(JobKind.Eat);
+        bed.JobOf(hungry)!.Target.ShouldBe(bed.JobOf(feeder)!.Target);
+    }
+
+    [Fact]
+    public void A_baby_is_not_left_aside_when_the_food_is_only_held_by_another_feeder()
+    {
+        var bed = ColonyTestBed.Flat(15);
+        var first = bed.AddColonist(2, 2, 1, name: "Urraca");
+        var second = bed.AddColonist(3, 2, 1, name: "Jimena");
+        var babies = new[] { Baby(bed, EntityId.None, 6, 6, hunger: 3_000), Baby(bed, EntityId.None, 7, 7, hunger: 3_000) };
+        bed.AddItems("provisions", 3, 1, 1, 1);
+
+        bed.Simulation.Tick();
+
+        bed.JobOf(first).ShouldNotBeNull().Kind.ShouldBe(JobKind.FeedBaby);
+        bed.World.Get<Colonist>(second).Unreachable.ShouldBeEmpty();
+
+        // More food comes: the second feeder goes at once, without waiting out a cooldown.
+        bed.AddItems("provisions", 5, 13, 13, 1);
+        bed.Simulation.Run(bed.Simulation.Content.All<OurLife.Core.Defs.AiConfigDef>()[0].RecheckTicks + 1);
+
+        bed.JobOf(second).ShouldNotBeNull().Kind.ShouldBe(JobKind.FeedBaby);
+        babies.ShouldContain(bed.JobOf(second)!.Recipient);
+    }
+
+    [Fact]
+    public void A_baby_in_a_crisis_still_crawls_near_its_mother()
+    {
+        var bed = ColonyTestBed.Flat(25);
+        var mother = bed.AddColonist(12, 12, 1);
+        bed.World.Add(mother, new Job { Kind = JobKind.Wander, Stage = JobStage.Working, Cell = new TileCoord(12, 12, 1), UntilTick = long.MaxValue });
+        var baby = Baby(bed, mother, 12, 12, hunger: 10_000);
+        bed.World.Add(baby, new Crisis { Kind = "isolate", UntilTick = long.MaxValue });
+
+        for (var tick = 0; tick < 800; tick++)
+        {
+            bed.Simulation.Tick();
+            var cell = bed.World.Get<Position>(baby).Cell;
+            Math.Max(Math.Abs(cell.X - 12), Math.Abs(cell.Y - 12)).ShouldBeLessThanOrEqualTo(3);
+        }
     }
 
     /// <summary>A baby of a few months, the child of the mother if there is one, with no traits.</summary>

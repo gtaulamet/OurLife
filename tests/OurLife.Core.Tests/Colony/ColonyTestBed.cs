@@ -134,7 +134,7 @@ internal sealed class ColonyTestBed
           {"type": "Desire", "id": "find_partner", "kind": "findPartner", "chancePercent": 30, "stages": ["adult"]},
           {"type": "Desire", "id": "own_bed", "kind": "ownBed", "chancePercent": 50, "nights": 2},
           {"type": "Desire", "id": "reconcile", "kind": "reconcile", "chancePercent": 40, "scaledBy": "kindness", "minOpinion": 10},
-          {"type": "Desire", "id": "have_child", "kind": "haveChild", "chancePercent": 30, "stages": ["adult"]},
+          {"type": "Desire", "id": "have_child", "kind": "haveChild", "chancePercent": 30, "stages": ["adult"], "expireYears": 1},
           {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "parenthood": {"trait": "kindness", "points": 2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathSibling": "death_sibling", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated", "childBorn": "child_born"},
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 7000,
             "founderMinYears": 18, "founderMaxYears": 40, "founderSkillMin": 3, "founderSkillMax": 10, "founderSkillBonus": 4,

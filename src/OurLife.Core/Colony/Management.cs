@@ -76,7 +76,7 @@ public sealed record SetChildrenAllowedCommand(EntityId Colonist, bool Allowed) 
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
-        if (!world.IsAlive(Colonist) || !world.Has<Colonist>(Colonist))
+        if (!Relationships.IsLivingColonist(world, Colonist))
         {
             return;
         }
@@ -84,12 +84,7 @@ public sealed record SetChildrenAllowedCommand(EntityId Colonist, bool Allowed) 
         var partner = Relationships.PartnerOf(simulation, Colonist);
         foreach (var colonist in partner.IsNone ? [Colonist] : new[] { Colonist, partner })
         {
-            if (!world.TryGet<Family>(colonist, out var family))
-            {
-                family = new Family();
-                world.Add(colonist, family);
-            }
-
+            var family = Relationships.FamilyOf(world, colonist);
             if (family.ChildrenAllowed == Allowed)
             {
                 continue;
