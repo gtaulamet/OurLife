@@ -279,6 +279,31 @@ public class ChildcareTests
         }
     }
 
+    [Fact]
+    public void A_baby_far_from_its_mother_crawls_where_it_is()
+    {
+        var bed = ColonyTestBed.Flat(25);
+        var mother = bed.AddColonist(2, 2, 1);
+        bed.World.Add(mother, new Job { Kind = JobKind.Wander, Stage = JobStage.Working, Cell = new TileCoord(2, 2, 1), UntilTick = long.MaxValue });
+        var baby = Baby(bed, mother, 21, 21, hunger: 10_000);
+        Job? last = null;
+        var crawls = 0;
+
+        // Each crawl goes to a cell near where the baby is when it sets off, not towards its mother.
+        for (var tick = 0; tick < 1_500; tick++)
+        {
+            var from = bed.World.Get<Position>(baby).Cell;
+            bed.Simulation.Tick();
+            if (bed.JobOf(baby) is { Kind: JobKind.Wander } job && !ReferenceEquals(job, last))
+            {
+                Math.Max(Math.Abs(job.Cell.X - from.X), Math.Abs(job.Cell.Y - from.Y)).ShouldBeLessThanOrEqualTo(3);
+                (last, crawls) = (job, crawls + 1);
+            }
+        }
+
+        crawls.ShouldBeGreaterThan(1);
+    }
+
     /// <summary>A baby of a few months, the child of the mother if there is one, with no traits.</summary>
     private static EntityId Baby(ColonyTestBed bed, EntityId mother, int x, int y, int hunger)
     {

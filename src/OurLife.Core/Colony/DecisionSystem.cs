@@ -930,13 +930,18 @@ public sealed partial class DecisionSystem : ISimSystem
                 return true;
             }
 
-            // What it could not reach: for a feeder, the food, so it may try another pile.
+            // What it could not reach: for a feeder, the food, and it tries the same baby again with
+            // another pile, within the attempts.
             person.Unreachable.Add(new IgnoredTarget
             {
                 Entity = target,
                 Cell = cell,
                 UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
             });
+            if (candidate.Kind == JobKind.FeedBaby)
+            {
+                i--;
+            }
         }
 
         return false;
@@ -1066,7 +1071,7 @@ public sealed partial class DecisionSystem : ISimSystem
                 return;
             }
 
-            (centre, radius) = (CrawlCentre(simulation, colonist, from), crawl.Value);
+            (centre, radius) = (CrawlCentre(simulation, colonist, from, crawl.Value), crawl.Value);
         }
 
         for (var attempt = 0; attempt < WanderAttempts; attempt++)

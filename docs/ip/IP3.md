@@ -9,7 +9,7 @@
 
 **Estimación:** 95 a 135 h. **Versión al cerrar:** `v0.3.0`, para Windows y macOS.
 
-**Estado:** en curso desde el 15 de octubre de 2026. H3.1 a H3.6 cerrados el 16 de octubre; sigue H3.7, y H3.8 en paralelo.
+**Estado:** en curso desde el 15 de octubre de 2026. H3.1 a H3.6 cerrados el 16 de octubre, H3.9 y H3.7 el 18; siguen H3.8 (arte de las etapas) y H3.10.
 
 ## Estado de los hitos
 
@@ -21,7 +21,7 @@
 | H3.4 Habilidades | Hecho | `ip3/h3-4-habilidades` | Una habilidad por tipo de trabajo, experiencia por la inteligencia, velocidad por nivel (también al acarrear), fundadores con un fuerte, enseñanza lista para H3.5 y formato 4 |
 | H3.5 Interacciones y relaciones | Hecho | `ip3/h3-5-interacciones` | Siete interacciones por datos, opiniones, amistad y rivalidad avisadas una vez, parejas y rupturas, pareja fundadora, familia y viudez, olvido y formato 5 |
 | H3.6 Pensamientos, ánimo y deseos | Hecho | `ip3/h3-6-animo` | Pensamientos de situación y de hechos, ánimo y su efecto en el trabajo, dos crisis, cinco deseos (tener un hijo, en H3.7) y formato 6 |
-| H3.7 Parejas, nacimientos y crianza | En curso | `ip3/h3-7-nacimientos` | Embarazo, parto, alimentar bebés, gateo, juego, cuna, deseo de un hijo y opción de hijos en la ficha; formato 7. Falta la revisión de código |
+| H3.7 Parejas, nacimientos y crianza | Hecho | `ip3/h3-7-nacimientos` | Embarazo, parto, alimentar bebés, gateo, juego, cuna, deseo de un hijo y opción de hijos en la ficha; formato 7. Cuatro rondas de revisión, 38 hallazgos corregidos y uno descartado con su motivo |
 | H3.8 Arte de las etapas | Pendiente | `ip3/h3-8-arte` | |
 | H3.9 Ficha del colono | Hecho | `ip3/h3-9-ficha` | Adelantada a pedido del usuario: ficha (F) y columnas Edad y Ánimo; la opción de hijos llegó con H3.7 |
 | H3.10 Integración | Pendiente | `ip3/h3-10-integracion` | |

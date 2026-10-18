@@ -71,11 +71,7 @@ public sealed class LifeRules
     }
 
     /// <summary>The pace of the game: the one the player chose, or the default before the colony arrives.</summary>
-    public LifePaceDef PaceOf(Simulation simulation)
-    {
-        ArgumentNullException.ThrowIfNull(simulation);
-        return simulation.LifePace.Length == 0 ? DefaultPace : simulation.Content.Get<LifePaceDef>(simulation.LifePace);
-    }
+    public LifePaceDef PaceOf(Simulation simulation) => PaceIn(simulation);
 
     /// <summary>The same, for callers without the rules: the content's default pace before the colony arrives.</summary>
     public static LifePaceDef PaceIn(Simulation simulation)
@@ -184,7 +180,7 @@ public sealed class LifeRules
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
-        if (Config.Birth is not { } birth || !Relationships.IsLivingColonist(world, colonist) || !world.TryGet<Colonist>(colonist, out var person)
+        if (Config.Birth is not { } birth || !world.IsAlive(colonist) || !world.TryGet<Colonist>(colonist, out var person)
             || Stage(simulation, colonist) is not { Work: StageWork.All } || AgeYears(simulation, colonist) is not { } years)
         {
             return false;

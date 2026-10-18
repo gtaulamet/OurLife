@@ -202,8 +202,7 @@ public partial class ColonistSheet : PanelContainer
         return column;
     }
 
-    private bool IsColonist(EntityId colonist) =>
-        !colonist.IsNone && _simulation.World.IsAlive(colonist) && _simulation.World.Has<Colonist>(colonist);
+    private bool IsColonist(EntityId colonist) => Relationships.IsLivingColonist(_simulation.World, colonist);
 
     private void OnLocaleChanged(string locale)
     {

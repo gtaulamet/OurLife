@@ -14,6 +14,9 @@ namespace OurLife.Core.Colony;
 public sealed partial class DecisionSystem
 {
     // The food found for feeding in the current search, if it was looked for.
+    // A search limit, not balance: a baby crawls towards its mother only within this many times its radius.
+    private const int CrawlReach = 4;
+
     private (EntityId Food, TileCoord Cell, int Free, bool Held)? _food;
 
     /// <summary>Babies hungry under the low threshold whom nobody is bringing food to yet.</summary>
@@ -54,7 +57,10 @@ public sealed partial class DecisionSystem
                 return false;
             }
 
-            var free = !world.TryGet<Job>(parent.Entity, out var job) || job.Kind is JobKind.Wander or JobKind.Play;
+            // Idle, or wandering or playing and about to look again this tick: one who waits for its
+            // next look would keep the others from the baby meanwhile.
+            var free = !world.TryGet<Job>(parent.Entity, out var job)
+                       || (job.Kind is JobKind.Wander or JobKind.Play && (simulation.CurrentTick + parent.Entity.Index) % _rules.Ai.RecheckTicks == 0);
             if (free && FeedsBabies(simulation, parent.Entity) && !IsIgnored(world.Get<Colonist>(parent.Entity), baby, babyCell)
                 && simulation.Connectivity.AreConnected(world.Get<Position>(parent.Entity).Cell, babyCell))
             {
@@ -244,12 +250,17 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    /// <summary>Where a baby crawls around: its mother, if she is alive and it can reach her; else where it is.</summary>
-    private static TileCoord CrawlCentre(Simulation simulation, EntityId baby, TileCoord from)
+    /// <summary>
+    /// Where a baby crawls around: its mother, if she is alive, it can reach her and she is near
+    /// (<see cref="CrawlReach"/> times its radius); else where it is, so a baby left behind does not
+    /// look for long paths across the map.
+    /// </summary>
+    private static TileCoord CrawlCentre(Simulation simulation, EntityId baby, TileCoord from, int crawl)
     {
         var world = simulation.World;
         if (world.TryGet<Family>(baby, out var family) && family.Mother is { Dead: false } mother && world.IsAlive(mother.Entity)
-            && world.TryGet<Position>(mother.Entity, out var position) && simulation.Connectivity.AreConnected(from, position.Cell))
+            && world.TryGet<Position>(mother.Entity, out var position) && PathFinder.Estimate(from, position.Cell) <= CrawlReach * crawl * PathFinder.StraightCost
+            && simulation.Connectivity.AreConnected(from, position.Cell))
         {
             return position.Cell;
         }

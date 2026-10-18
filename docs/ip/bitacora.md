@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-7-nacimientos`: H3.7 hecho salvo la revisión de código |
-| `main` | Con la ficha del colono, también en `origin` |
-| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.6 |
+| Rama de trabajo | `ip3/h3-7-nacimientos`: H3.7 cerrado. Sigue H3.8 en `ip3/h3-8-arte` |
+| `main` | Con H3.7, también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.7 y H3.9 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 687 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 688 tests en verde, smoke con código 0 |
 | Huella del smoke | `D8FD3784066AEE12` con `--seed 1 --ticks 5000`; `14212A5A5466DDB7` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -20,9 +20,10 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`: falta la revisión de código y adelantar `main`. Bebés y niños se dibujan como adultos hasta H3.8, y la cuna es la cama de KayKit en chico.
-2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **H3.8, arte de las etapas**, en `ip3/h3-8-arte`: bebés y niños se dibujan todavía como adultos, y la cuna es la cama de KayKit en chico.
+2. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción.
+3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
+4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -40,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: cierre de H3.7
+
+- Cuarta ronda de revisión: 8 hallazgos, 7 corregidos. Si falla el camino a una pila, quien alimenta prueba otra en la misma decisión. Un padre que pasea cuenta como el que va a alimentar sólo si decide de nuevo en ese tick, así no frena a los demás. El bebé con la madre a más de 12 celdas gatea donde está. `PaceOf` usa `PaceIn`, la ficha usa `IsLivingColonist`, sin copia de `Relative` y `IsFertile` más simple. Descartado: `Beds.Fits` ordena las etapas sólo para un colono sin `Life`, que no hay en partidas reales, y la regla ya es `LifeRules.AdultOf`.
+- 1 test nuevo, 688 en total. Huellas sin cambios.
+- H3.7 hecho en `IP3.md`; `main` adelantado.
 
 ### 2026-10-18: H3.7, tercera ronda de revisión
 

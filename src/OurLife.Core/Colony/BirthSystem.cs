@@ -118,7 +118,7 @@ public sealed class BirthSystem : ISimSystem
         world.Add(baby, new Movement());
         world.Add(baby, new Family
         {
-            Father = Copy(pregnancy.Father),
+            Father = pregnancy.Father,
             Mother = Relationships.RelativeOf(simulation, mother),
         });
         world.Remove<Pregnancy>(mother);
@@ -177,15 +177,6 @@ public sealed class BirthSystem : ISimSystem
 
         return needs;
     }
-
-    private static Relative Copy(Relative relative) => new()
-    {
-        Entity = relative.Entity,
-        Name = relative.Name,
-        Surname = relative.Surname,
-        Gender = relative.Gender,
-        Dead = relative.Dead,
-    };
 
     private static void Notify(Simulation simulation, LocalizedText text) =>
         simulation.Events.Emit(new NotificationEvent(simulation.CurrentTick, ColonyText.Freeze(text, simulation.World), NotificationSeverity.Info));
