@@ -64,7 +64,7 @@
       "model": "res://assets/models/kenney_mini-characters/character-male-a.glb",
       "scale": 0.55,
       "boneScales": { "head": 1.35 },
-      "animations": { "walk": "crouch", "idle": "sit" },
+      "animations": { "idle": "sit" },
       "variants": {
         "female": ["res://assets/models/kenney_mini-characters/character-female-a.glb", "res://assets/models/kenney_mini-characters/character-female-b.glb", "res://assets/models/kenney_mini-characters/character-female-c.glb", "res://assets/models/kenney_mini-characters/character-female-d.glb", "res://assets/models/kenney_mini-characters/character-female-e.glb", "res://assets/models/kenney_mini-characters/character-female-f.glb"],
         "male": ["res://assets/models/kenney_mini-characters/character-male-a.glb", "res://assets/models/kenney_mini-characters/character-male-b.glb", "res://assets/models/kenney_mini-characters/character-male-c.glb", "res://assets/models/kenney_mini-characters/character-male-d.glb", "res://assets/models/kenney_mini-characters/character-male-e.glb", "res://assets/models/kenney_mini-characters/character-male-f.glb"]

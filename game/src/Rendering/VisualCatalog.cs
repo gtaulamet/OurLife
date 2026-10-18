@@ -20,7 +20,7 @@ namespace OurLife.Game.Rendering;
 /// <param name="BoneScales">How much bigger some bones of the model's skeleton are drawn, by name, like the head of a child.</param>
 /// <param name="Animations">
 /// The model's own animation for an animation the renderer asks for, by name, like a baby that
-/// crawls (<c>crouch</c>) when others walk; one left out plays as asked.
+/// sits (<c>sit</c>) where others stand; one left out plays as asked.
 /// </param>
 public sealed record VisualModel(
     string Id,

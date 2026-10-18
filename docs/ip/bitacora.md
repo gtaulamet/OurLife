@@ -42,6 +42,16 @@ En orden:
 
 ## Historial
 
+### 2026-10-18: H3.8, segunda ronda de revisión
+
+- 8 hallazgos, todos corregidos:
+  - `crouch` es una pose fija del kit, así que el bebé se deslizaba agachado: ahora camina despacio y quieto se sienta. El kit no trae una animación de gatear.
+  - El bebé flotaba sobre la cuna: la altura del colchón sigue la escala del modelo de la cama.
+  - El modelo por etapa se guarda por era, así toma la variante de otra época.
+  - Un globo se va si su colono se acuesta y se oscurece con la profundidad, como el colono; sólo se le pide a Godot mientras se desvanece.
+  - El paso de la animación usa `MovementSystem.ProgressPerTick` y se calcula sólo cuando el colono cambia.
+- 694 tests, smoke con código 0, benchmark de 20 s con 361 FPS y 0,08 ms por tick.
+
 ### 2026-10-18: H3.8, primera ronda de revisión
 
 - 10 hallazgos, todos corregidos:
