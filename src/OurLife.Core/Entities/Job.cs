@@ -28,6 +28,12 @@ public enum JobKind
 
     /// <summary>Opening a floor down to the level below.</summary>
     Channel,
+
+    /// <summary>Bringing food to a baby who cannot eat on its own (see "Crianza" in <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
+    FeedBaby,
+
+    /// <summary>A child going to play with another, then staying by it a while.</summary>
+    Play,
 }
 
 public enum JobStage
@@ -67,10 +73,10 @@ public sealed class Job
     /// <summary>True when the colonist gathers to eat, not because the player ordered it.</summary>
     public bool ForFood { get; set; }
 
-    /// <summary>For hauling, the stockpile cell where the load goes; for delivering, the blueprint's cell.</summary>
+    /// <summary>For hauling, the stockpile cell where the load goes; for delivering, the blueprint's cell; for feeding, the baby's.</summary>
     public TileCoord Destination { get; set; }
 
-    /// <summary>For delivering, the blueprint the materials go to.</summary>
+    /// <summary>For delivering, the blueprint the materials go to; for feeding, the baby.</summary>
     public EntityId Recipient { get; set; }
 }
 
@@ -91,6 +97,8 @@ public static class JobKinds
         JobKind.Build => "build",
         JobKind.Deconstruct => "deconstruct",
         JobKind.Channel => "channel",
+        JobKind.FeedBaby => "feed_baby",
+        JobKind.Play => "play",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

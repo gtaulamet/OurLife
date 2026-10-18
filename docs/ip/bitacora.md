@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-9-ficha`: ficha del colono adelantada y revisada. H3.7 va en `ip3/h3-7-nacimientos` |
+| Rama de trabajo | `ip3/h3-7-nacimientos`: H3.7 en curso, con el Core y sus tests hechos; faltan la ficha, el inspector, QA y la revisión |
 | `main` | Con la ficha del colono, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.6 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 655 tests en verde, smoke con código 0 |
+| Validación | `dotnet build` sin advertencias, 677 tests en verde; smoke pendiente para H3.7 |
 | Huella del smoke | `ECB4B600749ABA31` con `--seed 1 --ticks 5000`; `57A3D947DB7DB434` con `--seed 42 --ticks 5000` (desde H3.6). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`, con el deseo de tener un hijo, el pensamiento "Nació mi hijo" y la opción de hijos en la ficha.
+1. **H3.7, parejas, nacimientos y crianza**, en `ip3/h3-7-nacimientos`: falta la opción de hijos en la ficha, el embarazo en el inspector, la spec al día, el smoke con las huellas nuevas, capturas y la revisión de código.
 2. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -40,6 +40,16 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.7, el Core
+
+- Rama `ip3/h3-7-nacimientos` desde `main`. Archivo real `Fixtures/h3.6.olsave`, escrito con el código de H3.6 antes de tocar nada.
+- Datos: la etapa suma `eatsAlone`, `crawlRadius` y `playRadius`; `LifeConfig` suma el bloque `birth` (fertilidad, concepción, embarazo de 45 días de vida, último tramo al 90 %, un año entre hijos, opiniones al nacer); tipo de trabajo `childcare` con `feed_baby`, primero en el orden; la cuna con `forStages: [baby]` y la cama para las demás etapas; el deseo `have_child`, el pensamiento `child_born` y `parenthood` (amabilidad +2).
+- `BirthSystem` a medianoche, después de `LifeSystem`: avanza los embarazos, da a luz (nombre libre, apellido del padre, rasgos heredados, habilidades en 0, necesidades llenas, familia y opiniones) y concibe con el flujo `life.birth` si nadie tiene hambre baja y la madre no tiene un hijo de menos de un año.
+- Decisiones: el bebé no come solo, gatea a 3 celdas de su madre y espera quieto mientras le traen comida; quien cría lleva de la pila las unidades que le faltan al bebé, y van primero la madre o el padre si están libres; los niños van a jugar con otro niño o un familiar a 15 celdas que no hayan visto hace poco; las camas filtran por etapa (`Beds`).
+- `SetChildrenAllowedCommand`: vale para la pareja; al prohibir, borra el deseo de un hijo sin frustrarlo. El deseo se cumple con el embarazo o el nacimiento.
+- Formato de guardado 7: las partidas viejas reciben la habilidad de crianza sorteada como un fundador (`MigrateNewSkills`) y empiezan sin embarazos.
+- Tests nuevos: `BirthTests` (11), `ChildcareTests` (8) y la continuidad del guardado con embarazo, bebé, crisis y deseo. 677 tests.
 
 ### 2026-10-18: estaciones visibles en el plan
 

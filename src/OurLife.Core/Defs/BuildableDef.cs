@@ -46,13 +46,20 @@ public sealed class BuildableDef : Def
     /// </summary>
     public int? RestRecoveryPercent { get; init; }
 
+    /// <summary>
+    /// The stages of life whose colonists take the bed, like babies for a cradle; empty for every
+    /// stage. Only for beds.
+    /// </summary>
+    public IReadOnlyList<string> ForStages { get; init; } = [];
+
     /// <summary>The furniture is a chest: a stockpile of one cell.</summary>
     public bool Storage { get; init; }
 
     public bool IsFurniture => Shape == BuildShape.Furniture;
 
     internal override IEnumerable<DefReference> References() =>
-        Materials.Select(material => new DefReference(typeof(MaterialDef), material, "materials"));
+        Materials.Select(material => new DefReference(typeof(MaterialDef), material, "materials"))
+            .Concat(ForStages.Select(stage => new DefReference(typeof(LifeStageDef), stage, "forStages")));
 
     internal override IEnumerable<string> Validate()
     {
@@ -89,6 +96,11 @@ public sealed class BuildableDef : Def
         if (RestRecoveryPercent is <= 0)
         {
             yield return "restRecoveryPercent must be positive.";
+        }
+
+        if (ForStages.Count > 0 && RestRecoveryPercent is null)
+        {
+            yield return "only a bed (restRecoveryPercent) can be for some stages of life (forStages).";
         }
 
         if (RestRecoveryPercent is not null && Storage)

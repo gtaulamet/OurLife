@@ -17,6 +17,12 @@ public enum DesireKind
 
     /// <summary>After arguing with someone it thought at least <see cref="DesireDef.MinOpinion"/> of; fulfilled when the opinion is back where it was.</summary>
     Reconcile,
+
+    /// <summary>
+    /// In a couple that can have children and may, once a year of life at a stage of
+    /// <see cref="DesireDef.Stages"/>; fulfilled when the couple expects a child or one is born.
+    /// </summary>
+    HaveChild,
 }
 
 /// <summary>

@@ -64,6 +64,18 @@ public sealed class SkillRules
         return skills;
     }
 
+    /// <summary>The skills of a newborn: every one at level 0.</summary>
+    public Skills Newborn()
+    {
+        var skills = new Skills();
+        foreach (var type in WorkTypes)
+        {
+            skills.Values.Add(new SkillValue { WorkType = type.Id });
+        }
+
+        return skills;
+    }
+
     /// <summary>
     /// The colonist gains <paramref name="points"/> of experience in the skill of a work type, times
     /// what its traits give, and goes up as many levels as they reach, which the presentation hears

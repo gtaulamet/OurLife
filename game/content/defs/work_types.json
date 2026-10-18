@@ -1,7 +1,8 @@
 [
-  { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs", "channel"], "skill": true },
-  { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"], "skill": true },
-  { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true, "skill": true },
-  { "type": "WorkType", "id": "construction", "order": 3, "jobs": ["deliver", "build", "deconstruct"], "skill": true },
-  { "type": "WorkType", "id": "hauling", "order": 4, "jobs": ["haul"], "light": true, "skill": true }
+  { "type": "WorkType", "id": "childcare", "order": 0, "jobs": ["feed_baby"], "light": true, "skill": true },
+  { "type": "WorkType", "id": "mining", "order": 1, "jobs": ["mine", "dig_stairs", "channel"], "skill": true },
+  { "type": "WorkType", "id": "woodcutting", "order": 2, "jobs": ["chop"], "skill": true },
+  { "type": "WorkType", "id": "gathering", "order": 3, "jobs": ["harvest"], "light": true, "skill": true },
+  { "type": "WorkType", "id": "construction", "order": 4, "jobs": ["deliver", "build", "deconstruct"], "skill": true },
+  { "type": "WorkType", "id": "hauling", "order": 5, "jobs": ["haul"], "light": true, "skill": true }
 ]

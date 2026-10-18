@@ -79,7 +79,7 @@ public class ColonyTests
     {
         var skills = SkillRules.From(GameContent.Defs);
 
-        skills.WorkTypes.Select(type => type.Id).ShouldBe(new[] { "construction", "gathering", "hauling", "mining", "woodcutting" });
+        skills.WorkTypes.Select(type => type.Id).ShouldBe(new[] { "childcare", "construction", "gathering", "hauling", "mining", "woodcutting" });
         skills.Config.MaxLevel.ShouldBe(20);
         GameContent.Defs.All<TraitDef>().Where(trait => trait.Experience is not null).Select(trait => trait.Id).ShouldBe(new[] { "intelligence" });
     }

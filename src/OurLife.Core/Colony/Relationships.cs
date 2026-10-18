@@ -199,6 +199,11 @@ public static class Relationships
                 recent.Entries.RemoveAll(entry => entry.Other == dead);
             }
 
+            if (world.TryGet<Pregnancy>(colonist, out var pregnancy) && pregnancy.Father.Entity == dead)
+            {
+                pregnancy.Father.Dead = true;
+            }
+
             if (!world.TryGet<Family>(colonist, out var family))
             {
                 continue;

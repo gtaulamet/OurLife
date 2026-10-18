@@ -27,7 +27,9 @@ internal sealed class ColonyTestBed
           { "type": "Buildable", "id": "ramp", "shape": "ramp", "materials": ["timber", "masonry"], "cost": 2, "workTicks": 30 },
           { "type": "Buildable", "id": "stairs", "shape": "stairs", "materials": ["timber", "masonry"], "cost": 3, "workTicks": 40 },
           { "type": "Buildable", "id": "bed", "shape": "furniture", "materials": ["timber"], "cost": 4, "workTicks": 40,
-            "visual": "furniture.bed", "restRecoveryPercent": 150 },
+            "visual": "furniture.bed", "restRecoveryPercent": 150, "forStages": ["child", "adolescent", "adult", "elder"] },
+          { "type": "Buildable", "id": "cradle", "shape": "furniture", "materials": ["timber"], "cost": 2, "workTicks": 30,
+            "visual": "furniture.cradle", "restRecoveryPercent": 150, "forStages": ["baby"] },
           { "type": "Buildable", "id": "table", "shape": "furniture", "materials": ["timber"], "cost": 3, "workTicks": 30, "visual": "furniture.table" },
           { "type": "Buildable", "id": "chest", "shape": "furniture", "materials": ["timber"], "cost": 4, "workTicks": 30,
             "visual": "furniture.chest", "storage": true },
@@ -49,6 +51,7 @@ internal sealed class ColonyTestBed
             "female": ["Elvira", "Urraca", "Jimena", "Edith", "Agnes"], "surnames": ["Pérez", "Smith", "de Lara", "Miller", "Núñez"] },
           { "type": "Creature", "id": "human", "visual": "creature.human", "moveTicksPerTile": 2,
             "needs": ["hunger", "rest"], "nameList": "test_names" },
+          { "type": "WorkType", "id": "childcare", "order": 0, "jobs": ["feed_baby"], "light": true, "skill": true },
           { "type": "WorkType", "id": "mining", "order": 0, "jobs": ["mine", "dig_stairs", "channel"], "skill": true },
           { "type": "WorkType", "id": "woodcutting", "order": 1, "jobs": ["chop"], "skill": true },
           { "type": "WorkType", "id": "gathering", "order": 2, "jobs": ["harvest"], "light": true, "skill": true },
@@ -62,9 +65,9 @@ internal sealed class ColonyTestBed
           { "type": "LifePace", "id": "normal", "lifeDaysPerDay": 1 },
           { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
           { "type": "LifePace", "id": "very_fast", "lifeDaysPerDay": 8 },
-          { "type": "LifeStage", "id": "baby", "fromYears": 0, "work": "none", "interacts": false, "moveSpeedPercent": 25,
+          { "type": "LifeStage", "id": "baby", "fromYears": 0, "work": "none", "interacts": false, "eatsAlone": false, "crawlRadius": 3, "moveSpeedPercent": 25,
             "needsPercent": { "hunger": 40, "rest": 150 } },
-          { "type": "LifeStage", "id": "child", "fromYears": 3, "work": "none", "moveSpeedPercent": 90, "traitDriftPercent": 200,
+          { "type": "LifeStage", "id": "child", "fromYears": 3, "work": "none", "playRadius": 15, "moveSpeedPercent": 90, "traitDriftPercent": 200,
             "needsPercent": { "hunger": 70, "rest": 110 } },
           { "type": "LifeStage", "id": "adolescent", "fromYears": 13, "work": "light", "workSpeedPercent": 80, "traitDriftPercent": 200 },
           { "type": "LifeStage", "id": "adult", "fromYears": 18, "work": "all" },
@@ -72,7 +75,9 @@ internal sealed class ColonyTestBed
             "needsPercent": { "hunger": 90 } },
           { "type": "LifeConfig", "id": "default", "oldAge": [
             { "years": 60, "percentPerYear": 1 }, { "years": 70, "percentPerYear": 4 }, { "years": 80, "percentPerYear": 15 },
-            { "years": 90, "percentPerYear": 40 }, { "years": 100, "percentPerYear": 100 } ] },
+            { "years": 90, "percentPerYear": 40 }, { "years": 100, "percentPerYear": 100 } ],
+            "birth": { "femaleFertileYears": { "min": 18, "max": 45 }, "maleFertileYears": { "min": 18, "max": 60 }, "conceptionChancePerYear": 40,
+              "pregnancyLifeDays": 45, "lateFromLifeDays": 30, "lateWorkSpeedPercent": 90, "yearsBetweenChildren": 1, "parentOpinion": 40, "siblingOpinion": 30 } },
           { "type": "Trait", "id": "sociability", "interactionChance": { "low": 0, "high": 200 } }, { "type": "Trait", "id": "kindness" },
           { "type": "Trait", "id": "diligence", "workSpeed": { "low": 90, "high": 110 }, "needsBeforeWorkBelow": 25 },
           { "type": "Trait", "id": "curiosity" }, { "type": "Trait", "id": "intelligence", "experience": { "low": 75, "high": 125 } }, { "type": "Trait", "id": "patience" },
@@ -121,6 +126,7 @@ internal sealed class ColonyTestBed
           {"type": "Thought", "id": "death_colonist", "mood": -3, "durationHours": 48, "stackLimit": 3},
           {"type": "Thought", "id": "desire_fulfilled", "mood": 8, "durationHours": 72, "stackLimit": 2},
           {"type": "Thought", "id": "desire_frustrated", "mood": -6, "durationHours": 72, "stackLimit": 2},
+          {"type": "Thought", "id": "child_born", "mood": 12, "durationHours": 72, "stackLimit": 2},
           {"type": "Crisis", "id": "refuse_work", "weight": 10, "traits": {"diligence": -2}, "durationHours": 6, "behavior": "refuseWork", "drift": [{"trait": "patience", "points": -2}]},
           {"type": "Crisis", "id": "isolate", "weight": 10, "traits": {"sociability": -2}, "durationHours": 6, "behavior": "isolate", "drift": [{"trait": "patience", "points": -2}]},
           {"type": "Desire", "id": "learn_from", "kind": "learnFrom", "chancePercent": 30, "scaledBy": "curiosity", "minLevels": 5},
@@ -128,7 +134,8 @@ internal sealed class ColonyTestBed
           {"type": "Desire", "id": "find_partner", "kind": "findPartner", "chancePercent": 30, "stages": ["adult"]},
           {"type": "Desire", "id": "own_bed", "kind": "ownBed", "chancePercent": 50, "nights": 2},
           {"type": "Desire", "id": "reconcile", "kind": "reconcile", "chancePercent": 40, "scaledBy": "kindness", "minOpinion": 10},
-          {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathSibling": "death_sibling", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated"},
+          {"type": "Desire", "id": "have_child", "kind": "haveChild", "chancePercent": 30, "stages": ["adult"]},
+          {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "parenthood": {"trait": "kindness", "points": 2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathSibling": "death_sibling", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated", "childBorn": "child_born"},
           { "type": "Scenario", "id": "start", "creature": "human", "colonists": 5, "startNeedsMin": 7000,
             "founderMinYears": 18, "founderMaxYears": 40, "founderSkillMin": 3, "founderSkillMax": 10, "founderSkillBonus": 4,
             "foundingCouple": { "minYears": 20, "maxYears": 30, "opinion": 70, "romance": 100 },
@@ -144,9 +151,15 @@ internal sealed class ColonyTestBed
     }
 
     public ColonyTestBed(ulong seed, params string[] levels)
+        : this(Content, seed, levels)
     {
-        Simulation = new Simulation(seed, Content);
-        Map = AsciiMap.ParseFilled(Content.All<MaterialDef>(), (ushort)Content.IndexOf<MaterialDef>("rock"), levels);
+    }
+
+    /// <summary>The same with other content, like <see cref="ContentJson"/> with some numbers changed.</summary>
+    public ColonyTestBed(DefDatabase content, ulong seed, params string[] levels)
+    {
+        Simulation = new Simulation(seed, content);
+        Map = AsciiMap.ParseFilled(content.All<MaterialDef>(), (ushort)content.IndexOf<MaterialDef>("rock"), levels);
         Simulation.AttachMap(Map);
         ColonySystems.AddTo(Simulation);
     }
@@ -164,8 +177,8 @@ internal sealed class ColonyTestBed
         string.Join("\n", Enumerable.Repeat(new string(symbol, width), height));
 
     /// <summary>Rock below and an open floor of <paramref name="size"/> × <paramref name="size"/> on level 1.</summary>
-    public static ColonyTestBed Flat(int size, ulong seed = 1) =>
-        new(seed, Level(size, size, '#'), Level(size, size, '.'));
+    public static ColonyTestBed Flat(int size, ulong seed = 1, DefDatabase? content = null) =>
+        new(content ?? Content, seed, Level(size, size, '#'), Level(size, size, '.'));
 
     public EntityId AddColonist(int x, int y, int z, int hunger = 10_000, int rest = 10_000, string name = "Elvira")
     {

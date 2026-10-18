@@ -50,7 +50,10 @@ public sealed class ActiveDesire
     [DefRef(typeof(WorkTypeDef))]
     public string? WorkType { get; set; }
 
-    /// <summary>For a desire to learn, the level of the skill when it was born; for one to make up, the opinion before the argument.</summary>
+    /// <summary>
+    /// For a desire to learn, the level of the skill when it was born; for one to make up, the
+    /// opinion before the argument; for one to have a child, the children it had then.
+    /// </summary>
     public int Level { get; set; }
 
     public long UntilTick { get; set; }

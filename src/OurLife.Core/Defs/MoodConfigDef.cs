@@ -30,6 +30,9 @@ public sealed class MoodConfigDef : Def
     /// <summary>What losing a member of the family does to the personality.</summary>
     public TraitShift? Grief { get; init; }
 
+    /// <summary>What a newborn child does to the personality of its parents (H3.7).</summary>
+    public TraitShift? Parenthood { get; init; }
+
     public string? SleptInBed { get; init; }
 
     public string? SleptOnFloor { get; init; }
@@ -56,12 +59,15 @@ public sealed class MoodConfigDef : Def
 
     public string? DesireFrustrated { get; init; }
 
+    /// <summary>The thought of the parents when their child is born (H3.7).</summary>
+    public string? ChildBorn { get; init; }
+
     internal override IEnumerable<DefReference> References()
     {
         var thoughts = new[]
         {
             SleptInBed, SleptOnFloor, Learned, NewPartner, Breakup, DeathPartner, DeathChild, DeathParent, DeathSibling, DeathFriend, DeathColonist,
-            DesireFulfilled, DesireFrustrated,
+            DesireFulfilled, DesireFrustrated, ChildBorn,
         };
         foreach (var thought in thoughts)
         {
@@ -69,6 +75,7 @@ public sealed class MoodConfigDef : Def
         }
 
         yield return new DefReference(typeof(TraitDef), Grief?.Trait, "grief.trait");
+        yield return new DefReference(typeof(TraitDef), Parenthood?.Trait, "parenthood.trait");
     }
 
     internal override IEnumerable<string> Validate()

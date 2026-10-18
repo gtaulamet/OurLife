@@ -64,6 +64,49 @@ public sealed record SetWorkPriorityCommand(
     }
 }
 
+/// <summary>
+/// Lets a colonist's couple have children or not (see "Parejas, embarazo y nacimiento" in
+/// <c>docs/gdd/vida-y-generaciones.md</c>): the choice goes for the colonist and its living partner.
+/// Forbidding them drops their wish for a child without frustrating it, so the player's choice does
+/// not hurt their mood; a pregnancy under way goes on. An unknown colonist is ignored.
+/// </summary>
+public sealed record SetChildrenAllowedCommand(EntityId Colonist, bool Allowed) : ISimCommand
+{
+    public void Apply(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        if (!world.IsAlive(Colonist) || !world.Has<Colonist>(Colonist))
+        {
+            return;
+        }
+
+        var partner = Relationships.PartnerOf(simulation, Colonist);
+        foreach (var colonist in partner.IsNone ? [Colonist] : new[] { Colonist, partner })
+        {
+            if (!world.TryGet<Family>(colonist, out var family))
+            {
+                family = new Family();
+                world.Add(colonist, family);
+            }
+
+            if (family.ChildrenAllowed == Allowed)
+            {
+                continue;
+            }
+
+            family.ChildrenAllowed = Allowed;
+            if (!Allowed && world.TryGet<Desires>(colonist, out var desires))
+            {
+                desires.Active.RemoveAll(active =>
+                    simulation.Content.TryGet<DesireDef>(active.Desire, out var desire) && desire.Kind == DesireKind.HaveChild);
+            }
+
+            simulation.Events.Emit(new EntityChangedEvent(colonist));
+        }
+    }
+}
+
 /// <summary>Reading the work priorities of the colonists, for the colony systems and the presentation.</summary>
 public static class WorkPriorityRules
 {

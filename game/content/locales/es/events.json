@@ -9,6 +9,8 @@
   "event.life.stage.adult": "{colonist} ya es {colonist_gender, select, female {una mujer adulta} other {un hombre adulto}}.",
   "event.life.stage.elder": "{colonist} ya es {colonist_gender, select, female {anciana} other {anciano}}.",
   "event.life.old_age": "{colonist} murió de vejez a los {years} años.",
+  "event.life.pregnant": "{colonist} está embarazada.",
+  "event.life.birth": "{mother} dio a luz a {child_gender, select, female {una niña} other {un niño}}: {child}.",
   "event.social.friends": "Nació una amistad entre {a} y {b}.",
   "event.social.rivals": "{a} y {b} no se soportan.",
   "event.social.couple": "{a} y {b} ahora son pareja.",

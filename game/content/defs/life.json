@@ -8,6 +8,8 @@
     "fromYears": 0,
     "work": "none",
     "interacts": false,
+    "eatsAlone": false,
+    "crawlRadius": 3,
     "moveSpeedPercent": 25,
     "needsPercent": { "hunger": 40, "rest": 150 }
   },
@@ -16,6 +18,7 @@
     "id": "child",
     "fromYears": 3,
     "work": "none",
+    "playRadius": 15,
     "moveSpeedPercent": 90,
     "traitDriftPercent": 200,
     "needsPercent": { "hunger": 70, "rest": 110 }
@@ -40,6 +43,17 @@
       { "years": 80, "percentPerYear": 15 },
       { "years": 90, "percentPerYear": 40 },
       { "years": 100, "percentPerYear": 100 }
-    ]
+    ],
+    "birth": {
+      "femaleFertileYears": { "min": 18, "max": 45 },
+      "maleFertileYears": { "min": 18, "max": 60 },
+      "conceptionChancePerYear": 40,
+      "pregnancyLifeDays": 45,
+      "lateFromLifeDays": 30,
+      "lateWorkSpeedPercent": 90,
+      "yearsBetweenChildren": 1,
+      "parentOpinion": 40,
+      "siblingOpinion": 30
+    }
   }
 ]

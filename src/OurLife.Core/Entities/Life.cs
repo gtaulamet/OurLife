@@ -15,3 +15,14 @@ public sealed class Life
     [DefRef(typeof(LifeStageDef))]
     public string Stage { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// A mother expecting a child (see "Parejas, embarazo y nacimiento" in <c>docs/gdd/vida-y-generaciones.md</c>):
+/// the father, named in case he is gone by the birth, and the days of life the pregnancy has lasted.
+/// </summary>
+public sealed class Pregnancy
+{
+    public Relative Father { get; set; } = new();
+
+    public int LifeDays { get; set; }
+}

@@ -12,7 +12,7 @@ public sealed class WorkTypeDef : Def
     public static readonly IReadOnlyList<JobKind> OrderJobs =
     [
         JobKind.Mine, JobKind.DigStairs, JobKind.Channel, JobKind.Chop, JobKind.Harvest,
-        JobKind.Deliver, JobKind.Build, JobKind.Deconstruct, JobKind.Haul,
+        JobKind.Deliver, JobKind.Build, JobKind.Deconstruct, JobKind.Haul, JobKind.FeedBaby,
     ];
 
     public required int Order { get; init; }

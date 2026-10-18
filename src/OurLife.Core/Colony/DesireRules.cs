@@ -19,13 +19,16 @@ public static class DesireRules
     /// A moment for desires of a kind, like a lesson for a desire to learn: each desire of that
     /// kind, if <paramref name="eligible"/>, may be born, while the colonist has room for one.
     /// </summary>
-    /// <param name="level">What the desire remembers: by default the level of the skill; for making up, the opinion before the argument.</param>
+    /// <param name="level">
+    /// What the desire remembers: by default the level of the skill; for making up, the opinion
+    /// before the argument; for a child, the children the colonist had.
+    /// </param>
     internal static void Consider(
         Simulation simulation, EntityId colonist, DesireKind kind, EntityId target = default, string? workType = null,
         Func<DesireDef, bool>? eligible = null, int? level = null)
     {
         var content = simulation.Content;
-        if (MoodRules.ConfigOf(content) is not { } config || (kind == DesireKind.OwnBed && HasBed(simulation, colonist)))
+        if (MoodRules.ConfigOf(content) is not { } config || (kind == DesireKind.OwnBed && Beds.HasBed(simulation, colonist)))
         {
             return;
         }
@@ -92,11 +95,24 @@ public static class DesireRules
             DesireKind.LearnFrom => active.WorkType is { } type && SkillRules.Level(simulation, colonist, type) > active.Level,
             DesireKind.Befriend => Alive(simulation, active.Target) && Relationships.Kind(simulation, colonist, active.Target) == RelationKind.Friend,
             DesireKind.FindPartner => !Relationships.PartnerOf(simulation, colonist).IsNone,
-            DesireKind.OwnBed => HasBed(simulation, colonist),
+            DesireKind.OwnBed => Beds.HasBed(simulation, colonist),
             DesireKind.Reconcile => Alive(simulation, active.Target) && Relationships.Opinion(simulation, colonist, active.Target) >= active.Level,
+            DesireKind.HaveChild => ChildrenOf(simulation, colonist) > active.Level || Expecting(simulation, colonist),
             _ => false,
         };
     }
+
+    /// <summary>How many children a colonist has had, alive or dead.</summary>
+    public static int ChildrenOf(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return simulation.World.TryGet<Family>(colonist, out var family) ? family.Children.Count : 0;
+    }
+
+    /// <summary>Whether a colonist, or its partner, expects a child.</summary>
+    private static bool Expecting(Simulation simulation, EntityId colonist) =>
+        LifeRules.PregnancyOf(simulation, colonist) is not null
+        || (Relationships.PartnerOf(simulation, colonist) is { IsNone: false } partner && LifeRules.PregnancyOf(simulation, partner) is not null);
 
     /// <summary>A desire about someone who is gone can no longer come true, nor be frustrated.</summary>
     public static bool IsMoot(Simulation simulation, ActiveDesire active)
@@ -108,11 +124,4 @@ public static class DesireRules
 
     private static bool Alive(Simulation simulation, EntityId colonist) =>
         !colonist.IsNone && simulation.World.IsAlive(colonist) && simulation.World.Has<Colonist>(colonist);
-
-    private static bool HasBed(Simulation simulation, EntityId colonist)
-    {
-        var beds = new List<EntityId>();
-        simulation.World.Query<Bed>(beds);
-        return beds.Exists(bed => simulation.World.Get<Bed>(bed).Owner == colonist);
-    }
 }

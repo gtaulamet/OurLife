@@ -9,6 +9,8 @@
   "event.life.stage.adult": "{colonist} has come of age: now a grown {colonist_gender, select, female {woman} other {man}}.",
   "event.life.stage.elder": "{colonist} has grown old: now an old {colonist_gender, select, female {woman} other {man}}.",
   "event.life.old_age": "{colonist} died of old age at {years}.",
+  "event.life.pregnant": "{colonist} is pregnant.",
+  "event.life.birth": "{mother} gave birth to a {child_gender, select, female {girl} other {boy}}: {child}.",
   "event.social.friends": "{a} and {b} became friends.",
   "event.social.rivals": "{a} and {b} can't stand each other.",
   "event.social.couple": "{a} and {b} are now a couple.",

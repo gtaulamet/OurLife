@@ -145,6 +145,58 @@ public sealed class LifeRules
     /// <summary>How fast a colonist walks, in percent of its creature.</summary>
     public static int MoveSpeedPercent(Simulation simulation, EntityId colonist) => Stage(simulation, colonist)?.MoveSpeedPercent ?? 100;
 
+    /// <summary>
+    /// Whether a colonist can have children now: a living adult (of a stage that does every work)
+    /// within the fertile years of its sex. Nobody can without the rules of birth.
+    /// </summary>
+    public bool IsFertile(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        if (Config.Birth is not { } birth || !world.IsAlive(colonist) || !world.TryGet<Colonist>(colonist, out var person)
+            || Stage(simulation, colonist) is not { Work: StageWork.All } || AgeYears(simulation, colonist) is not { } years)
+        {
+            return false;
+        }
+
+        var range = person.Gender == Gender.Female ? birth.FemaleFertileYears : birth.MaleFertileYears;
+        return years >= range.Min && years <= range.Max;
+    }
+
+    /// <summary>
+    /// Whether a couple can have children together: a woman and a man, both fertile, who both
+    /// allow it (the player's choice, see <see cref="SetChildrenAllowedCommand"/>).
+    /// </summary>
+    public bool CanHaveChildren(Simulation simulation, EntityId a, EntityId b)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        return IsFertile(simulation, a) && IsFertile(simulation, b)
+               && world.Get<Colonist>(a).Gender != world.Get<Colonist>(b).Gender
+               && ChildrenAllowed(simulation, a) && ChildrenAllowed(simulation, b);
+    }
+
+    /// <summary>Whether a colonist's couple may have children; on unless the player said no.</summary>
+    public static bool ChildrenAllowed(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return !simulation.World.TryGet<Family>(colonist, out var family) || family.ChildrenAllowed;
+    }
+
+    /// <summary>The pregnancy of a colonist, or null if it expects no child.</summary>
+    public static Pregnancy? PregnancyOf(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return simulation.World.TryGet<Pregnancy>(colonist, out var pregnancy) ? pregnancy : null;
+    }
+
+    /// <summary>How fast a colonist works for its pregnancy, in percent: slower in the last part of it.</summary>
+    public static int PregnancyWorkSpeedPercent(Simulation simulation, EntityId colonist) =>
+        PregnancyOf(simulation, colonist) is { } pregnancy && simulation.Content.All<LifeConfigDef>() is [{ Birth: { } birth }]
+        && pregnancy.LifeDays >= birth.LateFromLifeDays
+            ? birth.LateWorkSpeedPercent
+            : 100;
+
     /// <summary>Whether a colonist at this stage of life does work of this type; without a stage, it does.</summary>
     public static bool DoesWork(LifeStageDef? stage, WorkTypeDef workType)
     {

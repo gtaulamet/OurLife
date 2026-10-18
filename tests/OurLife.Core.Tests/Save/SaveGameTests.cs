@@ -34,6 +34,36 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void A_family_saved_halfway_goes_on_as_if_never_stopped()
+    {
+        var uninterrupted = BusyColony();
+        uninterrupted.Simulation.Run(200);
+        var world = uninterrupted.World;
+        var colonists = uninterrupted.Colonists();
+        var mother = colonists.Take(2).Single(colonist => world.Get<Colonist>(colonist).Gender == Gender.Female);
+        var father = colonists.Take(2).Single(colonist => colonist != mother);
+
+        // A pregnancy near its end, a hungry baby, a crisis and a desire under way.
+        world.Add(mother, new Pregnancy { Father = Relationships.RelativeOf(uninterrupted.Simulation, father), LifeDays = 40 });
+        var baby = uninterrupted.AddColonist(12, 12, 1, hunger: 3_000, name: "Hugh");
+        world.Add(baby, new Life { AgeDays = 30, Stage = "baby" });
+        world.Add(baby, new Family { Mother = Relationships.RelativeOf(uninterrupted.Simulation, colonists[2]) });
+        world.Add(colonists[3], new Crisis { Kind = "isolate", UntilTick = uninterrupted.Simulation.CurrentTick + 600 });
+        world.Add(colonists[4], new Desires { Active = [new ActiveDesire { Desire = "own_bed", UntilTick = uninterrupted.Simulation.CurrentTick + 10_000 }] });
+        uninterrupted.Simulation.Run(30);
+
+        var loaded = Load(Save(uninterrupted.Simulation));
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.Simulation.ComputeStateHash());
+
+        uninterrupted.Simulation.Run(3 * 1_440);
+        loaded.Run(3 * 1_440);
+
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.Simulation.ComputeStateHash());
+        loaded.World.Store<Pregnancy>().Count.ShouldBe(0);
+        loaded.World.Store<Colonist>().Count.ShouldBe(7);
+    }
+
+    [Fact]
     public void The_header_describes_the_game_without_reading_the_state()
     {
         var bed = BusyColony();
@@ -136,7 +166,7 @@ public class SaveGameTests
         {
             loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
             loaded.World.Get<Personality>(colonist).Traits.Count.ShouldBe(6);
-            loaded.World.Get<Skills>(colonist).Values.Count.ShouldBe(5);
+            loaded.World.Get<Skills>(colonist).Values.Count.ShouldBe(6);
             loaded.World.Get<Relations>(colonist).Others.Count.ShouldBe(4);
             if (format >= 3)
             {

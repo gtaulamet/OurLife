@@ -9,12 +9,14 @@ namespace OurLife.Core.Colony;
 
 /// <summary>
 /// Gives idle colonists a job, in this order: a critical need, work by work type, a low need,
-/// wandering (see <c>docs/gdd/colonos-e-ia.md</c>). Every <see cref="AiConfigDef.RecheckTicks"/>,
+/// play for a stage that plays, wandering (see <c>docs/gdd/colonos-e-ia.md</c>). A baby, who does
+/// not eat on its own, is fed as work and crawls near its mother (see "Crianza" in
+/// <c>docs/gdd/vida-y-generaciones.md</c>). Every <see cref="AiConfigDef.RecheckTicks"/>,
 /// a busy colonist checks whether a critical need should interrupt its job, and a wandering one
 /// looks again for something to do. Reservations come from the jobs colonists already have, so two
 /// never share a target. Draws from the random stream <c>colony.decision</c>.
 /// </summary>
-public sealed class DecisionSystem : ISimSystem
+public sealed partial class DecisionSystem : ISimSystem
 {
     // Search limits, not balance: they bound the work of one decision.
     // A target without a path is set aside, and the next nearest is tried, this many times.
@@ -72,7 +74,11 @@ public sealed class DecisionSystem : ISimSystem
     private readonly HashSet<string> _noRecipient = new(StringComparer.Ordinal);
     private readonly List<TileCoord> _recipientSites = [];
     private readonly List<JobKind> _cellJobs = [];
+    private readonly List<EntityId> _playmates = [];
     private int[] _priorities = [];
+
+    // The work type that feeds babies, so a parent's priority for it can be read.
+    private readonly WorkTypeDef _childcare;
 
     public DecisionSystem(ColonyRules rules)
         : this(rules, new StorageIndex())
@@ -86,6 +92,7 @@ public sealed class DecisionSystem : ISimSystem
         ArgumentNullException.ThrowIfNull(storage);
         _rules = rules;
         _storage = storage;
+        _childcare = rules.WorkTypeOf(new Job { Kind = JobKind.FeedBaby })!;
     }
 
     public void Tick(Simulation simulation)
@@ -183,12 +190,12 @@ public sealed class DecisionSystem : ISimSystem
     private void Reserve(GameMap map, Job job)
     {
         // A hauler holds both the pile and the stockpile cell it carries to; a deliverer, the
-        // pile and the blueprint.
+        // pile and the blueprint; a feeder, the food and the baby.
         if (job.Kind == JobKind.Haul)
         {
             ReserveCell(map, job.Destination);
         }
-        else if (job.Kind == JobKind.Deliver)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby)
         {
             _entityUses[job.Recipient] = _entityUses.GetValueOrDefault(job.Recipient) + 1;
         }
@@ -221,7 +228,7 @@ public sealed class DecisionSystem : ISimSystem
         {
             UnreserveCell(map, job.Destination);
         }
-        else if (job.Kind == JobKind.Deliver)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby)
         {
             ReleaseEntity(job.Recipient);
         }
@@ -341,11 +348,11 @@ public sealed class DecisionSystem : ISimSystem
     }
 
     /// <summary>
-    /// The entity a job holds: none for a hauler or deliverer that already lifted its load, which
-    /// leaves the rest of the pile free.
+    /// The entity a job holds: none for a hauler, deliverer or feeder that already lifted its load,
+    /// which leaves the rest of the pile free.
     /// </summary>
     private static EntityId HeldEntity(Job job) =>
-        job.Kind is JobKind.Haul or JobKind.Deliver && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
+        job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
 
     /// <summary>
     /// A colonist with a job drops it only for something more urgent. It checks every
@@ -389,7 +396,7 @@ public sealed class DecisionSystem : ISimSystem
         }
 
         // Critical needs were tried above, and the job is wandering, which they always interrupt.
-        return TryWorkOrLowNeeds(simulation, colonist);
+        return TryWorkOrLowNeeds(simulation, colonist) || TryPlay(simulation, colonist);
     }
 
     private void Decide(Simulation simulation, EntityId colonist)
@@ -402,7 +409,7 @@ public sealed class DecisionSystem : ISimSystem
             }
         }
 
-        if (!TryWorkOrLowNeeds(simulation, colonist))
+        if (!TryWorkOrLowNeeds(simulation, colonist) && !TryPlay(simulation, colonist))
         {
             Wander(simulation, colonist);
         }
@@ -453,9 +460,16 @@ public sealed class DecisionSystem : ISimSystem
     private List<NeedDef> NeedsBelow(Simulation simulation, EntityId colonist, bool critical)
     {
         _needsBelow.Clear();
+        var eatsAlone = LifeRules.Stage(simulation, colonist)?.EatsAlone ?? true;
         foreach (var state in simulation.World.Get<Needs>(colonist).Values)
         {
             var need = simulation.Content.Get<NeedDef>(state.Need);
+            if (!eatsAlone && need.SatisfiedBy == NeedSatisfaction.Eating)
+            {
+                // A baby is fed by others, as their work.
+                continue;
+            }
+
             var sleep = need.SatisfiedBy == NeedSatisfaction.Sleeping;
             var urgent = state.Value < need.CriticalThreshold || (_night && sleep && state.Value < need.NightThresholdOrLow);
             var low = !urgent && state.Value < need.LowThreshold && !(sleep && !_night);
@@ -524,14 +538,16 @@ public sealed class DecisionSystem : ISimSystem
 
     /// <summary>
     /// The colonist's bed if it can reach it; else the nearest free bed it can reach (ties to the
-    /// lowest id), which <see cref="GoToSleep"/> gives it if there is a path; else none. A bed whose
-    /// owner is gone is free.
+    /// lowest id), which <see cref="GoToSleep"/> gives it if there is a path; else none. Only beds
+    /// for its stage of life count, like a cradle for a baby (see <see cref="Beds"/>). A bed whose
+    /// owner is gone, or grew out of it, is free.
     /// </summary>
     private EntityId BedOf(Simulation simulation, EntityId colonist, TileCoord from)
     {
         var world = simulation.World;
         var connectivity = simulation.Connectivity;
         world.Query<Bed, Position>(_entities);
+        _entities.RemoveAll(bed => !Beds.Fits(simulation, bed, colonist));
         var owned = _entities.Find(bed => world.Get<Bed>(bed).Owner == colonist);
         if (!owned.IsNone)
         {
@@ -542,10 +558,9 @@ public sealed class DecisionSystem : ISimSystem
         var bestDistance = int.MaxValue;
         foreach (var bed in _entities)
         {
-            var owner = world.Get<Bed>(bed).Owner;
             var cell = world.Get<Position>(bed).Cell;
             var distance = PathFinder.Estimate(from, cell);
-            if ((owner.IsNone || !world.IsAlive(owner) || !world.Has<Colonist>(owner)) && distance < bestDistance
+            if (!Beds.IsTaken(simulation, bed) && distance < bestDistance
                 && connectivity.AreConnected(from, cell))
             {
                 (best, bestDistance) = (bed, distance);
@@ -673,6 +688,9 @@ public sealed class DecisionSystem : ISimSystem
                     }
                 }
 
+                break;
+            case JobKind.FeedBaby:
+                AddHungryBabies(simulation);
                 break;
             case JobKind.Build:
                 world.Query<Blueprint, Position>(_entities);
@@ -863,17 +881,29 @@ public sealed class DecisionSystem : ISimSystem
                 continue;
             }
 
+            // A feeder walks to the food first, then to the baby.
+            var (target, cell) = (candidate.Target, candidate.Cell);
+            if (candidate.Kind == JobKind.FeedBaby)
+            {
+                if (ParentWillFeed(simulation, colonist, candidate.Target) || !TryFood(simulation, colonist, candidate, region, out target, out cell))
+                {
+                    continue;
+                }
+
+                (recipient, destination) = (candidate.Target, candidate.Cell);
+            }
+
             attempts++;
 
-            FindSites(map, candidate.Kind, candidate.Cell);
+            FindSites(map, candidate.Kind, cell);
             KeepInRegion(_sites, connectivity, region);
             if (_paths.TryFind(map, from, _sites, _path))
             {
                 var job = new Job
                 {
                     Kind = candidate.Kind,
-                    Target = candidate.Target,
-                    Cell = candidate.Cell,
+                    Target = target,
+                    Cell = cell,
                     ForFood = forFood,
                     Destination = destination,
                     Recipient = recipient,
@@ -990,6 +1020,10 @@ public sealed class DecisionSystem : ISimSystem
         return true;
     }
 
+    /// <summary>
+    /// Walks to a random place around, and waits there. A baby crawls near its mother instead, and
+    /// waits where it is while someone brings it food.
+    /// </summary>
     private void Wander(Simulation simulation, EntityId colonist)
     {
         var map = simulation.Map;
@@ -1003,13 +1037,25 @@ public sealed class DecisionSystem : ISimSystem
             return;
         }
 
+        var centre = from;
+        if (LifeRules.Stage(simulation, colonist)?.CrawlRadius is { } crawl)
+        {
+            if (_entityUses.GetValueOrDefault(colonist) > 0)
+            {
+                Assign(simulation, colonist, new Job { Kind = JobKind.Wander, Cell = from }, []);
+                return;
+            }
+
+            (centre, radius) = (CrawlCentre(simulation, colonist, from), crawl);
+        }
+
         for (var attempt = 0; attempt < WanderAttempts; attempt++)
         {
-            var x = from.X + random.NextInt(-radius, radius + 1);
-            var y = from.Y + random.NextInt(-radius, radius + 1);
+            var x = centre.X + random.NextInt(-radius, radius + 1);
+            var y = centre.Y + random.NextInt(-radius, radius + 1);
             foreach (var dz in LevelOffsets)
             {
-                var cell = new TileCoord(x, y, from.Z + dz);
+                var cell = new TileCoord(x, y, centre.Z + dz);
                 if (cell == from || !map.IsStandable(cell) || connectivity.RegionAt(cell) != region)
                 {
                     continue;

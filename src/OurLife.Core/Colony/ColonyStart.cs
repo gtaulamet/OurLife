@@ -164,6 +164,35 @@ public static class ColonyStart
         }
     }
 
+    /// <summary>
+    /// Gives the colonists of a game saved before H3.7 (format 6) the skills the content added
+    /// since, like childcare, each drawn between the levels of the founders, from the random stream
+    /// <c>life.migration</c> by ascending id and work type (ADR-013).
+    /// </summary>
+    internal static void MigrateNewSkills(Simulation simulation)
+    {
+        var skills = SkillRules.From(simulation.Content);
+        var scenario = TheOnlyScenario(simulation.Content);
+        var random = simulation.Random.Get(MigrationStream);
+        foreach (var colonist in ColonistsOf(simulation.World))
+        {
+            if (!simulation.World.TryGet<Skills>(colonist, out var own))
+            {
+                continue;
+            }
+
+            foreach (var type in skills.WorkTypes.Where(type => own.Find(type.Id) is null))
+            {
+                var at = own.Values.FindIndex(value => string.CompareOrdinal(value.WorkType, type.Id) > 0);
+                own.Values.Insert(at < 0 ? own.Values.Count : at, new SkillValue
+                {
+                    WorkType = type.Id,
+                    Level = random.NextInt(scenario.FounderSkillMin, scenario.FounderSkillMax + 1),
+                });
+            }
+        }
+    }
+
     private static List<EntityId> ColonistsOf(World world)
     {
         var colonists = new List<EntityId>();

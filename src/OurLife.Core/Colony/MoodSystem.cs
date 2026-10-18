@@ -10,7 +10,8 @@ namespace OurLife.Core.Colony;
 /// Once an hour (see "Pensamientos y ánimo", "Crisis" and "Deseos" in
 /// <c>docs/gdd/vida-y-generaciones.md</c>): thoughts that faded go away, a crisis ends or, in a very
 /// low mood, may start, and desires come true or are frustrated. At midnight, a colonist may get a
-/// desire it can have once a year. Draws from the random stream <c>mood.crisis</c>.
+/// desire it can have once a year of life: a partner if single, a child in a couple that can have
+/// one. Draws from the random stream <c>mood.crisis</c>.
 /// </summary>
 public sealed class MoodSystem : ISimSystem
 {
@@ -18,16 +19,19 @@ public sealed class MoodSystem : ISimSystem
 
     private readonly ColonyRules _colony;
     private readonly PersonalityRules _personalities;
+    private readonly LifeRules _life;
     private readonly MoodConfigDef _config;
     private readonly List<EntityId> _colonists = [];
 
-    public MoodSystem(ColonyRules colony, PersonalityRules personalities, MoodConfigDef config)
+    public MoodSystem(ColonyRules colony, PersonalityRules personalities, LifeRules life, MoodConfigDef config)
     {
         ArgumentNullException.ThrowIfNull(colony);
         ArgumentNullException.ThrowIfNull(personalities);
+        ArgumentNullException.ThrowIfNull(life);
         ArgumentNullException.ThrowIfNull(config);
         _colony = colony;
         _personalities = personalities;
+        _life = life;
         _config = config;
     }
 
@@ -181,22 +185,36 @@ public sealed class MoodSystem : ISimSystem
         }
     }
 
-    /// <summary>Once a year of life, a single colonist at the right stage may wish for a partner.</summary>
-    private static void ConsiderYearly(Simulation simulation, EntityId colonist)
+    /// <summary>
+    /// Once a year of life, a colonist at the right stage may wish for a partner if it is single,
+    /// or for a child if its couple can have one and may (a forbidden child is not even wished for).
+    /// </summary>
+    private void ConsiderYearly(Simulation simulation, EntityId colonist)
     {
-        if (LifeRules.AgeYears(simulation, colonist) is not { } years || LifeRules.Stage(simulation, colonist) is not { } stage
-            || !Relationships.IsFree(simulation, colonist))
+        if (LifeRules.AgeYears(simulation, colonist) is not { } years || LifeRules.Stage(simulation, colonist) is not { } stage)
         {
             return;
         }
 
-        if (simulation.World.TryGet<Desires>(colonist, out var existing) && existing.LastYearlyYear == years)
+        var partner = Relationships.PartnerOf(simulation, colonist);
+        var single = Relationships.IsFree(simulation, colonist);
+        if ((!single && (partner.IsNone || !_life.CanHaveChildren(simulation, colonist, partner)))
+            || (simulation.World.TryGet<Desires>(colonist, out var existing) && existing.LastYearlyYear == years))
         {
             return;
         }
 
         DesireRules.DesiresOf(simulation.World, colonist).LastYearlyYear = years;
-        DesireRules.Consider(simulation, colonist, DesireKind.FindPartner, eligible: desire => desire.Stages.Contains(stage.Id));
+        if (single)
+        {
+            DesireRules.Consider(simulation, colonist, DesireKind.FindPartner, eligible: desire => desire.Stages.Contains(stage.Id));
+        }
+        else
+        {
+            DesireRules.Consider(
+                simulation, colonist, DesireKind.HaveChild, eligible: desire => desire.Stages.Contains(stage.Id),
+                level: DesireRules.ChildrenOf(simulation, colonist));
+        }
     }
 
     private static void Notify(Simulation simulation, string key, EntityId colonist) =>

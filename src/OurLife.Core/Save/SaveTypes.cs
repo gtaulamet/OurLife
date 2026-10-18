@@ -42,11 +42,13 @@ public static class SaveTypes
         Component<Mood>("mood");
         Component<Desires>("desires");
         Component<Crisis>("crisis");
+        Component<Pregnancy>("pregnancy");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");
         Command<PlaceBlueprintCommand>("place_blueprint");
         Command<SetWorkPriorityCommand>("set_work_priority");
+        Command<SetChildrenAllowedCommand>("set_children_allowed");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

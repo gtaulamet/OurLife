@@ -173,7 +173,8 @@ public sealed class JobSystem : ISimSystem
         world.Query<Carried, Position>(_carriers);
         foreach (var colonist in _carriers)
         {
-            if (world.TryGet<Job>(colonist, out var job) && job.Kind is JobKind.Haul or JobKind.Deliver && job.Stage == JobStage.Carrying)
+            if (world.TryGet<Job>(colonist, out var job) && job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby
+                && job.Stage == JobStage.Carrying)
             {
                 continue;
             }
@@ -218,6 +219,12 @@ public sealed class JobSystem : ISimSystem
             case JobKind.Build:
                 return world.IsAlive(job.Target) && world.TryGet<Blueprint>(job.Target, out var built)
                        && Construction.Needs(simulation, built).Missing == 0;
+            case JobKind.FeedBaby:
+                // The baby must still be there and, before lifting, so must the food.
+                return IsColonist(world, job.Recipient)
+                       && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
+            case JobKind.Play:
+                return IsColonist(world, job.Target);
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -226,6 +233,8 @@ public sealed class JobSystem : ISimSystem
                 return true;
         }
     }
+
+    private static bool IsColonist(World world, EntityId entity) => !entity.IsNone && world.IsAlive(entity) && world.Has<Colonist>(entity);
 
     /// <summary>True if the cell keeps its order and the order still makes sense; a senseless order is cleared.</summary>
     private static bool StillOrdered(Simulation simulation, TileCoord cell, TileFlags order, bool makesSense)
@@ -250,7 +259,7 @@ public sealed class JobSystem : ISimSystem
     {
         job.Stage = JobStage.Working;
         job.Progress = 0;
-        if (job.Kind == JobKind.Wander)
+        if (job.Kind is JobKind.Wander or JobKind.Play)
         {
             var random = simulation.Random.Get(RandomStream);
             job.UntilTick = simulation.CurrentTick + random.NextInt(_rules.Ai.WanderWaitMin, _rules.Ai.WanderWaitMax + 1);
@@ -306,7 +315,10 @@ public sealed class JobSystem : ISimSystem
                 // At night a rested colonist sleeps on until morning.
                 return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping) && !_night;
             case JobKind.Wander:
+            case JobKind.Play:
                 return simulation.CurrentTick >= job.UntilTick;
+            case JobKind.FeedBaby:
+                return job.Stage == JobStage.Carrying ? Feed(simulation, colonist, job) : PickUpFood(simulation, colonist, job);
             case JobKind.Haul:
                 return job.Stage == JobStage.Carrying ? Deliver(simulation, colonist, job) : PickUp(simulation, colonist, job);
             case JobKind.Deliver:
@@ -668,6 +680,126 @@ public sealed class JobSystem : ISimSystem
     }
 
     /// <summary>
+    /// Lifts from the food pile what the baby needs to be fed, as many units as it lacks, and sets
+    /// off to it (see "Crianza" in <c>docs/gdd/vida-y-generaciones.md</c>). True, ending the job
+    /// with nothing lifted, if the baby is fed already or there is no way to it; in the second case
+    /// the colonist leaves the baby alone for a while.
+    /// </summary>
+    private bool PickUpFood(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        var stack = world.Get<ItemStack>(job.Target);
+        var item = stack.Def;
+        var count = Math.Min(stack.Count, UnitsToFeed(simulation, job.Recipient, simulation.Content.Get<ItemDef>(item).Nutrition));
+        if (count <= 0)
+        {
+            return true;
+        }
+
+        if (!TrySetOffTo(simulation, colonist, job.Recipient))
+        {
+            world.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget
+            {
+                Entity = job.Recipient,
+                Cell = world.Get<Position>(job.Recipient).Cell,
+                UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
+            });
+            return true;
+        }
+
+        ItemPiles.Take(simulation, job.Target, count);
+        _storage.Invalidate();
+        world.Add(colonist, new Carried { Def = item, Count = count });
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
+        job.Stage = JobStage.Carrying;
+        job.Progress = 0;
+        return false;
+    }
+
+    /// <summary>
+    /// Beside the baby, gives it a unit of what it carries every <see cref="AiConfigDef.EatTicksPerUnit"/>
+    /// ticks, until it is fed or the food runs out. If the baby crawled off, follows it. Food left
+    /// over stays carried and falls where the colonist stands when the job ends.
+    /// </summary>
+    private bool Feed(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        if (!world.TryGet<Carried>(colonist, out var carried))
+        {
+            return true;
+        }
+
+        var nutrition = simulation.Content.Get<ItemDef>(carried.Def).Nutrition;
+        if (UnitsToFeed(simulation, job.Recipient, nutrition) == 0)
+        {
+            return true;
+        }
+
+        if (!WorkSites.IsSite(simulation.Map, JobKind.FeedBaby, world.Get<Position>(job.Recipient).Cell, world.Get<Position>(colonist).Cell))
+        {
+            job.Progress = 0;
+            return !TrySetOffTo(simulation, colonist, job.Recipient);
+        }
+
+        if (!Advance(job, _rules.Ai.EatTicksPerUnit))
+        {
+            return false;
+        }
+
+        job.Progress = 0;
+        Nourish(simulation, job.Recipient, nutrition);
+        carried.Count--;
+        if (carried.Count == 0)
+        {
+            world.Remove<Carried>(colonist);
+        }
+
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
+        return carried.Count == 0 || UnitsToFeed(simulation, job.Recipient, nutrition) == 0;
+    }
+
+    /// <summary>The units of food of this nutrition a colonist lacks to be fed: rounded, so less than half a unit is none.</summary>
+    private static int UnitsToFeed(Simulation simulation, EntityId colonist, int nutrition)
+    {
+        var units = 0;
+        foreach (var state in simulation.World.Get<Needs>(colonist).Values)
+        {
+            var need = simulation.Content.Get<NeedDef>(state.Need);
+            if (need.SatisfiedBy == NeedSatisfaction.Eating)
+            {
+                var perUnit = Math.Max(1, nutrition);
+                units = Math.Max(units, (need.Max - state.Value + (perUnit / 2)) / perUnit);
+            }
+        }
+
+        return units;
+    }
+
+    /// <summary>Walks the colonist to beside the baby, or stops it there; false if there is no way.</summary>
+    private bool TrySetOffTo(Simulation simulation, EntityId colonist, EntityId baby)
+    {
+        var world = simulation.World;
+        var from = world.Get<Position>(colonist).Cell;
+        WorkSites.Find(simulation.Map, JobKind.FeedBaby, world.Get<Position>(baby).Cell, _goal);
+        _goal.RemoveAll(cell => !simulation.Connectivity.AreConnected(from, cell));
+        var movement = world.Get<Movement>(colonist);
+        if (_goal.Contains(from))
+        {
+            movement.Stop();
+            return true;
+        }
+
+        if (_goal.Count == 0 || !_paths.TryFind(simulation.Map, from, _goal, _path))
+        {
+            return false;
+        }
+
+        movement.Stop();
+        movement.Path.AddRange(_path);
+        return true;
+    }
+
+    /// <summary>
     /// Eats one unit every <see cref="AiConfigDef.EatTicksPerUnit"/> ticks, until the needs
     /// satisfied by eating lack less than half a unit or the pile runs out.
     /// </summary>
@@ -685,6 +817,14 @@ public sealed class JobSystem : ISimSystem
         }
 
         job.Progress = 0;
+        Nourish(simulation, colonist, nutrition);
+        ItemPiles.TakeOne(simulation, job.Target);
+        return !simulation.World.IsAlive(job.Target) || IsFed(simulation, colonist, nutrition);
+    }
+
+    /// <summary>A unit of food of this nutrition goes into the needs satisfied by eating.</summary>
+    private static void Nourish(Simulation simulation, EntityId colonist, int nutrition)
+    {
         foreach (var state in simulation.World.Get<Needs>(colonist).Values)
         {
             var need = simulation.Content.Get<NeedDef>(state.Need);
@@ -694,9 +834,6 @@ public sealed class JobSystem : ISimSystem
                 state.MinutesAtZero = 0;
             }
         }
-
-        ItemPiles.TakeOne(simulation, job.Target);
-        return !simulation.World.IsAlive(job.Target) || IsFed(simulation, colonist, nutrition);
     }
 
     private static bool IsFed(Simulation simulation, EntityId colonist, int nutrition)

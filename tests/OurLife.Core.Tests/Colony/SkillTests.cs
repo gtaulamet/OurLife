@@ -9,7 +9,7 @@ namespace OurLife.Core.Tests.Colony;
 /// <summary>Skills: gained working and from a teacher, and faster work (H3.4, <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
 public class SkillTests
 {
-    private static readonly string[] SkillIds = ["construction", "gathering", "hauling", "mining", "woodcutting"];
+    private static readonly string[] SkillIds = ["childcare", "construction", "gathering", "hauling", "mining", "woodcutting"];
 
     private static SkillRules Rules => SkillRules.From(ColonyTestBed.Content);
 
