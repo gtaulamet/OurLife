@@ -87,7 +87,7 @@ public class VisualCatalogTests
     {
         var flat = GameContent.Defs.All<BuildableDef>()
             .Where(buildable => buildable.RestRecoveryPercent is not null)
-            .Where(bed => !Catalog.TryResolve(bed.Visual!, era: null, out var model) || model.RestHeight <= 0)
+            .Where(bed => bed.Visual is null || !Catalog.TryResolve(bed.Visual, era: null, out var model) || model.RestHeight <= 0)
             .Select(bed => bed.Id)
             .ToList();
 

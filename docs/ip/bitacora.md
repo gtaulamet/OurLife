@@ -8,9 +8,9 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-8-arte`: H3.8 hecho salvo la revisión de código |
-| `main` | Con H3.7, también en `origin` |
-| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.7 y H3.9 |
+| Rama de trabajo | `ip3/h3-8-arte`: H3.8 cerrado. Sigue H3.10 en `ip3/h3-10-integracion` |
+| `main` | Con H3.8, también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.9 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
 | Validación | `dotnet build` sin advertencias, 696 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick) |
 | Huella del smoke | `D8FD3784066AEE12` con `--seed 1 --ticks 5000`; `14212A5A5466DDB7` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **H3.8, arte de las etapas**, en `ip3/h3-8-arte`: falta la revisión de código y adelantar `main`. Después, H3.10.
+1. **H3.10, integración**, en `ip3/h3-10-integracion`: balance de población y comida con los tres ritmos, benchmark con una población de partida larga, checklist de playtest (`docs/ip/playtest-ip3.md`), playtest del usuario en Windows y macOS, paquetes y `v0.3.0`.
 2. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción.
 3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -41,6 +41,11 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: cierre de H3.8
+
+- Cuarta ronda de revisión: 7 hallazgos, todos corregidos. Los íconos se importan sin compresión para 3D (`detect_3d/compress_to=0`), así no se borronean ni cambian sus `.import` al usarlos un `Sprite3D`. La altura con huesos agrandados se mide sólo en esos modelos. Comentarios y documentación al día (jugar con `emote-yes`, tres campos nuevos en el catálogo), la elección de animación más simple y el test de las camas sin `!`.
+- 696 tests; smoke con código 0. H3.8 hecho en `IP3.md`; `main` adelantado.
 
 ### 2026-10-18: H3.8, tercera ronda de revisión
 

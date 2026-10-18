@@ -235,7 +235,7 @@ public partial class EntityRenderer : Node3D
         // Measured before it is placed, with the bones the catalog enlarges: half its height is how
         // far a sleeper's feet move back.
         var modelled = ModelLibrary.BoundsOf(node)?.Size.Y ?? 0f;
-        var height = ModelLibrary.HeightOf(node, model);
+        var height = model.BoneScales is { Count: > 0 } ? ModelLibrary.HeightOf(node, model) : modelled;
         var position = _simulation.World.Get<Position>(entity);
         var moves = _simulation.World.Has<Movement>(entity);
         node.Position = moves ? WalkingPosition(entity, out _) : CellBase(position.X, position.Y, position.Z);
@@ -556,7 +556,7 @@ public partial class EntityRenderer : Node3D
 
     /// <summary>
     /// Plays the animation of what a colonist does: walking, striking to dig or chop, handling
-    /// to build or to feed a baby, picking up to gather, jumping to play, holding what it carries,
+    /// to build or to feed a baby, picking up to gather, cheering to play, holding what it carries,
     /// or standing; the model's own one when it has it, like a baby sitting. At the game's speed,
     /// and walking at the pace of its stage of life.
     /// </summary>
@@ -580,13 +580,16 @@ public partial class EntityRenderer : Node3D
             : world.Has<Carried>(entity) ? Hold
             : Idle;
 
-        // A sleeper lies still with the plain pose: a baby's own one for standing is sitting.
-        var asleep = job is { Kind: JobKind.Sleep, Stage: JobStage.Working };
-        // A model without its own one falls back to its own standing pose, then to the plain one.
-        name = asleep ? Idle : view.Model.AnimationFor(name);
-        if (!view.Animations.Contains(name))
+        // A sleeper lies still with the plain pose: a baby's own one for standing is sitting. A
+        // model without its own animation falls back to its own standing pose, then to the plain one.
+        if (job is { Kind: JobKind.Sleep, Stage: JobStage.Working })
         {
-            name = asleep ? Idle : view.Model.AnimationFor(Idle);
+            name = Idle;
+        }
+        else
+        {
+            var own = view.Model.AnimationFor(name);
+            name = view.Animations.Contains(own) ? own : view.Model.AnimationFor(Idle);
         }
 
         if (!view.Animations.Contains(name))

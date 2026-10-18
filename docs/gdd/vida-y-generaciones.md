@@ -348,7 +348,7 @@ Las claves siguen `docs/i18n.md`. El i18n-specialist ajusta el texto final en ca
 | Globo de interacción | Un ícono por interacción sobre los colonos | Íconos pixel de 16 × 16 en `game/assets/icons/interactions/<id>.png`, dibujados por `tools/make-interaction-icons.py`; se ven dos segundos y medio sobre los dos colonos |
 
 - **Sin campo nuevo en `LifeStage`:** en lugar de un `visual` por etapa, el renderer busca en el catálogo `<visual de la criatura>.<etapa>` (como `creature.human.child`) y, si no está, usa el de la criatura, que es el del adulto. Así cada criatura tiene sus etapas y el Core no cambia.
-- **El catálogo suma dos campos:** `boneScales` agranda huesos del esqueleto (la cabeza de bebés y niños) y `animations` cambia una animación por otra del modelo (el bebé se sienta donde los demás se quedan parados).
+- **El catálogo suma tres campos:** `boneScales` agranda huesos del esqueleto (la cabeza de bebés y niños), `animations` cambia una animación por otra del modelo (el bebé se sienta donde los demás se quedan parados) y `restHeight` dice a qué altura se acuesta quien duerme en una cama (0,22 en la cama, 0,13 en la cuna).
 - **Animaciones:** quien alimenta a un bebé usa la de manipular; la de caminar va al paso real (la etapa, y la habilidad al acarrear: el anciano al 80 %, el bebé al 25 %). Dormido, todos usan la pose quieta. Un globo se va si su colono se acuesta, y se oscurece con la profundidad como el colono.
 - **Canas:** pelo, ojos y ropa comparten franjas de la textura, así que una textura recoloreada no servía. El script mueve, en la malla de la cabeza, los vértices del pelo a la franja gris; distingue los ojos por su lugar, que es el mismo en todas las cabezas del kit.
 
