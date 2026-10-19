@@ -8,8 +8,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l2-metas`: L2 hecho, falta la revisión de código y adelantar `main` |
-| `main` | Con `v0.3.0`, también en `origin` |
+| Rama de trabajo | `ip3.5/l2-metas`: L2 cerrado y en `main`. Sigue L3 en `ip3.5/l3-iniciativa` |
+| `main` | Con L2 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 746 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L2:** revisión de código y adelantar `main`. Luego L3, L4, L4b y L4c, que pueden ir en paralelo.
+1. **L3, trabajo por iniciativa** (`InitiativeTask` en `free_will.json`, `Job.Initiative`, recolectar y talar cerca de la aldea bajo la meta, dentro de las prioridades; el inspector dice "por su cuenta"). L4, L4b y L4c pueden ir en paralelo. L3 y L4b suben el formato a 9 si suman estado (ADR-013).
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -54,6 +54,7 @@ En orden:
 - Cuarta ronda: las metas por defecto tienen que ser múltiplos del paso (si no, no se podría volver a elegirlas con los botones); `StepTarget` ignora una categoría sin meta, como el comando; las líneas de las metas tienen un ancho mínimo para que los botones no se muevan cuando crece el número. La spec aclara que la opción también viene prendida al actualizar desde `v0.3.0`.
 - Quinta ronda: la regla de los botones pasa al Core (`FreeWillRules.NextTarget`, con tests de 999 a 990 y de los extremos); el panel refresca por separado las filas y las metas, y mide el ancho de las metas sólo al reconstruirse (también al cambiar de idioma); el smoke compara el juego completo (`SameGame`: huella, interruptor, centro y metas) en las tres vueltas de guardado, y los tests de migración comparan el centro.
 - Sexta ronda: el smoke dice qué parte del juego difiere (`DifferenceOf`) y calcula lo esperado de los botones con `NextTarget`; un clic en una meta cambia sólo su línea, sin volver a contar las existencias; los interruptores de Opciones comparten una lista y un solo refresco.
+- Octava ronda sin hallazgos: L2 cerrado y `main` adelantado.
 - Séptima ronda: el contenido rechaza más de un `FreeWillConfig` al cargarse; la pantalla aplica el interruptor al crearse, antes del primer tick; el ancho de las metas sale del máximo de los datos y crece si las existencias pasan de cuatro cifras.
 
 ### 2026-10-19: L2, Core del interruptor y las metas
