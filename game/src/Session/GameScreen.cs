@@ -77,9 +77,6 @@ public partial class GameScreen : Node
         {
             screen.Session = GameSession.Create(simulation);
             screen.AddChild(screen.Session);
-
-            // Free will is the player's option, not the saved game's: sent to every game, new or loaded.
-            screen.Session.Enqueue(new SetFreeWillCommand(services.Settings.FreeWill));
             // Colonists move their bodies at the speed of the game, and stand still with it.
             var session = screen.Session;
             screen.View = WorldView.Create(
@@ -102,6 +99,10 @@ public partial class GameScreen : Node
 
             screen._overlays = new CanvasLayer { Name = "Overlays", Layer = OverlayLayer };
             screen.AddChild(screen._overlays);
+
+            // Free will is the player's option, not the saved game's: sent to every game, new or
+            // loaded, once everyone listens (a stopped session applies it and publishes at once).
+            screen.Session.Enqueue(new SetFreeWillCommand(services.Settings.FreeWill));
 
             // The arrival emitted events before anyone listened: the view already drew what they
             // announce and ignores them, and the log shows the welcome message.

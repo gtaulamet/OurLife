@@ -30,7 +30,7 @@ public partial class ColonyPanel : PanelContainer
     private GameSession _session = null!;
     private GameInput _input = null!;
     private GridContainer _grid = null!;
-    private HBoxContainer _targets = null!;
+
     private readonly List<(string Category, Label Label)> _targetRows = [];
     private ColonyRules _rules = null!;
 
@@ -63,17 +63,20 @@ public partial class ColonyPanel : PanelContainer
         panel._grid.AddThemeConstantOverride("v_separation", 4);
         column.AddChild(panel._grid);
         column.AddChild(new Label { Text = "ui.colony.help", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(480, 0) });
-        panel._targets = new HBoxContainer();
-        panel._targets.AddThemeConstantOverride("separation", 18);
-        column.AddChild(panel._targets);
-        panel.BuildTargets();
+        var targets = new HBoxContainer();
+        targets.AddThemeConstantOverride("separation", 18);
+        column.AddChild(targets);
+        panel.BuildTargets(targets);
         return panel;
     }
 
     /// <summary>The lines of the stock targets as the player reads them, for the smoke.</summary>
     public IEnumerable<string> TargetTexts => _targetRows.Select(row => row.Label.Text);
 
-    /// <summary>Lowers or raises the target of a category by one step, as its buttons do.</summary>
+    /// <summary>
+    /// Lowers or raises the target of a category to the next multiple of the step, as its buttons
+    /// do, so a target clamped to the highest goes back to the multiples on the way down.
+    /// </summary>
     public void StepTarget(string category, bool up)
     {
         if (FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config)
@@ -82,7 +85,10 @@ public partial class ColonyPanel : PanelContainer
         }
 
         TrackPending();
-        var target = Math.Clamp(TargetOf(category, FreeWillRules.Targets(_session.Simulation)) + (up ? config.TargetStep : -config.TargetStep), 0, config.TargetMax);
+        var current = TargetOf(category, FreeWillRules.Targets(_session.Simulation));
+        var step = config.TargetStep;
+        var next = up ? ((current / step) + 1) * step : ((current + step - 1) / step - 1) * step;
+        var target = Math.Clamp(next, 0, config.TargetMax);
         _session.Enqueue(new SetStockTargetCommand(category, target));
         _pendingTargets[category] = target;
         RefreshRows();
@@ -215,7 +221,7 @@ public partial class ColonyPanel : PanelContainer
     /// to lower and raise it and what the colony has of it; what they do, in a tooltip. Built once:
     /// the categories with targets do not change over a game, and the texts refresh with the rows.
     /// </summary>
-    private void BuildTargets()
+    private void BuildTargets(HBoxContainer row)
     {
         var targets = FreeWillRules.Targets(_session.Simulation);
         if (targets.Count == 0)
@@ -223,22 +229,24 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
-        _targets.AddChild(new Label { Text = "ui.colony.targets", TooltipText = "ui.colony.targets_help", MouseFilter = MouseFilterEnum.Stop });
+        const string Help = "ui.colony.targets_help";
+        row.AddChild(new Label { Text = "ui.colony.targets", TooltipText = Help, MouseFilter = MouseFilterEnum.Stop });
         foreach (var target in targets)
         {
-            var row = new HBoxContainer { TooltipText = "ui.colony.targets_help" };
-            row.AddThemeConstantOverride("separation", 6);
-            _targets.AddChild(row);
+            var group = new HBoxContainer { TooltipText = Help };
+            group.AddThemeConstantOverride("separation", 6);
+            row.AddChild(group);
             var category = target.Category;
             foreach (var (key, up) in new[] { ("ui.colony.target_less", false), ("ui.colony.target_more", true) })
             {
-                var button = new Button { Text = key, FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(32, 0) };
+                // The buttons stop the mouse, so they carry the help too.
+                var button = new Button { Text = key, TooltipText = Help, FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(32, 0) };
                 button.Pressed += () => StepTarget(category, up);
-                row.AddChild(button);
+                group.AddChild(button);
             }
 
             var label = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, VerticalAlignment = VerticalAlignment.Center };
-            row.AddChild(label);
+            group.AddChild(label);
             _targetRows.Add((category, label));
         }
     }

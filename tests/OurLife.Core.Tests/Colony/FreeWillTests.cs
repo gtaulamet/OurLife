@@ -114,15 +114,7 @@ public class FreeWillTests
         bed.Simulation.ComputeStateHash().ShouldNotBe(on);
     }
 
-    [Fact]
-    public void A_saved_target_above_the_highest_gives_way_to_it()
-    {
-        var bed = ColonyTestBed.Flat(8);
-        bed.Simulation.StockTargetList.Add(new StockTarget("wood", 5_000));
-        bed.Simulation.StockTargetList.Add(new StockTarget("stone", 20));
 
-        FreeWillRules.Targets(bed.Simulation).ShouldBe([new StockTarget("food", 150), new StockTarget("wood", 999)]);
-    }
 
     [Fact]
     public void A_target_order_without_a_category_is_ignored()

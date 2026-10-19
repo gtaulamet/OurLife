@@ -167,6 +167,18 @@ public class SaveGameTests
         loaded.ComputeStateHash().ShouldBe(bed.Simulation.ComputeStateHash());
     }
 
+    [Fact]
+    public void A_saved_target_the_content_no_longer_allows_is_lowered_or_dropped()
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json => json.Replace(
+            "\"StockTargets\":[]", "\"StockTargets\":[{\"Category\":\"wood\",\"Count\":5000},{\"Category\":\"stone\",\"Count\":20}]", StringComparison.Ordinal));
+
+        var loaded = Load(file);
+
+        loaded.StockTargets.ShouldBe([new StockTarget("wood", 999)]);
+        Load(Save(loaded)).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+    }
+
     [Theory]
     [InlineData("\"VillageCenter\":{\"X\":", "\"VillageCenter\":{\"X\":99", SaveLoadError.Corrupt)]
     [InlineData("\"StockTargets\":[]", "\"StockTargets\":[{\"Category\":\"gold\",\"Count\":5}]", SaveLoadError.MissingContent)]

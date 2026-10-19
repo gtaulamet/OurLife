@@ -29,7 +29,7 @@ Así, el pedido 1 ya está y el acarreo ya es por iniciativa. Lo nuevo es recole
 ## Interruptor
 
 - **Opción "Libre albedrío"** en Opciones (sí o no), para toda la aldea. **Prendida por defecto.** Se guarda en `settings.cfg`, como el resto de las opciones.
-- La simulación tiene que saberlo, para que dos partidas iguales den lo mismo y para que el guardado lo conserve. La sesión le manda `SetFreeWillCommand(prendido)` al empezar o cargar una partida y cada vez que el jugador cambia la opción. La simulación guarda el valor (`Simulation.FreeWill`) y entra en la huella.
+- La simulación tiene que saberlo, para que dos partidas iguales den lo mismo y para que el guardado lo conserve. La sesión le manda `SetFreeWillCommand(prendido)` al empezar o cargar una partida y cada vez que el jugador cambia la opción. La simulación guarda el valor (`Simulation.FreeWill`), que entra en la huella con la opción prendida (ver "Guardado").
 - Con la opción apagada no hay trabajo por iniciativa ni vida social con intención: los colonos se comportan como en `v0.3.0`. El bosque que vuelve no depende de la opción: es la naturaleza.
 
 ## Aldea y metas
@@ -89,7 +89,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 |---|---|---|
 | Comando | `SetFreeWillCommand(prendido)` | El interruptor de Opciones, al empezar, al cargar y al cambiarlo |
 | Comando | `SetStockTargetCommand(categoría, cantidad)` | Las metas del panel Colonia |
-| Estado | `Simulation.FreeWill`, `Simulation.VillageCenter`, `Simulation.StockTargets` | Entran en la huella y en el guardado |
+| Estado | `Simulation.FreeWill`, `Simulation.VillageCenter`, `Simulation.StockTargets` | Entran en el guardado, y en la huella con la opción prendida o con metas elegidas (ver "Guardado") |
 | Componente | `Sapling` | En un retoño: el tick en que se vuelve adulto |
 | Campo | `Job.Initiative` | El trabajo es por iniciativa: vale sin la orden del jugador |
 | Consulta | `FreeWillRules.Targets`, `FreeWillRules.IsNearVillage` | El panel Colonia y el inspector |
@@ -111,7 +111,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 - Formato 8 (L2): `Simulation.FreeWill`, `VillageCenter` y `StockTargets`. El componente `Sapling` y `Job.Initiative` llegan con L3 y L4b, que vuelven a subir el formato (ADR-013: sube cada vez que llega a `main` un cambio del estado).
 - Una partida de la versión 7 se migra: centro de la aldea en la celda del colono más cerca del medio de todos (la mediana en cada eje), así uno que trabaja lejos no lo corre; metas por defecto; el interruptor lo manda la sesión al cargar, como siempre.
 - Con la opción apagada y sin metas elegidas, la huella no incluye el libre albedrío: una partida da la misma huella que en `v0.3.0` (criterio 3). El smoke, que juega sin la opción, lo comprueba con las huellas de `v0.3.0`.
-- Una meta guardada que el contenido ya no admite (más alta que el máximo, o de una categoría que ya no tiene metas) cede al máximo o se ignora; la partida carga igual. Una categoría que ya no existe da "falta contenido", como cualquier def (ADR-013).
+- Una meta guardada que el contenido ya no admite (más alta que el máximo, o de una categoría que ya no tiene metas) baja al máximo o se descarta al cargar; la partida carga igual. Una categoría que ya no existe da "falta contenido", como cualquier def (ADR-013).
 - El centro migrado es la celda de un colono: siempre alcanzable, aunque pueda estar bajo tierra. Sólo se usa en el plano ("cerca de la aldea"), así que el nivel no cambia nada.
 
 ## Criterios de aceptación

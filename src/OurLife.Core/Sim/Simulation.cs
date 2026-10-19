@@ -51,11 +51,14 @@ public sealed class Simulation
     /// <summary>The centre of the village, where the colonists arrived; null before they do.</summary>
     public TileCoord? VillageCenter { get; internal set; }
 
+    private readonly List<StockTarget> _stockTargets = [];
+    private System.Collections.ObjectModel.ReadOnlyCollection<StockTarget>? _stockTargetsView;
+
     /// <summary>The stock targets the player chose, by item category id, sorted; a category left out has its default.</summary>
-    public IReadOnlyList<StockTarget> StockTargets => StockTargetList;
+    public IReadOnlyList<StockTarget> StockTargets => _stockTargetsView ??= _stockTargets.AsReadOnly();
 
     /// <summary>The same, for the command that sets them and for loading.</summary>
-    internal List<StockTarget> StockTargetList { get; } = [];
+    internal List<StockTarget> StockTargetList => _stockTargets;
 
     /// <summary>Validated game content: materials, plants, items, eras, time settings…</summary>
     public DefDatabase Content { get; }

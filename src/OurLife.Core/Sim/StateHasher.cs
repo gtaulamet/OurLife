@@ -27,7 +27,8 @@ public static class StateHasher
         AppendString(hash, simulation.ColonyName);
         AppendString(hash, simulation.LifePace);
         // Free will off and no targets of the player's change nothing, and leave the fingerprint of
-        // a game before IP3.5 (criterion 3 of docs/gdd/libre-albedrio.md): the centre only matters with it on.
+        // a game before IP3.5 (criterion 3 of docs/gdd/libre-albedrio.md). Otherwise all of free
+        // will counts, the centre too.
         if (simulation.FreeWill || simulation.StockTargets.Count > 0)
         {
             AppendInt32(hash, simulation.FreeWill ? 1 : 0);

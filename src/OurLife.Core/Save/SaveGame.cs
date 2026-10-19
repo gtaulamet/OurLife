@@ -307,15 +307,22 @@ public static class SaveGame
             simulation.VillageCenter = center;
         }
 
+        // A target the content no longer allows, of a category without targets or above the
+        // highest, is dropped or lowered to it, as the command would have done (libre-albedrio.md).
+        var freeWill = FreeWillRules.ConfigOf(content);
+        var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var target in state.StockTargets.OrderBy(target => target.Category, StringComparer.Ordinal))
         {
             RequireDef<ItemCategoryDef>(content, target.Category);
-            if (target.Count < 0 || simulation.StockTargetList.Exists(other => other.Category == target.Category))
+            if (target.Count < 0 || !seen.Add(target.Category))
             {
                 throw Corrupt($"stock target {target}");
             }
 
-            simulation.StockTargetList.Add(target);
+            if (freeWill is not null && freeWill.DefaultTargets.ContainsKey(target.Category))
+            {
+                simulation.StockTargetList.Add(target with { Count = Math.Min(target.Count, freeWill.TargetMax) });
+            }
         }
 
         simulation.World.Entities.Restore(state.Generations, state.FreeSlots);
