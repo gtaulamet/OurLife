@@ -2,7 +2,7 @@
 
 Spec de IP3.5 (`docs/ip/IP3.5.md`): trabajo por iniciativa, metas de existencias, vida social con intención, preferencias por rasgos y ánimo, y bosque que vuelve. Las estaciones visibles (L4c) tienen su spec en `docs/gdd/estaciones-visibles.md`. Los números son el punto de partida, viven en defs y se ajustan en L5 con partidas largas.
 
-**Estado:** spec de L1, escrita el 19 de octubre de 2026; espera la aprobación del usuario. La dirección se aprobó el 16 de octubre.
+**Estado:** aprobada por el usuario el 19 de octubre de 2026 (L1), con dos cambios: la aldea es un círculo de 30 celdas alrededor de la llegada, y en otoño los pinos también cambian de color. La dirección se aprobó el 16 de octubre.
 
 ## Qué pidió el usuario
 
@@ -11,7 +11,7 @@ Spec de IP3.5 (`docs/ip/IP3.5.md`): trabajo por iniciativa, metas de existencias
 3. Según el vínculo con los demás, puede querer estar con ciertas personas para fortalecer el lazo, o alejarse de las conflictivas.
 4. Que los árboles vuelvan a crecer sin llenar el mapa (17 de octubre).
 
-Decisiones del usuario: el interruptor va en Opciones, para toda la aldea; por ahora la iniciativa sólo recolecta comida, tala y acarrea; las metas de existencias las elige el jugador en el panel Colonia; la iniciativa respeta las prioridades; "cerca de la aldea" es un círculo de 40 celdas de diámetro.
+Decisiones del usuario: el interruptor va en Opciones, para toda la aldea; por ahora la iniciativa sólo recolecta comida, tala y acarrea; las metas de existencias las elige el jugador en el panel Colonia; la iniciativa respeta las prioridades; "cerca de la aldea" es un círculo de 30 celdas alrededor de la llegada (19 de octubre; el 17 se había dicho 40 de diámetro).
 
 ## Qué hace el juego hoy
 
@@ -34,7 +34,7 @@ Así, el pedido 1 ya está y el acarreo ya es por iniciativa. Lo nuevo es recole
 
 ## Aldea y metas
 
-- **Centro de la aldea:** el lugar de llegada de los colonos, fijo (`Simulation.VillageCenter`). "Cerca de la aldea" es a 20 celdas o menos de él en el plano, en cualquier nivel.
+- **Centro de la aldea:** el lugar de llegada de los colonos, fijo (`Simulation.VillageCenter`). "Cerca de la aldea" es a 30 celdas o menos de él en el plano, en cualquier nivel.
 - **Metas de existencias:** una por categoría de objetos que la iniciativa junta, **comida** y **madera**. La meta es cuántas unidades quiere tener la aldea (las que cuenta el HUD: en el suelo, en almacenes o en las manos). Los valores por defecto están en los datos (comida 150, madera 40) y el jugador los cambia en el panel Colonia con botones de menos y más (de a 10), de 0 hasta 999. Con meta 0, esa iniciativa no ocurre.
 - `SetStockTargetCommand(categoría, cantidad)` guarda la meta en la partida (`Simulation.StockTargets`).
 
@@ -100,7 +100,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 | Def | Campos | Archivo |
 |---|---|---|
-| `FreeWillConfig` | `villageRadius` (20), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
+| `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
 | `InitiativeTask` | `workType`, `job` (`harvest` o `chop`), `category` (la meta que mira) | `free_will.json` |
 | `PlantDef` | `regrowth`: `seedChancePerDay`, `seedRadius`, `growDays`, `maxCoverPercent`, `saplingVisual` | `plants.json` |
 
@@ -116,7 +116,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 1. Sin órdenes, con la comida bajo la meta y arbustos cerca de la aldea, un colono con prioridad de recolección recolecta por su cuenta; con la meta cumplida, no.
 2. Con la recolección en "nunca" para ese colono, no recolecta por su cuenta; otro colono sí.
 3. Con la opción apagada, nadie trabaja por su cuenta ni busca compañía, y la partida da la misma huella que sin IP3.5 en esa situación.
-4. Un árbol a más de 20 celdas del centro de la aldea nunca se tala por iniciativa; uno con orden del jugador lo toma quien toma órdenes.
+4. Un árbol a más de 30 celdas del centro de la aldea nunca se tala por iniciativa; uno con orden del jugador lo toma quien toma órdenes.
 5. Una orden del jugador siempre gana: un colono libre con una orden pendiente de su prioridad la toma antes que cualquier iniciativa.
 6. Un perezoso toma iniciativa menos seguido que un trabajador en el mismo escenario (medido en muchas decisiones).
 7. Dos colonos que se aprecian, trabajando lejos uno del otro, se encuentran en su tiempo libre y se hacen amigos en menos días que sin IP3.5.
@@ -127,17 +127,17 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 12. En la partida: la opción en Opciones y las metas en el panel Colonia, en es y en; el inspector dice "por su cuenta".
 13. Presupuesto: menos de 2 ms por tick de media con una aldea de diez años y la opción prendida.
 
-## Decisiones para el usuario
+## Decisiones del usuario (L1)
 
-Propuestas de esta spec que conviene confirmar:
+Respondidas el 19 de octubre de 2026:
 
 1. La opción viene **prendida** por defecto en una instalación nueva.
 2. Metas por defecto: **150 de comida y 40 de madera**, con botones de a 10.
-3. El centro de la aldea es el lugar de llegada, fijo.
+3. El centro de la aldea es el lugar de llegada, fijo; "cerca" son **30 celdas** alrededor (se propusieron 20).
 4. Ganas de iniciativa: 60 % para un colono promedio en cada decisión libre; un perezoso, la mitad; un trabajador, una vez y media.
 5. Buscar compañía hasta 30 celdas; evitar a los rivales a 10 o menos.
 6. Bosque: retoños sólo junto a árboles adultos de su especie, 2 % por árbol y por día, 10 días para crecer; los arbustos de bayas no se reproducen.
-7. Estaciones visibles: el pasto se blanquea de a poco hacia el centro del invierno, y hay nieve en la roca en el último tercio de la altura del valle (`docs/gdd/estaciones-visibles.md`).
+7. Estaciones visibles: el pasto se blanquea de a poco hacia el centro del invierno y hay nieve en la roca en el último tercio de la altura del valle. Además, en otoño **los robles y los pinos** se vuelven amarillos y rojizos, y en invierno tienen algo de nieve: el cambio de estación tiene que notarse en el paisaje (`docs/gdd/estaciones-visibles.md`).
 
 ## Fuera de alcance
 

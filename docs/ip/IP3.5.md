@@ -10,19 +10,19 @@
 - La iniciativa respeta las prioridades de cada colono: con una tarea en "nunca", nunca la hace por su cuenta.
 - Va como IP3.5, después de IP3 y antes de IP4.
 - Las metas de existencias se eligen en el panel Colonia (respondido el 17 de octubre).
-- "Cerca de la aldea" es un círculo de 40 celdas de diámetro (radio 20) (respondido el 17 de octubre).
+- "Cerca de la aldea" es un círculo de 30 celdas alrededor de la llegada (respondido el 19 de octubre; el 17 se había dicho 40 de diámetro).
 - Los árboles vuelven a crecer, sin llenar el mapa: con un tope de cobertura del terreno (pedido del 17 de octubre).
 - El valle cambia de color con la estación: árboles amarillos y rojizos en otoño, pasto y árboles blanquecinos en invierno y cumbres nevadas (pedido del 18 de octubre; propuesta en `docs/gdd/estaciones-visibles.md`). Se adelanta de IP6, que conserva el clima, la nieve que cae y sus horas.
 
 **Estimación:** 48 a 70 h. **Versión al cerrar:** `v0.3.5`, para Windows y macOS.
 
-**Estado:** en curso desde el 19 de octubre de 2026, al cerrar IP3. L1: spec escrita, espera la aprobación del usuario.
+**Estado:** en curso desde el 19 de octubre de 2026, al cerrar IP3. L1 hecho: spec aprobada el mismo día.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| L1 Spec y contrato | En curso | `ip3.5/l1-spec` | Spec en `docs/gdd/libre-albedrio.md` con siete decisiones para confirmar |
+| L1 Spec y contrato | Hecho | `ip3.5/l1-spec` | Spec en `docs/gdd/libre-albedrio.md`, aprobada el 19 de octubre con dos cambios: aldea de 30 celdas alrededor de la llegada, y pinos que también cambian de color en otoño |
 | L2 Interruptor y metas | Pendiente | `ip3.5/l2-metas` | |
 | L3 Trabajo por iniciativa | Pendiente | `ip3.5/l3-iniciativa` | |
 | L4 Vida social con intención | Pendiente | `ip3.5/l4-social` | |

@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l1-spec`: spec de IP3.5 escrita, espera la aprobación del usuario |
+| Rama de trabajo | `ip3.5/l1-spec`: spec aprobada. Sigue L2 en `ip3.5/l2-metas` |
 | `main` | Con `v0.3.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **Aprobación de la spec de IP3.5** (`docs/gdd/libre-albedrio.md`), con sus siete decisiones; después, L2 (interruptor y metas) y L4c (estaciones), que puede ir en paralelo.
+1. **L2, interruptor y metas** (`SetFreeWillCommand`, `SetStockTargetCommand`, centro de la aldea, formato 8). Después L3, L4, L4b y L4c, que pueden ir en paralelo.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -46,6 +46,7 @@ En orden:
 
 - Rama `ip3.5/l1-spec`. Spec en `docs/gdd/libre-albedrio.md`: interruptor por comando (`SetFreeWillCommand`), centro de la aldea en la llegada, metas de comida y madera en el panel Colonia (`SetStockTargetCommand`), iniciativa de recolectar y talar cerca de la aldea dentro de las prioridades (`Job.Initiative`), buscar compañía y evitar rivales, ganas por diligencia, sociabilidad y ánimo (`FreeWillConfig`), bosque que vuelve con retoños y tope por especie (`Sapling`, `regrowth` en `PlantDef`), formato 8, trece criterios de aceptación y siete decisiones para el usuario.
 - El acarreo ya es por iniciativa desde IP2: la spec lo dice y no lo cambia.
+- Aprobada por el usuario con dos cambios: "cerca de la aldea" son 30 celdas alrededor de la llegada (no 20), y en otoño los pinos también se vuelven amarillos y rojizos, con algo de nieve en invierno en todos los árboles; el cambio de estación tiene que notarse en el paisaje.
 
 ### 2026-10-19: cierre de IP3 y `v0.3.0`
 
