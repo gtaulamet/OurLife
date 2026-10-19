@@ -1,99 +1,144 @@
-# Libre albedrío
+# Libre albedrío (IP3.5)
 
-**Estado:** dirección aprobada por el usuario el 16 de octubre de 2026; va como IP3.5 (`docs/ip/IP3.5.md`). La spec con criterios de aceptación se escribe en L1.
+Spec de IP3.5 (`docs/ip/IP3.5.md`): trabajo por iniciativa, metas de existencias, vida social con intención, preferencias por rasgos y ánimo, y bosque que vuelve. Las estaciones visibles (L4c) tienen su spec en `docs/gdd/estaciones-visibles.md`. Los números son el punto de partida, viven en defs y se ajustan en L5 con partidas largas.
+
+**Estado:** spec de L1, escrita el 19 de octubre de 2026; espera la aprobación del usuario. La dirección se aprobó el 16 de octubre.
 
 ## Qué pidió el usuario
 
 1. Si un colono tiene hambre, busca comida; si no hay, la recolecta.
 2. Si no tiene nada que hacer, según su personalidad y su ánimo, puede hacer por su cuenta las tareas de las prioridades que tiene asignadas.
 3. Según el vínculo con los demás, puede querer estar con ciertas personas para fortalecer el lazo, o alejarse de las conflictivas.
+4. Que los árboles vuelvan a crecer sin llenar el mapa (17 de octubre).
+
+Decisiones del usuario: el interruptor va en Opciones, para toda la aldea; por ahora la iniciativa sólo recolecta comida, tala y acarrea; las metas de existencias las elige el jugador en el panel Colonia; la iniciativa respeta las prioridades; "cerca de la aldea" es un círculo de 40 celdas de diámetro.
 
 ## Qué hace el juego hoy
-
-Parte del pedido ya existe; conviene saberlo para no rehacerlo:
 
 | Conducta | Hoy | Desde |
 |---|---|---|
 | Comer con hambre | Come de una pila; si no hay, recolecta un arbusto con comida aunque nadie lo haya ordenado | IP1 |
-| Trabajar sin que se lo digan colono por colono | Toma las órdenes del jugador según sus prioridades (1 a 4 o nunca) | IP2 |
-| Personalidad en las decisiones | Un perezoso atiende sus necesidades bajas antes de trabajar; la diligencia da la velocidad | H3.3 |
-| Ánimo en las decisiones | En crisis no trabaja; aislado, se aleja de los demás | H3.6 |
-| Sin nada que hacer | Deambula cerca de donde está | IP1 |
-| Vida social | Interactúa con quien pasa cerca (4 celdas); no busca a nadie | H3.5 |
+| Acarrear | Lleva lo suelto a los almacenes sin que nadie lo ordene, si tiene la prioridad | IP2 |
+| Trabajar | Toma las órdenes del jugador según sus prioridades (1 a 4 o nunca) | IP2 |
+| Personalidad y ánimo | Un perezoso atiende sus necesidades bajas antes de trabajar; en crisis no trabaja; aislado, se aleja | H3.3, H3.6 |
+| Sin nada que hacer | Un niño va a jugar; los demás deambulan cerca de donde están | IP1, H3.7 |
+| Vida social | Interactúa con quien pasa a 6 celdas o menos; no busca a nadie | H3.5, H3.10 |
 
-Lo que falta es la **iniciativa**: que el colono decida hacer algo que nadie ordenó, y que busque o evite a otros.
+Así, el pedido 1 ya está y el acarreo ya es por iniciativa. Lo nuevo es recolectar y talar sin órdenes, buscar y evitar a otros, y el bosque que vuelve.
 
-## Propuesta: tres partes
+## Interruptor
 
-### A. Trabajo por iniciativa
+- **Opción "Libre albedrío"** en Opciones (sí o no), para toda la aldea. **Prendida por defecto.** Se guarda en `settings.cfg`, como el resto de las opciones.
+- La simulación tiene que saberlo, para que dos partidas iguales den lo mismo y para que el guardado lo conserve. La sesión le manda `SetFreeWillCommand(prendido)` al empezar o cargar una partida y cada vez que el jugador cambia la opción. La simulación guarda el valor (`Simulation.FreeWill`) y entra en la huella.
+- Con la opción apagada no hay trabajo por iniciativa ni vida social con intención: los colonos se comportan como en `v0.3.0`. El bosque que vuelve no depende de la opción: es la naturaleza.
 
-Un colono sin órdenes que tomar puede inventarse trabajo dentro de sus prioridades:
+## Aldea y metas
 
-- Sólo tareas que no cambian la aldea sin permiso: recolectar comida, talar árboles sueltos cerca de la aldea, acarrear. Excavar y construir siguen siendo del jugador, porque cambian el mapa y gastan materiales.
-- Cada tarea por iniciativa es un def con su condición, por ejemplo "si hay menos de N comidas en la aldea, recolectar arbustos a menos de M celdas". Los umbrales en datos, o elegidos por el jugador.
-- La personalidad decide las ganas: un trabajador toma iniciativa seguido, un perezoso casi nunca. El ánimo también: con ánimo bajo, menos iniciativa.
-- Las órdenes del jugador siempre van primero: la iniciativa sólo llena el tiempo libre.
+- **Centro de la aldea:** el lugar de llegada de los colonos, fijo (`Simulation.VillageCenter`). "Cerca de la aldea" es a 20 celdas o menos de él en el plano, en cualquier nivel.
+- **Metas de existencias:** una por categoría de objetos que la iniciativa junta, **comida** y **madera**. La meta es cuántas unidades quiere tener la aldea (las que cuenta el HUD: en el suelo, en almacenes o en las manos). Los valores por defecto están en los datos (comida 150, madera 40) y el jugador los cambia en el panel Colonia con botones de menos y más (de a 10), de 0 hasta 999. Con meta 0, esa iniciativa no ocurre.
+- `SetStockTargetCommand(categoría, cantidad)` guarda la meta en la partida (`Simulation.StockTargets`).
 
-### B. Vida social con intención
+## A. Trabajo por iniciativa
 
-En el tiempo libre (sin órdenes, o de noche antes de dormir):
+Un colono libre, sin órdenes que tomar, puede inventarse trabajo:
 
-- **Buscar compañía:** un colono sociable, o con un deseo de hacer una amistad o de reconciliarse, camina hacia alguien con quien tiene buena opinión, familia o pareja, y se queda cerca un rato. Así las interacciones de H3.5 ocurren más, y las amistades se forman en días y no en semanas (hoy hay unas 3 interacciones por día entre cinco colonos).
-- **Evitar conflictos:** con una rivalidad, al deambular elige lugares lejos del rival, como ya hace quien se aísla en una crisis.
-- **Lugar de reunión:** con mesas o un fogón (IP4), los colonos libres se juntan ahí al atardecer.
+| Tarea | Tipo de trabajo | Cuándo | Qué hace |
+|---|---|---|---|
+| Recolectar (`gather_food`) | Recolección | Comida de la aldea bajo su meta | Recolecta el arbusto con comida más cercano, sin recolectar, cerca de la aldea, aunque nadie lo haya ordenado |
+| Talar (`chop_wood`) | Tala | Madera de la aldea bajo su meta | Tala el árbol más cercano cerca de la aldea, aunque nadie lo haya ordenado |
+| Acarrear | Acarreo | Ya ocurre sin órdenes desde IP2 | Sin cambios |
 
-### C. Preferencias por personalidad y ánimo
+- **Cuándo decide:** después de las necesidades críticas, de las órdenes del jugador por prioridad y de las necesidades bajas; antes de jugar (niños), de la vida social con intención y de deambular. Las órdenes del jugador siempre van primero.
+- **Prioridades:** la tarea usa la prioridad del colono para su tipo de trabajo. Con "nunca", nunca la hace. Entre varias tareas posibles, la de prioridad más alta; con la misma, la de la meta más lejos de cumplirse.
+- **Etapas:** sólo quien puede hacer ese trabajo: un adolescente recolecta (trabajo liviano) pero no tala; un niño no hace ninguna.
+- **Ganas:** cada vez que decide, la tarea ocurre con una probabilidad: `initiativeChancePercent` (60 %) por la diligencia (de 50 % a 150 % del valor, de la diligencia más baja a la más alta) y por el ánimo (×50 % con ánimo bajo 30, ×120 % con ánimo sobre 70). Si no ocurre, deambula y vuelve a decidir en la próxima revisión, como hoy.
+- **Lo que junta:** recolectar o talar por iniciativa deja lo obtenido en el suelo, como con una orden; los acarreadores lo llevan al almacén. Ganan experiencia como en una orden.
+- **Lo que no toca:** un arbusto o árbol con una orden del jugador ya tiene quien lo haga; uno lejos de la aldea, nunca. No excava ni construye.
+- **Cuando se cumple la meta**, deja de tomar esa tarea; el trabajo en curso termina.
+- En crisis no hay iniciativa.
 
-- Cada rasgo puede sumar ganas a una clase de conducta libre, como ya suma peso a las interacciones: sociabilidad a buscar compañía, diligencia a la iniciativa, curiosidad a acercarse a un maestro.
-- Ánimo muy bajo: menos iniciativa y más aislamiento; ánimo alto: más ganas de compañía.
+## B. Vida social con intención
 
-## Decisiones del usuario
+En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
-Respondidas el 16 de octubre de 2026: el interruptor va en Opciones, para toda la aldea; por ahora sólo recolectar, talar y acarrear; el jugador elige en el juego cuánto alcanza; la iniciativa respeta las prioridades; y va como IP3.5, con las tres partes (el balance de H3.10 se hace sin ellas). Como la simulación tiene que saber si está prendido (determinismo y guardado), la preferencia de Opciones llega a la partida como un comando, al cambiarla y al cargar; se cierra en L1.
+- **Buscar compañía:** con una probabilidad (`seekChancePercent`, 30 %, por la sociabilidad de 50 % a 150 % y por el ánimo), un colono camina hacia alguien que aprecia, a 30 celdas o menos y en su región, y se queda cerca un rato, como un niño que juega. Así las interacciones ocurren más.
+- **A quién:** con peso doble la pareja y la familia; luego los amigos, y quien tenga una opinión de 20 o más; también el objetivo de un deseo de hacer una amistad o de reconciliarse. Nunca a un rival, a alguien dormido o en crisis de aislamiento, ni a quien vio en las últimas 2 horas (como al jugar).
+- **Evitar a los rivales:** al deambular, de los lugares que sortea elige el más lejos de sus rivales que estén a 10 celdas o menos, como quien se aísla en una crisis.
+- El lugar de reunión (fogón, mesas) llega con IP4.
 
-Respondidas el 17 de octubre de 2026: las metas se eligen en el panel Colonia, y "cerca de la aldea" es un círculo de 40 celdas de diámetro.
+## C. Preferencias por rasgos y ánimo
+
+- Las ganas de cada conducta libre salen de un rasgo, por datos: diligencia para la iniciativa, sociabilidad para buscar compañía.
+- Ánimo bajo (menos de 30): la mitad de ganas de trabajar por iniciativa y de buscar compañía. Ánimo alto (más de 70): un 20 % más.
+- Los números en el def nuevo `FreeWillConfig`.
 
 ## D. Bosque que vuelve
 
-Pedido del 17 de octubre de 2026: que los árboles vuelvan a crecer, sin que llenen el mapa. Hoy un árbol talado no vuelve nunca; las plantas sólo nacen al generar el valle.
+- **Retoños:** a medianoche, cada árbol adulto de una especie que puede volver a crecer tiene una probabilidad (`seedChancePerDay`, 2 %) de dejar un retoño en una celda libre a 3 celdas o menos: pasto o tierra a cielo abierto, en la banda de altura donde la especie crece en el valle.
+- **Crecer:** un retoño se ve chico y no bloquea el paso; en `growDays` días del juego (10) se vuelve árbol adulto, que bloquea el paso y se puede talar. Un retoño no se puede talar ni da madera.
+- **Tope:** cada especie tiene un máximo de celdas ocupadas, árboles y retoños, como porcentaje de las celdas donde puede crecer: el mismo con que la genera el valle (robles 3,5 %, pinos 4 %). Llegado el tope, no deja retoños.
+- **Dónde no:** nunca sobre construcciones, muebles, planos, almacenes, celdas con órdenes del jugador, objetos, colonos ni otras plantas.
+- **No en invierno:** las especies que duermen en invierno no dejan retoños; los retoños siguen creciendo.
+- Los arbustos de bayas no se reproducen en IP3.5: la comida ya tiene su tope y su balance.
+- Sembrar a pedido del jugador queda para la agricultura de IP4.
+- Usa el flujo aleatorio `nature.forest`, recorre los árboles por `EntityId` y cuenta las celdas posibles una vez por partida.
 
-- **Retoños solos:** cada día, un árbol adulto puede dejar un retoño en una celda libre de pasto o tierra a pocas celdas, que crece hasta árbol en unos días. Un retoño no bloquea el paso hasta crecer.
-- **Tope:** cada especie tiene un porcentaje máximo del terreno donde puede crecer, por datos. Propuesta: el mismo con que la genera el valle (robles 3,5 %, pinos 4 %), para que el bosque vuelva a su estado natural y no pase de ahí.
-- **Dónde no:** nunca sobre construcciones, almacenes, muebles, planos ni celdas con órdenes del jugador.
-- **Sembrar a pedido**, con semillas, queda para la agricultura de IP4.
-- Con la iniciativa de talar (parte A), la aldea tiene madera sin vaciar el valle.
+## Contrato con la presentación
 
-## Preguntas que se hicieron
+| Tipo | Nombre | Uso |
+|---|---|---|
+| Comando | `SetFreeWillCommand(prendido)` | El interruptor de Opciones, al empezar, al cargar y al cambiarlo |
+| Comando | `SetStockTargetCommand(categoría, cantidad)` | Las metas del panel Colonia |
+| Estado | `Simulation.FreeWill`, `Simulation.VillageCenter`, `Simulation.StockTargets` | Entran en la huella y en el guardado |
+| Componente | `Sapling` | En un retoño: el tick en que se vuelve adulto |
+| Campo | `Job.Initiative` | El trabajo es por iniciativa: vale sin la orden del jugador |
+| Consulta | `FreeWillRules.Targets`, `FreeWillRules.IsNearVillage` | El panel Colonia y el inspector |
+| Evento | `EntitySpawnedEvent`, `EntityChangedEvent` | Un retoño aparece; un retoño crece |
+| Texto | `job.<trabajo>.initiative` | El inspector dice "Recolectando por su cuenta" |
 
-1. **Interruptor:** ¿el libre albedrío se prende y apaga para toda la aldea, por colono, o siempre está?
-2. **Qué puede hacer por su cuenta:** ¿sólo recolectar, talar y acarrear, o también otras tareas? ¿Excavar y construir quedan siempre en manos del jugador?
-3. **Umbrales:** ¿cuánta comida o madera "alcanza"? ¿Fijo en los datos o lo elige el jugador (por ejemplo "mantener 50 comidas")?
-4. **Prioridades:** ¿la iniciativa respeta las prioridades de cada colono (si talar está en "nunca", nunca tala por su cuenta)? La propuesta dice que sí.
-5. **Cuándo:** ¿una IP corta propia después de IP3, dentro de IP4, o repartida?
+## Defs nuevos y cambios
 
-## Dónde podría ir
+| Def | Campos | Archivo |
+|---|---|---|
+| `FreeWillConfig` | `villageRadius` (20), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
+| `InitiativeTask` | `workType`, `job` (`harvest` o `chop`), `category` (la meta que mira) | `free_will.json` |
+| `PlantDef` | `regrowth`: `seedChancePerDay`, `seedRadius`, `growDays`, `maxCoverPercent`, `saplingVisual` | `plants.json` |
 
-| Opción | Qué entra | Ventaja | Contra |
-|---|---|---|---|
-| IP3.5 "Libre albedrío", después de IP3 | A, B y C | Usa todo lo de IP3 y arregla el balance social | Corre IP4 unas tres semanas |
-| Parte en H3.10, el resto en IP4 | B (buscar y evitar) en el balance de H3.10; A y el lugar de reunión en IP4 | Lo social se arregla ya; la iniciativa llega con los oficios y el comedor | La iniciativa espera a IP4 |
-| Dentro de IP4 | Todo | IP4 trae agricultura, existencias y comedor, con los que la iniciativa tiene más sentido | La vida social sigue lenta hasta IP4 |
+- Cada def con textos lleva `name`, `desc` y `gender` en es y en. El retoño necesita un modelo en el catálogo de visuales (el árbol en chico).
 
-Elegida: IP3.5, con las tres partes.
+## Guardado
 
-## Estimación preliminar
+- Formato 8: `Simulation.FreeWill`, `VillageCenter`, `StockTargets`, el componente `Sapling` y `Job.Initiative`.
+- Una partida de la versión 7 se migra: centro de la aldea en la celda del primer colono, metas por defecto; el interruptor lo manda la sesión al cargar, como siempre.
 
-| Parte | Horas |
-|---|---|
-| A. Trabajo por iniciativa, con defs de tareas y umbrales | 12–18 |
-| D. Bosque que vuelve, con tope por especie | 8–12 |
-| B. Buscar compañía, evitar rivales y lugar de reunión | 10–14 |
-| C. Preferencias por rasgos y ánimo | 4–6 |
-| Interruptor, textos, tests de escenario y balance | 6–8 |
-| **Total** | **40–58** |
+## Criterios de aceptación
 
-## Riesgos
+1. Sin órdenes, con la comida bajo la meta y arbustos cerca de la aldea, un colono con prioridad de recolección recolecta por su cuenta; con la meta cumplida, no.
+2. Con la recolección en "nunca" para ese colono, no recolecta por su cuenta; otro colono sí.
+3. Con la opción apagada, nadie trabaja por su cuenta ni busca compañía, y la partida da la misma huella que sin IP3.5 en esa situación.
+4. Un árbol a más de 20 celdas del centro de la aldea nunca se tala por iniciativa; uno con orden del jugador lo toma quien toma órdenes.
+5. Una orden del jugador siempre gana: un colono libre con una orden pendiente de su prioridad la toma antes que cualquier iniciativa.
+6. Un perezoso toma iniciativa menos seguido que un trabajador en el mismo escenario (medido en muchas decisiones).
+7. Dos colonos que se aprecian, trabajando lejos uno del otro, se encuentran en su tiempo libre y se hacen amigos en menos días que sin IP3.5.
+8. Un colono no se acerca a su rival al deambular: en un escenario con un rival a 5 celdas, termina más lejos de él que al empezar.
+9. Un valle con los árboles talados vuelve a tener bosque con el tiempo, sin pasar el tope de cada especie; misma semilla, mismo bosque.
+10. Ningún retoño aparece sobre una construcción, un almacén, un mueble, un plano, una celda con orden u otra planta.
+11. El interruptor y las metas se guardan y cargan; una partida de `v0.3.0` carga con el centro de la aldea y las metas por defecto.
+12. En la partida: la opción en Opciones y las metas en el panel Colonia, en es y en; el inspector dice "por su cuenta".
+13. Presupuesto: menos de 2 ms por tick de media con una aldea de diez años y la opción prendida.
 
-- **El jugador pierde el control:** un colono que tala por su cuenta un árbol que el jugador quería conservar. Mitigación: zonas prohibidas, el interruptor, y que la iniciativa no toque lo que está lejos de la aldea.
-- **Rendimiento:** buscar con quién estar recorre a todos los colonos; con una aldea grande hay que hacerlo cada tanto y con un radio.
-- **Determinismo:** como todo en Core, con su propio flujo de RNG y recorriendo los colonos por `EntityId`.
+## Decisiones para el usuario
+
+Propuestas de esta spec que conviene confirmar:
+
+1. La opción viene **prendida** por defecto en una instalación nueva.
+2. Metas por defecto: **150 de comida y 40 de madera**, con botones de a 10.
+3. El centro de la aldea es el lugar de llegada, fijo.
+4. Ganas de iniciativa: 60 % para un colono promedio en cada decisión libre; un perezoso, la mitad; un trabajador, una vez y media.
+5. Buscar compañía hasta 30 celdas; evitar a los rivales a 10 o menos.
+6. Bosque: retoños sólo junto a árboles adultos de su especie, 2 % por árbol y por día, 10 días para crecer; los arbustos de bayas no se reproducen.
+7. Estaciones visibles: el pasto se blanquea de a poco hacia el centro del invierno, y hay nieve en la roca en el último tercio de la altura del valle (`docs/gdd/estaciones-visibles.md`).
+
+## Fuera de alcance
+
+Van a `docs/ip/backlog.md`: lugar de reunión con fogón y mesas (IP4), sembrar árboles a pedido (IP4), zonas donde la iniciativa no tala, iniciativa de excavar o construir, y libre albedrío por colono.

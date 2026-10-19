@@ -8,10 +8,10 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | Ninguna: IP3 cerrada. La próxima es IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`) |
+| Rama de trabajo | `ip3.5/l1-spec`: spec de IP3.5 escrita, espera la aprobación del usuario |
 | `main` | Con `v0.3.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
-| IP en curso | Ninguna. Sigue IP3.5 "Libre albedrío", planificada; Oficios es IP4 |
+| IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 705 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000` (desde el 19 de octubre, con siete fundadores). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **IP3.5 "Libre albedrío"**, con el plan de `docs/ip/IP3.5.md`: empezar por L1 (spec).
+1. **Aprobación de la spec de IP3.5** (`docs/gdd/libre-albedrio.md`), con sus siete decisiones; después, L2 (interruptor y metas) y L4c (estaciones), que puede ir en paralelo.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,11 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-19: L1, spec de IP3.5
+
+- Rama `ip3.5/l1-spec`. Spec en `docs/gdd/libre-albedrio.md`: interruptor por comando (`SetFreeWillCommand`), centro de la aldea en la llegada, metas de comida y madera en el panel Colonia (`SetStockTargetCommand`), iniciativa de recolectar y talar cerca de la aldea dentro de las prioridades (`Job.Initiative`), buscar compañía y evitar rivales, ganas por diligencia, sociabilidad y ánimo (`FreeWillConfig`), bosque que vuelve con retoños y tope por especie (`Sapling`, `regrowth` en `PlantDef`), formato 8, trece criterios de aceptación y siete decisiones para el usuario.
+- El acarreo ya es por iniciativa desde IP2: la spec lo dice y no lo cambia.
 
 ### 2026-10-19: cierre de IP3 y `v0.3.0`
 

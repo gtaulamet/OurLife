@@ -16,13 +16,13 @@
 
 **Estimación:** 48 a 70 h. **Versión al cerrar:** `v0.3.5`, para Windows y macOS.
 
-**Estado:** planificada; empieza al cerrar IP3.
+**Estado:** en curso desde el 19 de octubre de 2026, al cerrar IP3. L1: spec escrita, espera la aprobación del usuario.
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| L1 Spec y contrato | Pendiente | `ip3.5/l1-spec` | |
+| L1 Spec y contrato | En curso | `ip3.5/l1-spec` | Spec en `docs/gdd/libre-albedrio.md` con siete decisiones para confirmar |
 | L2 Interruptor y metas | Pendiente | `ip3.5/l2-metas` | |
 | L3 Trabajo por iniciativa | Pendiente | `ip3.5/l3-iniciativa` | |
 | L4 Vida social con intención | Pendiente | `ip3.5/l4-social` | |
