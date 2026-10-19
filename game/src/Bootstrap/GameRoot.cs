@@ -631,7 +631,9 @@ public partial class GameRoot : Node
             simulation.Run(ticks - half);
             stopwatch.Stop();
             loaded.Run(ticks - half);
-            if (loaded.ComputeStateHash() != simulation.ComputeStateHash())
+            // With free will off the fingerprint leaves out the village and its targets: compared apart.
+            if (loaded.ComputeStateHash() != simulation.ComputeStateHash() || loaded.FreeWill != simulation.FreeWill
+                || loaded.VillageCenter != simulation.VillageCenter || !loaded.StockTargets.SequenceEqual(simulation.StockTargets))
             {
                 Fail($"[smoke] saved at tick {half} and loaded, the game differs {ticks - half} ticks later from the one that never stopped", ExitFailure);
                 return;
@@ -1241,7 +1243,8 @@ public partial class GameRoot : Node
 
     /// <summary>
     /// Free will follows the option over the game, and the stock targets the buttons of the colony
-    /// panel, which say them in words (docs/gdd/libre-albedrio.md). Leaves both as they were.
+    /// panel, which say them in words (docs/gdd/libre-albedrio.md). Leaves the option as it was, and
+    /// the first target at its value, now chosen by the player.
     /// </summary>
     private void CheckFreeWill(GameScreen screen)
     {
@@ -1266,18 +1269,20 @@ public partial class GameRoot : Node
             throw new InvalidOperationException($"the colony panel shows the targets as [{string.Join(" | ", lines)}]");
         }
 
+        // Two steps down and back up, or up and back down near zero: two quick clicks add up.
         var first = targets[0];
-        screen.Hud.Colony.StepTarget(first.Category, up: true);
-        screen.Hud.Colony.StepTarget(first.Category, up: true);
-        screen.Advance(1);
-        var raised = FreeWillRules.Targets(game)[0].Count;
-        screen.Hud.Colony.StepTarget(first.Category, up: false);
-        screen.Hud.Colony.StepTarget(first.Category, up: false);
-        screen.Advance(1);
         var step = FreeWillRules.ConfigOf(game.Content)!.TargetStep;
-        if (raised != Math.Min(first.Count + (2 * step), FreeWillRules.ConfigOf(game.Content)!.TargetMax) || FreeWillRules.Targets(game)[0].Count != first.Count)
+        var up = first.Count < 2 * step;
+        screen.Hud.Colony.StepTarget(first.Category, up);
+        screen.Hud.Colony.StepTarget(first.Category, up);
+        screen.Advance(1);
+        var moved = FreeWillRules.Targets(game)[0].Count;
+        screen.Hud.Colony.StepTarget(first.Category, !up);
+        screen.Hud.Colony.StepTarget(first.Category, !up);
+        screen.Advance(1);
+        if (moved != first.Count + (up ? 2 * step : -2 * step) || FreeWillRules.Targets(game)[0].Count != first.Count)
         {
-            throw new InvalidOperationException($"the target of {first.Category} went from {first.Count} to {raised} and back to {FreeWillRules.Targets(game)[0].Count}");
+            throw new InvalidOperationException($"the target of {first.Category} went from {first.Count} to {moved} and back to {FreeWillRules.Targets(game)[0].Count}");
         }
 
         GD.Print($"[smoke] free will follows the option, and the targets the panel: {string.Join(", ", lines)}");

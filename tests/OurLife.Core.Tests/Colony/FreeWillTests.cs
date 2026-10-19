@@ -125,6 +125,17 @@ public class FreeWillTests
     }
 
     [Fact]
+    public void A_target_order_without_a_category_is_ignored()
+    {
+        var bed = ColonyTestBed.Flat(8);
+
+        bed.Simulation.Commands.Enqueue(new SetStockTargetCommand(null!, 20));
+        bed.Simulation.Tick();
+
+        bed.Simulation.StockTargets.ShouldBeEmpty();
+    }
+
+    [Fact]
     public void Content_without_free_will_has_no_targets_and_ignores_the_commands()
     {
         var simulation = new Simulation(1, TestContent.Minimal);

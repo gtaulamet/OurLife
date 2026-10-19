@@ -30,7 +30,7 @@ public partial class ColonyPanel : PanelContainer
     private GameSession _session = null!;
     private GameInput _input = null!;
     private GridContainer _grid = null!;
-    private VBoxContainer _targets = null!;
+    private HBoxContainer _targets = null!;
     private readonly List<(string Category, Label Label)> _targetRows = [];
     private ColonyRules _rules = null!;
 
@@ -63,8 +63,8 @@ public partial class ColonyPanel : PanelContainer
         panel._grid.AddThemeConstantOverride("v_separation", 4);
         column.AddChild(panel._grid);
         column.AddChild(new Label { Text = "ui.colony.help", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(480, 0) });
-        panel._targets = new VBoxContainer();
-        panel._targets.AddThemeConstantOverride("separation", 4);
+        panel._targets = new HBoxContainer();
+        panel._targets.AddThemeConstantOverride("separation", 18);
         column.AddChild(panel._targets);
         panel.BuildTargets();
         return panel;
@@ -81,9 +81,9 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
+        TrackPending();
         var target = Math.Clamp(TargetOf(category, FreeWillRules.Targets(_session.Simulation)) + (up ? config.TargetStep : -config.TargetStep), 0, config.TargetMax);
         _session.Enqueue(new SetStockTargetCommand(category, target));
-        TrackPending();
         _pendingTargets[category] = target;
         RefreshRows();
     }
@@ -211,9 +211,9 @@ public partial class ColonyPanel : PanelContainer
     }
 
     /// <summary>
-    /// A line per stock target: what the colony has of the target, and buttons to lower and raise
-    /// it. Built once: the categories with targets do not change over a game, and the texts refresh
-    /// with the rows.
+    /// One row for the stock targets, so the panel grows little on a small canvas: for each, buttons
+    /// to lower and raise it and what the colony has of it; what they do, in a tooltip. Built once:
+    /// the categories with targets do not change over a game, and the texts refresh with the rows.
     /// </summary>
     private void BuildTargets()
     {
@@ -223,10 +223,10 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
-        _targets.AddChild(new Label { Text = "ui.colony.targets" });
+        _targets.AddChild(new Label { Text = "ui.colony.targets", TooltipText = "ui.colony.targets_help", MouseFilter = MouseFilterEnum.Stop });
         foreach (var target in targets)
         {
-            var row = new HBoxContainer();
+            var row = new HBoxContainer { TooltipText = "ui.colony.targets_help" };
             row.AddThemeConstantOverride("separation", 6);
             _targets.AddChild(row);
             var category = target.Category;
@@ -241,13 +241,12 @@ public partial class ColonyPanel : PanelContainer
             row.AddChild(label);
             _targetRows.Add((category, label));
         }
-
-        _targets.AddChild(new Label { Text = "ui.colony.targets_help", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(480, 0) });
     }
 
     /// <summary>The activity and the priorities of every row, as they are now.</summary>
     private void RefreshRows()
     {
+        TrackPending();
         var world = _session.Simulation.World;
         var text = _services.Text;
         foreach (var (colonist, age, mood, activity, priorities) in _rows)
@@ -301,6 +300,7 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
+        TrackPending();
         var current = PriorityOf(colonist, workType);
 
         // The ring in order: 1, 2, 3, 4, then 0 (No).
@@ -309,7 +309,6 @@ public partial class ColonyPanel : PanelContainer
         position = (position + (forward ? 1 : Steps - 1)) % Steps;
         var next = position == WorkPriorityLevels.Lowest ? WorkPriorityLevels.Never : position + 1;
         _session.Enqueue(new SetWorkPriorityCommand(colonist, workType, next));
-        TrackPending();
         _pending[(colonist, workType)] = next;
         RefreshRows();
     }
@@ -331,7 +330,6 @@ public partial class ColonyPanel : PanelContainer
     /// <summary>A colonist's priority as the player last set it: an order not yet applied, or else the world's.</summary>
     private int PriorityOf(EntityId colonist, string workType)
     {
-        TrackPending();
         return _pending.TryGetValue((colonist, workType), out var pending)
             ? pending
             : WorkPriorityRules.Of(_session.Simulation.World, colonist, workType, _rules.Ai.DefaultWorkPriority);
@@ -340,7 +338,6 @@ public partial class ColonyPanel : PanelContainer
     /// <summary>A stock target as the player last set it: an order not yet applied, or else the game's.</summary>
     private int TargetOf(string category, IReadOnlyList<StockTarget> targets)
     {
-        TrackPending();
         return _pendingTargets.TryGetValue(category, out var pending)
             ? pending
             : targets.First(target => target.Category == category).Count;

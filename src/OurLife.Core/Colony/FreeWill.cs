@@ -27,7 +27,8 @@ public sealed record SetStockTargetCommand([property: DefRef(typeof(ItemCategory
     public void Apply(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        if (FreeWillRules.ConfigOf(simulation.Content) is not { } config || !config.DefaultTargets.ContainsKey(Category))
+        // A pending order read from a damaged save can lack its category.
+        if (Category is null || FreeWillRules.ConfigOf(simulation.Content) is not { } config || !config.DefaultTargets.ContainsKey(Category))
         {
             return;
         }
