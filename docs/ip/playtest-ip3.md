@@ -27,7 +27,7 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 ### Nueva partida y llegada
 
 - [✅] Nueva partida ofrece el ritmo de la vida (Normal, Rápido, Muy rápido) con su descripción; Rápido viene elegido.
-- [ ] **(repetir)** Llegan siete colonos con nombre y apellido, de edades distintas, al menos una mujer y un varón; en la ficha, tres parejas.
+- [✅] **(repetir)** Llegan siete colonos con nombre y apellido, de edades distintas, al menos una mujer y un varón; en la ficha, tres parejas.
 
 ### Ficha del colono (F)
 
@@ -60,7 +60,7 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 ### Vejez y partida larga (cargar `diez-anos`)
 
 - [✅] Los ancianos mueren de viejos con un aviso, y la familia lo nota (pensamientos de duelo en la ficha).
-- [ ] **(repetir)** La aldea sigue viva, con comida en el HUD; jugar un año más a 4× sin que muera de hambre si se sigue recolectando.
+- [✅] **(repetir)** La aldea sigue viva, con comida en el HUD; jugar un año más a 4× sin que muera de hambre si se sigue recolectando.
 - [✅] Anotar si los avisos de "tiene mucha hambre" molestan (en una partida larga hay unos 8 por mes).
 
 ### Lo de antes sigue igual
@@ -73,7 +73,7 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 ### macOS (en una Mac con Apple Silicon)
 
 - [✅] Descomprimir `OurLife-v0.3.0-macos-universal.zip`, volver a firmar con los pasos del README (`codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`) y abrir la app.
-- [ ] **(repetir)** Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `1284D40F4588F8FE`, la misma que en Windows.
+- [✅] **(repetir)** Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `1284D40F4588F8FE`, la misma que en Windows.
 - [✅] Las etapas, los globos y la ficha se ven como en Windows.
 
 ### Rendimiento
@@ -93,7 +93,7 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 | Rendimiento de una partida larga | Diez años en Rápido: 0,032 ms por tick en la simulación; `--load diez-anos --benchmark 30` en Godot, con 10 colonos: 280 FPS de media, 220 en el 1 % más lento, 0,11 ms por tick (RTX 4090 de portátil). Presupuesto: 60 FPS y 2 ms | ✅ |
 | Rendimiento de una partida nueva | `--benchmark 20`: 361 FPS y 0,08 ms por tick | ✅ |
 | Paquete de Windows | `./tools/package-windows.ps1`: exporta, corre el smoke sobre el ejecutable exportado y arma `OurLife-v0.3.0-windows-x86_64.zip` (73,3 MB) | ✅ |
-| Paquete de macOS | `./tools/package-macos.ps1`: app universal con firma ad hoc (122,5 MB). Hay que volver a firmarla en la Mac | ✅ (falta probarla en la Mac) |
+| Paquete de macOS | `./tools/package-macos.ps1`: app universal con firma ad hoc (122,5 MB). Hay que volver a firmarla en la Mac | ✅ (probado en la Mac por el usuario) |
 | Capturas | Ficha en es a 1080p y en en a 960 × 540, panel Colonia a 960 × 540, las cinco etapas en fila, globos de interacción, cuna y cama | ✅ |
 
 ## Hallazgos
@@ -105,6 +105,6 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 ## Resultado
 
-- Fecha y PC:
-- Quién jugó:
-- ¿Se puede publicar `v0.3.0`?
+- Fecha y PC: 18 y 19 de octubre de 2026, la PC con Windows y la Mac con Apple Silicon. La segunda pasada, con los zips del 19 de octubre (siete fundadores), repitió los tres puntos marcados.
+- Quién jugó: el usuario (gtaulamet).
+- ¿Se puede publicar `v0.3.0`? Sí: todo en ✅. Los dos hallazgos no bloquean y quedaron en el backlog.

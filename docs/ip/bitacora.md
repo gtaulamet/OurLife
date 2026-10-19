@@ -8,22 +8,21 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3/h3-10-integracion`: listo para el playtest del usuario (`docs/ip/playtest-ip3.md`); después, publicar `v0.3.0` |
-| `main` | Con H3.8, también en `origin` |
-| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.9 |
-| IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
+| Rama de trabajo | Ninguna: IP3 cerrada. La próxima es IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), salvo que se adelante el agua |
+| `main` | Con `v0.3.0`, también en `origin` |
+| Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
+| IP en curso | Ninguna. Sigue IP3.5 "Libre albedrío", planificada; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 705 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000` (desde el 19 de octubre, con siete fundadores). Cambian en cada hito de IP3 que suma estado |
-| Versión | `0.3.0` en `game/project.godot`, sin publicar hasta el playtest. `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
+| Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-0. **Repetir tres puntos del playtest** marcados "(repetir)" en `docs/ip/playtest-ip3.md` (llegada con 7 colonos, partida de diez años, huella del smoke en la Mac) con los zips del 19 de octubre, y completar "Resultado". Con eso, publicar `v0.3.0`.
 
-1. **Playtest de IP3** con `docs/ip/playtest-ip3.md` en Windows y en la Mac. Los zips de `v0.3.0` están en `builds/` de esta PC (en otra PC, `./tools/package-windows.ps1` y `./tools/package-macos.ps1`); las partidas preparadas, en `docs/ip/playtest-ip3/`. Con el visto bueno: tag `v0.3.0`, release de GitHub con los dos zips, cerrar H3.10 e IP3 y adelantar `main`.
-2. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
+1. **Agua en el mapa** (pedido del 19 de octubre): decidir con el usuario si se adelanta de IP6 y a qué IP.
+2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -42,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-19: cierre de IP3 y `v0.3.0`
+
+- El usuario repitió los tres puntos del playtest con los zips del 19 de octubre: todo en ✅. Resultado completado en `docs/ip/playtest-ip3.md`.
+- H3.10 e IP3 cerradas en `IP3.md`. Tag `v0.3.0` y release de GitHub con los zips de Windows y macOS. `main` adelantado.
+- Pedido nuevo del usuario: agua en el mapa para la próxima IP. El plan la tiene en IP6 ("agua estática: ríos y lagos generados, pozos y pesca"); queda por decidir si se adelanta.
 
 ### 2026-10-19: siete fundadores y primera pasada del playtest
 
