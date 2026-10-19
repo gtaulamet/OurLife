@@ -54,8 +54,8 @@ En orden:
 - Cuarta ronda: las metas por defecto tienen que ser múltiplos del paso (si no, no se podría volver a elegirlas con los botones); `StepTarget` ignora una categoría sin meta, como el comando; las líneas de las metas tienen un ancho mínimo para que los botones no se muevan cuando crece el número. La spec aclara que la opción también viene prendida al actualizar desde `v0.3.0`.
 - Quinta ronda: la regla de los botones pasa al Core (`FreeWillRules.NextTarget`, con tests de 999 a 990 y de los extremos); el panel refresca por separado las filas y las metas, y mide el ancho de las metas sólo al reconstruirse (también al cambiar de idioma); el smoke compara el juego completo (`SameGame`: huella, interruptor, centro y metas) en las tres vueltas de guardado, y los tests de migración comparan el centro.
 - Sexta ronda: el smoke dice qué parte del juego difiere (`DifferenceOf`) y calcula lo esperado de los botones con `NextTarget`; un clic en una meta cambia sólo su línea, sin volver a contar las existencias; los interruptores de Opciones comparten una lista y un solo refresco.
-- Octava ronda sin hallazgos: L2 cerrado y `main` adelantado.
 - Séptima ronda: el contenido rechaza más de un `FreeWillConfig` al cargarse; la pantalla aplica el interruptor al crearse, antes del primer tick; el ancho de las metas sale del máximo de los datos y crece si las existencias pasan de cuatro cifras.
+- Octava ronda sin hallazgos: L2 cerrado y `main` adelantado.
 
 ### 2026-10-19: L2, Core del interruptor y las metas
 
