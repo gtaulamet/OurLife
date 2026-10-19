@@ -52,7 +52,10 @@ public sealed class Simulation
     public TileCoord? VillageCenter { get; internal set; }
 
     /// <summary>The stock targets the player chose, by item category id, sorted; a category left out has its default.</summary>
-    public List<StockTarget> StockTargets { get; } = [];
+    public IReadOnlyList<StockTarget> StockTargets => StockTargetList;
+
+    /// <summary>The same, for the command that sets them and for loading.</summary>
+    internal List<StockTarget> StockTargetList { get; } = [];
 
     /// <summary>Validated game content: materials, plants, items, eras, time settings…</summary>
     public DefDatabase Content { get; }

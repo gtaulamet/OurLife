@@ -1239,7 +1239,6 @@ public partial class GameRoot : Node
                  + $"{simulation.World.Store<Furniture>().Count} pieces of furniture, {taken} beds taken");
     }
 
-    /// <summary>How many colonists live, what each one is doing and how hungry and rested they are.</summary>
     /// <summary>
     /// Free will follows the option over the game, and the stock targets the buttons of the colony
     /// panel, which say them in words (docs/gdd/libre-albedrio.md). Leaves both as they were.
@@ -1284,6 +1283,7 @@ public partial class GameRoot : Node
         GD.Print($"[smoke] free will follows the option, and the targets the panel: {string.Join(", ", lines)}");
     }
 
+    /// <summary>How many colonists live, what each one is doing and how hungry and rested they are.</summary>
     private static void ReportColony(Simulation simulation, IReadOnlyList<EntityId> colonists, TileCoord? stairSite)
     {
         var world = simulation.World;

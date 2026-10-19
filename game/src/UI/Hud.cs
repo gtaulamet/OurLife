@@ -548,7 +548,7 @@ public partial class Hud : CanvasLayer
     private string StockText(ItemCategoryDef category, int count)
     {
         var text = _services.Text;
-        return text.Format("ui.hud.stock", ("category", text.Capitalized(text.Format(category.NameKey!))), ("count", count));
+        return text.Format("ui.hud.stock", ("category", text.CategoryName(category)), ("count", count));
     }
 
     /// <summary>

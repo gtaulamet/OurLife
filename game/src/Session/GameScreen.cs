@@ -146,7 +146,6 @@ public partial class GameScreen : Node
     private void OnFreeWillChanged() => Session.Enqueue(new SetFreeWillCommand(_services.Settings.FreeWill));
 
     /// <summary>Autosaves when a new day of the game has started since the last frame.</summary>
-
     public override void _Process(double delta)
     {
         var today = Today(Session.Simulation);

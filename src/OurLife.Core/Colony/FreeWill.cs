@@ -32,7 +32,7 @@ public sealed record SetStockTargetCommand([property: DefRef(typeof(ItemCategory
             return;
         }
 
-        var targets = simulation.StockTargets;
+        var targets = simulation.StockTargetList;
         var count = Math.Clamp(Count, 0, config.TargetMax);
         var index = targets.FindIndex(target => target.Category == Category);
         if (index >= 0)
@@ -66,6 +66,8 @@ public static class FreeWillRules
     /// <summary>
     /// The stock target of each category that has one, in the order of the categories of the
     /// interface: the player's, or the config's default. Empty without free will in the content.
+    /// A saved target the content no longer allows, above the highest or of a category without
+    /// targets, gives way to the highest or is left out.
     /// </summary>
     public static IReadOnlyList<StockTarget> Targets(Simulation simulation)
     {
@@ -77,8 +79,9 @@ public static class FreeWillRules
 
         return [.. ItemCategoryDef.InOrder(simulation.Content)
             .Where(category => config.DefaultTargets.ContainsKey(category.Id))
-            .Select(category => simulation.StockTargets.Find(target => target.Category == category.Id)
-                                ?? new StockTarget(category.Id, config.DefaultTargets[category.Id]))];
+            .Select(category => simulation.StockTargets.FirstOrDefault(target => target.Category == category.Id) is { } chosen
+                ? chosen with { Count = Math.Min(chosen.Count, config.TargetMax) }
+                : new StockTarget(category.Id, config.DefaultTargets[category.Id]))];
     }
 
     /// <summary>Whether a cell is near the village: within the config's radius of its centre on the plane, at any level.</summary>

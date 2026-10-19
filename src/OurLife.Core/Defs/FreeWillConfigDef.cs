@@ -74,14 +74,19 @@ public sealed class FreeWillConfigDef : Def
             yield return "initiativeChancePercent and seekChancePercent must be between 0 and 100.";
         }
 
-        if (TraitPercent.Low < 0 || TraitPercent.High < 0 || LowMoodPercent < 0 || HighMoodPercent < 0 || LowMoodBelow > HighMoodAbove)
+        if (TraitPercent.Low < 0 || TraitPercent.Low > TraitPercent.High || LowMoodPercent < 0 || HighMoodPercent < 0)
         {
-            yield return "the trait and mood percents must be zero or more, and lowMoodBelow not above highMoodAbove.";
+            yield return "the trait and mood percents must be zero or more, and traitPercent.low not above traitPercent.high.";
         }
 
-        if (TargetStep <= 0 || TargetMax <= 0 || DefaultTargets.Values.Any(target => target < 0 || target > TargetMax))
+        if (LowMoodBelow is < 0 or > 100 || HighMoodAbove is < 0 or > 100 || LowMoodBelow > HighMoodAbove)
         {
-            yield return "targetStep and targetMax must be positive, and every default target between 0 and targetMax.";
+            yield return "lowMoodBelow and highMoodAbove must be moods between 0 and 100, and lowMoodBelow not above highMoodAbove.";
+        }
+
+        if (TargetStep <= 0 || TargetMax < TargetStep || DefaultTargets.Values.Any(target => target < 0 || target > TargetMax))
+        {
+            yield return "targetStep must be positive and targetMax at least targetStep, and every default target between 0 and targetMax.";
         }
     }
 }

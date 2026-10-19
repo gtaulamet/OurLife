@@ -56,6 +56,13 @@ public sealed class TextResolver
         return culture.TextInfo.ToUpper(text[0]) + text[1..];
     }
 
+    /// <summary>The name of an item category starting a line, like "Comida", as the stock of the HUD and the targets show it.</summary>
+    public string CategoryName(OurLife.Core.Defs.ItemCategoryDef category)
+    {
+        ArgumentNullException.ThrowIfNull(category);
+        return Capitalized(Format(category.NameKey!));
+    }
+
     /// <summary>What a colonist is doing, like "Talando un árbol", or that it has nothing to do.</summary>
     public string Activity(World world, EntityId colonist)
     {

@@ -197,16 +197,30 @@ public static class ColonyStart
     }
 
     /// <summary>
-    /// Gives a game saved before IP3.5 (format 7) the centre of its village: the cell of its first
-    /// colonist, as the arrival is not kept; none in a game without colonists (ADR-013).
+    /// Gives a game saved before IP3.5 (format 7) the centre of its village, as the arrival is not
+    /// kept: the cell of the colonist nearest the middle of them all (the median on each axis), so
+    /// one far away at work does not move it; the lowest id among equals. None in a game without
+    /// colonists (ADR-013).
     /// </summary>
     internal static void MigrateVillageCenter(Simulation simulation)
     {
-        var colonists = ColonistsOf(simulation.World);
-        if (colonists.Count > 0 && simulation.World.TryGet<Position>(colonists[0], out var position))
+        var cells = new List<TileCoord>();
+        foreach (var colonist in ColonistsOf(simulation.World))
         {
-            simulation.VillageCenter = position.Cell;
+            if (simulation.World.TryGet<Position>(colonist, out var position))
+            {
+                cells.Add(position.Cell);
+            }
         }
+
+        if (cells.Count == 0)
+        {
+            return;
+        }
+
+        var middleX = cells.Select(cell => cell.X).Order().ElementAt((cells.Count - 1) / 2);
+        var middleY = cells.Select(cell => cell.Y).Order().ElementAt((cells.Count - 1) / 2);
+        simulation.VillageCenter = cells.MinBy(cell => ((long)(cell.X - middleX) * (cell.X - middleX)) + ((long)(cell.Y - middleY) * (cell.Y - middleY)));
     }
 
     private static List<EntityId> ColonistsOf(World world)

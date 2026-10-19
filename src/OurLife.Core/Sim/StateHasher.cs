@@ -26,23 +26,28 @@ public static class StateHasher
         AppendUInt64(hash, simulation.Seed);
         AppendString(hash, simulation.ColonyName);
         AppendString(hash, simulation.LifePace);
-        AppendInt32(hash, simulation.FreeWill ? 1 : 0);
-        if (simulation.VillageCenter is { } center)
+        // Free will off and no targets of the player's change nothing, and leave the fingerprint of
+        // a game before IP3.5 (criterion 3 of docs/gdd/libre-albedrio.md): the centre only matters with it on.
+        if (simulation.FreeWill || simulation.StockTargets.Count > 0)
         {
-            AppendInt32(hash, center.X);
-            AppendInt32(hash, center.Y);
-            AppendInt32(hash, center.Z);
-        }
-        else
-        {
-            AppendInt32(hash, -1);
-        }
+            AppendInt32(hash, simulation.FreeWill ? 1 : 0);
+            if (simulation.VillageCenter is { } center)
+            {
+                AppendInt32(hash, center.X);
+                AppendInt32(hash, center.Y);
+                AppendInt32(hash, center.Z);
+            }
+            else
+            {
+                AppendInt32(hash, -1);
+            }
 
-        AppendInt32(hash, simulation.StockTargets.Count);
-        foreach (var target in simulation.StockTargets)
-        {
-            AppendString(hash, target.Category);
-            AppendInt32(hash, target.Count);
+            AppendInt32(hash, simulation.StockTargets.Count);
+            foreach (var target in simulation.StockTargets)
+            {
+                AppendString(hash, target.Category);
+                AppendInt32(hash, target.Count);
+            }
         }
 
         foreach (var (name, stream) in simulation.Random.Streams)

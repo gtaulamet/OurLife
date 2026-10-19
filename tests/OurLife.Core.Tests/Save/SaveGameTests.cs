@@ -200,7 +200,7 @@ public class SaveGameTests
 
         loaded.FreeWill.ShouldBeFalse();
         loaded.StockTargets.ShouldBeEmpty();
-        loaded.VillageCenter.ShouldBe(bed.World.Get<Position>(bed.Colonists()[0]).Cell);
+        bed.Colonists().Select(colonist => bed.World.Get<Position>(colonist).Cell).ShouldContain(loaded.VillageCenter!.Value);
         foreach (var colonist in bed.Colonists())
         {
             loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);

@@ -310,12 +310,12 @@ public static class SaveGame
         foreach (var target in state.StockTargets.OrderBy(target => target.Category, StringComparer.Ordinal))
         {
             RequireDef<ItemCategoryDef>(content, target.Category);
-            if (target.Count < 0 || simulation.StockTargets.Exists(other => other.Category == target.Category))
+            if (target.Count < 0 || simulation.StockTargetList.Exists(other => other.Category == target.Category))
             {
                 throw Corrupt($"stock target {target}");
             }
 
-            simulation.StockTargets.Add(target);
+            simulation.StockTargetList.Add(target);
         }
 
         simulation.World.Entities.Restore(state.Generations, state.FreeSlots);

@@ -12,8 +12,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | Con `v0.3.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 728 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
-| Huella del smoke | `821638C1780B3564` con `--seed 1 --ticks 5000`; `075843B36FE8BEBD` con `--seed 42 --ticks 5000` (desde L2 de IP3.5, que suma el centro de la aldea a la huella; en `v0.3.0` eran `2E368CE2376689E4` y `1284D40F4588F8FE`). Cambian en cada hito que suma estado |
+| Validación | `dotnet build` sin advertencias, 734 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
@@ -48,6 +48,7 @@ En orden:
 - Panel Colonia: "Metas de existencias", con una línea por meta ("Comida: 42 de 150") y botones de menos y más de a 10; los clics rápidos se suman como en las prioridades.
 - Smoke: la partida sigue a la opción y las metas a los botones del panel. Capturas es/en de Opciones a 720p y del panel Colonia. 728 tests en verde.
 - `guardado.md` y ADR-013 con el formato 8 y la partida de `v0.3.0`.
+- Revisión de código, primera ronda: metas de sólo lectura fuera del Core (`StockTargetList` interna), la huella sin libre albedrío cuando está apagado y sin metas (vuelven las huellas de `v0.3.0`), metas guardadas fuera del máximo que ceden a él, validación más estricta de `FreeWillConfig`, centro migrado en el colono más cerca de la mediana, filas de metas armadas una sola vez y `TextResolver.CategoryName` compartido con el HUD. Descartados: contar existencias cada 0,25 s con el panel abierto (ya lo hacía con las actividades, cuesta poco) y la fila de interruptores a 720p (la captura muestra que entra).
 
 ### 2026-10-19: L2, Core del interruptor y las metas
 

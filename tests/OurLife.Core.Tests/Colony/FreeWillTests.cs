@@ -80,6 +80,51 @@ public class FreeWillTests
     }
 
     [Fact]
+    public void An_old_game_gets_its_centre_on_the_colonist_nearest_the_middle_of_them_all()
+    {
+        var bed = ColonyTestBed.Flat(16);
+        bed.AddColonist(14, 14, 1);
+        bed.AddColonist(2, 2, 1);
+        bed.AddColonist(3, 4, 1);
+        bed.AddColonist(5, 2, 1);
+
+        ColonyStart.MigrateVillageCenter(bed.Simulation);
+
+        bed.Simulation.VillageCenter.ShouldBe(new TileCoord(2, 2, 1));
+    }
+
+    [Fact]
+    public void Free_will_off_without_targets_leaves_the_fingerprint_of_a_game_before_it()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        var before = bed.Simulation.ComputeStateHash();
+
+        bed.Simulation.VillageCenter = new TileCoord(3, 3, 1);
+        bed.Simulation.ComputeStateHash().ShouldBe(before);
+
+        bed.Simulation.Commands.Enqueue(new SetFreeWillCommand(true));
+        bed.Simulation.ApplyCommandsNow();
+        var on = bed.Simulation.ComputeStateHash();
+        on.ShouldNotBe(before);
+
+        bed.Simulation.Commands.Enqueue(new SetFreeWillCommand(false));
+        bed.Simulation.Commands.Enqueue(new SetStockTargetCommand("wood", 50));
+        bed.Simulation.ApplyCommandsNow();
+        bed.Simulation.ComputeStateHash().ShouldNotBe(before);
+        bed.Simulation.ComputeStateHash().ShouldNotBe(on);
+    }
+
+    [Fact]
+    public void A_saved_target_above_the_highest_gives_way_to_it()
+    {
+        var bed = ColonyTestBed.Flat(8);
+        bed.Simulation.StockTargetList.Add(new StockTarget("wood", 5_000));
+        bed.Simulation.StockTargetList.Add(new StockTarget("stone", 20));
+
+        FreeWillRules.Targets(bed.Simulation).ShouldBe([new StockTarget("food", 150), new StockTarget("wood", 999)]);
+    }
+
+    [Fact]
     public void Content_without_free_will_has_no_targets_and_ignores_the_commands()
     {
         var simulation = new Simulation(1, TestContent.Minimal);
@@ -106,6 +151,9 @@ public class FreeWillTests
     [InlineData("\"villageRadius\": 6", "\"villageRadius\": 0")]
     [InlineData("\"initiativeChancePercent\": 60", "\"initiativeChancePercent\": 101")]
     [InlineData("\"lowMoodBelow\": 30", "\"lowMoodBelow\": 80")]
+    [InlineData("\"highMoodAbove\": 70", "\"highMoodAbove\": 101")]
+    [InlineData("\"low\": 50", "\"low\": 160")]
+    [InlineData("\"targetStep\": 10", "\"targetStep\": 1000")]
     [InlineData("\"food\": 150", "\"food\": 1000")]
     [InlineData("\"food\": 150", "\"gold\": 150")]
     [InlineData("\"initiativeTrait\": \"diligence\"", "\"initiativeTrait\": \"greed\"")]

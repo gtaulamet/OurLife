@@ -3,6 +3,7 @@ using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
+using OurLife.Core.Sim;
 using OurLife.Game.Bootstrap;
 using OurLife.Game.Input;
 using OurLife.Game.Session;
@@ -65,6 +66,7 @@ public partial class ColonyPanel : PanelContainer
         panel._targets = new VBoxContainer();
         panel._targets.AddThemeConstantOverride("separation", 4);
         column.AddChild(panel._targets);
+        panel.BuildTargets();
         return panel;
     }
 
@@ -79,7 +81,7 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
-        var target = Math.Clamp(TargetOf(category) + (up ? config.TargetStep : -config.TargetStep), 0, config.TargetMax);
+        var target = Math.Clamp(TargetOf(category, FreeWillRules.Targets(_session.Simulation)) + (up ? config.TargetStep : -config.TargetStep), 0, config.TargetMax);
         _session.Enqueue(new SetStockTargetCommand(category, target));
         TrackPending();
         _pendingTargets[category] = target;
@@ -205,20 +207,16 @@ public partial class ColonyPanel : PanelContainer
             _rows.Add((colonist, age, mood, activity, priorities));
         }
 
-        RebuildTargets();
         RefreshRows();
     }
 
-    /// <summary>A line per stock target: what the colony has of the target, and buttons to lower and raise it.</summary>
-    private void RebuildTargets()
+    /// <summary>
+    /// A line per stock target: what the colony has of the target, and buttons to lower and raise
+    /// it. Built once: the categories with targets do not change over a game, and the texts refresh
+    /// with the rows.
+    /// </summary>
+    private void BuildTargets()
     {
-        foreach (var child in _targets.GetChildren())
-        {
-            _targets.RemoveChild(child);
-            child.QueueFree();
-        }
-
-        _targetRows.Clear();
         var targets = FreeWillRules.Targets(_session.Simulation);
         if (targets.Count == 0)
         {
@@ -277,15 +275,17 @@ public partial class ColonyPanel : PanelContainer
             return;
         }
 
+        // Counted only while the panel is open, a few times per second.
         var stock = ColonyStock.ByCategory(_session.Simulation);
+        var targets = FreeWillRules.Targets(_session.Simulation);
         foreach (var (category, label) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
             label.Text = text.Format(
                 "ui.colony.target",
-                ("category", text.Capitalized(text.Format(line.Category.NameKey!))),
+                ("category", text.CategoryName(line.Category)),
                 ("count", line.Count),
-                ("target", TargetOf(category)));
+                ("target", TargetOf(category, targets)));
         }
     }
 
@@ -338,11 +338,11 @@ public partial class ColonyPanel : PanelContainer
     }
 
     /// <summary>A stock target as the player last set it: an order not yet applied, or else the game's.</summary>
-    private int TargetOf(string category)
+    private int TargetOf(string category, IReadOnlyList<StockTarget> targets)
     {
         TrackPending();
         return _pendingTargets.TryGetValue(category, out var pending)
             ? pending
-            : FreeWillRules.Targets(_session.Simulation).First(target => target.Category == category).Count;
+            : targets.First(target => target.Category == category).Count;
     }
 }

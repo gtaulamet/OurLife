@@ -43,8 +43,8 @@ public class OldSaveTests
             .ShouldAllBe(count => count == GameContent.Defs.All<WorkTypeDef>().Count(type => type.Skill));
         colonists.Select(colonist => simulation.World.Get<Relations>(colonist).Others.Count).ShouldAllBe(count => count == founders - 1);
 
-        // Format 8 (IP3.5): the village centre, from the first colonist.
-        simulation.VillageCenter.ShouldBe(simulation.World.Get<Position>(colonists[0]).Cell);
+        // Format 8 (IP3.5): the village centre, on the cell of one of the colonists.
+        colonists.Select(colonist => simulation.World.Get<Position>(colonist).Cell).ShouldContain(simulation.VillageCenter!.Value);
     }
 
     [Theory]
