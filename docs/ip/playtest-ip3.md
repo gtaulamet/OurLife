@@ -16,7 +16,7 @@ Checklist para la prueba humana de H3.10. Cubre la definición de hecho de IP3 (
 | `--load etapas` | Las cinco etapas en fila (con las partidas copiadas) |
 | `--load diez-anos` | La aldea de diez años |
 
-Para ver nacimientos sin esperar horas: Nueva partida con ritmo **Muy rápido**, recolectar en otoño y jugar a 4×. Una pareja concibe sólo si la aldea tiene comida guardada para 30 días por boca y el mapa tiene 9 arbustos de comida por boca. Las bocas son los colonos, los hijos en camino y el que se concebiría. El valle tiene unos 55 arbustos, así que alcanza para unas 6 personas: que no nazca nadie más allá de ese número no es un error.
+Para ver nacimientos sin esperar horas: Nueva partida con ritmo **Muy rápido**, recolectar en otoño y jugar a 4×. Una pareja concibe sólo si la aldea tiene comida guardada para 30 días por boca y el mapa tiene 7 arbustos de comida por boca. Las bocas son los colonos, los hijos en camino y el que se concebiría. El valle tiene unos 55 a 60 arbustos, así que alcanza para unas 7 personas: que no nazca nadie más allá de ese número no es un error.
 
 ## Checklist
 
@@ -88,7 +88,7 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 | Tests | 702 en verde: Core, localización y contenido, con el balance de diez años (`BalanceTests`) y las partidas viejas de los formatos 1 a 6 | ✅ |
 | Smoke | Código 0; abre la ficha, prueba el botón de hijos y revisa que no falten textos. Huellas `5C715E8411C7DFC8` (semilla 1) y `40A56EC5ADD2BA9E` (semilla 42) | ✅ |
 | Balance de población y comida | Partidas de diez años en Rápido y Muy rápido, semillas 1 y 42: ninguna muerte por hambre; en Rápido la aldea se mantiene en 6 o 7. En Muy rápido tiende a extinguirse en unos diez años (límite conocido, en el backlog). Detalle en "Balance de población y comida" de la spec | ✅ |
-| Rendimiento de una partida larga | Diez años en Rápido: 0,017 ms por tick en la simulación; `--load diez-anos --benchmark 30` en Godot: 331 FPS de media, 251 en el 1 % más lento, 0,10 ms por tick (RTX 4090 de portátil). Presupuesto: 60 FPS y 2 ms | ✅ |
+| Rendimiento de una partida larga | Diez años en Rápido: 0,017 ms por tick en la simulación; `--load diez-anos --benchmark 30` en Godot: 382 FPS de media, 300 en el 1 % más lento, 0,08 ms por tick (RTX 4090 de portátil). Presupuesto: 60 FPS y 2 ms | ✅ |
 | Rendimiento de una partida nueva | `--benchmark 20`: 361 FPS y 0,08 ms por tick | ✅ |
 | Paquete de Windows | `./tools/package-windows.ps1`: exporta, corre el smoke sobre el ejecutable exportado y arma `OurLife-v0.3.0-windows-x86_64.zip` (73,3 MB) | ✅ |
 | Paquete de macOS | `./tools/package-macos.ps1`: app universal con firma ad hoc (122,5 MB). Hay que volver a firmarla en la Mac | ✅ (falta probarla en la Mac) |
