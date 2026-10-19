@@ -16,7 +16,7 @@ Checklist para la prueba humana de H3.10. Cubre la definición de hecho de IP3 (
 | `--load etapas` | Las cinco etapas en fila (con las partidas copiadas) |
 | `--load diez-anos` | La aldea de diez años |
 
-Para ver nacimientos sin esperar horas: Nueva partida con ritmo **Muy rápido**, recolectar en otoño y jugar a 4×. Una pareja concibe cuando la aldea tiene comida guardada para 30 días por colono.
+Para ver nacimientos sin esperar horas: Nueva partida con ritmo **Muy rápido**, recolectar en otoño y jugar a 4×. Una pareja concibe sólo si la aldea tiene comida guardada para 30 días por boca y el mapa tiene 9 arbustos de comida por boca. Las bocas son los colonos, los hijos en camino y el que se concebiría. El valle tiene unos 55 arbustos, así que alcanza para unas 6 personas: que no nazca nadie más allá de ese número no es un error.
 
 ## Checklist
 

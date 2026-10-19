@@ -12,7 +12,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | Con H3.8, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) e IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026). En IP3: H3.1 a H3.9 |
 | IP en curso | IP3 "Vida y generaciones" (`docs/ip/IP3.md`), planificada el 15 de octubre, con las decisiones del usuario para la spec. Oficios pasó a IP4 |
-| Validación | `dotnet build` sin advertencias, 702 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick) |
+| Validación | `dotnet build` sin advertencias, 703 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick) |
 | Huella del smoke | `5C715E8411C7DFC8` con `--seed 1 --ticks 5000`; `40A56EC5ADD2BA9E` con `--seed 42 --ticks 5000` (desde H3.7). Cambian en cada hito de IP3 que suma estado |
 | Versión | `0.3.0` en `game/project.godot`, sin publicar hasta el playtest. `v0.2.5` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.2.5. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -20,10 +20,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **Playtest de IP3** con `docs/ip/playtest-ip3.md` en Windows y en la Mac. Los zips de `v0.3.0` están en `builds/` de esta PC (en otra PC, `./tools/package-windows.ps1` y `./tools/package-macos.ps1`); las partidas preparadas, en `docs/ip/playtest-ip3/`. Con el visto bueno: tag `v0.3.0`, release de GitHub con los dos zips, cerrar H3.10 e IP3 y adelantar `main`.
-2. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción.
-3. **Balance social para H3.10:** en una aldea real hay unas 3 interacciones por día entre cinco colonos, y en 10 días no se forma ninguna amistad (radio de 4 celdas, cada uno en su trabajo).
-4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+1. **Decisión del usuario sobre el tope de la tierra:** desde la revisión de código del balance, los embarazos en curso cuentan como bocas. Con 9 arbustos por boca nace un solo hijo en diez años (semillas 1 y 42) y la aldea queda en 6. Opciones: dejarlo así, o bajar `foodPlantsPerColonist` a 8 (igual, 6 personas) o a 7 (unas 7 personas, como antes de la corrección).
+2. **Con esa decisión:** regenerar `docs/ip/playtest-ip3/diez-anos.olsave` (programa temporal que repite `BalanceTests` con `SaveGame.Write`, id `largo`) y volver a armar los zips de `v0.3.0`: los de `builds/` tienen la regla anterior.
+3. **Playtest de IP3** con `docs/ip/playtest-ip3.md` en Windows y en la Mac. Los zips de `v0.3.0` están en `builds/` de esta PC (en otra PC, `./tools/package-windows.ps1` y `./tools/package-macos.ps1`); las partidas preparadas, en `docs/ip/playtest-ip3/`. Con el visto bueno: tag `v0.3.0`, release de GitHub con los dos zips, cerrar H3.10 e IP3 y adelantar `main`.
+4. **Balance de H3.10:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
+5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -41,6 +42,18 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-18: H3.10, revisión del balance
+
+- Revisión de código de `main...ip3/h3-10-integracion`: 10 hallazgos, todos corregidos.
+  - Los dos topes para concebir no contaban los embarazos en curso: con dos parejas, las dos mujeres podían concebir antes del primer parto y pasar el tope de la tierra. Ahora cuentan como bocas los colonos, los hijos en camino y el que se concebiría, en la reserva y en la tierra.
+  - El apetito para la reserva es la necesidad de comer que más rápido baja, no la suma, como en `Hunger.UnitsToFeed`. Una madre sin `Needs` ya no rompe el tick.
+  - La comida y los arbustos se cuentan una vez por medianoche. `ColonyStock` recorre las pilas y las cargas en un solo lugar.
+  - `foundingCouple.count` se valida sin desbordarse. En `ColonyStart`, el número de parejas sale del bucle.
+  - `BalanceTests` lleva `[Trait("Category", "Slow")]`, así que se puede filtrar.
+  - El checklist del playtest explica el tope de la tierra.
+- Efecto: en las semillas 1 y 42 nace un solo hijo en diez años y la aldea queda en 6. Queda para que decida el usuario (Pendientes).
+- 703 tests. Smoke con código 0 y las mismas huellas: en 5000 ticks nadie concibe.
 
 ### 2026-10-18: H3.10, paquetes y checklist
 

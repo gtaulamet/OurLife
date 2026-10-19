@@ -23,20 +23,9 @@ public static class ColonyStock
         var world = simulation.World;
         var categories = ItemCategoryDef.InOrder(content);
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-
-        var entities = new List<EntityId>();
-        world.Query<ItemStack>(entities);
-        foreach (var pile in entities)
+        foreach (var (item, count) in Everything(simulation))
         {
-            var stack = world.Get<ItemStack>(pile);
-            Add(counts, content.Get<ItemDef>(stack.Def).Category, stack.Count);
-        }
-
-        world.Query<Carried>(entities);
-        foreach (var carrier in entities)
-        {
-            var carried = world.Get<Carried>(carrier);
-            Add(counts, content.Get<ItemDef>(carried.Def).Category, carried.Count);
+            counts[item.Category] = counts.GetValueOrDefault(item.Category) + count;
         }
 
         return [.. categories.Select(category => new StockLine(category, counts.GetValueOrDefault(category.Id)))];
@@ -46,29 +35,33 @@ public static class ColonyStock
     public static long FoodNutrition(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
+        long total = 0;
+        foreach (var (item, count) in Everything(simulation))
+        {
+            total += item.Kind == ItemKind.Food ? (long)item.Nutrition * count : 0;
+        }
+
+        return total;
+    }
+
+    /// <summary>Every pile on the map, stored or not, and every load a colonist carries, by ascending id.</summary>
+    private static IEnumerable<(ItemDef Item, int Count)> Everything(Simulation simulation)
+    {
         var content = simulation.Content;
         var world = simulation.World;
-        long total = 0;
         var entities = new List<EntityId>();
         world.Query<ItemStack>(entities);
         foreach (var pile in entities)
         {
             var stack = world.Get<ItemStack>(pile);
-            var item = content.Get<ItemDef>(stack.Def);
-            total += item.Kind == ItemKind.Food ? (long)item.Nutrition * stack.Count : 0;
+            yield return (content.Get<ItemDef>(stack.Def), stack.Count);
         }
 
         world.Query<Carried>(entities);
         foreach (var carrier in entities)
         {
             var carried = world.Get<Carried>(carrier);
-            var item = content.Get<ItemDef>(carried.Def);
-            total += item.Kind == ItemKind.Food ? (long)item.Nutrition * carried.Count : 0;
+            yield return (content.Get<ItemDef>(carried.Def), carried.Count);
         }
-
-        return total;
     }
-
-    private static void Add(Dictionary<string, int> counts, string category, int count) =>
-        counts[category] = counts.GetValueOrDefault(category) + count;
 }

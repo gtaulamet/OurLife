@@ -305,12 +305,17 @@ public class BirthTests
         var (bed, wife, _) = Couple(seed: 1, pace: "yearly", content: content, food: false);
         bed.AddItems("provisions", 50, 1, 13, 1);
 
-        // 50 provisions feed two adults some 13 days: short of 30.
+        // 50 provisions feed the two adults and the child to come some 9 days: short of 30.
         bed.Simulation.Run(TicksPerDay);
         bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
 
+        // 150 would feed the two of them for 30 days, but not the child as well.
         bed.AddItems("provisions", 50, 3, 13, 1);
         bed.AddItems("provisions", 50, 5, 13, 1);
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
+
+        bed.AddItems("provisions", 50, 7, 13, 1);
         bed.Simulation.Run(TicksPerDay);
         bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
     }
@@ -331,6 +336,36 @@ public class BirthTests
         bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
 
         bed.AddPlant("bush", 12, 1, 1);
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void A_child_on_the_way_counts_as_a_mouth_to_feed()
+    {
+        var content = TestContent.WithDefs(CertainJson.Replace(
+            "\"siblingOpinion\": 30", "\"siblingOpinion\": 30, \"foodPlantsPerColonist\": 4", StringComparison.Ordinal));
+        var (bed, wife, husband) = Couple(seed: 1, pace: "yearly", content: content);
+        var other = bed.AddColonist(7, 7, 1, name: "Urraca");
+        bed.World.Add(other, new Life { AgeDays = 30 * DaysPerYear, Stage = "adult" });
+        bed.World.Add(other, new Pregnancy { Father = Relationships.RelativeOf(bed.Simulation, husband) });
+        for (var x = 1; x < 10; x++)
+        {
+            bed.AddPlant("bush", x, 1, 1);
+            bed.AddPlant("bush", x, 2, 1);
+        }
+
+        // 18 bushes feed the three colonists and the child to be conceived, not the one on the way
+        // too. That one is born tonight, after the wife's turn: then it is a colonist and still counts.
+        bed.Simulation.Run(TicksPerDay);
+        bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
+        Children(bed).Count.ShouldBe(1);
+
+        for (var x = 1; x < 3; x++)
+        {
+            bed.AddPlant("bush", x, 3, 1);
+        }
+
         bed.Simulation.Run(TicksPerDay);
         bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
     }

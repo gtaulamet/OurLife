@@ -26,9 +26,14 @@ public sealed class BirthSystem : ISimSystem
     private readonly LifeRules _life;
     private readonly PersonalityRules _personalities;
     private readonly SkillRules _skills;
-    private readonly IReadOnlySet<string> _foodPlants;
+    private readonly IReadOnlySet<string> _foodPlantDefs;
     private readonly List<EntityId> _colonists = [];
     private readonly List<EntityId> _plants = [];
+
+    // Neither the colony's food nor its plants change while the women are visited: each is
+    // counted once per midnight, when a woman first gets that far.
+    private long? _foodNutrition;
+    private long? _foodPlants;
 
     /// <param name="foodPlants">Ids of the plant defs that give food (see <see cref="ColonyRules.FoodPlants"/>).</param>
     public BirthSystem(LifeRules life, PersonalityRules personalities, SkillRules skills, IReadOnlySet<string> foodPlants)
@@ -40,7 +45,7 @@ public sealed class BirthSystem : ISimSystem
         _life = life;
         _personalities = personalities;
         _skills = skills;
-        _foodPlants = foodPlants;
+        _foodPlantDefs = foodPlants;
     }
 
     public void Tick(Simulation simulation)
@@ -53,6 +58,8 @@ public sealed class BirthSystem : ISimSystem
 
         var world = simulation.World;
         var pace = _life.PaceOf(simulation).LifeDaysPerDay;
+        _foodNutrition = null;
+        _foodPlants = null;
 
         // A child born now is not in the list, so it does nothing until the next midnight.
         world.Query<Colonist, Life>(_colonists);
@@ -163,30 +170,40 @@ public sealed class BirthSystem : ISimSystem
     }
 
     /// <summary>
-    /// Whether the colony has food for <see cref="BirthConfig.FoodReserveDays"/> for each colonist,
-    /// at the appetite of an adult like the mother: a child is not born to starve in the next winter.
+    /// The colonists, the children on the way and the one to be conceived: the mouths the colony
+    /// must feed if this woman conceives. A birth earlier in the same midnight leaves it as it was.
     /// </summary>
-    private static bool HasFoodReserve(Simulation simulation, EntityId mother, BirthConfig birth)
+    private static long MouthsWithOneMore(World world) =>
+        (long)world.Store<Colonist>().Count + world.Store<Pregnancy>().Count + 1;
+
+    /// <summary>
+    /// Whether the colony has food for <see cref="BirthConfig.FoodReserveDays"/> for each mouth
+    /// (see <see cref="MouthsWithOneMore"/>), at the appetite of an adult like the mother: a child
+    /// is not born to starve in the next winter.
+    /// </summary>
+    private bool HasFoodReserve(Simulation simulation, EntityId mother, BirthConfig birth)
     {
-        if (birth.FoodReserveDays == 0)
+        if (birth.FoodReserveDays == 0 || !simulation.World.TryGet<Needs>(mother, out var needs))
         {
             return true;
         }
 
+        // One unit of food fills every need eating satisfies (see Hunger.UnitsToFeed): the
+        // fastest of them sets the appetite.
         long perDay = 0;
-        foreach (var state in simulation.World.Get<Needs>(mother).Values)
+        foreach (var state in needs.Values)
         {
             var need = simulation.Content.Get<NeedDef>(state.Need);
-            perDay += need.SatisfiedBy == NeedSatisfaction.Eating ? (long)need.DecayPerHour * 24 : 0;
+            perDay = need.SatisfiedBy == NeedSatisfaction.Eating ? Math.Max(perDay, (long)need.DecayPerHour * 24) : perDay;
         }
 
-        var colonists = simulation.World.Store<Colonist>().Count;
-        return ColonyStock.FoodNutrition(simulation) >= perDay * birth.FoodReserveDays * colonists;
+        _foodNutrition ??= ColonyStock.FoodNutrition(simulation);
+        return _foodNutrition >= perDay * birth.FoodReserveDays * MouthsWithOneMore(simulation.World);
     }
 
     /// <summary>
     /// Whether the map has <see cref="BirthConfig.FoodPlantsPerColonist"/> plants that give food
-    /// for each colonist and the child to be born.
+    /// for each mouth (see <see cref="MouthsWithOneMore"/>).
     /// </summary>
     private bool LandFeedsOneMore(Simulation simulation, BirthConfig birth)
     {
@@ -196,9 +213,19 @@ public sealed class BirthSystem : ISimSystem
         }
 
         var world = simulation.World;
-        world.Query<Plant>(_plants);
-        var foodPlants = _plants.Count(plant => _foodPlants.Contains(world.Get<Plant>(plant).Def));
-        return foodPlants >= (long)birth.FoodPlantsPerColonist * (world.Store<Colonist>().Count + 1);
+        if (_foodPlants is null)
+        {
+            world.Query<Plant>(_plants);
+            var count = 0;
+            foreach (var plant in _plants)
+            {
+                count += _foodPlantDefs.Contains(world.Get<Plant>(plant).Def) ? 1 : 0;
+            }
+
+            _foodPlants = count;
+        }
+
+        return _foodPlants >= birth.FoodPlantsPerColonist * MouthsWithOneMore(world);
     }
 
     private static Personality PersonalityOf(World world, EntityId colonist) =>

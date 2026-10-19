@@ -66,14 +66,14 @@ public static class ColonyStart
         var usedNames = new HashSet<string>(StringComparer.Ordinal);
         var usedSurnames = new HashSet<string>(StringComparer.Ordinal);
 
+        // The couples come first, two by two; without any, the first two are still a woman and a man.
+        var couples = scenario.FoundingCouple?.Count ?? 0;
         var colonists = new List<EntityId>();
         for (var i = 0; i < scenario.Colonists; i++)
         {
             var colonist = simulation.World.CreateEntity();
             var spot = spots[i % spots.Count];
-            // The couples come first, two by two.
-            var couples = scenario.FoundingCouple?.Count ?? 0;
-            var gender = i == 1 || (i % 2 == 1 && i < 2 * couples)
+            var gender = i % 2 == 1 && i < 2 * Math.Max(couples, 1)
                 ? Opposite(simulation.World.Get<Colonist>(colonists[i - 1]).Gender)
                 : random.NextBool() ? Gender.Female : Gender.Male;
             simulation.World.Add(colonist, new Position { X = spot.X, Y = spot.Y, Z = spot.Z });

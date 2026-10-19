@@ -17,6 +17,7 @@ public class BalanceTests
     private const int GatherRadius = 25;
 
     [Fact]
+    [Trait("Category", "Slow")]
     public void In_ten_years_at_the_default_pace_a_village_that_gathers_never_starves()
     {
         var simulation = new Simulation(1, GameContent.Defs);

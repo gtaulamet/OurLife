@@ -74,7 +74,7 @@ public sealed class ScenarioDef : Def
             yield return "founder skills must satisfy 0 <= founderSkillMin <= founderSkillMax, with founderSkillBonus zero or more.";
         }
 
-        if (FoundingCouple is { } couple && (couple.MinYears < 0 || couple.MaxYears < couple.MinYears || couple.Count < 1 || Colonists < 2 * couple.Count
+        if (FoundingCouple is { } couple && (couple.MinYears < 0 || couple.MaxYears < couple.MinYears || couple.Count < 1 || couple.Count > Colonists / 2
                                              || couple.Opinion is < -100 or > 100 || couple.Romance is < 0 or > 100))
         {
             yield return "foundingCouple needs 0 <= minYears <= maxYears, at least one couple and two colonists for each, an opinion from -100 to 100 and a romance from 0 to 100.";
