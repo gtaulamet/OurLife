@@ -15,9 +15,7 @@ public partial class OptionsScreen : Control
     private GameServices _services = null!;
     private readonly List<(string Locale, Button Button)> _languages = [];
     private readonly List<(bool Fullscreen, Button Button)> _modes = [];
-    private readonly List<(bool On, Button Button)> _cycle = [];
-    private readonly List<(bool On, Button Button)> _fps = [];
-    private readonly List<(bool On, Button Button)> _freeWill = [];
+    private readonly List<(Func<bool> Setting, bool On, Button Button)> _switches = [];
     private readonly List<(int Setting, Button Button)> _sizes = [];
     private readonly List<(DecorationLevel Level, Button Button)> _decorations = [];
 
@@ -92,16 +90,15 @@ public partial class OptionsScreen : Control
         var switches = new HBoxContainer();
         switches.AddThemeConstantOverride("separation", UiBuilder.Gap * 3);
         column.AddChild(switches);
-        switches.AddChild(Switch("ui.options.day_night", screen._cycle, screen.ChooseDayNight));
-        switches.AddChild(Switch("ui.options.show_fps", screen._fps, screen.ChooseShowFps));
-        switches.AddChild(Switch("ui.options.free_will", screen._freeWill, screen.ChooseFreeWill));
+        var settings = services.Settings;
+        switches.AddChild(screen.Switch("ui.options.day_night", () => settings.DayNightCycle, on => settings.SetDayNightCycle(on)));
+        switches.AddChild(screen.Switch("ui.options.show_fps", () => settings.ShowFps, on => settings.SetShowFps(on)));
+        switches.AddChild(screen.Switch("ui.options.free_will", () => settings.FreeWill, on => settings.SetFreeWill(on)));
 
         column.AddChild(UiBuilder.MenuButton("ui.common.back", () => screen.Closed?.Invoke()));
         screen.RefreshLanguages();
         screen.RefreshModes();
-        screen.RefreshCycle();
-        screen.RefreshFps();
-        screen.RefreshFreeWill();
+        screen.RefreshSwitches();
         screen.RefreshSizes();
         screen.RefreshDecorations();
         return screen;
@@ -193,14 +190,8 @@ public partial class OptionsScreen : Control
         }
     }
 
-    private void ChooseDayNight(bool on)
-    {
-        _services.Settings.SetDayNightCycle(on);
-        RefreshCycle();
-    }
-
-    /// <summary>A caption with On and Off below it; the buttons are added to <paramref name="buttons"/>.</summary>
-    private static VBoxContainer Switch(string captionKey, List<(bool On, Button Button)> buttons, Action<bool> choose)
+    /// <summary>A caption with On and Off below it, which show and change the setting read by <paramref name="setting"/>.</summary>
+    private VBoxContainer Switch(string captionKey, Func<bool> setting, Action<bool> choose)
     {
         var group = new VBoxContainer();
         group.AddThemeConstantOverride("separation", UiBuilder.Gap);
@@ -212,47 +203,23 @@ public partial class OptionsScreen : Control
         {
             var button = new Button { Text = key, ToggleMode = true };
             button.AddThemeFontSizeOverride("font_size", UiBuilder.MenuSize);
-            button.Pressed += () => choose(on);
+            button.Pressed += () =>
+            {
+                choose(on);
+                RefreshSwitches();
+            };
             row.AddChild(button);
-            buttons.Add((on, button));
+            _switches.Add((setting, on, button));
         }
 
         return group;
     }
 
-    private void ChooseShowFps(bool on)
+    private void RefreshSwitches()
     {
-        _services.Settings.SetShowFps(on);
-        RefreshFps();
-    }
-
-    private void RefreshFps()
-    {
-        foreach (var (on, button) in _fps)
+        foreach (var (setting, on, button) in _switches)
         {
-            button.SetPressedNoSignal(on == _services.Settings.ShowFps);
-        }
-    }
-
-    private void ChooseFreeWill(bool on)
-    {
-        _services.Settings.SetFreeWill(on);
-        RefreshFreeWill();
-    }
-
-    private void RefreshFreeWill()
-    {
-        foreach (var (on, button) in _freeWill)
-        {
-            button.SetPressedNoSignal(on == _services.Settings.FreeWill);
-        }
-    }
-
-    private void RefreshCycle()
-    {
-        foreach (var (on, button) in _cycle)
-        {
-            button.SetPressedNoSignal(on == _services.Settings.DayNightCycle);
+            button.SetPressedNoSignal(on == setting());
         }
     }
 

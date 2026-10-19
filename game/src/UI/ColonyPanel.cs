@@ -32,6 +32,9 @@ public partial class ColonyPanel : PanelContainer
     private GridContainer _grid = null!;
 
     private readonly List<(string Category, Label Label)> _targetRows = [];
+
+    // What the colony had of each target category at the last count, for a click between counts.
+    private readonly Dictionary<string, int> _counted = new(StringComparer.Ordinal);
     private ColonyRules _rules = null!;
 
     // Priorities asked in the current tick, before their orders apply.
@@ -87,7 +90,10 @@ public partial class ColonyPanel : PanelContainer
         var target = FreeWillRules.NextTarget(config, TargetOf(category, targets), up);
         _session.Enqueue(new SetStockTargetCommand(category, target));
         _pendingTargets[category] = target;
-        RefreshTargets();
+
+        // Only this line changes, with the last count: a click does not count the stock again.
+        var (_, label) = _targetRows.Find(row => row.Category == category);
+        label.Text = TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), _counted.GetValueOrDefault(category), target);
     }
 
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
@@ -275,7 +281,6 @@ public partial class ColonyPanel : PanelContainer
                     : text.Format("ui.colony.priority", ("priority", priority));
             }
         }
-
     }
 
     /// <summary>What the colony has of each target and the target, as the player last set it.</summary>
@@ -293,6 +298,7 @@ public partial class ColonyPanel : PanelContainer
         foreach (var (category, label) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
+            _counted[category] = line.Count;
             label.Text = TargetText(line.Category, line.Count, TargetOf(category, targets));
         }
     }

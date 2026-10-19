@@ -631,9 +631,9 @@ public partial class GameRoot : Node
             simulation.Run(ticks - half);
             stopwatch.Stop();
             loaded.Run(ticks - half);
-            if (!SameGame(loaded, simulation))
+            if (DifferenceOf(loaded, simulation) is { } difference)
             {
-                Fail($"[smoke] saved at tick {half} and loaded, the game differs {ticks - half} ticks later from the one that never stopped", ExitFailure);
+                Fail($"[smoke] saved at tick {half} and loaded, the game differs {ticks - half} ticks later from the one that never stopped: {difference}", ExitFailure);
                 return;
             }
 
@@ -714,10 +714,9 @@ public partial class GameRoot : Node
             CultureInfo.InvariantCulture,
             $"[smoke] save: {buffer.Length / 1024} KB, saved in {saved.TotalMilliseconds:F0} ms, loaded in {(stopwatch.Elapsed - saved).TotalMilliseconds:F0} ms"));
 
-        var expected = simulation.ComputeStateHash();
-        if (!SameGame(loaded, simulation))
+        if (DifferenceOf(loaded, simulation) is { } difference)
         {
-            GD.PushError($"[smoke] the loaded game differs from the saved one: {loaded.ComputeStateHash():X16} instead of {expected:X16}");
+            GD.PushError($"[smoke] the loaded game differs from the saved one: {difference}");
             return null;
         }
 
@@ -725,12 +724,32 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// Whether two games are the same: their fingerprints, and free will with the village and its
-    /// targets, which the fingerprint leaves out while free will is off (docs/gdd/libre-albedrio.md).
+    /// How a game differs from the one it should be, or null if it is the same: its fingerprint,
+    /// and free will with the village and its targets, which the fingerprint leaves out while free
+    /// will is off (docs/gdd/libre-albedrio.md).
     /// </summary>
-    private static bool SameGame(Simulation one, Simulation other) =>
-        one.ComputeStateHash() == other.ComputeStateHash() && one.FreeWill == other.FreeWill
-        && one.VillageCenter == other.VillageCenter && one.StockTargets.SequenceEqual(other.StockTargets);
+    private static string? DifferenceOf(Simulation game, Simulation expected)
+    {
+        var (hash, expectedHash) = (game.ComputeStateHash(), expected.ComputeStateHash());
+        if (hash != expectedHash)
+        {
+            return $"fingerprint {hash:X16} instead of {expectedHash:X16}";
+        }
+
+        if (game.FreeWill != expected.FreeWill)
+        {
+            return $"free will {game.FreeWill} instead of {expected.FreeWill}";
+        }
+
+        if (game.VillageCenter != expected.VillageCenter)
+        {
+            return $"village centre {game.VillageCenter} instead of {expected.VillageCenter}";
+        }
+
+        return game.StockTargets.SequenceEqual(expected.StockTargets)
+            ? null
+            : $"targets [{string.Join(", ", game.StockTargets)}] instead of [{string.Join(", ", expected.StockTargets)}]";
+    }
 
     /// <summary>A slot is written, listed and loaded with the same fingerprint.</summary>
     private static bool CheckSlots(GameServices services, Simulation simulation, SaveSlots slots)
@@ -743,9 +762,9 @@ public partial class GameRoot : Node
             return false;
         }
 
-        if (!SameGame(slots.Load(SmokeSlot, services.Defs).Simulation, simulation))
+        if (DifferenceOf(slots.Load(SmokeSlot, services.Defs).Simulation, simulation) is { } difference)
         {
-            GD.PushError("[smoke] the slot written loads a different game");
+            GD.PushError($"[smoke] the slot written loads a different game: {difference}");
             return false;
         }
 
@@ -1275,10 +1294,12 @@ public partial class GameRoot : Node
             throw new InvalidOperationException($"the colony panel shows the targets as [{string.Join(" | ", lines)}]");
         }
 
-        // Two steps down and back up, or up and back down near zero: two quick clicks add up.
+        // Two presses down and two back up, or up and down near zero: two quick clicks add up.
         var first = targets[0];
-        var step = FreeWillRules.ConfigOf(game.Content)!.TargetStep;
-        var up = first.Count < 2 * step;
+        var config = FreeWillRules.ConfigOf(game.Content)!;
+        var up = first.Count < 2 * config.TargetStep;
+        var expectedMoved = FreeWillRules.NextTarget(config, FreeWillRules.NextTarget(config, first.Count, up), up);
+        var expectedBack = FreeWillRules.NextTarget(config, FreeWillRules.NextTarget(config, expectedMoved, !up), !up);
         screen.Hud.Colony.StepTarget(first.Category, up);
         screen.Hud.Colony.StepTarget(first.Category, up);
         screen.Advance(1);
@@ -1286,9 +1307,10 @@ public partial class GameRoot : Node
         screen.Hud.Colony.StepTarget(first.Category, !up);
         screen.Hud.Colony.StepTarget(first.Category, !up);
         screen.Advance(1);
-        if (moved != first.Count + (up ? 2 * step : -2 * step) || FreeWillRules.Targets(game)[0].Count != first.Count)
+        var back = FreeWillRules.Targets(game)[0].Count;
+        if (moved != expectedMoved || back != expectedBack || moved == first.Count)
         {
-            throw new InvalidOperationException($"the target of {first.Category} went from {first.Count} to {moved} and back to {FreeWillRules.Targets(game)[0].Count}");
+            throw new InvalidOperationException($"the target of {first.Category} went from {first.Count} to {moved} and back to {back}, not {expectedMoved} and {expectedBack}");
         }
 
         GD.Print($"[smoke] free will follows the option, and the targets the panel: {string.Join(", ", lines)}");
