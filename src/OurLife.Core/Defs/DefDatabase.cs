@@ -128,6 +128,12 @@ public sealed partial class DefDatabase
             errors.Add($"Eras {string.Join(", ", clash.Select(era => era.Id))} share order {clash.Key}.");
         }
 
+        // Free will is optional, but one config at most: FreeWillRules.ConfigOf reads the only one.
+        if (byType.TryGetValue(typeof(FreeWillConfigDef), out var freeWillConfigs) && freeWillConfigs.Count > 1)
+        {
+            errors.Add($"The content can have at most one FreeWillConfig def, found {freeWillConfigs.Count}.");
+        }
+
         var timeConfigs = byType.TryGetValue(typeof(TimeConfigDef), out var configs) ? configs.Values.Cast<TimeConfigDef>().ToArray() : [];
         if (timeConfigs.Length != 1)
         {

@@ -101,8 +101,9 @@ public partial class GameScreen : Node
             screen.AddChild(screen._overlays);
 
             // Free will is the player's option, not the saved game's: sent to every game, new or
-            // loaded, once everyone listens (a stopped session applies it and publishes at once).
+            // loaded, once everyone listens, and applied at once, before the first tick.
             screen.Session.Enqueue(new SetFreeWillCommand(services.Settings.FreeWill));
+            simulation.ApplyCommandsNow();
 
             // The arrival emitted events before anyone listened: the view already drew what they
             // announce and ignores them, and the log shows the welcome message.

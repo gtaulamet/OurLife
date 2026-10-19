@@ -35,6 +35,9 @@ public partial class ColonyPanel : PanelContainer
 
     // What the colony had of each target category at the last count, for a click between counts.
     private readonly Dictionary<string, int> _counted = new(StringComparer.Ordinal);
+
+    // The digits of a count the target lines make room for; more widen them.
+    private int _countDigits = 4;
     private ColonyRules _rules = null!;
 
     // Priorities asked in the current tick, before their orders apply.
@@ -295,30 +298,51 @@ public partial class ColonyPanel : PanelContainer
         TrackPending();
         var stock = ColonyStock.ByCategory(_session.Simulation);
         var targets = FreeWillRules.Targets(_session.Simulation);
+        var widen = false;
         foreach (var (category, label) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
             _counted[category] = line.Count;
             label.Text = TargetText(line.Category, line.Count, TargetOf(category, targets));
+            widen |= Digits(line.Count) > _countDigits;
+        }
+
+        if (widen)
+        {
+            _countDigits = _counted.Values.Max(Digits);
+            FixTargetWidths();
         }
     }
 
     /// <summary>
-    /// Each target line as wide as with four digits and three in the current language, so the
-    /// buttons beside it stay still while the count grows. Measured when the panel is built again.
+    /// Each target line as wide as with the widest count it has made room for (four digits at
+    /// least) and the highest target, in the current language, so the buttons beside it stay still
+    /// while the numbers change. Measured when the panel is built again or a count needs more room.
     /// </summary>
     private void FixTargetWidths()
     {
+        if (FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config)
+        {
+            return;
+        }
+
+        // Eights, the widest digit of most fonts.
+        var count = Eights(_countDigits);
+        var target = Eights(Digits(config.TargetMax));
         foreach (var (category, label) in _targetRows)
         {
             var widest = label.GetThemeFont("font").GetStringSize(
-                TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), 8888, 888),
+                TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), count, target),
                 HorizontalAlignment.Left,
                 -1,
                 label.GetThemeFontSize("font_size")).X;
             label.CustomMinimumSize = new Vector2(Mathf.Ceil(widest), 0);
         }
     }
+
+    private static int Digits(int number) => number.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
+
+    private static int Eights(int digits) => int.Parse(new string('8', Math.Min(digits, 9)), System.Globalization.CultureInfo.InvariantCulture);
 
     private string TargetText(ItemCategoryDef category, int count, int target) =>
         _services.Text.Format("ui.colony.target", ("category", _services.Text.CategoryName(category)), ("count", count), ("target", target));

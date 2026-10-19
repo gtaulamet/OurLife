@@ -159,11 +159,10 @@ public class FreeWillTests
     }
 
     [Fact]
-    public void Two_free_will_configs_are_refused()
+    public void Two_free_will_configs_are_refused_when_loading()
     {
-        var content = TestContent.WithDefs($"[{Trait}, {Config("a")}, {Config("b")}]");
-
-        Should.Throw<InvalidOperationException>(() => FreeWillRules.ConfigOf(content));
+        Should.Throw<DefValidationException>(() => TestContent.WithDefs($"[{Trait}, {Config("a")}, {Config("b")}]"))
+            .Message.ShouldContain("at most one FreeWillConfig");
     }
 
     [Theory]
