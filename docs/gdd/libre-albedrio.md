@@ -35,7 +35,7 @@ Así, el pedido 1 ya está y el acarreo ya es por iniciativa. Lo nuevo es recole
 ## Aldea y metas
 
 - **Centro de la aldea:** el lugar de llegada de los colonos, fijo (`Simulation.VillageCenter`). "Cerca de la aldea" es a 30 celdas o menos de él en el plano, en cualquier nivel.
-- **Metas de existencias:** una por categoría de objetos que la iniciativa junta, **comida** y **madera**. La meta es cuántas unidades quiere tener la aldea (las que cuenta el HUD: en el suelo, en almacenes o en las manos). Los valores por defecto están en los datos (comida 150, madera 40) y el jugador los cambia en el panel Colonia con botones de menos y más (de a 10), de 0 hasta 999. Con meta 0, esa iniciativa no ocurre.
+- **Metas de existencias:** una por categoría de objetos que la iniciativa junta, **comida** y **madera**. La meta es cuántas unidades quiere tener la aldea (las que cuenta el HUD: en el suelo, en almacenes o en las manos). Los valores por defecto están en los datos (comida 150, madera 40) y el jugador los cambia en el panel Colonia con botones de menos y más (de a 10), de 0 hasta 999. Los botones van por múltiplos de 10 (desde 999, menos da 990), y las metas por defecto tienen que ser múltiplos del paso. Con meta 0, esa iniciativa no ocurre.
 - `SetStockTargetCommand(categoría, cantidad)` guarda la meta en la partida (`Simulation.StockTargets`).
 
 ## A. Trabajo por iniciativa
@@ -134,7 +134,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 Respondidas el 19 de octubre de 2026:
 
-1. La opción viene **prendida** por defecto en una instalación nueva.
+1. La opción viene **prendida** por defecto en una instalación nueva. También al actualizar desde `v0.3.0`, cuyo `settings.cfg` no la tiene: el jugador la apaga en Opciones si no la quiere.
 2. Metas por defecto: **150 de comida y 40 de madera**, con botones de a 10.
 3. El centro de la aldea es el lugar de llegada, fijo; "cerca" son **30 celdas** alrededor (se propusieron 20).
 4. Ganas de iniciativa: 60 % para un colono promedio en cada decisión libre; un perezoso, la mitad; un trabajador, una vez y media.

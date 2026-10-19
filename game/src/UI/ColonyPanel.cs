@@ -79,13 +79,15 @@ public partial class ColonyPanel : PanelContainer
     /// </summary>
     public void StepTarget(string category, bool up)
     {
-        if (FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config)
+        // A category without a target is ignored, as the command does.
+        var targets = FreeWillRules.Targets(_session.Simulation);
+        if (FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config || !targets.Any(target => target.Category == category))
         {
             return;
         }
 
         TrackPending();
-        var current = TargetOf(category, FreeWillRules.Targets(_session.Simulation));
+        var current = TargetOf(category, targets);
         var step = config.TargetStep;
         var next = up ? ((current / step) + 1) * step : ((current + step - 1) / step - 1) * step;
         var target = Math.Clamp(next, 0, config.TargetMax);
@@ -288,13 +290,20 @@ public partial class ColonyPanel : PanelContainer
         foreach (var (category, label) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
-            label.Text = text.Format(
-                "ui.colony.target",
-                ("category", text.CategoryName(line.Category)),
-                ("count", line.Count),
-                ("target", TargetOf(category, targets)));
+            label.Text = TargetText(line.Category, line.Count, TargetOf(category, targets));
+
+            // At least as wide as with four digits and three, so the buttons beside it stay still while the count grows.
+            var widest = label.GetThemeFont("font").GetStringSize(
+                TargetText(line.Category, 8888, 888), HorizontalAlignment.Left, -1, label.GetThemeFontSize("font_size")).X;
+            if (label.CustomMinimumSize.X < widest)
+            {
+                label.CustomMinimumSize = new Vector2(Mathf.Ceil(widest), 0);
+            }
         }
     }
+
+    private string TargetText(ItemCategoryDef category, int count, int target) =>
+        _services.Text.Format("ui.colony.target", ("category", _services.Text.CategoryName(category)), ("count", count), ("target", target));
 
     /// <summary>
     /// Moves a priority one step along the ring 1, 2, 3, 4, No, forwards or back, and gives the

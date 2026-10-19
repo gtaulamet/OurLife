@@ -84,9 +84,11 @@ public sealed class FreeWillConfigDef : Def
             yield return "lowMoodBelow and highMoodAbove must be moods between 0 and 100, and lowMoodBelow not above highMoodAbove.";
         }
 
-        if (TargetStep <= 0 || TargetMax < TargetStep || DefaultTargets.Values.Any(target => target < 0 || target > TargetMax))
+        // The panel's buttons go by multiples of the step: a default off them could not be chosen again.
+        if (TargetStep <= 0 || TargetMax < TargetStep
+            || DefaultTargets.Values.Any(target => target < 0 || target > TargetMax || target % TargetStep != 0))
         {
-            yield return "targetStep must be positive and targetMax at least targetStep, and every default target between 0 and targetMax.";
+            yield return "targetStep must be positive and targetMax at least targetStep, and every default target a multiple of targetStep between 0 and targetMax.";
         }
     }
 }

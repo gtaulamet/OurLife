@@ -114,8 +114,6 @@ public class FreeWillTests
         bed.Simulation.ComputeStateHash().ShouldNotBe(on);
     }
 
-
-
     [Fact]
     public void A_target_order_without_a_category_is_ignored()
     {
@@ -157,6 +155,7 @@ public class FreeWillTests
     [InlineData("\"highMoodAbove\": 70", "\"highMoodAbove\": 101")]
     [InlineData("\"low\": 50", "\"low\": 160")]
     [InlineData("\"targetStep\": 10", "\"targetStep\": 1000")]
+    [InlineData("\"food\": 150", "\"food\": 145")]
     [InlineData("\"food\": 150", "\"food\": 1000")]
     [InlineData("\"food\": 150", "\"gold\": 150")]
     [InlineData("\"initiativeTrait\": \"diligence\"", "\"initiativeTrait\": \"greed\"")]
