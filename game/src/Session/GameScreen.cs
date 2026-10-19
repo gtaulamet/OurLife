@@ -77,6 +77,9 @@ public partial class GameScreen : Node
         {
             screen.Session = GameSession.Create(simulation);
             screen.AddChild(screen.Session);
+
+            // Free will is the player's option, not the saved game's: sent to every game, new or loaded.
+            screen.Session.Enqueue(new SetFreeWillCommand(services.Settings.FreeWill));
             // Colonists move their bodies at the speed of the game, and stand still with it.
             var session = screen.Session;
             screen.View = WorldView.Create(
@@ -125,13 +128,24 @@ public partial class GameScreen : Node
     /// <summary>Runs ticks at once, for screenshots and tests, and shows what happened in them.</summary>
     public void Advance(int ticks) => Session.Advance(ticks);
 
-    /// <summary>Autosaves when a new day of the game has started since the last frame.</summary>
-    // The decoration option may change over the game, from the options of the pause menu.
-    public override void _EnterTree() => _services.Settings.DecorationChanged += OnDecorationChanged;
+    // The decoration and free will may change over the game, from the options of the pause menu.
+    public override void _EnterTree()
+    {
+        _services.Settings.DecorationChanged += OnDecorationChanged;
+        _services.Settings.FreeWillChanged += OnFreeWillChanged;
+    }
 
-    public override void _ExitTree() => _services.Settings.DecorationChanged -= OnDecorationChanged;
+    public override void _ExitTree()
+    {
+        _services.Settings.DecorationChanged -= OnDecorationChanged;
+        _services.Settings.FreeWillChanged -= OnFreeWillChanged;
+    }
 
     private void OnDecorationChanged() => View.SetDecoration(_services.Settings.Decoration);
+
+    private void OnFreeWillChanged() => Session.Enqueue(new SetFreeWillCommand(_services.Settings.FreeWill));
+
+    /// <summary>Autosaves when a new day of the game has started since the last frame.</summary>
 
     public override void _Process(double delta)
     {

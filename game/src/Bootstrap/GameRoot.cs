@@ -989,6 +989,7 @@ public partial class GameRoot : Node
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();
         screen.Advance(10);
+        CheckFreeWill(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
         screen.OpenSaveScreen();
@@ -1239,6 +1240,50 @@ public partial class GameRoot : Node
     }
 
     /// <summary>How many colonists live, what each one is doing and how hungry and rested they are.</summary>
+    /// <summary>
+    /// Free will follows the option over the game, and the stock targets the buttons of the colony
+    /// panel, which say them in words (docs/gdd/libre-albedrio.md). Leaves both as they were.
+    /// </summary>
+    private void CheckFreeWill(GameScreen screen)
+    {
+        var game = screen.Session.Simulation;
+        var settings = _services!.Settings;
+        var option = settings.FreeWill;
+        var sent = game.FreeWill;
+        settings.SetFreeWill(!option, save: false);
+        screen.Advance(1);
+        var followed = game.FreeWill;
+        settings.SetFreeWill(option, save: false);
+        screen.Advance(1);
+        if (sent != option || followed == option || game.FreeWill != option)
+        {
+            throw new InvalidOperationException($"free will did not follow the option {option}: sent {sent}, then {followed}, then {game.FreeWill}");
+        }
+
+        var targets = FreeWillRules.Targets(game);
+        var lines = screen.Hud.Colony.TargetTexts.ToList();
+        if (targets.Count == 0 || lines.Count != targets.Count || lines.Any(line => line.Length == 0 || line.Contains('⟦')))
+        {
+            throw new InvalidOperationException($"the colony panel shows the targets as [{string.Join(" | ", lines)}]");
+        }
+
+        var first = targets[0];
+        screen.Hud.Colony.StepTarget(first.Category, up: true);
+        screen.Hud.Colony.StepTarget(first.Category, up: true);
+        screen.Advance(1);
+        var raised = FreeWillRules.Targets(game)[0].Count;
+        screen.Hud.Colony.StepTarget(first.Category, up: false);
+        screen.Hud.Colony.StepTarget(first.Category, up: false);
+        screen.Advance(1);
+        var step = FreeWillRules.ConfigOf(game.Content)!.TargetStep;
+        if (raised != Math.Min(first.Count + (2 * step), FreeWillRules.ConfigOf(game.Content)!.TargetMax) || FreeWillRules.Targets(game)[0].Count != first.Count)
+        {
+            throw new InvalidOperationException($"the target of {first.Category} went from {first.Count} to {raised} and back to {FreeWillRules.Targets(game)[0].Count}");
+        }
+
+        GD.Print($"[smoke] free will follows the option, and the targets the panel: {string.Join(", ", lines)}");
+    }
+
     private static void ReportColony(Simulation simulation, IReadOnlyList<EntityId> colonists, TileCoord? stairSite)
     {
         var world = simulation.World;

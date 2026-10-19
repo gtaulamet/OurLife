@@ -8,8 +8,8 @@ namespace OurLife.Game.Bootstrap;
 /// <summary>
 /// Player preferences, stored in <c>user://settings.cfg</c>. Without a saved preference the
 /// language is Spanish, whatever the language of the operating system, the game is windowed, the
-/// day and night cycle is on, the interface size is automatic, the grass has the normal decoration
-/// and the frames per second are hidden.
+/// day and night cycle is on, the interface size is automatic, the grass has the normal decoration,
+/// the frames per second are hidden and the colonists have free will.
 /// </summary>
 public sealed class Settings
 {
@@ -21,17 +21,21 @@ public sealed class Settings
     private const string UiScaleKey = "ui_scale";
     private const string DecorationKey = "decoration";
     private const string ShowFpsKey = "show_fps";
+    private const string FreeWillKey = "free_will";
 
     private readonly bool _persistent;
 
-    // The values written to the file; UiScale, Decoration and ShowFps may differ for this session
-    // only (--ui-scale, --decoration, --fps).
+    // The values written to the file; UiScale, Decoration, ShowFps and FreeWill may differ for this
+    // session only (--ui-scale, --decoration, --fps, and the smoke).
     private int _savedUiScale;
     private DecorationLevel _savedDecoration;
     private bool _savedShowFps;
+    private bool _savedFreeWill;
 
-    private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, int decoration, bool showFps, bool persistent)
+    private Settings(string locale, bool fullscreen, bool dayNight, int uiScale, int decoration, bool showFps, bool freeWill, bool persistent)
     {
+        FreeWill = freeWill;
+        _savedFreeWill = freeWill;
         ShowFps = showFps;
         _savedShowFps = showFps;
         Locale = locale;
@@ -72,13 +76,19 @@ public sealed class Settings
     /// <summary>Raised when <see cref="ShowFps"/> changes, so the HUD shows or hides it.</summary>
     public event Action? ShowFpsChanged;
 
+    /// <summary>Whether the colonists act on their own (see "Interruptor" in <c>docs/gdd/libre-albedrio.md</c>).</summary>
+    public bool FreeWill { get; private set; }
+
+    /// <summary>Raised when <see cref="FreeWill"/> changes, so the game being played follows it.</summary>
+    public event Action? FreeWillChanged;
+
     public static Settings Load()
     {
         using var config = new ConfigFile();
         if (config.Load(FilePath) != Error.Ok)
         {
             return new Settings(
-                Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, showFps: false, persistent: true);
+                Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, showFps: false, freeWill: true, persistent: true);
         }
 
         return new Settings(
@@ -88,12 +98,13 @@ public sealed class Settings
             config.GetValue(Section, UiScaleKey, UiScaleRules.Auto).AsInt32(),
             config.GetValue(Section, DecorationKey, (int)DecorationLevel.Normal).AsInt32(),
             config.GetValue(Section, ShowFpsKey, false).AsBool(),
+            config.GetValue(Section, FreeWillKey, true).AsBool(),
             persistent: true);
     }
 
     /// <summary>Settings that are never written, for smoke tests and screenshots.</summary>
     public static Settings InMemory() =>
-        new(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, showFps: false, persistent: false);
+        new(Localizer.DefaultLocale, fullscreen: false, dayNight: true, UiScaleRules.Auto, (int)DecorationLevel.Normal, showFps: false, freeWill: true, persistent: false);
 
     public void SetLocale(string locale)
     {
@@ -152,6 +163,23 @@ public sealed class Settings
         }
     }
 
+    /// <summary>Gives the colonists free will or takes it away. Without <paramref name="save"/> it lasts for this session only.</summary>
+    public void SetFreeWill(bool on, bool save = true)
+    {
+        var changed = on != FreeWill;
+        FreeWill = on;
+        if (save && on != _savedFreeWill)
+        {
+            _savedFreeWill = on;
+            Save();
+        }
+
+        if (changed)
+        {
+            FreeWillChanged?.Invoke();
+        }
+    }
+
     /// <summary>
     /// Sets the interface size: <see cref="UiScaleRules.Auto"/> or one of the steps; anything else
     /// is ignored. Without <paramref name="save"/> it lasts for this session only, as with <c>--ui-scale</c>.
@@ -204,6 +232,7 @@ public sealed class Settings
         config.SetValue(Section, UiScaleKey, _savedUiScale);
         config.SetValue(Section, DecorationKey, (int)_savedDecoration);
         config.SetValue(Section, ShowFpsKey, _savedShowFps);
+        config.SetValue(Section, FreeWillKey, _savedFreeWill);
         var error = config.Save(FilePath);
         if (error != Error.Ok)
         {

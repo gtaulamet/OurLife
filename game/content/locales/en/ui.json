@@ -155,6 +155,7 @@
   "ui.inspector.life": "{stage}, {years, plural, one {# year} other {# years}} old",
   "ui.inspector.pregnant": "Pregnant ({percent}%)",
   "ui.options.show_fps": "Show FPS",
+  "ui.options.free_will": "Free will",
   "ui.hud.stock": "{category}: {count}",
   "ui.hud.fps": "{fps} FPS",
   "ui.inspector.sheet": "Sheet (F)",
@@ -197,6 +198,11 @@
   "ui.sheet.recent_received": "{name} came to {verb}",
   "ui.colony.age": "Age",
   "ui.colony.mood": "Mood",
+  "ui.colony.targets": "Stock targets",
+  "ui.colony.target": "{category}: {count} of {target}",
+  "ui.colony.target_less": "−",
+  "ui.colony.target_more": "+",
+  "ui.colony.targets_help": "With free will, colonists gather on their own what the target still lacks, near the village. At 0, they do not.",
   "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
   "ui.sheet.skill_from": "{skill}, from {name}"
 }

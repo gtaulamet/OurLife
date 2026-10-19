@@ -155,6 +155,7 @@
   "ui.inspector.life": "{stage}, {years, plural, one {# año} other {# años}}",
   "ui.inspector.pregnant": "Embarazada ({percent} %)",
   "ui.options.show_fps": "Mostrar FPS",
+  "ui.options.free_will": "Libre albedrío",
   "ui.hud.stock": "{category}: {count}",
   "ui.hud.fps": "{fps} FPS",
   "ui.inspector.sheet": "Ficha (F)",
@@ -197,6 +198,11 @@
   "ui.sheet.recent_received": "{name} vino a {verb}",
   "ui.colony.age": "Edad",
   "ui.colony.mood": "Ánimo",
+  "ui.colony.targets": "Metas de existencias",
+  "ui.colony.target": "{category}: {count} de {target}",
+  "ui.colony.target_less": "−",
+  "ui.colony.target_more": "+",
+  "ui.colony.targets_help": "Con libre albedrío, los colonos juntan por su cuenta lo que falta para la meta, cerca de la aldea. Con 0, no lo juntan.",
   "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
   "ui.sheet.skill_from": "{skill}, de {name}"
 }

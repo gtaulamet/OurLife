@@ -6,8 +6,9 @@ namespace OurLife.Game.UI;
 
 /// <summary>
 /// Options, from the main menu or the pause menu: the language, applied live, the fullscreen
-/// mode, the size of the interface, the decoration of the grass, the day and night cycle and the
-/// frames per second (<c>docs/gdd/indicadores.md</c>). All are saved at once.
+/// mode, the size of the interface, the decoration of the grass, the day and night cycle, the
+/// frames per second (<c>docs/gdd/indicadores.md</c>) and free will (<c>docs/gdd/libre-albedrio.md</c>).
+/// All are saved at once.
 /// </summary>
 public partial class OptionsScreen : Control
 {
@@ -16,6 +17,7 @@ public partial class OptionsScreen : Control
     private readonly List<(bool Fullscreen, Button Button)> _modes = [];
     private readonly List<(bool On, Button Button)> _cycle = [];
     private readonly List<(bool On, Button Button)> _fps = [];
+    private readonly List<(bool On, Button Button)> _freeWill = [];
     private readonly List<(int Setting, Button Button)> _sizes = [];
     private readonly List<(DecorationLevel Level, Button Button)> _decorations = [];
 
@@ -86,18 +88,20 @@ public partial class OptionsScreen : Control
             screen._decorations.Add((level, button));
         }
 
-        // Two switches side by side: at 720p a row more would not fit (docs/ip/IP2.5.md, risks).
+        // The switches side by side: at 720p a row more would not fit (docs/ip/IP2.5.md, risks).
         var switches = new HBoxContainer();
         switches.AddThemeConstantOverride("separation", UiBuilder.Gap * 3);
         column.AddChild(switches);
         switches.AddChild(Switch("ui.options.day_night", screen._cycle, screen.ChooseDayNight));
         switches.AddChild(Switch("ui.options.show_fps", screen._fps, screen.ChooseShowFps));
+        switches.AddChild(Switch("ui.options.free_will", screen._freeWill, screen.ChooseFreeWill));
 
         column.AddChild(UiBuilder.MenuButton("ui.common.back", () => screen.Closed?.Invoke()));
         screen.RefreshLanguages();
         screen.RefreshModes();
         screen.RefreshCycle();
         screen.RefreshFps();
+        screen.RefreshFreeWill();
         screen.RefreshSizes();
         screen.RefreshDecorations();
         return screen;
@@ -227,6 +231,20 @@ public partial class OptionsScreen : Control
         foreach (var (on, button) in _fps)
         {
             button.SetPressedNoSignal(on == _services.Settings.ShowFps);
+        }
+    }
+
+    private void ChooseFreeWill(bool on)
+    {
+        _services.Settings.SetFreeWill(on);
+        RefreshFreeWill();
+    }
+
+    private void RefreshFreeWill()
+    {
+        foreach (var (on, button) in _freeWill)
+        {
+            button.SetPressedNoSignal(on == _services.Settings.FreeWill);
         }
     }
 

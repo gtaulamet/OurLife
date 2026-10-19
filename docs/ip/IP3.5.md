@@ -23,7 +23,7 @@
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | L1 Spec y contrato | Hecho | `ip3.5/l1-spec` | Spec en `docs/gdd/libre-albedrio.md`, aprobada el 19 de octubre con dos cambios: aldea de 30 celdas alrededor de la llegada, y pinos que también cambian de color en otoño |
-| L2 Interruptor y metas | Pendiente | `ip3.5/l2-metas` | |
+| L2 Interruptor y metas | Hecho | `ip3.5/l2-metas` | Opción "Libre albedrío" en Opciones (prendida por defecto), metas de comida y madera en el panel Colonia con botones de a 10, formato 8 con el centro de la aldea. La opción todavía no cambia la conducta: eso llega con L3 y L4 |
 | L3 Trabajo por iniciativa | Pendiente | `ip3.5/l3-iniciativa` | |
 | L4 Vida social con intención | Pendiente | `ip3.5/l4-social` | |
 | L4b Bosque que vuelve | Pendiente | `ip3.5/l4b-bosque` | |

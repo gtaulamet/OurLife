@@ -14,8 +14,10 @@ namespace OurLife.Game.UI;
 /// colonist with its name, age and mood (<c>docs/gdd/vida-y-generaciones.md</c>), what it is doing
 /// and a button per work type with its priority. A click
 /// moves it on (1 → 2 → 3 → 4 → No → 1), a right click back; a click on a name
-/// selects the colonist. The rows are built again when colonists come or go, or the language
-/// changes, and their texts refresh a few times per second while the panel is open.
+/// selects the colonist. Below, the stock targets of the village (<c>docs/gdd/libre-albedrio.md</c>),
+/// each with what the colony has and buttons to lower and raise it. The rows are built again when
+/// colonists come or go, or the language changes, and their texts refresh a few times per second
+/// while the panel is open.
 /// </summary>
 public partial class ColonyPanel : PanelContainer
 {
@@ -27,10 +29,13 @@ public partial class ColonyPanel : PanelContainer
     private GameSession _session = null!;
     private GameInput _input = null!;
     private GridContainer _grid = null!;
+    private VBoxContainer _targets = null!;
+    private readonly List<(string Category, Label Label)> _targetRows = [];
     private ColonyRules _rules = null!;
 
     // Priorities asked in the current tick, before their orders apply.
     private readonly Dictionary<(EntityId Colonist, string WorkType), int> _pending = [];
+    private readonly Dictionary<string, int> _pendingTargets = new(StringComparer.Ordinal);
     private long _pendingTick = -1;
     private double _sinceRefresh;
 
@@ -57,7 +62,28 @@ public partial class ColonyPanel : PanelContainer
         panel._grid.AddThemeConstantOverride("v_separation", 4);
         column.AddChild(panel._grid);
         column.AddChild(new Label { Text = "ui.colony.help", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(480, 0) });
+        panel._targets = new VBoxContainer();
+        panel._targets.AddThemeConstantOverride("separation", 4);
+        column.AddChild(panel._targets);
         return panel;
+    }
+
+    /// <summary>The lines of the stock targets as the player reads them, for the smoke.</summary>
+    public IEnumerable<string> TargetTexts => _targetRows.Select(row => row.Label.Text);
+
+    /// <summary>Lowers or raises the target of a category by one step, as its buttons do.</summary>
+    public void StepTarget(string category, bool up)
+    {
+        if (FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config)
+        {
+            return;
+        }
+
+        var target = Math.Clamp(TargetOf(category) + (up ? config.TargetStep : -config.TargetStep), 0, config.TargetMax);
+        _session.Enqueue(new SetStockTargetCommand(category, target));
+        TrackPending();
+        _pendingTargets[category] = target;
+        RefreshRows();
     }
 
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
@@ -179,7 +205,46 @@ public partial class ColonyPanel : PanelContainer
             _rows.Add((colonist, age, mood, activity, priorities));
         }
 
+        RebuildTargets();
         RefreshRows();
+    }
+
+    /// <summary>A line per stock target: what the colony has of the target, and buttons to lower and raise it.</summary>
+    private void RebuildTargets()
+    {
+        foreach (var child in _targets.GetChildren())
+        {
+            _targets.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        _targetRows.Clear();
+        var targets = FreeWillRules.Targets(_session.Simulation);
+        if (targets.Count == 0)
+        {
+            return;
+        }
+
+        _targets.AddChild(new Label { Text = "ui.colony.targets" });
+        foreach (var target in targets)
+        {
+            var row = new HBoxContainer();
+            row.AddThemeConstantOverride("separation", 6);
+            _targets.AddChild(row);
+            var category = target.Category;
+            foreach (var (key, up) in new[] { ("ui.colony.target_less", false), ("ui.colony.target_more", true) })
+            {
+                var button = new Button { Text = key, FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(32, 0) };
+                button.Pressed += () => StepTarget(category, up);
+                row.AddChild(button);
+            }
+
+            var label = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, VerticalAlignment = VerticalAlignment.Center };
+            row.AddChild(label);
+            _targetRows.Add((category, label));
+        }
+
+        _targets.AddChild(new Label { Text = "ui.colony.targets_help", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(480, 0) });
     }
 
     /// <summary>The activity and the priorities of every row, as they are now.</summary>
@@ -206,6 +271,22 @@ public partial class ColonyPanel : PanelContainer
                     : text.Format("ui.colony.priority", ("priority", priority));
             }
         }
+
+        if (_targetRows.Count == 0)
+        {
+            return;
+        }
+
+        var stock = ColonyStock.ByCategory(_session.Simulation);
+        foreach (var (category, label) in _targetRows)
+        {
+            var line = stock.First(entry => entry.Category.Id == category);
+            label.Text = text.Format(
+                "ui.colony.target",
+                ("category", text.Capitalized(text.Format(line.Category.NameKey!))),
+                ("count", line.Count),
+                ("target", TargetOf(category)));
+        }
     }
 
     /// <summary>
@@ -228,29 +309,40 @@ public partial class ColonyPanel : PanelContainer
         position = (position + (forward ? 1 : Steps - 1)) % Steps;
         var next = position == WorkPriorityLevels.Lowest ? WorkPriorityLevels.Never : position + 1;
         _session.Enqueue(new SetWorkPriorityCommand(colonist, workType, next));
+        TrackPending();
+        _pending[(colonist, workType)] = next;
+        RefreshRows();
+    }
 
-        // With time running the order applies on the next tick: until then the panel shows, and
-        // steps from, what was asked, so quick clicks add up.
+    /// <summary>
+    /// With time running an order applies on the next tick: until then the panel shows, and steps
+    /// from, what was asked, so quick clicks add up. Forgets what was asked in an earlier tick.
+    /// </summary>
+    private void TrackPending()
+    {
         if (_pendingTick != _session.Simulation.CurrentTick)
         {
             _pending.Clear();
+            _pendingTargets.Clear();
             _pendingTick = _session.Simulation.CurrentTick;
         }
-
-        _pending[(colonist, workType)] = next;
-        RefreshRows();
     }
 
     /// <summary>A colonist's priority as the player last set it: an order not yet applied, or else the world's.</summary>
     private int PriorityOf(EntityId colonist, string workType)
     {
-        if (_pendingTick != _session.Simulation.CurrentTick)
-        {
-            _pending.Clear();
-        }
-
+        TrackPending();
         return _pending.TryGetValue((colonist, workType), out var pending)
             ? pending
             : WorkPriorityRules.Of(_session.Simulation.World, colonist, workType, _rules.Ai.DefaultWorkPriority);
+    }
+
+    /// <summary>A stock target as the player last set it: an order not yet applied, or else the game's.</summary>
+    private int TargetOf(string category)
+    {
+        TrackPending();
+        return _pendingTargets.TryGetValue(category, out var pending)
+            ? pending
+            : FreeWillRules.Targets(_session.Simulation).First(target => target.Category == category).Count;
     }
 }
