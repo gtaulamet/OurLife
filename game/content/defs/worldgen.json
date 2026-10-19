@@ -27,7 +27,7 @@
     "grassCoverage": 8000,
     "groveFactorMax": 2,
     "vegetation": [
-      { "plant": "berry_bush", "chance": 150, "minElevation": -5, "maxElevation": 3 },
+      { "plant": "berry_bush", "chance": 260, "minElevation": -5, "maxElevation": 3 },
       { "plant": "oak", "chance": 350, "minElevation": -5, "maxElevation": 4 },
       { "plant": "pine", "chance": 400, "minElevation": 2, "maxElevation": 20 }
     ]

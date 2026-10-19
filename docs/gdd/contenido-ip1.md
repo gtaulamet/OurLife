@@ -30,7 +30,7 @@ Spec de diseño del contenido que define H1.3 en `game/content/defs`. Los númer
 |---|---|---|---|---|
 | `oak` | Sí | Talar | 4 troncos | 240 |
 | `pine` | Sí | Talar | 3 troncos | 180 |
-| `berry_bush` | No | Recolectar, vuelve a dar fruto en 3 días, salvo en invierno (`dormantSeasons`) | 10 bayas; 14 desde H3.10 | 60 |
+| `berry_bush` | No | Recolectar, vuelve a dar fruto en 3 días, salvo en invierno (`dormantSeasons`) | 10 bayas | 60 |
 
 ## Objetos
 

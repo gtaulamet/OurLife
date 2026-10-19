@@ -61,7 +61,7 @@ Todo sale del RNG de la simulación, con un flujo por capa (`worldgen.terrain`, 
 | Estratos de abajo hacia arriba, con `strataWobble` 1 | Granito de 6 niveles, caliza de 4, arenisca hasta la tierra | Al cavar desde el fondo del valle se cruzan arenisca y caliza, y el granito aparece unos 8 niveles más abajo |
 | `grassCoverage` | 8 000 | Mucho pasto con claros de tierra |
 | `groveFactorMax` | 2 | Bosquecillos con el doble de densidad y claros sin árboles |
-| Arbusto de bayas | 150, elevación de −5 a 3 | Decenas de arbustos en el fondo del valle: hacen falta unos 30 para 5 colonos |
+| Arbusto de bayas | 260 desde H3.10 (antes 150), elevación de −5 a 3 | Unos 100 arbustos en el fondo del valle (antes unos 55), para 7 colonos y sus hijos: el tope de la tierra es de 9 por boca |
 | Roble | 350, elevación de −5 a 4 | Bosquecillos en el valle |
 | Pino | 400, elevación de 2 a 20 | Laderas y cimas |
 

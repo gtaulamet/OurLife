@@ -3,14 +3,14 @@
     "type": "Scenario",
     "id": "valley_start",
     "creature": "human",
-    "colonists": 5,
+    "colonists": 7,
     "startNeedsMin": 7000,
     "founderMinYears": 18,
     "founderMaxYears": 40,
     "founderSkillMin": 3,
     "founderSkillMax": 10,
     "founderSkillBonus": 4,
-    "foundingCouple": { "count": 2, "minYears": 20, "maxYears": 30, "opinion": 70, "romance": 100 },
-    "items": [{ "item": "provisions", "count": 30 }]
+    "foundingCouple": { "count": 3, "minYears": 20, "maxYears": 30, "opinion": 70, "romance": 100 },
+    "items": [{ "item": "provisions", "count": 42 }]
   }
 ]

@@ -15,7 +15,8 @@ public class ColonyTests
     public void The_content_has_the_rules_and_the_only_scenario_of_the_colony()
     {
         Should.NotThrow(() => ColonyRules.From(GameContent.Defs));
-        ColonyStart.TheOnlyScenario(GameContent.Defs).Colonists.ShouldBe(5);
+        ColonyStart.TheOnlyScenario(GameContent.Defs).Colonists.ShouldBe(7);
+        ColonyStart.TheOnlyScenario(GameContent.Defs).FoundingCouple!.Count.ShouldBe(3);
     }
 
     [Fact]
