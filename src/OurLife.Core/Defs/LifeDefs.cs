@@ -208,6 +208,12 @@ public sealed class BirthConfig
     /// </summary>
     public int FoodPlantsPerColonist { get; init; }
 
+    /// <summary>
+    /// A couple does not conceive while a need met by eating of one of them is under this percent
+    /// of its maximum; without it, under the need's low threshold.
+    /// </summary>
+    public int? HungryBelowPercent { get; init; }
+
     internal IEnumerable<string> Validate()
     {
         if (FemaleFertileYears.Min > FemaleFertileYears.Max || MaleFertileYears.Min > MaleFertileYears.Max
@@ -216,9 +222,9 @@ public sealed class BirthConfig
             yield return "birth fertile years need 0 <= min <= max.";
         }
 
-        if (ConceptionChancePerYear is < 0 or > 100 || LateWorkSpeedPercent <= 0)
+        if (ConceptionChancePerYear is < 0 or > 100 || LateWorkSpeedPercent <= 0 || HungryBelowPercent is < 0 or > 100)
         {
-            yield return "birth.conceptionChancePerYear must be between 0 and 100, and lateWorkSpeedPercent positive.";
+            yield return "birth.conceptionChancePerYear and hungryBelowPercent must be between 0 and 100, and lateWorkSpeedPercent positive.";
         }
 
         if (PregnancyLifeDays <= 0 || LateFromLifeDays < 0 || YearsBetweenChildren < 0 || FoodReserveDays < 0 || FoodPlantsPerColonist < 0)

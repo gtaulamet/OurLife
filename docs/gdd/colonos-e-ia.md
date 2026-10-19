@@ -102,7 +102,7 @@ Un colono sin trabajo elige uno con esta prioridad:
 
 ### Balance del invierno (H1.8)
 
-El arbusto de bayas duerme en invierno, así que el invierno es la amenaza de IP1. Con 10 bayas por recolección, 3 días de rebrote y 400 de nutrición por baya:
+El arbusto de bayas duerme en invierno, así que el invierno es la amenaza de IP1. Con 10 bayas por recolección (14 desde H3.10, que mantiene esta amenaza), 3 días de rebrote y 400 de nutrición por baya:
 
 - Una colonia que nunca recolecta llega al invierno sin reservas y muere entre los días 11 y 14.
 - Una colonia que recolecta en otoño los arbustos de un radio de 25 celdas alrededor de la aldea pasa el invierno y llega a la primavera con comida de sobra.

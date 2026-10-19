@@ -55,7 +55,8 @@
       "parentOpinion": 40,
       "siblingOpinion": 30,
       "foodReserveDays": 30,
-      "foodPlantsPerColonist": 7
+      "foodPlantsPerColonist": 7,
+      "hungryBelowPercent": 20
     }
   }
 ]

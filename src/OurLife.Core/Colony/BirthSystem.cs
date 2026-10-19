@@ -83,7 +83,7 @@ public sealed class BirthSystem : ISimSystem
     private void TryConceive(Simulation simulation, EntityId mother, BirthConfig birth, int pace)
     {
         var father = Relationships.PartnerOf(simulation, mother);
-        if (father.IsNone || !_life.CouldConceive(simulation, mother, father) || Hunger.IsLow(simulation, mother) || Hunger.IsLow(simulation, father)
+        if (father.IsNone || !_life.CouldConceive(simulation, mother, father) || TooHungry(simulation, mother, birth) || TooHungry(simulation, father, birth)
             || !HasFoodReserve(simulation, mother, birth) || !LandFeedsOneMore(simulation, birth))
         {
             return;
@@ -175,6 +175,29 @@ public sealed class BirthSystem : ISimSystem
     /// </summary>
     private static long MouthsWithOneMore(World world) =>
         (long)world.Store<Colonist>().Count + world.Store<Pregnancy>().Count + 1;
+
+    /// <summary>
+    /// Hunger keeps a couple from conceiving: under <see cref="BirthConfig.HungryBelowPercent"/> of
+    /// the need, or under its low threshold without it.
+    /// </summary>
+    private static bool TooHungry(Simulation simulation, EntityId colonist, BirthConfig birth)
+    {
+        if (birth.HungryBelowPercent is not { } percent)
+        {
+            return Hunger.IsLow(simulation, colonist);
+        }
+
+        foreach (var state in simulation.World.Get<Needs>(colonist).Values)
+        {
+            var need = simulation.Content.Get<NeedDef>(state.Need);
+            if (need.SatisfiedBy == NeedSatisfaction.Eating && (long)state.Value * 100 < (long)need.Max * percent)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Whether the colony has food for <see cref="BirthConfig.FoodReserveDays"/> for each mouth

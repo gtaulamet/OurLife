@@ -24,15 +24,15 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 
 ### Nueva partida y llegada
 
-- [ ] Nueva partida ofrece el ritmo de la vida (Normal, Rápido, Muy rápido) con su descripción; Rápido viene elegido.
-- [ ] Llegan cinco colonos con nombre y apellido, de edades distintas, al menos una mujer y un varón; en la ficha, dos parejas.
+- [✅] Nueva partida ofrece el ritmo de la vida (Normal, Rápido, Muy rápido) con su descripción; Rápido viene elegido.
+- [✅] Llegan cinco colonos con nombre y apellido, de edades distintas, al menos una mujer y un varón; en la ficha, dos parejas.
 
 ### Ficha del colono (F)
 
-- [ ] F o el botón del inspector abren la ficha del seleccionado; sigue a la selección y se cierra con F, Esc o Cerrar.
-- [ ] Se leen la etapa y la edad, el ánimo, la personalidad en palabras ("Algo áspero"), las habilidades con su avance, la familia, los pensamientos, los deseos, las relaciones y las últimas interacciones.
-- [ ] En un colono en pareja, el botón "Hijos: permitidos / no" cambia al apretarlo, también con el tiempo corriendo; vale para los dos de la pareja.
-- [ ] El panel Colonia (P) muestra Edad, Ánimo y la columna Crianza en las prioridades.
+- [✅] F o el botón del inspector abren la ficha del seleccionado; sigue a la selección y se cierra con F, Esc o Cerrar.
+- [✅] Se leen la etapa y la edad, el ánimo, la personalidad en palabras ("Algo áspero"), las habilidades con su avance, la familia, los pensamientos, los deseos, las relaciones y las últimas interacciones.
+- [✅] En un colono en pareja, el botón "Hijos: permitidos / no" cambia al apretarlo, también con el tiempo corriendo; vale para los dos de la pareja.
+- [✅] El panel Colonia (P) muestra Edad, Ánimo y la columna Crianza en las prioridades.
 
 ### Vida social y ánimo
 
@@ -71,7 +71,7 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 ### macOS (en una Mac con Apple Silicon)
 
 - [ ] Descomprimir `OurLife-v0.3.0-macos-universal.zip`, volver a firmar con los pasos del README (`codesign --force --deep --sign - OurLife.app` y `xattr -cr OurLife.app`) y abrir la app.
-- [ ] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `40A56EC5ADD2BA9E`, la misma que en Windows.
+- [ ] Smoke en la terminal: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000` termina con `[smoke] OK` y la huella `C45F2AF564D36705`, la misma que en Windows.
 - [ ] Las etapas, los globos y la ficha se ven como en Windows.
 
 ### Rendimiento
@@ -85,8 +85,8 @@ Lo que no necesita manos, verificado por Claude Code antes de la prueba humana.
 
 | Punto | Cómo se verificó | Resultado |
 |---|---|---|
-| Tests | 702 en verde: Core, localización y contenido, con el balance de diez años (`BalanceTests`) y las partidas viejas de los formatos 1 a 6 | ✅ |
-| Smoke | Código 0; abre la ficha, prueba el botón de hijos y revisa que no falten textos. Huellas `5C715E8411C7DFC8` (semilla 1) y `40A56EC5ADD2BA9E` (semilla 42) | ✅ |
+| Tests | 705 en verde: Core, localización y contenido, con el balance de diez años (`BalanceTests`) y las partidas viejas de los formatos 1 a 6 | ✅ |
+| Smoke | Código 0; abre la ficha, prueba el botón de hijos y revisa que no falten textos. Huellas `8992837663AF7AA9` (semilla 1) y `C45F2AF564D36705` (semilla 42) | ✅ |
 | Balance de población y comida | Partidas de diez años en Rápido y Muy rápido, semillas 1 y 42: ninguna muerte por hambre; en Rápido la aldea se mantiene en 6 o 7. En Muy rápido tiende a extinguirse en unos diez años (límite conocido, en el backlog). Detalle en "Balance de población y comida" de la spec | ✅ |
 | Rendimiento de una partida larga | Diez años en Rápido: 0,017 ms por tick en la simulación; `--load diez-anos --benchmark 30` en Godot: 382 FPS de media, 300 en el 1 % más lento, 0,08 ms por tick (RTX 4090 de portátil). Presupuesto: 60 FPS y 2 ms | ✅ |
 | Rendimiento de una partida nueva | `--benchmark 20`: 361 FPS y 0,08 ms por tick | ✅ |

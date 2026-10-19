@@ -370,6 +370,37 @@ public class BirthTests
         bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
     }
 
+    [Fact]
+    public void With_a_hunger_bar_for_births_a_couple_conceives_until_it_is_hungrier_than_it()
+    {
+        var content = TestContent.WithDefs(CertainJson.Replace(
+            "\"siblingOpinion\": 30", "\"siblingOpinion\": 30, \"hungryBelowPercent\": 20", StringComparison.Ordinal));
+        var (bed, wife, husband) = Couple(seed: 1, pace: "yearly", content: content, food: false);
+
+        // At midnight, some 18 hours later, about 2400: under the low threshold of 40 %, but over
+        // 20 %. Hungry, yet not too hungry for a child.
+        bed.Need(husband, "hunger").Value = 6_000;
+        bed.Need(wife, "hunger").Value = 6_000;
+        bed.Simulation.Run(TicksPerDay);
+
+        bed.Need(husband, "hunger").Value.ShouldBeLessThan(4_000);
+
+        bed.World.Has<Pregnancy>(wife).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Under_the_hunger_bar_for_births_a_couple_does_not_conceive()
+    {
+        var content = TestContent.WithDefs(CertainJson.Replace(
+            "\"siblingOpinion\": 30", "\"siblingOpinion\": 30, \"hungryBelowPercent\": 20", StringComparison.Ordinal));
+        var (bed, wife, husband) = Couple(seed: 1, pace: "yearly", content: content, food: false);
+        bed.Need(husband, "hunger").Value = 1_900;
+
+        bed.Simulation.Run(TicksPerDay);
+
+        bed.World.Has<Pregnancy>(wife).ShouldBeFalse();
+    }
+
     private static int Frustrations(ColonyTestBed bed, EntityId colonist) =>
         MoodRules.Thoughts(bed.Simulation, colonist).Count(thought => thought.Id == "desire_frustrated");
 
