@@ -82,6 +82,18 @@ public static class FreeWillRules
                                 ?? new StockTarget(category.Id, config.DefaultTargets[category.Id]))];
     }
 
+    /// <summary>
+    /// The target one press of the panel's buttons gives: the next multiple of the step up or down,
+    /// within 0 and the highest, so one clamped to the highest goes back to the multiples (999, 990, 980…).
+    /// </summary>
+    public static int NextTarget(FreeWillConfigDef config, int current, bool up)
+    {
+        ArgumentNullException.ThrowIfNull(config);
+        var step = config.TargetStep;
+        var next = up ? ((current / step) + 1) * step : (((current + step - 1) / step) - 1) * step;
+        return Math.Clamp(next, 0, config.TargetMax);
+    }
+
     /// <summary>Whether a cell is near the village: within the config's radius of its centre on the plane, at any level.</summary>
     public static bool IsNearVillage(Simulation simulation, TileCoord cell)
     {

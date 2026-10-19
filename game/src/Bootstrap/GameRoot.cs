@@ -631,9 +631,7 @@ public partial class GameRoot : Node
             simulation.Run(ticks - half);
             stopwatch.Stop();
             loaded.Run(ticks - half);
-            // With free will off the fingerprint leaves out the village and its targets: compared apart.
-            if (loaded.ComputeStateHash() != simulation.ComputeStateHash() || loaded.FreeWill != simulation.FreeWill
-                || loaded.VillageCenter != simulation.VillageCenter || !loaded.StockTargets.SequenceEqual(simulation.StockTargets))
+            if (!SameGame(loaded, simulation))
             {
                 Fail($"[smoke] saved at tick {half} and loaded, the game differs {ticks - half} ticks later from the one that never stopped", ExitFailure);
                 return;
@@ -717,7 +715,7 @@ public partial class GameRoot : Node
             $"[smoke] save: {buffer.Length / 1024} KB, saved in {saved.TotalMilliseconds:F0} ms, loaded in {(stopwatch.Elapsed - saved).TotalMilliseconds:F0} ms"));
 
         var expected = simulation.ComputeStateHash();
-        if (loaded.ComputeStateHash() != expected)
+        if (!SameGame(loaded, simulation))
         {
             GD.PushError($"[smoke] the loaded game differs from the saved one: {loaded.ComputeStateHash():X16} instead of {expected:X16}");
             return null;
@@ -725,6 +723,14 @@ public partial class GameRoot : Node
 
         return loaded;
     }
+
+    /// <summary>
+    /// Whether two games are the same: their fingerprints, and free will with the village and its
+    /// targets, which the fingerprint leaves out while free will is off (docs/gdd/libre-albedrio.md).
+    /// </summary>
+    private static bool SameGame(Simulation one, Simulation other) =>
+        one.ComputeStateHash() == other.ComputeStateHash() && one.FreeWill == other.FreeWill
+        && one.VillageCenter == other.VillageCenter && one.StockTargets.SequenceEqual(other.StockTargets);
 
     /// <summary>A slot is written, listed and loaded with the same fingerprint.</summary>
     private static bool CheckSlots(GameServices services, Simulation simulation, SaveSlots slots)
@@ -737,7 +743,7 @@ public partial class GameRoot : Node
             return false;
         }
 
-        if (slots.Load(SmokeSlot, services.Defs).Simulation.ComputeStateHash() != simulation.ComputeStateHash())
+        if (!SameGame(slots.Load(SmokeSlot, services.Defs).Simulation, simulation))
         {
             GD.PushError("[smoke] the slot written loads a different game");
             return false;

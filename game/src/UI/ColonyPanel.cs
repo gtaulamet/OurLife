@@ -73,10 +73,7 @@ public partial class ColonyPanel : PanelContainer
     /// <summary>The lines of the stock targets as the player reads them, for the smoke.</summary>
     public IEnumerable<string> TargetTexts => _targetRows.Select(row => row.Label.Text);
 
-    /// <summary>
-    /// Lowers or raises the target of a category to the next multiple of the step, as its buttons
-    /// do, so a target clamped to the highest goes back to the multiples on the way down.
-    /// </summary>
+    /// <summary>Lowers or raises the target of a category to the next multiple of the step, as its buttons do.</summary>
     public void StepTarget(string category, bool up)
     {
         // A category without a target is ignored, as the command does.
@@ -87,13 +84,10 @@ public partial class ColonyPanel : PanelContainer
         }
 
         TrackPending();
-        var current = TargetOf(category, targets);
-        var step = config.TargetStep;
-        var next = up ? ((current / step) + 1) * step : ((current + step - 1) / step - 1) * step;
-        var target = Math.Clamp(next, 0, config.TargetMax);
+        var target = FreeWillRules.NextTarget(config, TargetOf(category, targets), up);
         _session.Enqueue(new SetStockTargetCommand(category, target));
         _pendingTargets[category] = target;
-        RefreshRows();
+        RefreshTargets();
     }
 
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
@@ -131,6 +125,7 @@ public partial class ColonyPanel : PanelContainer
         else
         {
             RefreshRows();
+            RefreshTargets();
         }
     }
 
@@ -215,7 +210,9 @@ public partial class ColonyPanel : PanelContainer
             _rows.Add((colonist, age, mood, activity, priorities));
         }
 
+        FixTargetWidths();
         RefreshRows();
+        RefreshTargets();
     }
 
     /// <summary>
@@ -279,26 +276,41 @@ public partial class ColonyPanel : PanelContainer
             }
         }
 
+    }
+
+    /// <summary>What the colony has of each target and the target, as the player last set it.</summary>
+    private void RefreshTargets()
+    {
         if (_targetRows.Count == 0)
         {
             return;
         }
 
         // Counted only while the panel is open, a few times per second.
+        TrackPending();
         var stock = ColonyStock.ByCategory(_session.Simulation);
         var targets = FreeWillRules.Targets(_session.Simulation);
         foreach (var (category, label) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
             label.Text = TargetText(line.Category, line.Count, TargetOf(category, targets));
+        }
+    }
 
-            // At least as wide as with four digits and three, so the buttons beside it stay still while the count grows.
+    /// <summary>
+    /// Each target line as wide as with four digits and three in the current language, so the
+    /// buttons beside it stay still while the count grows. Measured when the panel is built again.
+    /// </summary>
+    private void FixTargetWidths()
+    {
+        foreach (var (category, label) in _targetRows)
+        {
             var widest = label.GetThemeFont("font").GetStringSize(
-                TargetText(line.Category, 8888, 888), HorizontalAlignment.Left, -1, label.GetThemeFontSize("font_size")).X;
-            if (label.CustomMinimumSize.X < widest)
-            {
-                label.CustomMinimumSize = new Vector2(Mathf.Ceil(widest), 0);
-            }
+                TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), 8888, 888),
+                HorizontalAlignment.Left,
+                -1,
+                label.GetThemeFontSize("font_size")).X;
+            label.CustomMinimumSize = new Vector2(Mathf.Ceil(widest), 0);
         }
     }
 

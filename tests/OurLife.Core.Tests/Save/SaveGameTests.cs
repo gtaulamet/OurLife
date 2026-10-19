@@ -227,6 +227,7 @@ public class SaveGameTests
         }
 
         Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+        Load(file).VillageCenter.ShouldBe(loaded.VillageCenter);
     }
 
     [Theory]

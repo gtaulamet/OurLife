@@ -61,6 +61,9 @@ public class OldSaveTests
         var second = Load(file, out _);
 
         second.ComputeStateHash().ShouldBe(first.ComputeStateHash());
+
+        // Free will is off in an old game, so the fingerprint leaves out the migrated centre.
+        second.VillageCenter.ShouldBe(first.VillageCenter);
         first.Run(5_000);
         second.Run(5_000);
         second.ComputeStateHash().ShouldBe(first.ComputeStateHash());

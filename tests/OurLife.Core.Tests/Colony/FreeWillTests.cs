@@ -53,6 +53,24 @@ public class FreeWillTests
         FreeWillRules.Targets(bed.Simulation).ShouldBe([new StockTarget("food", 999), new StockTarget("wood", 0)]);
     }
 
+    [Theory]
+    [InlineData(150, true, 160)]
+    [InlineData(150, false, 140)]
+    [InlineData(145, true, 150)]
+    [InlineData(145, false, 140)]
+    [InlineData(990, true, 999)]
+    [InlineData(999, true, 999)]
+    [InlineData(999, false, 990)]
+    [InlineData(0, false, 0)]
+    [InlineData(0, true, 10)]
+    [InlineData(5, false, 0)]
+    public void A_press_goes_to_the_next_multiple_of_the_step_within_zero_and_the_highest(int current, bool up, int expected)
+    {
+        var config = FreeWillRules.ConfigOf(ColonyTestBed.Content)!;
+
+        FreeWillRules.NextTarget(config, current, up).ShouldBe(expected);
+    }
+
     [Fact]
     public void The_village_is_centred_on_the_arrival_and_reaches_its_radius_at_any_level()
     {
