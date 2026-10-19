@@ -49,6 +49,8 @@ public static class SaveTypes
         Command<PlaceBlueprintCommand>("place_blueprint");
         Command<SetWorkPriorityCommand>("set_work_priority");
         Command<SetChildrenAllowedCommand>("set_children_allowed");
+        Command<SetFreeWillCommand>("set_free_will");
+        Command<SetStockTargetCommand>("set_stock_target");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

@@ -150,10 +150,46 @@ public class SaveGameTests
         loaded.Run(3_000);
     }
 
+    [Fact]
+    public void Free_will_the_village_centre_and_the_targets_are_saved()
+    {
+        var bed = BusyColony();
+        bed.Simulation.Commands.Enqueue(new SetFreeWillCommand(true));
+        bed.Simulation.Commands.Enqueue(new SetStockTargetCommand("wood", 70));
+        bed.Simulation.Run(1);
+
+        var loaded = Load(Save(bed.Simulation));
+
+        loaded.FreeWill.ShouldBeTrue();
+        loaded.VillageCenter.ShouldBe(bed.Simulation.VillageCenter);
+        loaded.VillageCenter.ShouldNotBeNull();
+        FreeWillRules.Targets(loaded).ShouldBe([new StockTarget("food", 150), new StockTarget("wood", 70)]);
+        loaded.ComputeStateHash().ShouldBe(bed.Simulation.ComputeStateHash());
+    }
+
+    [Theory]
+    [InlineData("\"VillageCenter\":{\"X\":", "\"VillageCenter\":{\"X\":99", SaveLoadError.Corrupt)]
+    [InlineData("\"StockTargets\":[]", "\"StockTargets\":[{\"Category\":\"gold\",\"Count\":5}]", SaveLoadError.MissingContent)]
+    [InlineData("\"StockTargets\":[]", "\"StockTargets\":[{\"Category\":\"wood\",\"Count\":-5}]", SaveLoadError.Corrupt)]
+    [InlineData("\"StockTargets\":[]", "\"StockTargets\":[{\"Category\":\"wood\",\"Count\":5},{\"Category\":\"wood\",\"Count\":6}]", SaveLoadError.Corrupt)]
+    [InlineData("\"StockTargets\":[]", "\"StockTargets\":[{\"Category\":null,\"Count\":5}]", SaveLoadError.Corrupt)]
+    [InlineData("\"StockTargets\":[]", "\"StockTargets\":null", SaveLoadError.Corrupt)]
+    public void A_wrong_village_or_target_is_refused(string from, string to, SaveLoadError reason)
+    {
+        var file = Rewrite(Save(BusyColony().Simulation), "state.json", json =>
+        {
+            var at = json.IndexOf(from, StringComparison.Ordinal);
+            return json[..at] + to + json[(at + from.Length)..];
+        });
+
+        LoadFails(file).Reason.ShouldBe(reason);
+    }
+
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
+    [InlineData(7)]
     public void A_game_of_an_older_format_gets_what_came_later_and_keeps_the_rest(int format)
     {
         var bed = BusyColony();
@@ -162,6 +198,9 @@ public class SaveGameTests
 
         var loaded = Load(file);
 
+        loaded.FreeWill.ShouldBeFalse();
+        loaded.StockTargets.ShouldBeEmpty();
+        loaded.VillageCenter.ShouldBe(bed.World.Get<Position>(bed.Colonists()[0]).Cell);
         foreach (var colonist in bed.Colonists())
         {
             loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
@@ -502,8 +541,8 @@ public class SaveGameTests
 
     /// <summary>
     /// The saved game as an older format wrote it, without what came after: format 1 (v0.2.x) had
-    /// no pace of life, ages or surnames, format 2 (H3.2) no personalities, format 3 (H3.3) no skills and
-    /// format 4 (H3.4) no relations.
+    /// no pace of life, ages or surnames, format 2 (H3.2) no personalities, format 3 (H3.3) no skills,
+    /// format 4 (H3.4) no relations and format 7 (v0.3.0) no free will, village centre or stock targets.
     /// </summary>
     private static byte[] AsFormat(int format, byte[] file)
     {
@@ -513,7 +552,15 @@ public class SaveGameTests
         {
             var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
             var stores = state["Components"]!.AsArray();
-            var added = new List<string> { "relations", "family", "recent_interactions" };
+            state.Remove("FreeWill");
+            state.Remove("VillageCenter");
+            state.Remove("StockTargets");
+            var added = new List<string>();
+            if (format <= 4)
+            {
+                added.AddRange(["relations", "family", "recent_interactions"]);
+            }
+
             if (format <= 3)
             {
                 added.Add("skills");

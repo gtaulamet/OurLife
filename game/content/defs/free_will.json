@@ -1,0 +1,21 @@
+[
+  {
+    "type": "FreeWillConfig",
+    "id": "default",
+    "villageRadius": 30,
+    "initiativeChancePercent": 60,
+    "initiativeTrait": "diligence",
+    "seekChancePercent": 30,
+    "seekTrait": "sociability",
+    "seekRadius": 30,
+    "avoidRadius": 10,
+    "traitPercent": { "low": 50, "high": 150 },
+    "lowMoodBelow": 30,
+    "lowMoodPercent": 50,
+    "highMoodAbove": 70,
+    "highMoodPercent": 120,
+    "defaultTargets": { "food": 150, "wood": 40 },
+    "targetStep": 10,
+    "targetMax": 999
+  }
+]

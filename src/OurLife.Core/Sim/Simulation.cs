@@ -42,6 +42,18 @@ public sealed class Simulation
     /// </summary>
     public string LifePace { get; internal set; } = string.Empty;
 
+    /// <summary>
+    /// Whether the colonists have free will (see <c>docs/gdd/libre-albedrio.md</c>): the player's
+    /// option, which the session sends with <see cref="Colony.SetFreeWillCommand"/>. Off until then.
+    /// </summary>
+    public bool FreeWill { get; internal set; }
+
+    /// <summary>The centre of the village, where the colonists arrived; null before they do.</summary>
+    public TileCoord? VillageCenter { get; internal set; }
+
+    /// <summary>The stock targets the player chose, by item category id, sorted; a category left out has its default.</summary>
+    public List<StockTarget> StockTargets { get; } = [];
+
     /// <summary>Validated game content: materials, plants, items, eras, time settings…</summary>
     public DefDatabase Content { get; }
 
@@ -171,3 +183,6 @@ public sealed class Simulation
 
     private readonly record struct ScheduledSystem(ISimSystem System, int Interval, int Offset);
 }
+
+/// <summary>How many units of an item category the player wants the village to keep (see <c>docs/gdd/libre-albedrio.md</c>).</summary>
+public sealed record StockTarget(string Category, int Count);

@@ -108,6 +108,7 @@ public static class ColonyStart
         // Named once the colony is there: a failure above leaves the simulation as it was.
         simulation.ColonyName = colonyName;
         simulation.LifePace = lifePace ?? life.DefaultPace.Id;
+        simulation.VillageCenter = arrival;
         simulation.Events.Emit(new NotificationEvent(
             simulation.CurrentTick,
             LocalizedText.Of("event.colony.arrived").With("count", colonists.Count),
@@ -192,6 +193,19 @@ public static class ColonyStart
                     Level = random.NextInt(scenario.FounderSkillMin, scenario.FounderSkillMax + 1),
                 });
             }
+        }
+    }
+
+    /// <summary>
+    /// Gives a game saved before IP3.5 (format 7) the centre of its village: the cell of its first
+    /// colonist, as the arrival is not kept; none in a game without colonists (ADR-013).
+    /// </summary>
+    internal static void MigrateVillageCenter(Simulation simulation)
+    {
+        var colonists = ColonistsOf(simulation.World);
+        if (colonists.Count > 0 && simulation.World.TryGet<Position>(colonists[0], out var position))
+        {
+            simulation.VillageCenter = position.Cell;
         }
     }
 

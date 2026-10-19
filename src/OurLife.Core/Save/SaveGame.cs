@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 7;
+    public const int FormatVersion = 8;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -151,6 +151,11 @@ public static class SaveGame
                 ColonyStart.MigrateNewSkills(simulation);
             }
 
+            if (header.FormatVersion <= 7)
+            {
+                ColonyStart.MigrateVillageCenter(simulation);
+            }
+
             return (simulation, header);
         });
         return simulation;
@@ -177,6 +182,9 @@ public static class SaveGame
             Seed = simulation.Seed,
             ColonyName = simulation.ColonyName,
             LifePace = simulation.LifePace,
+            FreeWill = simulation.FreeWill,
+            VillageCenter = simulation.VillageCenter,
+            StockTargets = [.. simulation.StockTargets],
             Era = simulation.Progress.CurrentEra,
             Knowledge = [.. simulation.Progress.Knowledge.Order(StringComparer.Ordinal)],
             Random = [.. simulation.Random.Streams.Select(entry => new SavedStream(entry.Key, entry.Value.State, entry.Value.Increment))],
@@ -248,7 +256,7 @@ public static class SaveGame
     private static Simulation Restore(SavedState state, DefDatabase content)
     {
         // Valid JSON can still hold null where a list belongs.
-        if (state.ColonyName is null || state.LifePace is null || state.Era is null || state.Knowledge is null || state.Random is null
+        if (state.ColonyName is null || state.LifePace is null || state.StockTargets is null || state.StockTargets.Any(target => target?.Category is null) || state.Era is null || state.Knowledge is null || state.Random is null
             || state.Generations is null || state.FreeSlots is null || state.Components is null || state.Commands is null
             || state.Components.Any(store => store?.Type is null || store.Entities is null || store.Entities.Any(saved => saved is null))
             || state.Commands.Any(saved => saved?.Type is null)
@@ -286,6 +294,28 @@ public static class SaveGame
         if (state.Map is not null)
         {
             simulation.AttachMap(RestoreMap(state.Map, content));
+        }
+
+        simulation.FreeWill = state.FreeWill;
+        if (state.VillageCenter is { } center)
+        {
+            if (!simulation.HasMap || !simulation.Map.Size.Contains(center.X, center.Y, center.Z))
+            {
+                throw Corrupt($"village centre {center} outside the map");
+            }
+
+            simulation.VillageCenter = center;
+        }
+
+        foreach (var target in state.StockTargets.OrderBy(target => target.Category, StringComparer.Ordinal))
+        {
+            RequireDef<ItemCategoryDef>(content, target.Category);
+            if (target.Count < 0 || simulation.StockTargets.Exists(other => other.Category == target.Category))
+            {
+                throw Corrupt($"stock target {target}");
+            }
+
+            simulation.StockTargets.Add(target);
         }
 
         simulation.World.Entities.Restore(state.Generations, state.FreeSlots);
@@ -565,6 +595,14 @@ public static class SaveGame
 
         /// <summary>Empty in format 1, which had no pace of life.</summary>
         public string LifePace { get; set; } = string.Empty;
+
+        /// <summary>Off before format 8, as the session sends it anyway.</summary>
+        public bool FreeWill { get; set; }
+
+        /// <summary>Null before format 8, until it is migrated, or before the colony arrives.</summary>
+        public TileCoord? VillageCenter { get; set; }
+
+        public List<StockTarget> StockTargets { get; set; } = [];
 
         public string Era { get; set; } = string.Empty;
 

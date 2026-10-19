@@ -4,15 +4,15 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-18.*
+*Actualizado el 2026-10-19.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l1-spec`: spec aprobada. Sigue L2 en `ip3.5/l2-metas` |
+| Rama de trabajo | `ip3.5/l2-metas`: Core de L2 hecho (formato 8); falta la presentación |
 | `main` | Con `v0.3.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 705 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Validación | `dotnet build` sin advertencias, 728 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000` (desde el 19 de octubre, con siete fundadores). Cambian en cada hito de IP3 que suma estado |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L2, interruptor y metas** (`SetFreeWillCommand`, `SetStockTargetCommand`, centro de la aldea, formato 8). Después L3, L4, L4b y L4c, que pueden ir en paralelo.
+1. **L2, interruptor y metas:** el Core está hecho. Falta la presentación: opción "Libre albedrío" en Opciones (`settings.cfg`, prendida por defecto), la sesión manda `SetFreeWillCommand` al empezar, al cargar y al cambiarla, metas de comida y madera con botones de menos y más en el panel Colonia, textos es/en, smoke y capturas; después `guardado.md` y ADR-013 con el formato 8. Luego L3, L4, L4b y L4c, que pueden ir en paralelo.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-19: L2, Core del interruptor y las metas
+
+- Rama `ip3.5/l2-metas`. `FreeWillConfig` (`game/content/defs/free_will.json`, radio 30, metas 150 de comida y 40 de madera), `Simulation.FreeWill`, `VillageCenter` y `StockTargets` en la huella y en el guardado, que pasa al formato 8.
+- `SetFreeWillCommand` y `SetStockTargetCommand` (entre 0 y 999; una categoría sin meta se ignora). Consultas `FreeWillRules.Targets` e `IsNearVillage` (círculo en el plano, a cualquier nivel).
+- El centro es la llegada. Una partida de formato 7 lo recibe al cargarse, en la celda del primer colono. Nueva partida real de `v0.3.0` en las pruebas de partidas viejas (`v0.3.0.olsave`, siete colonos), armada desde el tag.
 
 ### 2026-10-19: L1, spec de IP3.5
 
