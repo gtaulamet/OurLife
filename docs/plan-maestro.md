@@ -621,7 +621,12 @@ El arte de las épocas Moderna y Contemporánea probablemente requiera encargar 
 - Clima: lluvia, nieve y niebla; cultivos según la estación.
 - Iluminación por antorchas de noche. El ciclo de día y noche llega antes, en IP2.
 - Ropa y sastrería; frío y calor como riesgos.
-- Agua estática: ríos y lagos generados, pozos y pesca.
+- Agua estática: ríos y lagos generados, pozos y pesca. Pedido del usuario del 19-oct-2026: que haya agua en el mapa; queda en esta IP. Posibilidades a evaluar al planificarla:
+  - Generación: un río por el fondo del valle y lagos en las hondonadas, distintos en cada semilla.
+  - Mapa: un tipo de celda de agua que no se cruza a pie, salvo por un puente construido o por un vado poco profundo; caminos y conectividad lo respetan.
+  - Dibujo: superficie de agua por bloque de terreno, que se congela en invierno, a tono con los colores de las estaciones de IP3.5.
+  - Juego: pesca como fuente de comida, que sube el tope de población que hoy pone el valle; pozos; riego para los cultivos de IP4; y una necesidad nueva de sed, que obligaría a ir a tomar agua (a decidir).
+  - Estimación del 19-oct-2026: unas 15 a 25 h para agua estática con pesca y puentes; la sed sumaría unas 5 a 8 h. El agua que fluye y se derrama sigue fuera de alcance (backlog).
 - Migrantes por estación; comerciantes con interfaz de comercio y valor de objetos.
 - Simulación en hilo propio si el presupuesto lo exige.
 - **Jugable:** sobrevivir al primer invierno y a varios años.

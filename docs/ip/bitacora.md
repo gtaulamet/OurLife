@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | Ninguna: IP3 cerrada. La próxima es IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), salvo que se adelante el agua |
+| Rama de trabajo | Ninguna: IP3 cerrada. La próxima es IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`) |
 | `main` | Con `v0.3.0`, también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | Ninguna. Sigue IP3.5 "Libre albedrío", planificada; Oficios es IP4 |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **Agua en el mapa** (pedido del 19 de octubre): decidir con el usuario si se adelanta de IP6 y a qué IP.
+1. **IP3.5 "Libre albedrío"**, con el plan de `docs/ip/IP3.5.md`: empezar por L1 (spec).
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -46,7 +46,7 @@ En orden:
 
 - El usuario repitió los tres puntos del playtest con los zips del 19 de octubre: todo en ✅. Resultado completado en `docs/ip/playtest-ip3.md`.
 - H3.10 e IP3 cerradas en `IP3.md`. Tag `v0.3.0` y release de GitHub con los zips de Windows y macOS. `main` adelantado.
-- Pedido nuevo del usuario: agua en el mapa para la próxima IP. El plan la tiene en IP6 ("agua estática: ríos y lagos generados, pozos y pesca"); queda por decidir si se adelanta.
+- Pedido nuevo del usuario: agua en el mapa. Decisión: queda en IP6, donde ya estaba; las posibilidades (río y lagos, puentes y vados, hielo en invierno, pesca, pozos, riego y sed) y la estimación quedan anotadas en IP6 del plan maestro para evaluarlas ahí.
 
 ### 2026-10-19: siete fundadores y primera pasada del playtest
 
