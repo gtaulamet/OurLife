@@ -14,6 +14,35 @@ public static class UiTheme
     /// <summary>Background of a pressed button, so the active option of a toggle row stands out.</summary>
     public static readonly Color PressedColor = new(0.62f, 0.45f, 0.20f);
 
+    /// <summary>
+    /// The box of a number the player writes on the game screen, lighter than the panels so it
+    /// shows it can be written in. Shared: every field looks the same.
+    /// </summary>
+    public static StyleBoxFlat FieldBox { get; } = CreateFieldBox();
+
+    /// <summary>How wide a text is with the font and size a control draws it with.</summary>
+    public static float TextWidth(Control control, string text)
+    {
+        ArgumentNullException.ThrowIfNull(control);
+        return control.GetThemeFont("font").GetStringSize(text, HorizontalAlignment.Left, -1, control.GetThemeFontSize("font_size")).X;
+    }
+
+    private static StyleBoxFlat CreateFieldBox()
+    {
+        var box = new StyleBoxFlat
+        {
+            BgColor = new Color(1f, 1f, 1f, 0.08f),
+            BorderColor = new Color(1f, 1f, 1f, 0.35f),
+            ContentMarginLeft = 6,
+            ContentMarginRight = 6,
+            ContentMarginTop = 2,
+            ContentMarginBottom = 2,
+        };
+        box.SetBorderWidthAll(1);
+        box.SetCornerRadiusAll(3);
+        return box;
+    }
+
     public static Theme Create()
     {
         var theme = new Theme { DefaultFont = GD.Load<FontFile>(FontPath), DefaultFontSize = BaseFontSize };

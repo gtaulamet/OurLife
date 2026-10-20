@@ -5,20 +5,26 @@ namespace OurLife.Game.Input;
 /// <summary>
 /// Whether the player is writing in a text field, like a stock target of the colony panel: then
 /// the keys write, and the game's keys (speeds, orders, camera) wait until the field lets go. Also
-/// in the frame the field lets go, as the keys of that frame went into it.
+/// in the frame after one with a field written in, as a field let go of by a key or a click of
+/// this frame took the keys before it, whatever field it is.
 /// </summary>
 public static class TextFocus
 {
-    private static ulong _releasedFrame = ulong.MaxValue;
+    // The last frame a field was seen written in; the game asks every frame.
+    private static ulong _typingFrame = ulong.MaxValue;
 
     public static bool IsTyping(Node node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        return node.GetViewport()?.GuiGetFocusOwner() is LineEdit or TextEdit || _releasedFrame == Engine.GetProcessFrames();
-    }
+        var frame = Engine.GetProcessFrames();
+        if (node.GetViewport()?.GuiGetFocusOwner() is LineEdit or TextEdit)
+        {
+            _typingFrame = frame;
+            return true;
+        }
 
-    /// <summary>Remembers that a field let go of the keys in this frame.</summary>
-    public static void Released() => _releasedFrame = Engine.GetProcessFrames();
+        return _typingFrame != ulong.MaxValue && frame - _typingFrame <= 1;
+    }
 
     /// <summary>
     /// A click with any button but the wheel, anywhere but on the field being written, lets go of

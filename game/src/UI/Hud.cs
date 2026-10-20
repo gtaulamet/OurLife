@@ -566,9 +566,7 @@ public partial class Hud : CanvasLayer
         _stockWidthsChanged = false;
         foreach (var (category, label) in _stock)
         {
-            var font = label.GetThemeFont("font");
-            var size = font.GetStringSize(StockText(category, 888), HorizontalAlignment.Left, -1, label.GetThemeFontSize("font_size"));
-            label.CustomMinimumSize = new Vector2(Mathf.Ceil(size.X), 0);
+            label.CustomMinimumSize = new Vector2(Mathf.Ceil(UiTheme.TextWidth(label, StockText(category, 888))), 0);
         }
     }
 

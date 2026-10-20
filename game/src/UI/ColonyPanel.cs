@@ -80,17 +80,15 @@ public partial class ColonyPanel : PanelContainer
     /// Writes a target in the field of its category, as the player does, which gives the order; a
     /// category without a field is ignored. For the smoke.
     /// </summary>
-    public void WriteTarget(string category, int target) =>
-        _targetRows.Find(entry => entry.Category == category).Field?.SetValue(target);
+    public void WriteTarget(string category, int target) => FieldOf(category)?.SetValue(target);
 
     /// <summary>The target a field shows, or null for a category without one. For the smoke.</summary>
-    public int? TargetShown(string category) =>
-        _targetRows.Find(entry => entry.Category == category).Field is { } field ? (int)field.Value : null;
+    public int? TargetShown(string category) => FieldOf(category) is { } field ? (int)field.Value : null;
 
     /// <summary>The text field of a target, or null for a category without one. For the smoke.</summary>
-    public LineEdit? TargetLine(string category) =>
-        _targetRows.Find(entry => entry.Category == category).Line;
+    public LineEdit? TargetLine(string category) => FieldOf(category)?.GetLineEdit();
 
+    private SpinBox? FieldOf(string category) => _targetRows.Find(entry => entry.Category == category).Field;
 
     /// <summary>
     /// Esc while writing a target puts back the one it had and lets go of the field, without the
@@ -288,6 +286,9 @@ public partial class ColonyPanel : PanelContainer
                 Alignment = HorizontalAlignment.Left,
                 AutoTranslateMode = AutoTranslateModeEnum.Disabled,
                 TooltipText = Help,
+
+                // The number is not translated, its help is.
+                TooltipAutoTranslateMode = AutoTranslateModeEnum.Always,
             };
             field.SetValueNoSignal(target.Count);
             var line = field.GetLineEdit();
@@ -300,34 +301,11 @@ public partial class ColonyPanel : PanelContainer
             };
             line.TextSubmitted += _ => line.ReleaseFocus();
             line.GuiInput += input => CancelWriting(field, line, input);
-            line.FocusExited += TextFocus.Released;
 
             // Only digits: "10.000", "10,000" or "10 000" become 10000, not an expression or nothing.
-            line.MaxLength = Digits(config.TargetMax);
             line.TextChanged += text => KeepDigits(line, text);
-
-            // An arrow clicked while a number is written steps from that number.
-            field.GuiInput += input =>
-            {
-                if (input is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && line.HasFocus())
-                {
-                    field.Apply();
-                }
-            };
-
-            // A box that shows it can be written in, lighter than the panel.
-            var box = new StyleBoxFlat
-            {
-                BgColor = new Color(1f, 1f, 1f, 0.08f),
-                BorderColor = new Color(1f, 1f, 1f, 0.35f),
-                ContentMarginLeft = 6,
-                ContentMarginRight = 6,
-                ContentMarginTop = 2,
-                ContentMarginBottom = 2,
-            };
-            box.SetBorderWidthAll(1);
-            box.SetCornerRadiusAll(3);
-            line.AddThemeStyleboxOverride("normal", box);
+            field.GuiInput += input => OnFieldMouse(field, line, input);
+            line.AddThemeStyleboxOverride("normal", UiTheme.FieldBox);
             group.AddChild(field);
             _targetRows.Add((category, label, field, line));
         }
@@ -413,10 +391,31 @@ public partial class ColonyPanel : PanelContainer
         foreach (var (category, label, field, line) in _targetRows)
         {
             var text = TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), count);
-            label.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(label, text)), 0);
+            label.CustomMinimumSize = new Vector2(Mathf.Ceil(UiTheme.TextWidth(label, text)), 0);
 
             // Room for the arrows beside the number.
-            field.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(line, highest)) + 36, 0);
+            field.CustomMinimumSize = new Vector2(Mathf.Ceil(UiTheme.TextWidth(line, highest)) + 36, 0);
+        }
+    }
+
+    /// <summary>
+    /// The mouse on a field's arrows: an arrow or the wheel used while a number is written steps
+    /// from that number, and a right click, which would jump to 0 or the highest, does nothing.
+    /// </summary>
+    private static void OnFieldMouse(SpinBox field, LineEdit line, InputEvent input)
+    {
+        if (input is not InputEventMouseButton { Pressed: true } press)
+        {
+            return;
+        }
+
+        if (press.ButtonIndex == MouseButton.Right)
+        {
+            field.AcceptEvent();
+        }
+        else if (line.HasFocus())
+        {
+            field.Apply();
         }
     }
 
@@ -434,9 +433,6 @@ public partial class ColonyPanel : PanelContainer
     private static int Digits(int number) => number.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
 
     private static int Eights(int digits) => int.Parse(new string('8', Math.Min(digits, 9)), System.Globalization.CultureInfo.InvariantCulture);
-
-    private static float WidthOf(Control control, string text) =>
-        control.GetThemeFont("font").GetStringSize(text, HorizontalAlignment.Left, -1, control.GetThemeFontSize("font_size")).X;
 
     private string TargetText(ItemCategoryDef category, int count) =>
         _services.Text.Format("ui.colony.target", ("category", _services.Text.CategoryName(category)), ("count", count));
