@@ -148,6 +148,24 @@ public class FreeWillTests
     }
 
     [Theory]
+    [InlineData("food", null)]
+    [InlineData("wood", "no target for 'wood'")]
+    [InlineData("gold", "gold")]
+    public void A_task_needs_a_target_for_its_category(string category, string? problem)
+    {
+        var defs = $$"""[{{Trait}}, {{Config("default")}}, { "type": "InitiativeTask", "id": "task", "job": "harvest", "category": "{{category}}" }]""";
+
+        if (problem is null)
+        {
+            TestContent.WithDefs(defs).All<InitiativeTaskDef>().Count.ShouldBe(1);
+        }
+        else
+        {
+            Should.Throw<DefValidationException>(() => TestContent.WithDefs(defs)).Message.ShouldContain(problem);
+        }
+    }
+
+    [Theory]
     [InlineData("\"villageRadius\": 6", "\"villageRadius\": 0")]
     [InlineData("\"initiativeChancePercent\": 60", "\"initiativeChancePercent\": 101")]
     [InlineData("\"lowMoodBelow\": 30", "\"lowMoodBelow\": 80")]

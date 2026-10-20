@@ -132,13 +132,14 @@ public static class FreeWillRules
     public static bool IsNearVillage(Simulation simulation, TileCoord cell)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        if (simulation.VillageCenter is not { } center || ConfigOf(simulation.Content) is not { } config)
-        {
-            return false;
-        }
+        return simulation.VillageCenter is { } center && ConfigOf(simulation.Content) is { } config && IsNear(center, config.VillageRadius, cell);
+    }
 
+    /// <summary>Whether a cell is within <paramref name="radius"/> of <paramref name="center"/> on the plane, at any level: the rule of <see cref="IsNearVillage"/>.</summary>
+    public static bool IsNear(TileCoord center, int radius, TileCoord cell)
+    {
         long dx = cell.X - center.X;
         long dy = cell.Y - center.Y;
-        return (dx * dx) + (dy * dy) <= (long)config.VillageRadius * config.VillageRadius;
+        return (dx * dx) + (dy * dy) <= (long)radius * radius;
     }
 }

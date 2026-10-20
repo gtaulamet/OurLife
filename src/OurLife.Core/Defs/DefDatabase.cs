@@ -134,6 +134,16 @@ public sealed partial class DefDatabase
             errors.Add($"The content can have at most one FreeWillConfig def, found {freeWillConfigs.Count}.");
         }
 
+        // A task looks at a stock target: the free will config must have one for its category.
+        if (byType.TryGetValue(typeof(InitiativeTaskDef), out var tasks))
+        {
+            var freeWill = freeWillConfigs?.Values.Cast<FreeWillConfigDef>().FirstOrDefault();
+            foreach (var task in tasks.Values.Cast<InitiativeTaskDef>().Where(task => freeWill?.DefaultTargets.ContainsKey(task.Category) != true))
+            {
+                errors.Add($"{Describe(task)}: the FreeWillConfig has no target for '{task.Category}', so the task would never be done.");
+            }
+        }
+
         var timeConfigs = byType.TryGetValue(typeof(TimeConfigDef), out var configs) ? configs.Values.Cast<TimeConfigDef>().ToArray() : [];
         if (timeConfigs.Length != 1)
         {

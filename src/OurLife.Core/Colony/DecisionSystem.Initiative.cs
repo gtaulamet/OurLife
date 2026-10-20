@@ -24,6 +24,7 @@ public sealed partial class DecisionSystem
     // What the work on its own under way will bring, by category, counted at each decision from the
     // jobs as they are then: the colonists share out the targets.
     private readonly Dictionary<string, int> _incoming = new(StringComparer.Ordinal);
+    private readonly List<EntityId> _nearPlants = [];
 
     /// <summary>
     /// With free will on, a colonist with nothing ordered to do may work on its own: it gathers or
@@ -54,6 +55,7 @@ public sealed partial class DecisionSystem
             order = order != 0 ? order : b.MissingPerMille.CompareTo(a.MissingPerMille);
             return order != 0 ? order : a.Order.CompareTo(b.Order);
         });
+        FindNearPlants(simulation);
         foreach (var (task, _, _, _) in _tasks)
         {
             _candidates.Clear();
@@ -144,22 +146,30 @@ public sealed partial class DecisionSystem
         var world = simulation.World;
         var plants = PlantsOf(simulation.Content, task);
         var kind = task.Kind;
-
-        // Near the village, as FreeWillRules.IsNearVillage, with the centre and the radius read once.
-        var center = simulation.VillageCenter!.Value;
-        long radius = FreeWillRules.ConfigOf(simulation.Content)!.VillageRadius;
-        world.Query<Plant, Position>(_entities);
-        foreach (var plant in _entities)
+        foreach (var plant in _nearPlants)
         {
-            var cell = world.Get<Position>(plant).Cell;
-            long dx = cell.X - center.X;
-            long dy = cell.Y - center.Y;
-            if ((dx * dx) + (dy * dy) <= radius * radius
-                && plants.Contains(world.Get<Plant>(plant).Def)
+            if (plants.Contains(world.Get<Plant>(plant).Def)
                 && !world.Has<ChopOrder>(plant) && !world.Has<HarvestOrder>(plant)
                 && !(kind == JobKind.Harvest && world.Has<Harvested>(plant)))
             {
                 AddEntity(simulation, kind, plant, capacity: 1);
+            }
+        }
+    }
+
+    /// <summary>The plants near the village, by ascending id: one pass over the map for all the tasks of a decision.</summary>
+    private void FindNearPlants(Simulation simulation)
+    {
+        var world = simulation.World;
+        var center = simulation.VillageCenter!.Value;
+        var radius = FreeWillRules.ConfigOf(simulation.Content)!.VillageRadius;
+        _nearPlants.Clear();
+        world.Query<Plant, Position>(_entities);
+        foreach (var plant in _entities)
+        {
+            if (FreeWillRules.IsNear(center, radius, world.Get<Position>(plant).Cell))
+            {
+                _nearPlants.Add(plant);
             }
         }
     }

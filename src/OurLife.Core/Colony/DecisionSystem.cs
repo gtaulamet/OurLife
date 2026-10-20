@@ -15,7 +15,8 @@ namespace OurLife.Core.Colony;
 /// <c>docs/gdd/vida-y-generaciones.md</c>). Every <see cref="AiConfigDef.RecheckTicks"/>,
 /// a busy colonist checks whether a critical need should interrupt its job, and a wandering one
 /// looks again for something to do. Reservations come from the jobs colonists already have, so two
-/// never share a target. Draws from the random stream <c>colony.decision</c>.
+/// never share a target. Draws from the random stream <c>colony.decision</c>, and the chance of
+/// work on its own from <c>colony.free_will</c>.
 /// </summary>
 public sealed partial class DecisionSystem : ISimSystem
 {

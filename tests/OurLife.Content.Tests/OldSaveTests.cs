@@ -63,7 +63,9 @@ public class OldSaveTests
 
         simulation.FreeWill.ShouldBeTrue();
         simulation.VillageCenter.ShouldNotBeNull();
-        FreeWillRules.Targets(simulation).ShouldBe([new StockTarget("food", 150), new StockTarget("wood", 70)]);
+        // Only the wood target was chosen in that game: food has the content's default.
+        var food = GameContent.Defs.All<FreeWillConfigDef>()[0].DefaultTargets["food"];
+        FreeWillRules.Targets(simulation).ShouldBe([new StockTarget("food", food), new StockTarget("wood", 70)]);
         simulation.World.Store<Job>().Count.ShouldBeGreaterThan(0);
     }
 
