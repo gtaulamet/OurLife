@@ -228,10 +228,11 @@ public sealed class JobSystem : ISimSystem
             case JobKind.Play:
                 return Relationships.IsLivingColonist(world, job.Target);
             // Seeking company is free will too. Both must still be up for company and, once the
-            // visitor waits where it went, the other must be, or be going, near enough to interact.
+            // visitor waits, the other must be, or be going, near enough to it to interact.
             case JobKind.Visit:
-                return DecisionSystem.StillWorthVisiting(simulation, colonist, job.Target)
-                       && (job.Stage != JobStage.Working || SocialSystem.InReach(Relationships.Config(simulation), job.Cell, DecisionSystem.AimOf(world, job.Target)));
+                return FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target)
+                       && (job.Stage != JobStage.Working
+                           || SocialSystem.InReach(Relationships.Config(simulation), world.Get<Position>(colonist).Cell, FreeWillRules.AimOf(world, job.Target)));
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:

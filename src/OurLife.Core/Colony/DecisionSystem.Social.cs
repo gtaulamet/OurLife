@@ -24,7 +24,8 @@ public sealed partial class DecisionSystem
     private bool TrySeek(Simulation simulation, EntityId colonist)
     {
         if (!simulation.FreeWill || FreeWillRules.ConfigOf(simulation.Content) is not { } config
-            || LifeRules.Stage(simulation, colonist)?.CrawlRadius is not null || !SocialSystem.CanInteract(simulation, colonist))
+            || LifeRules.Stage(simulation, colonist)?.CrawlRadius is not null || !SocialSystem.CanInteract(simulation, colonist)
+            || MoodRules.CrisisOf(simulation, colonist) is not null)
         {
             return false;
         }
@@ -51,26 +52,9 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    /// <summary>
-    /// Whether a visit to <paramref name="other"/> still makes sense: free will is on, both can
-    /// interact and they are not rivals.
-    /// </summary>
-    internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
-        simulation.FreeWill && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, colonist)
-        && SocialSystem.CanInteract(simulation, other) && !Relationships.IsRival(simulation, colonist, other);
-
-    /// <summary>
-    /// Where to find a colonist to keep it company: where it is going if it is walking in its free
-    /// time, where it waits a while; else where it is.
-    /// </summary>
-    internal static TileCoord AimOf(World world, EntityId colonist) =>
-        world.TryGet<Job>(colonist, out var job) && JobKinds.IsLeisure(job.Kind) && job.Stage == JobStage.Moving
-            ? job.Cell
-            : world.Get<Position>(colonist).Cell;
-
     /// <summary>Sets off to keep <paramref name="other"/> company; true if there is a way.</summary>
     private bool TryVisit(Simulation simulation, EntityId colonist, EntityId other) =>
-        TryGoTo(simulation, colonist, new Job { Kind = JobKind.Visit, Target = other, Cell = AimOf(simulation.World, other) });
+        TryGoTo(simulation, colonist, new Job { Kind = JobKind.Visit, Target = other, Cell = FreeWillRules.AimOf(simulation.World, other) });
 
     /// <summary>
     /// A visitor on its way whose company is no longer where it was going sets off again, while
@@ -79,13 +63,13 @@ public sealed partial class DecisionSystem
     private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
     {
         if (job.Stage != JobStage.Moving || FreeWillRules.ConfigOf(simulation.Content) is not { } config
-            || !StillWorthVisiting(simulation, colonist, job.Target))
+            || !FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target))
         {
             return false;
         }
 
         var world = simulation.World;
-        var aim = AimOf(world, job.Target);
+        var aim = FreeWillRules.AimOf(world, job.Target);
         return !SocialSystem.InReach(Relationships.Config(simulation), job.Cell, aim)
                && FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim)
                && TryVisit(simulation, colonist, job.Target);
@@ -119,7 +103,7 @@ public sealed partial class DecisionSystem
     /// and friends, with the weight they have in the interactions; those it thinks well enough of
     /// and those it wishes to befriend or make up with. A child, who plays with the others, seeks
     /// only its family. Never a rival, not even one of the family, nor one who cannot interact now,
-    /// that the two met lately or that is already coming to keep it company.
+    /// that the two met lately or that is already coming to keep it company or to play.
     /// </summary>
     private void FindLiked(Simulation simulation, EntityId colonist, FreeWillConfigDef config)
     {
@@ -139,23 +123,26 @@ public sealed partial class DecisionSystem
             }
 
             var cell = world.Get<Position>(other).Cell;
-            if (!FreeWillRules.IsNear(from, config.SeekRadius, cell) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
-                || !connectivity.AreConnected(from, cell) || Relationships.IsRival(simulation, colonist, other)
-                || (world.TryGet<Job>(other, out var theirs) && theirs.Kind == JobKind.Visit && theirs.Target == colonist))
+            if (!FreeWillRules.IsNear(from, config.SeekRadius, cell))
             {
                 continue;
             }
 
+            // The weight first, which leaves out most; then the dearer checks.
             var kind = Relationships.Kind(simulation, colonist, other);
             var weight = kind is RelationKind.Partner or RelationKind.Family ? social.CloseWeightPercent
-                : onlyFamily ? 0
+                : onlyFamily || kind == RelationKind.Rival ? 0
                 : kind == RelationKind.Friend ? social.CloseWeightPercent
                 : Relationships.Opinion(simulation, colonist, other) >= config.SeekMinOpinion || Wishes(simulation, desires, other) ? 100
                 : 0;
-            if (weight > 0)
+            if (weight == 0 || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell)
+                || (world.TryGet<Job>(other, out var theirs) && theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist)
+                || (kind is RelationKind.Partner or RelationKind.Family && Relationships.IsRival(simulation, colonist, other)))
             {
-                _liked.Add((other, weight));
+                continue;
             }
+
+            _liked.Add((other, weight));
         }
     }
 

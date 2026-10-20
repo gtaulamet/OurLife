@@ -1,5 +1,6 @@
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
+using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
 
@@ -140,6 +141,39 @@ public static class FreeWillRules
             : 100;
         var traitPercent = config.TraitPercent.At(PersonalityRules.Value(simulation, colonist, trait));
         return (int)((long)basePercent * traitPercent * moodPercent / 100);
+    }
+
+    /// <summary>
+    /// Whether a visit to <paramref name="other"/> still makes sense (see "Vida social con
+    /// intención" in <c>docs/gdd/libre-albedrio.md</c>): free will is on, both can interact, the
+    /// visitor is in no crisis and they are not rivals.
+    /// </summary>
+    internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
+        simulation.FreeWill && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, colonist)
+        && MoodRules.CrisisOf(simulation, colonist) is null && SocialSystem.CanInteract(simulation, other)
+        && !Relationships.IsRival(simulation, colonist, other);
+
+    /// <summary>
+    /// Where to find a colonist to keep it company: where it is going if it is on its way to work
+    /// or to wait a while, or carrying a load to a stockpile or a blueprint; else where it is.
+    /// </summary>
+    internal static TileCoord AimOf(World world, EntityId colonist)
+    {
+        if (world.TryGet<Job>(colonist, out var job))
+        {
+            if (job.Stage == JobStage.Moving)
+            {
+                return job.Cell;
+            }
+
+            // Only these carry to a fixed cell: a baby fed moves.
+            if (job.Stage == JobStage.Carrying && job.Kind is JobKind.Haul or JobKind.Deliver)
+            {
+                return job.Destination;
+            }
+        }
+
+        return world.Get<Position>(colonist).Cell;
     }
 
     /// <summary>Whether a cell is near the village: within the config's radius of its centre on the plane, at any level.</summary>

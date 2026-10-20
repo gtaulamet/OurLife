@@ -32,7 +32,15 @@ public class SocialIntentTests
         bed.JobOf(seeker)!.Target.ShouldBe(liked);
         RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Working }, 600).ShouldBeTrue();
 
-        Chebyshev(bed, seeker, liked).ShouldBeLessThanOrEqualTo(6);
+        // While it waits, the two come within the 4 cells of an interaction.
+        var nearest = int.MaxValue;
+        for (var tick = 0; tick < 300 && bed.JobOf(seeker) is { Kind: JobKind.Visit }; tick++)
+        {
+            nearest = Math.Min(nearest, Chebyshev(bed, seeker, liked));
+            bed.Simulation.Tick();
+        }
+
+        nearest.ShouldBeLessThanOrEqualTo(4);
     }
 
     [Fact]
@@ -79,6 +87,18 @@ public class SocialIntentTests
         var partner = bed.AddColonist(17, 16, 1, name: "Sancha");
         bed.World.Add(seeker, new Family { Partner = new Relative { Entity = partner, Name = "Sancha" } });
         Relationships.Ensure(bed.Simulation, seeker, partner).Opinion = -60;
+
+        Visits(bed, seeker, 1_000).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_colonist_in_a_crisis_seeks_nobody()
+    {
+        var bed = FreeBed();
+        var seeker = bed.AddColonist(8, 16, 1);
+        bed.World.Add(seeker, new Crisis { Kind = "refuse_work", UntilTick = long.MaxValue });
+        var liked = bed.AddColonist(17, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 60;
 
         Visits(bed, seeker, 1_000).ShouldBeEmpty();
     }

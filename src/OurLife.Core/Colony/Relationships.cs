@@ -54,7 +54,7 @@ public static class Relationships
             return RelationKind.Friend;
         }
 
-        return IsRival(simulation, a, b) ? RelationKind.Rival : RelationKind.None;
+        return AreRivals(ab, ba, config) ? RelationKind.Rival : RelationKind.None;
     }
 
     /// <summary>
@@ -65,9 +65,10 @@ public static class Relationships
     public static bool IsRival(Simulation simulation, EntityId a, EntityId b)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        var rival = Config(simulation).RivalOpinion;
-        return Opinion(simulation, a, b) <= rival || Opinion(simulation, b, a) <= rival;
+        return AreRivals(Opinion(simulation, a, b), Opinion(simulation, b, a), Config(simulation));
     }
+
+    private static bool AreRivals(int ab, int ba, SocialConfigDef config) => ab <= config.RivalOpinion || ba <= config.RivalOpinion;
 
     /// <summary>The living partner of a colonist, or none.</summary>
     public static EntityId PartnerOf(Simulation simulation, EntityId colonist)
