@@ -63,10 +63,10 @@ Un colono libre, sin órdenes que tomar, puede inventarse trabajo:
 En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 - **Buscar compañía:** con una probabilidad (`seekChancePercent`, 30 %, por la sociabilidad de 50 % a 150 % y por el ánimo), un colono camina hacia alguien que aprecia, a 30 celdas o menos y en su región, y se queda cerca un rato, como un niño que juega (el trabajo `Visit`, que espera lo mismo que deambular). Así las interacciones ocurren más. El inspector dice "Pasando un rato con alguien".
-- **Quién busca:** cualquiera que pueda interactuar (despierto, de una etapa que interactúa y sin aislarse), salvo un bebé que gatea. Un niño primero intenta jugar; si no tiene con quién, puede buscar a su familia.
-- **A quién:** con peso doble (`seekCloseWeightPercent`, 200 %) la pareja y la familia; luego los amigos, y quien tenga una opinión de 20 o más (`seekMinOpinion`); también el objetivo de un deseo de hacer una amistad o de reconciliarse. Nunca a un rival, tampoco cuando desea reconciliarse con él; ni a alguien dormido o en crisis de aislamiento, ni a quien vio en las últimas 2 horas (como al jugar).
-- **Cuándo deja de acompañar:** como el que juega, un trabajo o una necesidad baja lo interrumpen; la iniciativa no. Apagar la opción termina la visita.
-- **Evitar a los rivales:** al deambular, de los lugares que sortea elige el más lejos de sus rivales que estén a 10 celdas o menos, como quien se aísla en una crisis. Cuenta dónde está cada rival y, si camina, adónde va: así dos rivales que se esquivan no se van para el mismo lado.
+- **Quién busca:** cualquiera que pueda interactuar (despierto, de una etapa que interactúa y sin aislarse), salvo un bebé que gatea. Un niño primero intenta jugar; si no tiene con quién, sólo busca a su familia.
+- **A quién:** con peso doble la pareja, la familia y los amigos (el mismo `closeWeightPercent` que usan las interacciones para elegir con quién hablar, 200 %); luego quien tenga una opinión de 20 o más (`seekMinOpinion`) y el objetivo de un deseo de hacer una amistad o de reconciliarse. Nunca a un rival: alguien con quien uno de los dos tiene una opinión de -40 o menos, aunque sea de la familia (una pelea puede agriar a la familia, aunque el olvido no la baje de 30), y tampoco cuando desea reconciliarse con él. Ni a alguien dormido o en crisis de aislamiento, ni a quien vio en las últimas 2 horas (como al jugar).
+- **Cuándo deja de acompañar:** como el que juega, un trabajo o una necesidad baja lo interrumpen; la iniciativa no. También termina si el otro se duerme o se aísla, si, ya esperando, el otro se fue a más de 6 celdas (el radio de las interacciones), o si se apaga la opción. En camino, si el otro se movió lejos de adonde iba, lo sigue hasta donde está ahora.
+- **Evitar a los rivales:** al deambular, de los lugares que sortea elige el más lejos de sus rivales que estén a 10 celdas o menos, como quien se aísla en una crisis; también de un familiar con quien se peleó. Cuenta dónde está cada rival y, si camina, adónde va: así dos rivales que se esquivan no se van para el mismo lado.
 - Acompañar a alguien sigue siendo no tener trabajo: el aviso de "no tiene nada que hacer" vale igual que al deambular.
 - El lugar de reunión (fogón, mesas) llega con IP4.
 
@@ -106,7 +106,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 | Def | Campos | Archivo |
 |---|---|---|
-| `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `seekMinOpinion` (20), `seekCloseWeightPercent` (200), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
+| `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `seekMinOpinion` (20), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
 | `InitiativeTask` | `job` (`harvest` o `chop`; el tipo de trabajo es el que agrupa ese trabajo), `category` (la meta que mira) | `free_will.json` |
 | `PlantDef` | `regrowth`: `seedChancePerDay`, `seedRadius`, `growDays`, `maxCoverPercent`, `saplingVisual` | `plants.json` |
 

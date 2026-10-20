@@ -13,8 +13,8 @@ namespace OurLife.Core.Tests.Colony;
 /// <summary>
 /// Social life with intent (L4 of IP3.5, "Vida social con intención" in
 /// <c>docs/gdd/libre-albedrio.md</c>). The test content seeks within 10 cells, those of an opinion
-/// of 20 or more, the partner and the family with double weight, avoids rivals within 4 cells, and
-/// its colonists interact within 4 cells.
+/// of 20 or more, the partner, family and friends with double weight, avoids rivals within 4
+/// cells, and its colonists interact within 4 cells.
 /// </summary>
 public class SocialIntentTests
 {
@@ -72,7 +72,67 @@ public class SocialIntentTests
     }
 
     [Fact]
-    public void The_partner_is_sought_more_often_than_a_friend()
+    public void A_relative_it_quarrelled_with_is_not_sought()
+    {
+        var bed = FreeBed();
+        var seeker = bed.AddColonist(8, 16, 1);
+        var partner = bed.AddColonist(17, 16, 1, name: "Sancha");
+        bed.World.Add(seeker, new Family { Partner = new Relative { Entity = partner, Name = "Sancha" } });
+        Relationships.Ensure(bed.Simulation, seeker, partner).Opinion = -60;
+
+        Visits(bed, seeker, 1_000).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_child_seeks_only_its_family()
+    {
+        var bed = FreeBed();
+        var child = bed.AddColonist(8, 16, 1);
+        bed.World.Add(child, new Life { AgeDays = 6 * 60, Stage = "child" });
+        var liked = bed.AddColonist(17, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, child, liked).Opinion = 60;
+
+        Visits(bed, child, 1_000).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_visit_ends_when_the_other_falls_asleep()
+    {
+        var bed = FreeBed();
+        var seeker = bed.AddColonist(8, 16, 1);
+        var liked = bed.AddColonist(17, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
+        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit }, 600).ShouldBeTrue();
+
+        Settle(bed, liked, JobKind.Sleep, bed.World.Get<Position>(liked).Cell);
+        bed.Simulation.Tick();
+
+        (bed.JobOf(seeker)?.Kind).ShouldNotBe(JobKind.Visit);
+    }
+
+    [Fact]
+    public void A_visitor_on_its_way_follows_the_other_where_it_went()
+    {
+        // A wall between them, open only at the bottom: a long way round, so it looks again on the way.
+        var rows = Enumerable.Range(0, 32).Select(y => y < 28 ? new string('.', 6) + "#" + new string('.', 25) : new string('.', 32));
+        var bed = new ColonyTestBed(1, ColonyTestBed.Level(32, 32, '#'), string.Join("\n", rows));
+        bed.Simulation.FreeWill = true;
+        bed.Simulation.VillageCenter = Center;
+        var seeker = bed.AddColonist(2, 16, 1);
+        var liked = bed.AddColonist(10, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
+        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Moving }, 600).ShouldBeTrue();
+
+        var moved = new TileCoord(10, 4, 1);
+        var position = bed.World.Get<Position>(liked);
+        (position.X, position.Y) = (moved.X, moved.Y);
+        Settle(bed, liked, JobKind.Wander, moved);
+
+        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit } job && job.Cell == moved, 60).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void The_partner_is_sought_more_often_than_one_it_only_thinks_well_of()
     {
         // The first one sought, in many games where both are near and neither was met yet.
         var partnerVisits = 0;
@@ -119,8 +179,10 @@ public class SocialIntentTests
         with.ShouldBeLessThan(without);
     }
 
-    [Fact]
-    public void A_colonist_wanders_away_from_a_rival_near_it()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_colonist_wanders_away_from_a_rival_near_it_even_of_its_family(bool partner)
     {
         for (ulong seed = 1; seed <= 20; seed++)
         {
@@ -128,6 +190,11 @@ public class SocialIntentTests
             var colonist = bed.AddColonist(16, 16, 1);
             var rival = bed.AddColonist(19, 16, 1, name: "Urraca");
             Relationships.Ensure(bed.Simulation, colonist, rival).Opinion = -50;
+            if (partner)
+            {
+                bed.World.Add(colonist, new Family { Partner = new Relative { Entity = rival, Name = "Urraca" } });
+            }
+
             var start = Chebyshev(bed, colonist, rival);
 
             RunUntil(bed, () => bed.JobOf(colonist) is { Kind: JobKind.Wander, Stage: JobStage.Working }, 600).ShouldBeTrue();
@@ -280,6 +347,14 @@ public class SocialIntentTests
         }
 
         return seen;
+    }
+
+    /// <summary>Gives a colonist a job it is already doing where it stands, for a long while.</summary>
+    private static void Settle(ColonyTestBed bed, EntityId colonist, JobKind kind, TileCoord cell)
+    {
+        bed.World.Get<Movement>(colonist).Stop();
+        bed.World.Remove<Job>(colonist);
+        bed.World.Add(colonist, new Job { Kind = kind, Stage = JobStage.Working, Cell = cell, UntilTick = 100_000 });
     }
 
     private static int Chebyshev(ColonyTestBed bed, EntityId a, EntityId b)

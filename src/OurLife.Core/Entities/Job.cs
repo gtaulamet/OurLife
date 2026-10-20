@@ -122,6 +122,9 @@ public static class JobKinds
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 
+    /// <summary>Whether a kind is free time: wandering, playing or keeping company, which walk somewhere and wait a while.</summary>
+    public static bool IsLeisure(JobKind kind) => kind is JobKind.Wander or JobKind.Play or JobKind.Visit;
+
     /// <summary>Key of the text that says what a colonist is doing, like <c>job.chop.report</c>.</summary>
     public static string ReportKey(JobKind kind) => $"job.{Id(kind)}.report";
 

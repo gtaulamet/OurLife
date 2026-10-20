@@ -403,7 +403,7 @@ public sealed partial class DecisionSystem : ISimSystem
         // Critical needs were tried above. Work and low needs interrupt wandering, playing and
         // keeping company, and work on its own on the way to its plant: once at it, it finishes, so
         // no work is lost. A wanderer may also work on its own, go to play or seek company, but a
-        // player keeps its playmate and a visitor its company.
+        // player keeps its playmate and a visitor its company, which it follows on the way.
         if (job.Initiative)
         {
             return job.Stage == JobStage.Moving && TryWorkOrLowNeeds(simulation, colonist);
@@ -413,7 +413,8 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             JobKind.Wander => TryWorkOrLowNeeds(simulation, colonist) || TryInitiative(simulation, colonist) || TryPlay(simulation, colonist)
                               || TrySeek(simulation, colonist),
-            JobKind.Play or JobKind.Visit => TryWorkOrLowNeeds(simulation, colonist),
+            JobKind.Play => TryWorkOrLowNeeds(simulation, colonist),
+            JobKind.Visit => TryWorkOrLowNeeds(simulation, colonist) || TryFollow(simulation, colonist, job),
             _ => false,
         };
     }

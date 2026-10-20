@@ -227,9 +227,11 @@ public sealed class JobSystem : ISimSystem
                        && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
             case JobKind.Play:
                 return Relationships.IsLivingColonist(world, job.Target);
-            // Seeking company is free will too.
+            // Seeking company is free will too. The other must still be up for company and, once the
+            // visitor waits by where it was, still near enough to interact.
             case JobKind.Visit:
-                return Relationships.IsLivingColonist(world, job.Target) && simulation.FreeWill;
+                return Relationships.IsLivingColonist(world, job.Target) && simulation.FreeWill && SocialSystem.CanInteract(simulation, job.Target)
+                       && (job.Stage != JobStage.Working || SocialSystem.InReach(Relationships.Config(simulation), job.Cell, world.Get<Position>(job.Target).Cell));
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -262,7 +264,7 @@ public sealed class JobSystem : ISimSystem
     {
         job.Stage = JobStage.Working;
         job.Progress = 0;
-        if (job.Kind is JobKind.Wander or JobKind.Play or JobKind.Visit)
+        if (JobKinds.IsLeisure(job.Kind))
         {
             var random = simulation.Random.Get(RandomStream);
             job.UntilTick = simulation.CurrentTick + random.NextInt(_rules.Ai.WanderWaitMin, _rules.Ai.WanderWaitMax + 1);

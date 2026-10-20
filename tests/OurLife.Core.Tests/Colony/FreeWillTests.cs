@@ -173,7 +173,6 @@ public class FreeWillTests
     [InlineData("\"low\": 50", "\"low\": 160")]
     [InlineData("\"targetMax\": 999", "\"targetMax\": 0")]
     [InlineData("\"seekMinOpinion\": 20", "\"seekMinOpinion\": 101")]
-    [InlineData("\"seekCloseWeightPercent\": 200", "\"seekCloseWeightPercent\": -1")]
     [InlineData("\"food\": 150", "\"food\": 1000")]
     [InlineData("\"food\": 150", "\"gold\": 150")]
     [InlineData("\"initiativeTrait\": \"diligence\"", "\"initiativeTrait\": \"greed\"")]
@@ -188,7 +187,7 @@ public class FreeWillTests
 
     private static string Config(string id) => $$"""
         { "type": "FreeWillConfig", "id": "{{id}}", "villageRadius": 6, "initiativeChancePercent": 60, "initiativeTrait": "diligence",
-          "seekChancePercent": 30, "seekTrait": "diligence", "seekRadius": 10, "seekMinOpinion": 20, "seekCloseWeightPercent": 200, "avoidRadius": 4, "traitPercent": { "low": 50, "high": 150 },
+          "seekChancePercent": 30, "seekTrait": "diligence", "seekRadius": 10, "seekMinOpinion": 20, "avoidRadius": 4, "traitPercent": { "low": 50, "high": 150 },
           "lowMoodBelow": 30, "lowMoodPercent": 50, "highMoodAbove": 70, "highMoodPercent": 120,
           "defaultTargets": { "food": 150 }, "targetMax": 999 }
         """;

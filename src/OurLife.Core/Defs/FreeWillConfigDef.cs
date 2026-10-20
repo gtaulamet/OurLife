@@ -25,11 +25,11 @@ public sealed class FreeWillConfigDef : Def
     /// <summary>The farthest, in cells on the plane, someone it seeks can be.</summary>
     public required int SeekRadius { get; init; }
 
-    /// <summary>The lowest opinion of someone that makes a colonist seek it, besides its partner, family and friends.</summary>
+    /// <summary>
+    /// The lowest opinion of someone that makes a colonist seek it, besides its partner, family and
+    /// friends, who weigh as much more as in the interactions (<see cref="SocialConfigDef.CloseWeightPercent"/>).
+    /// </summary>
     public required int SeekMinOpinion { get; init; }
-
-    /// <summary>The weight of the partner and the family among those it may seek, in percent of the others'.</summary>
-    public required int SeekCloseWeightPercent { get; init; }
 
     /// <summary>Rivals within this many cells are avoided when wandering.</summary>
     public required int AvoidRadius { get; init; }
@@ -77,9 +77,9 @@ public sealed class FreeWillConfigDef : Def
             yield return "initiativeChancePercent and seekChancePercent must be between 0 and 100.";
         }
 
-        if (SeekMinOpinion is < -100 or > 100 || SeekCloseWeightPercent < 0)
+        if (SeekMinOpinion is < -100 or > 100)
         {
-            yield return "seekMinOpinion must be an opinion between -100 and 100, and seekCloseWeightPercent zero or more.";
+            yield return "seekMinOpinion must be an opinion between -100 and 100.";
         }
 
         if (TraitPercent.Low < 0 || TraitPercent.Low > TraitPercent.High || LowMoodPercent < 0 || HighMoodPercent < 0)

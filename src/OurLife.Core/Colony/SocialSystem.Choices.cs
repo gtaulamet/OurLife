@@ -1,6 +1,7 @@
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
+using OurLife.Core.Map;
 using OurLife.Core.Sim;
 
 namespace OurLife.Core.Colony;
@@ -24,8 +25,7 @@ public sealed partial class SocialSystem
             }
 
             var at = world.Get<Position>(other).Cell;
-            if (at.Z != cell.Z || Math.Max(Math.Abs(at.X - cell.X), Math.Abs(at.Y - cell.Y)) > config.Radius
-                || !CanInteract(simulation, other) || Met(simulation, colonist, other, cooldown) || Met(simulation, other, colonist, cooldown))
+            if (!InReach(config, cell, at) || !CanMeet(simulation, colonist, other, cooldown))
             {
                 continue;
             }
@@ -34,6 +34,17 @@ public sealed partial class SocialSystem
             _near.Add((other, close ? config.CloseWeightPercent : 100));
         }
     }
+
+    /// <summary>Whether two cells are near enough for an interaction: on the same level, within the config's radius.</summary>
+    internal static bool InReach(SocialConfigDef config, TileCoord a, TileCoord b) =>
+        a.Z == b.Z && Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y)) <= config.Radius;
+
+    /// <summary>
+    /// Whether <paramref name="colonist"/> may interact with <paramref name="other"/> now: the other
+    /// can, and the two did not meet less than <paramref name="cooldown"/> ticks ago.
+    /// </summary>
+    internal static bool CanMeet(Simulation simulation, EntityId colonist, EntityId other, long cooldown) =>
+        CanInteract(simulation, other) && !Met(simulation, colonist, other, cooldown) && !Met(simulation, other, colonist, cooldown);
 
     /// <summary>Whether <paramref name="from"/> interacted with <paramref name="to"/> less than <paramref name="cooldown"/> ticks ago.</summary>
     internal static bool Met(Simulation simulation, EntityId from, EntityId to, long cooldown) =>

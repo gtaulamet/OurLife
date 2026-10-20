@@ -33,7 +33,7 @@ public sealed partial class DecisionSystem
 
     /// <summary>
     /// Whether a parent of the baby, other than this colonist, will feed it: the mother or the
-    /// father go first while they are free (idle, wandering or playing), look for this work before
+    /// father go first while they are free (idle, or in their free time), look for this work before
     /// any other and can reach the baby. A parent who failed to reach it, or to find food, leaves it to the others for a while.
     /// </summary>
     private bool ParentWillFeed(Simulation simulation, EntityId colonist, EntityId baby)
@@ -60,7 +60,7 @@ public sealed partial class DecisionSystem
             // Idle, or wandering, playing or keeping company and about to look again this tick: one
             // who waits for its next look would keep the others from the baby meanwhile.
             var free = !world.TryGet<Job>(parent.Entity, out var job)
-                       || (job.Kind is JobKind.Wander or JobKind.Play or JobKind.Visit && (simulation.CurrentTick + parent.Entity.Index) % _rules.Ai.RecheckTicks == 0);
+                       || (JobKinds.IsLeisure(job.Kind) && (simulation.CurrentTick + parent.Entity.Index) % _rules.Ai.RecheckTicks == 0);
             if (free && FeedsBabies(simulation, parent.Entity) && !IsIgnored(world.Get<Colonist>(parent.Entity), baby, babyCell)
                 && simulation.Connectivity.AreConnected(world.Get<Position>(parent.Entity).Cell, babyCell))
             {
@@ -212,10 +212,8 @@ public sealed partial class DecisionSystem
 
             var cell = world.Get<Position>(other).Cell;
             if (cell.Z != from.Z || Math.Max(Math.Abs(cell.X - from.X), Math.Abs(cell.Y - from.Y)) > radius
-                || !SocialSystem.CanInteract(simulation, other)
                 || !(LifeRules.Stage(simulation, other)?.PlayRadius is not null || Relationships.IsFamily(simulation, colonist, other))
-                || SocialSystem.Met(simulation, colonist, other, cooldown) || SocialSystem.Met(simulation, other, colonist, cooldown)
-                || !connectivity.AreConnected(from, cell))
+                || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell))
             {
                 continue;
             }

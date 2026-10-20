@@ -111,19 +111,22 @@ public sealed partial class SocialSystem : ISimSystem
         }
     }
 
-    private static T Pick<T>(List<(T Item, int Weight)> weighted, Pcg32 random)
+    private static T Pick<T>(List<(T Item, int Weight)> weighted, Pcg32 random) => weighted[PickIndex(weighted, random)].Item;
+
+    /// <summary>The index of an entry drawn by its weight; the weights must add up to more than zero.</summary>
+    internal static int PickIndex<T>(List<(T Item, int Weight)> weighted, Pcg32 random)
     {
         var roll = random.NextInt(weighted.Sum(entry => entry.Weight));
-        foreach (var (item, weight) in weighted)
+        for (var i = 0; i < weighted.Count; i++)
         {
-            if (roll < weight)
+            if (roll < weighted[i].Weight)
             {
-                return item;
+                return i;
             }
 
-            roll -= weight;
+            roll -= weighted[i].Weight;
         }
 
-        return weighted[^1].Item;
+        return weighted.Count - 1;
     }
 }

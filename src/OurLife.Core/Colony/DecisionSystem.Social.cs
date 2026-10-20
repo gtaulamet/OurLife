@@ -13,13 +13,13 @@ namespace OurLife.Core.Colony;
 public sealed partial class DecisionSystem
 {
     // Those a colonist may seek, with their weights: found at each decision.
-    private readonly List<(EntityId Other, int Weight)> _liked = [];
+    private readonly List<(EntityId Item, int Weight)> _liked = [];
 
     /// <summary>
     /// With free will on, a colonist with nothing else to do may seek someone it likes, with the
     /// chance its traits and mood give: it walks to it and stays by it a while, so the two interact
-    /// by the rules of <see cref="SocialSystem"/>. The one it seeks is drawn, the partner and the
-    /// family weighing more. True if it set off.
+    /// by the rules of <see cref="SocialSystem"/>. The one it seeks is drawn, its partner, family
+    /// and friends weighing more. True if it set off.
     /// </summary>
     private bool TrySeek(Simulation simulation, EntityId colonist)
     {
@@ -37,29 +37,13 @@ public sealed partial class DecisionSystem
         }
 
         FindLiked(simulation, colonist, config);
-        var world = simulation.World;
-        var map = simulation.Map;
-        var connectivity = simulation.Connectivity;
-        var from = world.Get<Position>(colonist).Cell;
-        var region = connectivity.RegionAt(from);
         for (var attempt = 0; attempt < PathAttempts && _liked.Count > 0; attempt++)
         {
-            var index = PickIndex(_liked, random);
-            var other = _liked[index].Other;
+            var index = SocialSystem.PickIndex(_liked, random);
+            var other = _liked[index].Item;
             _liked.RemoveAt(index);
-            var cell = world.Get<Position>(other).Cell;
-            FindSites(map, JobKind.Visit, cell);
-            KeepInRegion(_sites, connectivity, region);
-            var job = new Job { Kind = JobKind.Visit, Target = other, Cell = cell };
-            if (_sites.Contains(from))
+            if (TryVisit(simulation, colonist, other))
             {
-                Assign(simulation, colonist, job, []);
-                return true;
-            }
-
-            if (_paths.TryFind(map, from, _sites, _path))
-            {
-                Assign(simulation, colonist, job, _path);
                 return true;
             }
         }
@@ -67,19 +51,61 @@ public sealed partial class DecisionSystem
         return false;
     }
 
+    /// <summary>Sets off to keep <paramref name="other"/> company where it is now; true if there is a way.</summary>
+    private bool TryVisit(Simulation simulation, EntityId colonist, EntityId other)
+    {
+        var world = simulation.World;
+        var map = simulation.Map;
+        var connectivity = simulation.Connectivity;
+        var from = world.Get<Position>(colonist).Cell;
+        var region = connectivity.RegionAt(from);
+        var cell = world.Get<Position>(other).Cell;
+        FindSites(map, JobKind.Visit, cell);
+        KeepInRegion(_sites, connectivity, region);
+        var job = new Job { Kind = JobKind.Visit, Target = other, Cell = cell };
+        if (_sites.Contains(from))
+        {
+            Assign(simulation, colonist, job, []);
+            return true;
+        }
+
+        if (_paths.TryFind(map, from, _sites, _path))
+        {
+            Assign(simulation, colonist, job, _path);
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
-    /// Those a colonist may seek, within the config's radius and in its region: its partner and
-    /// family, with the config's weight; its friends, those it thinks well enough of and those it
-    /// wishes to befriend or make up with. Never a rival, nor one who cannot interact now or that
-    /// the two met lately.
+    /// A visitor on its way whose company moved out of reach of where it was going sets off again
+    /// to where it is now. True if it did.
+    /// </summary>
+    private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
+    {
+        var world = simulation.World;
+        return job.Stage == JobStage.Moving && Relationships.IsLivingColonist(world, job.Target)
+               && !SocialSystem.InReach(Relationships.Config(simulation), job.Cell, world.Get<Position>(job.Target).Cell)
+               && TryVisit(simulation, colonist, job.Target);
+    }
+
+    /// <summary>
+    /// Those a colonist may seek, within the config's radius and in its region: its partner, family
+    /// and friends, with the weight they have in the interactions; those it thinks well enough of
+    /// and those it wishes to befriend or make up with. A child, who plays with the others, seeks
+    /// only its family. Never a rival, not even one of the family, nor one who cannot interact now
+    /// or that the two met lately.
     /// </summary>
     private void FindLiked(Simulation simulation, EntityId colonist, FreeWillConfigDef config)
     {
         _liked.Clear();
         var world = simulation.World;
         var connectivity = simulation.Connectivity;
+        var social = Relationships.Config(simulation);
         var from = world.Get<Position>(colonist).Cell;
-        var cooldown = (long)Relationships.Config(simulation).PairCooldownHours * simulation.Time.TicksPerHour;
+        var cooldown = (long)social.PairCooldownHours * simulation.Time.TicksPerHour;
+        var onlyFamily = LifeRules.Stage(simulation, colonist)?.PlayRadius is not null;
         world.TryGet<Desires>(colonist, out var desires);
         foreach (var other in _colonists)
         {
@@ -89,20 +115,18 @@ public sealed partial class DecisionSystem
             }
 
             var cell = world.Get<Position>(other).Cell;
-            if (!FreeWillRules.IsNear(from, config.SeekRadius, cell) || !SocialSystem.CanInteract(simulation, other)
-                || SocialSystem.Met(simulation, colonist, other, cooldown) || SocialSystem.Met(simulation, other, colonist, cooldown)
-                || !connectivity.AreConnected(from, cell))
+            if (!FreeWillRules.IsNear(from, config.SeekRadius, cell) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
+                || !connectivity.AreConnected(from, cell) || IsRival(simulation, social, colonist, other))
             {
                 continue;
             }
 
-            var weight = Relationships.Kind(simulation, colonist, other) switch
-            {
-                RelationKind.Partner or RelationKind.Family => config.SeekCloseWeightPercent,
-                RelationKind.Friend => 100,
-                RelationKind.Rival => 0,
-                _ => Relationships.Opinion(simulation, colonist, other) >= config.SeekMinOpinion || Wishes(simulation, desires, other) ? 100 : 0,
-            };
+            var kind = Relationships.Kind(simulation, colonist, other);
+            var weight = kind is RelationKind.Partner or RelationKind.Family ? social.CloseWeightPercent
+                : onlyFamily ? 0
+                : kind == RelationKind.Friend ? social.CloseWeightPercent
+                : Relationships.Opinion(simulation, colonist, other) >= config.SeekMinOpinion || Wishes(simulation, desires, other) ? 100
+                : 0;
             if (weight > 0)
             {
                 _liked.Add((other, weight));
@@ -130,27 +154,12 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    private static int PickIndex(List<(EntityId Other, int Weight)> weighted, Pcg32 random)
-    {
-        var total = 0;
-        foreach (var (_, weight) in weighted)
-        {
-            total += weight;
-        }
-
-        var roll = random.NextInt(total);
-        for (var i = 0; i < weighted.Count; i++)
-        {
-            if (roll < weighted[i].Weight)
-            {
-                return i;
-            }
-
-            roll -= weighted[i].Weight;
-        }
-
-        return weighted.Count - 1;
-    }
+    /// <summary>
+    /// Whether either of two colonists thinks of the other as a rival, whatever else ties them: a
+    /// quarrel can sour family too, though forgetting does not.
+    /// </summary>
+    private static bool IsRival(Simulation simulation, SocialConfigDef social, EntityId a, EntityId b) =>
+        Relationships.Opinion(simulation, a, b) <= social.RivalOpinion || Relationships.Opinion(simulation, b, a) <= social.RivalOpinion;
 
     /// <summary>
     /// With free will on, where the rivals of a colonist near it are, and where those walking are
@@ -166,11 +175,16 @@ public sealed partial class DecisionSystem
         }
 
         var world = simulation.World;
+        var social = Relationships.Config(simulation);
         foreach (var other in _colonists)
         {
+            if (other == colonist || !world.IsAlive(other))
+            {
+                continue;
+            }
+
             var cell = world.Get<Position>(other).Cell;
-            if (other == colonist || !world.IsAlive(other) || !FreeWillRules.IsNear(from, config.AvoidRadius, cell)
-                || Relationships.Kind(simulation, colonist, other) != RelationKind.Rival)
+            if (!FreeWillRules.IsNear(from, config.AvoidRadius, cell) || !IsRival(simulation, social, colonist, other))
             {
                 continue;
             }

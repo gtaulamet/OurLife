@@ -64,9 +64,10 @@ public sealed class SocialConfigDef : Def
             yield return "checkTicks must be positive, and radius, pairCooldownHours, forgetPerDay, widowYears, recentInteractions and retellMargin zero or more.";
         }
 
-        if (StartChancePercent is < 0 or > 100 || CloseWeightPercent < 0)
+        // A weight above the bound could overflow the sum of the weights drawn from.
+        if (StartChancePercent is < 0 or > 100 || CloseWeightPercent is < 0 or > 10_000)
         {
-            yield return "startChancePercent must be between 0 and 100, and closeWeightPercent zero or more.";
+            yield return "startChancePercent must be between 0 and 100, and closeWeightPercent between 0 and 10000.";
         }
 
         if (RivalOpinion >= FriendOpinion || FounderOpinion.Min > FounderOpinion.Max)
