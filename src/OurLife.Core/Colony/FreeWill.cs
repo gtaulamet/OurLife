@@ -154,11 +154,11 @@ public static class FreeWillRules
 
     /// <summary>
     /// Whether a visit to <paramref name="other"/> still makes sense: the visitor may still seek
-    /// company, the other can interact and they are not rivals.
+    /// company, the other can interact and is not going to sleep, and they are not rivals.
     /// </summary>
     internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
         CanSeekCompany(simulation, colonist) && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, other)
-        && !Relationships.IsRival(simulation, colonist, other);
+        && !(simulation.World.TryGet<Job>(other, out var job) && job.Kind == JobKind.Sleep) && !Relationships.IsRival(simulation, colonist, other);
 
     /// <summary>Where a colonist will be: the end of its walk, whatever it walks for, or where it stands.</summary>
     internal static TileCoord AimOf(World world, EntityId colonist) =>

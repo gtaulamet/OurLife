@@ -19,6 +19,12 @@ public sealed partial class SocialSystem : ISimSystem
 {
     private const string RandomStream = "social.interactions";
 
+    /// <summary>
+    /// The weight of anyone not close when choosing whom to interact with or to seek: the unit that
+    /// <see cref="SocialConfigDef.CloseWeightPercent"/> is a percent of, not a balance number.
+    /// </summary>
+    internal const int OtherWeightPercent = 100;
+
     private readonly ColonyRules _colony;
     private readonly SocialRules _rules;
     private readonly PersonalityRules _personalities;

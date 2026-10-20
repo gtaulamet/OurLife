@@ -110,8 +110,8 @@ public sealed partial class DecisionSystem
     /// its partner, family and friends, with the weight they have in the interactions; those it
     /// thinks well enough of and those it wishes to befriend or make up with. A child, who plays
     /// with the others, seeks only its family. Never a rival, not even one of the family, nor one
-    /// who cannot interact now, that the two met lately or that is already coming to keep it
-    /// company or to play.
+    /// who cannot interact now or is going to sleep, that the two met lately or that is already
+    /// coming to keep it company or to play.
     /// </summary>
     private void FindLiked(Simulation simulation, EntityId colonist, FreeWillConfigDef config)
     {
@@ -140,13 +140,15 @@ public sealed partial class DecisionSystem
             // The weight first, which leaves out most; then the dearer checks.
             var kind = Relationships.Kind(simulation, colonist, other);
             var weight = kind is RelationKind.Partner or RelationKind.Family ? social.CloseWeightPercent
-                : onlyFamily || kind == RelationKind.Rival ? 0
+                : onlyFamily ? 0
                 : kind == RelationKind.Friend ? social.CloseWeightPercent
-                : Relationships.Opinion(simulation, colonist, other) >= config.SeekMinOpinion || Wishes(simulation, desires, other) ? 100
-                : 0;
-            if (weight == 0 || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, aim)
-                || (world.TryGet<Job>(other, out var theirs) && theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist)
-                || (kind is RelationKind.Partner or RelationKind.Family && Relationships.IsRival(simulation, colonist, other)))
+                : Relationships.Opinion(simulation, colonist, other) >= config.SeekMinOpinion || Wishes(simulation, desires, other)
+                    ? SocialSystem.OtherWeightPercent
+                    : 0;
+            if (weight == 0 || Relationships.IsRival(simulation, colonist, other) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
+                || !connectivity.AreConnected(from, aim)
+                || (world.TryGet<Job>(other, out var theirs)
+                    && (theirs.Kind == JobKind.Sleep || (theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist))))
             {
                 continue;
             }
@@ -203,9 +205,9 @@ public sealed partial class DecisionSystem
             }
 
             _avoided.Add(cell);
-            if (world.TryGet<Job>(other, out var job) && job.Stage == JobStage.Moving && job.Cell != cell)
+            if (FreeWillRules.AimOf(world, other) is var aim && aim != cell)
             {
-                _avoided.Add(job.Cell);
+                _avoided.Add(aim);
             }
         }
 

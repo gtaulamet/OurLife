@@ -372,13 +372,16 @@ public sealed partial class DecisionSystem : ISimSystem
     /// </summary>
     private void Reconsider(Simulation simulation, EntityId colonist, Job job)
     {
-        if ((simulation.CurrentTick + colonist.Index) % _rules.Ai.RecheckTicks != 0)
+        // A visitor on its way also looks at every tick whether its company is going elsewhere, so
+        // it does not arrive where nobody is: only a new walk of the other makes it search a path.
+        var recheck = (simulation.CurrentTick + colonist.Index) % _rules.Ai.RecheckTicks == 0;
+        if (!recheck && !(job.Kind == JobKind.Visit && job.Stage == JobStage.Moving))
         {
             return;
         }
 
         Unreserve(simulation, job);
-        if (!TryInterrupt(simulation, colonist, job))
+        if (!(recheck ? TryInterrupt(simulation, colonist, job) : TryFollow(simulation, colonist, job)))
         {
             Reserve(simulation, job);
         }

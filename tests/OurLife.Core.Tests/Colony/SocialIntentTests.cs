@@ -117,9 +117,10 @@ public class SocialIntentTests
 
     [Theory]
     [InlineData("asleep")]
+    [InlineData("to bed")]
     [InlineData("isolating")]
     [InlineData("rivals")]
-    public void A_visit_ends_when_the_other_falls_asleep_the_visitor_isolates_or_they_become_rivals(string change)
+    public void A_visit_ends_when_the_other_goes_to_sleep_the_visitor_isolates_or_they_become_rivals(string change)
     {
         var bed = FreeBed();
         var seeker = bed.AddColonist(8, 16, 1);
@@ -131,6 +132,10 @@ public class SocialIntentTests
         {
             case "asleep":
                 Settle(bed, liked, JobKind.Sleep, bed.World.Get<Position>(liked).Cell);
+                break;
+            case "to bed":
+                Settle(bed, liked, JobKind.Sleep, bed.World.Get<Position>(liked).Cell);
+                bed.JobOf(liked)!.Stage = JobStage.Moving;
                 break;
             case "isolating":
                 bed.World.Add(seeker, new Crisis { Kind = "isolate", UntilTick = long.MaxValue });

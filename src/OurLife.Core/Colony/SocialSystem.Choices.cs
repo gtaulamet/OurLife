@@ -31,7 +31,7 @@ public sealed partial class SocialSystem
             }
 
             var close = Relationships.Kind(simulation, colonist, other) is RelationKind.Partner or RelationKind.Family or RelationKind.Friend;
-            _near.Add((other, close ? config.CloseWeightPercent : 100));
+            _near.Add((other, close ? config.CloseWeightPercent : OtherWeightPercent));
         }
     }
 
