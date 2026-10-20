@@ -1321,8 +1321,8 @@ public partial class GameRoot : Node
         // What the player types, not text the game shows.
         const string Typed = "7.770";
         const string HalfTyped = "15";
+        // Enter in the same frame as the last key: the text still has the dot when the field lets go.
         line.Text = Typed;
-        line.EmitSignal(LineEdit.SignalName.TextChanged, Typed);
         line.EmitSignal(LineEdit.SignalName.TextSubmitted, line.Text);
         screen.Advance(1);
         var submitted = (FreeWillRules.Targets(game)[0].Count, Focused(), TextFocus.IsTyping(screen));

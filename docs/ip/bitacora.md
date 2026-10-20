@@ -52,6 +52,7 @@ En orden:
 - Tercera ronda: la ayuda del campo sale traducida (`TooltipAutoTranslateMode`); el clic derecho en las flechas no hace nada (antes saltaba a 0 o al máximo); la rueda con un número escrito parte de ese número; sin `MaxLength`, que cortaba "100.000" antes de quitar el punto; `TextFocus.IsTyping` también vale el cuadro siguiente a uno con un campo escrito, para cualquier campo, sin conectar señales; `UiTheme.FieldBox` y `UiTheme.TextWidth` compartidos con el HUD.
 - Cuarta ronda: casi todos los hallazgos venían del `SpinBox` (flechas que no soltaban el campo en los extremos, la rueda, Arriba y Abajo que pasaban a la cámara). Se cambió por un `LineEdit` sin flechas, que es lo que pidió el usuario: el panel aplica lo escrito al soltar el campo, Tab también lo suelta (antes podía pasar el foco a un botón del inspector) y no hay menú contextual, que traía textos del motor en inglés. Sale `targetStep` de `FreeWillConfig`.
 - Quinta ronda: ceros a la izquierda no inflan el número; limpiezas menores (comentario suelto, caso de `SpinBox` muerto en `TextFocus`).
+- Sexta ronda: al aplicar se vuelven a filtrar los dígitos, porque el campo los limpia de forma diferida y una tecla con Enter en el mismo cuadro llegaba con el punto ("1.000" daba el máximo). El smoke lo prueba así.
 
 ### 2026-10-19: L2, presentación del interruptor y las metas
 

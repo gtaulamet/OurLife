@@ -135,9 +135,10 @@ public partial class ColonyPanel : PanelContainer
         var target = current;
         if (field.Text.Length > 0 && FreeWillRules.ConfigOf(_session.Simulation.Content) is { } config)
         {
-            // Digits only, so the number can only be too big: past long, it is the highest anyway.
-            // Leading zeros do not make it bigger.
-            var digits = field.Text.TrimStart('0');
+            // The digits again: the field cleans them when its text changes, deferred, and a key and
+            // Enter in the same frame get here first. Then the number can only be too big: past
+            // long, it is the highest anyway. Leading zeros do not make it bigger.
+            var digits = OnlyDigits(field.Text).TrimStart('0');
             target = digits.Length == 0 ? 0
                 : long.TryParse(digits, System.Globalization.CultureInfo.InvariantCulture, out var written)
                     ? (int)Math.Min(written, config.TargetMax)
@@ -426,7 +427,7 @@ public partial class ColonyPanel : PanelContainer
     /// <summary>Leaves only the digits of what the player typed or pasted, with the caret where it was among them.</summary>
     private static void KeepDigits(LineEdit line, string text)
     {
-        var digits = new string(text.Where(char.IsAsciiDigit).ToArray());
+        var digits = OnlyDigits(text);
         if (digits != text)
         {
             var caret = line.CaretColumn - (text.Length - digits.Length);
@@ -434,6 +435,8 @@ public partial class ColonyPanel : PanelContainer
             line.CaretColumn = Math.Max(0, caret);
         }
     }
+
+    private static string OnlyDigits(string text) => new(text.Where(char.IsAsciiDigit).ToArray());
 
     private static int Digits(int number) => number.ToString(System.Globalization.CultureInfo.InvariantCulture).Length;
 
