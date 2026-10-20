@@ -1311,6 +1311,35 @@ public partial class GameRoot : Node
             throw new InvalidOperationException($"the target of {first.Category} written as 123, {highest + 1} and {first.Count} became [{string.Join(", ", written)}]");
         }
 
+        // Written as the player does: the field takes the keys from the game, Enter applies the
+        // number and lets go, and Esc puts the target back and lets go.
+        var line = screen.Hud.Colony.TargetLine(first.Category)!;
+        line.GrabFocus();
+        var typing = TextFocus.IsTyping(screen);
+        line.Text = "777";
+        line.EmitSignal(LineEdit.SignalName.TextSubmitted, "777");
+
+        // The SpinBox applies the text deferred, at the end of the frame, which the smoke does not wait for.
+        line.GetParent<SpinBox>().Apply();
+        screen.Advance(1);
+        var submitted = (FreeWillRules.Targets(game)[0].Count, TextFocus.IsTyping(screen));
+        line.GrabFocus();
+        line.Text = "15";
+        using (var escape = new InputEventAction { Action = "ui_cancel", Pressed = true })
+        {
+            line.EmitSignal(Control.SignalName.GuiInput, escape);
+        }
+
+        line.GetParent<SpinBox>().Apply();
+        screen.Advance(1);
+        var cancelled = (FreeWillRules.Targets(game)[0].Count, TextFocus.IsTyping(screen));
+        screen.Hud.Colony.WriteTarget(first.Category, first.Count);
+        screen.Advance(1);
+        if (!typing || submitted != (777, false) || cancelled != (777, false) || FreeWillRules.Targets(game)[0].Count != first.Count)
+        {
+            throw new InvalidOperationException($"writing the target of {first.Category}: typing {typing}, Enter gave {submitted}, Esc gave {cancelled}");
+        }
+
         GD.Print($"[smoke] free will follows the option, and the targets the panel: {string.Join(", ", lines)}");
     }
 

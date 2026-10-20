@@ -47,6 +47,7 @@ En orden:
 - Pedido del usuario: la meta de comida y de madera es un campo que completa el jugador, con máximo 100 000. El panel Colonia muestra "Comida: 42 de [150]" con un `SpinBox` (flechas de a 10, Enter o salir del campo aplica). `targetMax` pasa a 100 000; sale `FreeWillRules.NextTarget` y la regla de múltiplos del paso.
 - Mientras un campo de texto tiene el foco, `GameInput` y `CameraRig` no leen las teclas del juego (`TextFocus.IsTyping`): escribir "150" ya no cambia la velocidad. Un clic en el mapa suelta el campo.
 - El smoke escribe 123, el máximo más uno (queda en el máximo) y el valor original. Capturas es/en revisadas.
+- Revisión, primera ronda: un clic en las flechas suelta el campo (si no, las teclas del juego quedaban escribiendo en él); Esc mientras se escribe vuelve a la meta anterior y no abre la pausa; cualquier clic fuera del campo lo suelta y aplica lo escrito. El smoke prueba escribir con Enter y cancelar con Esc. Queda sin cambiar: las teclas del juego se leen por sondeo en `_Process` con la guarda `TextFocus` en lugar de pasar a eventos; es un cambio más grande que no hace falta para un solo campo.
 
 ### 2026-10-19: L2, presentación del interruptor y las metas
 

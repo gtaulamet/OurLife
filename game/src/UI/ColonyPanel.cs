@@ -87,6 +87,49 @@ public partial class ColonyPanel : PanelContainer
     public int? TargetShown(string category) =>
         _targetRows.Find(entry => entry.Category == category).Field is { } field ? (int)field.Value : null;
 
+    /// <summary>The text field of a target, or null for a category without one. For the smoke.</summary>
+    public LineEdit? TargetLine(string category) =>
+        _targetRows.Find(entry => entry.Category == category).Field?.GetLineEdit();
+
+    /// <summary>
+    /// A click anywhere but on the field being written lets go of it, which applies what it holds:
+    /// a HUD button or the map, whose clicks go on as usual.
+    /// </summary>
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is not InputEventMouseButton { Pressed: true }
+            || GetViewport().GuiGetFocusOwner() is not LineEdit focused
+            || !_targetRows.Exists(row => row.Field.GetLineEdit() == focused))
+        {
+            return;
+        }
+
+        // The text and the arrows belong to the field's SpinBox.
+        var field = focused.GetParent<Control>();
+        var hovered = GetViewport().GuiGetHoveredControl();
+        if (hovered is null || (hovered != field && !field.IsAncestorOf(hovered)))
+        {
+            focused.ReleaseFocus();
+        }
+    }
+
+    /// <summary>
+    /// Esc while writing a target puts back the one it had and lets go of the field, without the
+    /// game seeing the key: no pause menu, and nothing applied.
+    /// </summary>
+    private static void CancelWriting(SpinBox field, InputEvent input)
+    {
+        if (!input.IsActionPressed("ui_cancel"))
+        {
+            return;
+        }
+
+        var line = field.GetLineEdit();
+        line.Text = ((int)field.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        line.AcceptEvent();
+        line.ReleaseFocus();
+    }
+
     /// <summary>
     /// Gives the order of a target the player wrote or stepped with the arrows; the field already
     /// keeps it within 0 and the highest. Until the order applies, the panel shows what was asked.
@@ -269,9 +312,16 @@ public partial class ColonyPanel : PanelContainer
                 TooltipText = Help,
             };
             field.SetValueNoSignal(target.Count);
-            field.ValueChanged += value => ChooseTarget(category, value);
             var line = field.GetLineEdit();
+
+            // A click on an arrow also focuses the field: let go of it, so the game's keys work again.
+            field.ValueChanged += value =>
+            {
+                ChooseTarget(category, value);
+                line.ReleaseFocus();
+            };
             line.TextSubmitted += _ => line.ReleaseFocus();
+            line.GuiInput += input => CancelWriting(field, input);
 
             // A box that shows it can be written in, lighter than the panel.
             var box = new StyleBoxFlat
