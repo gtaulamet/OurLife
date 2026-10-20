@@ -259,10 +259,11 @@ public class InitiativeTests
     }
 
     [Theory]
-    [InlineData(0, false, 30)]
-    [InlineData(50, false, 60)]
-    [InlineData(100, false, 90)]
-    [InlineData(50, true, 30)]
+    [InlineData(0, false, 3_000)]
+    [InlineData(33, false, 4_980)]
+    [InlineData(50, false, 6_000)]
+    [InlineData(100, false, 9_000)]
+    [InlineData(50, true, 3_000)]
     public void A_diligent_colonist_is_keener_than_a_lazy_one_and_a_low_mood_halves_it(int diligence, bool lowMood, int expected)
     {
         var bed = FreeBed();
@@ -274,7 +275,7 @@ public class InitiativeTests
             MoodRules.Feel(bed.Simulation, colonist, "death_child");
         }
 
-        FreeWillRules.InitiativeChancePercent(bed.Simulation, colonist).ShouldBe(expected);
+        FreeWillRules.InitiativeChance(bed.Simulation, colonist).ShouldBe(expected);
     }
 
     [Fact]

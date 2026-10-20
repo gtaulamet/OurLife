@@ -42,12 +42,16 @@ public sealed partial class DecisionSystem
 
         // The roll comes first, so a colonist that will not take the initiative counts nothing.
         if (simulation.Content.All<InitiativeTaskDef>().Count == 0
-            || !simulation.Random.Get(InitiativeStream).Chance(FreeWillRules.InitiativeChancePercent(simulation, colonist) * 100))
+            || !simulation.Random.Get(InitiativeStream).Chance(FreeWillRules.InitiativeChance(simulation, colonist)))
         {
             return false;
         }
 
         FindTasks(simulation, colonist);
+        if (_tasks.Count == 0)
+        {
+            return false;
+        }
 
         _tasks.Sort((a, b) =>
         {

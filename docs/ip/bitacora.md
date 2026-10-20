@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l3-iniciativa`: Core, textos y tests de L3 hechos; falta la revisión de código |
-| `main` | Con L2 de IP3.5 y las metas escritas (después de `v0.3.0`), también en `origin` |
+| Rama de trabajo | `ip3.5/l3-iniciativa`: L3 cerrado y en `main`. Siguen L4, L4b y L4c |
+| `main` | Con L2 y L3 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 762 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Validación | `dotnet build` sin advertencias, 763 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L3:** revisión de código y adelantar `main`. Decisión pendiente del usuario: la meta de comida por defecto (150) no alcanza para el invierno sin órdenes (ver la entrada del 20 de octubre). Después, L4, L4b y L4c, que pueden ir en paralelo; L4b sube el formato a 10.
+1. **Decisión pendiente del usuario:** la meta de comida por defecto (150) no alcanza para el invierno sin órdenes (ver la entrada del 20 de octubre). Después, L4, L4b y L4c, que pueden ir en paralelo; L4b sube el formato a 10.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -53,6 +53,7 @@ En orden:
 - Revisión, primera ronda: lo que viene en camino se cuenta en cada decisión, no una vez por tick (un trabajo cambiado en el mismo tick quedaba contado); apagar la opción termina el trabajo por iniciativa en curso; `InitiativeTask` ya no lleva `workType`, que sale del trabajo; `FreeWillRules.TargetOf`, `PlantDef.OutputOf` y la prioridad por etapa compartida con `TryWork`; las plantas se filtran primero por la cercanía a la aldea.
 - Segunda ronda: el trabajo por iniciativa sólo cede a otro trabajo o a una necesidad baja mientras va hacia la planta; ya trabajando, termina (antes perdía lo hecho en cada revisión, y una orden sobre el mismo árbol lo hacía empezar de cero). La tirada va antes de contar (`Pcg32.Chance`), el tipo de trabajo de cada tarea se resuelve una vez y la cercanía se calcula con el centro y el radio leídos una vez.
 - Tercera ronda, sin defectos de lógica: una tarea cuya categoría no tiene meta en `FreeWillConfig` se rechaza al cargar; un solo recorrido de las plantas por decisión; `FreeWillRules.IsNear` compartido; el test de `l2.olsave` toma la meta de comida del contenido (no se rompe si cambia la de por defecto).
+- Cuarta ronda, sin defectos de lógica: la probabilidad va en puntos básicos (`FreeWillRules.InitiativeChance`), sin perder las fracciones; sin tareas posibles no se recorren las plantas. L3 cerrado y `main` adelantado.
 
 ### 2026-10-20: metas escritas por el jugador
 

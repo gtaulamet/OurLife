@@ -103,29 +103,31 @@ public static class FreeWillRules
     }
 
     /// <summary>
-    /// The chance, in percent, that a colonist works on its own when it decides: the config's, by
-    /// its trait for initiative and by its mood. Zero without free will in the content.
+    /// The chance, in basis points (10 000 is certain), that a colonist works on its own when it
+    /// decides: the config's, by its trait for initiative and by its mood. Zero without free will
+    /// in the content.
     /// </summary>
-    public static int InitiativeChancePercent(Simulation simulation, EntityId colonist)
+    public static int InitiativeChance(Simulation simulation, EntityId colonist)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         return ConfigOf(simulation.Content) is { } config
-            ? ChancePercent(simulation, colonist, config, config.InitiativeChancePercent, config.InitiativeTrait)
+            ? Chance(simulation, colonist, config, config.InitiativeChancePercent, config.InitiativeTrait)
             : 0;
     }
 
     /// <summary>
-    /// A chance of the config scaled by a trait, from <see cref="FreeWillConfigDef.TraitPercent"/>
-    /// at its lowest to its highest, and by the mood: less when it is low, more when it is high.
+    /// A chance of the config, in basis points, scaled by a trait, from
+    /// <see cref="FreeWillConfigDef.TraitPercent"/> at its lowest to its highest, and by the mood:
+    /// less when it is low, more when it is high. Basis points keep the fractions of a percent.
     /// </summary>
-    internal static int ChancePercent(Simulation simulation, EntityId colonist, FreeWillConfigDef config, int basePercent, string trait)
+    internal static int Chance(Simulation simulation, EntityId colonist, FreeWillConfigDef config, int basePercent, string trait)
     {
         var mood = MoodRules.Value(simulation, colonist);
         var moodPercent = mood < config.LowMoodBelow ? config.LowMoodPercent
             : mood > config.HighMoodAbove ? config.HighMoodPercent
             : 100;
         var traitPercent = config.TraitPercent.At(PersonalityRules.Value(simulation, colonist, trait));
-        return (int)((long)basePercent * traitPercent * moodPercent / 10_000);
+        return (int)((long)basePercent * traitPercent * moodPercent / 100);
     }
 
     /// <summary>Whether a cell is near the village: within the config's radius of its centre on the plane, at any level.</summary>
