@@ -68,13 +68,15 @@ public class SocialIntentTests
         bed.World.IsAlive(stranger).ShouldBeTrue();
     }
 
-    [Fact]
-    public void A_colonist_seeks_one_it_wishes_to_befriend_even_without_a_good_opinion()
+    [Theory]
+    [InlineData("befriend")]
+    [InlineData("reconcile")]
+    public void A_colonist_seeks_one_it_wishes_to_befriend_or_make_up_with_even_without_a_good_opinion(string desire)
     {
         var bed = FreeBed();
         var seeker = bed.AddColonist(8, 16, 1);
         var wished = bed.AddColonist(17, 16, 1, name: "Sancha");
-        DesireRules.DesiresOf(bed.World, seeker).Active.Add(new ActiveDesire { Desire = "befriend", Target = wished, UntilTick = 100_000 });
+        DesireRules.DesiresOf(bed.World, seeker).Active.Add(new ActiveDesire { Desire = desire, Target = wished, UntilTick = 100_000 });
 
         Visits(bed, seeker, 600).ShouldContain(wished);
     }
@@ -169,13 +171,71 @@ public class SocialIntentTests
     }
 
     [Fact]
+    public void A_visit_waiting_ends_when_the_other_goes_far()
+    {
+        var bed = FreeBed();
+        var seeker = bed.AddColonist(8, 16, 1);
+        var liked = bed.AddColonist(17, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
+        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Working }, 600).ShouldBeTrue();
+
+        var far = bed.World.Get<Position>(seeker).Cell with { Y = 4 };
+        var position = bed.World.Get<Position>(liked);
+        (position.X, position.Y) = (far.X, far.Y);
+        Settle(bed, liked, JobKind.Wander, far);
+        bed.Simulation.Tick();
+
+        (bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Working }).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_visitor_on_its_way_wanders_off_when_the_other_goes_out_of_reach_for_seeking()
+    {
+        var bed = WalledBed();
+        var seeker = bed.AddColonist(2, 16, 1);
+        var liked = bed.AddColonist(10, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
+        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Moving }, 600).ShouldBeTrue();
+
+        var gone = new TileCoord(28, 2, 1);
+        var position = bed.World.Get<Position>(liked);
+        (position.X, position.Y) = (gone.X, gone.Y);
+        Settle(bed, liked, JobKind.Wander, gone);
+        bed.Simulation.Tick();
+
+        bed.JobOf(seeker)!.Kind.ShouldBe(JobKind.Wander);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void With_free_will_a_child_does_not_play_with_a_rival(bool freeWill)
+    {
+        var bed = ColonyTestBed.Flat(32);
+        bed.Simulation.FreeWill = freeWill;
+        bed.Simulation.VillageCenter = Center;
+        var child = bed.AddColonist(8, 16, 1);
+        var rival = bed.AddColonist(14, 16, 1, name: "Urraca");
+        foreach (var kid in new[] { child, rival })
+        {
+            bed.World.Add(kid, new Life { AgeDays = 6 * 60, Stage = "child" });
+        }
+
+        Relationships.Ensure(bed.Simulation, child, rival).Opinion = -60;
+        var played = false;
+        for (var tick = 0; tick < 600 && !played; tick++)
+        {
+            bed.Simulation.Tick();
+            played = bed.JobOf(child) is { Kind: JobKind.Play } job && job.Target == rival;
+        }
+
+        played.ShouldBe(!freeWill);
+    }
+
+    [Fact]
     public void A_visitor_on_its_way_follows_the_other_where_it_went()
     {
-        // A wall between them, open only at the bottom: a long way round, so it looks again on the way.
-        var rows = Enumerable.Range(0, 32).Select(y => y < 28 ? new string('.', 6) + "#" + new string('.', 25) : new string('.', 32));
-        var bed = new ColonyTestBed(1, ColonyTestBed.Level(32, 32, '#'), string.Join("\n", rows));
-        bed.Simulation.FreeWill = true;
-        bed.Simulation.VillageCenter = Center;
+        var bed = WalledBed();
         var seeker = bed.AddColonist(2, 16, 1);
         var liked = bed.AddColonist(10, 16, 1, name: "Sancha");
         Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
@@ -418,6 +478,19 @@ public class SocialIntentTests
         }
 
         return seen;
+    }
+
+    /// <summary>
+    /// A bed with free will on and a wall at x = 6 between the left and the rest, open only at the
+    /// bottom: a long way round, so a visitor looks again on the way.
+    /// </summary>
+    private static ColonyTestBed WalledBed()
+    {
+        var rows = Enumerable.Range(0, 32).Select(y => y < 28 ? new string('.', 6) + "#" + new string('.', 25) : new string('.', 32));
+        var bed = new ColonyTestBed(1, ColonyTestBed.Level(32, 32, '#'), string.Join("\n", rows));
+        bed.Simulation.FreeWill = true;
+        bed.Simulation.VillageCenter = Center;
+        return bed;
     }
 
     /// <summary>Gives a colonist a job it is already doing where it stands, for a long while.</summary>

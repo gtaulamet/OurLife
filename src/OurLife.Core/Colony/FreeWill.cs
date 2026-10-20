@@ -152,12 +152,13 @@ public static class FreeWillRules
         simulation.FreeWill && LifeRules.Stage(simulation, colonist)?.CrawlRadius is null && SocialSystem.CanInteract(simulation, colonist)
         && MoodRules.CrisisOf(simulation, colonist) is null;
 
-    /// <summary>
-    /// Whether a visit to <paramref name="other"/> still makes sense: the visitor may still seek
-    /// company, the other can interact and is not going to sleep, and they are not rivals.
-    /// </summary>
+    /// <summary>Whether a visit to <paramref name="other"/> still makes sense: the visitor may still seek company, and visit it.</summary>
     internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
-        CanSeekCompany(simulation, colonist) && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, other)
+        CanSeekCompany(simulation, colonist) && CanVisit(simulation, colonist, other);
+
+    /// <summary>Whether a colonist may keep <paramref name="other"/> company: the other can interact and is not going to sleep, and they are not rivals.</summary>
+    internal static bool CanVisit(Simulation simulation, EntityId colonist, EntityId other) =>
+        Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, other)
         && !(simulation.World.TryGet<Job>(other, out var job) && job.Kind == JobKind.Sleep) && !Relationships.IsRival(simulation, colonist, other);
 
     /// <summary>Where a colonist will be: the end of its walk, whatever it walks for, or where it stands.</summary>

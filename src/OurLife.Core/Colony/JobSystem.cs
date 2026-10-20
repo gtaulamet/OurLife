@@ -95,6 +95,13 @@ public sealed class JobSystem : ISimSystem
                     continue;
                 }
 
+                // A visitor whose company is going elsewhere does not wait where nobody will be: it
+                // stays on its way, and the decisions of the next tick follow the other.
+                if (job.Kind == JobKind.Visit && !StillNear(simulation, colonist, job.Target))
+                {
+                    continue;
+                }
+
                 Start(simulation, job);
             }
 
@@ -225,8 +232,9 @@ public sealed class JobSystem : ISimSystem
                 // The baby must still be there and, before lifting, so must the food.
                 return Relationships.IsLivingColonist(world, job.Recipient)
                        && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
+            // With free will, nobody stays by a rival.
             case JobKind.Play:
-                return Relationships.IsLivingColonist(world, job.Target);
+                return Relationships.IsLivingColonist(world, job.Target) && !(simulation.FreeWill && Relationships.IsRival(simulation, colonist, job.Target));
             // Seeking company is free will too. Both must still be up for company and, once the
             // visitor waits, the other must be, or be going, near enough to it to interact.
             case JobKind.Visit:

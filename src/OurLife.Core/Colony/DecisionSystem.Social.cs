@@ -146,10 +146,10 @@ public sealed partial class DecisionSystem
                 : Relationships.Opinion(simulation, colonist, other) >= config.SeekMinOpinion || Wishes(simulation, desires, other)
                     ? SocialSystem.OtherWeightPercent
                     : 0;
-            if (weight == 0 || Relationships.IsRival(simulation, colonist, other) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
+            // A weight of 0, as in the interactions, leaves one out.
+            if (weight == 0 || !FreeWillRules.CanVisit(simulation, colonist, other) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
                 || !connectivity.AreConnected(from, aim)
-                || (world.TryGet<Job>(other, out var theirs)
-                    && (theirs.Kind == JobKind.Sleep || (theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist))))
+                || (world.TryGet<Job>(other, out var theirs) && theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist))
             {
                 continue;
             }
