@@ -102,7 +102,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 | Def | Campos | Archivo |
 |---|---|---|
 | `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
-| `InitiativeTask` | `workType`, `job` (`harvest` o `chop`), `category` (la meta que mira) | `free_will.json` |
+| `InitiativeTask` | `job` (`harvest` o `chop`; el tipo de trabajo es el que agrupa ese trabajo), `category` (la meta que mira) | `free_will.json` |
 | `PlantDef` | `regrowth`: `seedChancePerDay`, `seedRadius`, `growDays`, `maxCoverPercent`, `saplingVisual` | `plants.json` |
 
 - Cada def con textos lleva `name`, `desc` y `gender` en es y en. El retoño necesita un modelo en el catálogo de visuales (el árbol en chico).

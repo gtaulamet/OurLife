@@ -601,10 +601,7 @@ public sealed partial class DecisionSystem : ISimSystem
         var stage = LifeRules.Stage(simulation, colonist);
         for (var type = 0; type < types; type++)
         {
-            var workType = _rules.WorkTypes[type];
-            _priorities[type] = LifeRules.DoesWork(stage, workType)
-                ? WorkPriorityRules.Of(simulation.World, colonist, workType.Id, _rules.Ai.DefaultWorkPriority)
-                : WorkPriorityLevels.Never;
+            _priorities[type] = PriorityOf(simulation, colonist, stage, _rules.WorkTypes[type]);
         }
 
         for (var priority = WorkPriorityLevels.Highest; priority <= WorkPriorityLevels.Lowest; priority++)
@@ -620,6 +617,12 @@ public sealed partial class DecisionSystem : ISimSystem
 
         return false;
     }
+
+    /// <summary>The colonist's priority for a work type, or never for one it does not do at its stage of life.</summary>
+    private int PriorityOf(Simulation simulation, EntityId colonist, LifeStageDef? stage, WorkTypeDef workType) =>
+        LifeRules.DoesWork(stage, workType)
+            ? WorkPriorityRules.Of(simulation.World, colonist, workType.Id, _rules.Ai.DefaultWorkPriority)
+            : WorkPriorityLevels.Never;
 
     private bool TryWorkType(Simulation simulation, EntityId colonist, IReadOnlyList<JobKind> jobs)
     {

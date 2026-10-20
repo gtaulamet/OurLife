@@ -79,8 +79,27 @@ public static class FreeWillRules
 
         return [.. ItemCategoryDef.InOrder(simulation.Content)
             .Where(category => config.DefaultTargets.ContainsKey(category.Id))
-            .Select(category => simulation.StockTargets.FirstOrDefault(target => target.Category == category.Id)
-                                ?? new StockTarget(category.Id, config.DefaultTargets[category.Id]))];
+            .Select(category => new StockTarget(category.Id, TargetOf(simulation, category.Id)!.Value))];
+    }
+
+    /// <summary>The stock target of a category: the player's, or the config's default; null if it has none.</summary>
+    public static int? TargetOf(Simulation simulation, string category)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        if (ConfigOf(simulation.Content) is not { } config || !config.DefaultTargets.TryGetValue(category, out var fallback))
+        {
+            return null;
+        }
+
+        foreach (var target in simulation.StockTargets)
+        {
+            if (target.Category == category)
+            {
+                return target.Count;
+            }
+        }
+
+        return fallback;
     }
 
     /// <summary>

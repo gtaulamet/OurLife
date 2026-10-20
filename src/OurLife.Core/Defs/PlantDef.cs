@@ -1,3 +1,5 @@
+using OurLife.Core.Entities;
+
 namespace OurLife.Core.Defs;
 
 /// <summary>Items obtained from a job, and how long the job takes.</summary>
@@ -23,6 +25,14 @@ public sealed class PlantDef : Def, IHasVisual
 
     /// <summary>What gathering gives; the plant stays and regrows.</summary>
     public ItemYield? Harvest { get; init; }
+
+    /// <summary>What a job on the plant gives: felling for <see cref="JobKind.Chop"/>, gathering for <see cref="JobKind.Harvest"/>, else nothing.</summary>
+    public ItemYield? OutputOf(JobKind kind) => kind switch
+    {
+        JobKind.Chop => Chop,
+        JobKind.Harvest => Harvest,
+        _ => null,
+    };
 
     /// <summary>Days until a gathered plant can be gathered again.</summary>
     public int RegrowDays { get; init; }

@@ -168,6 +168,22 @@ public class InitiativeTests
         bed.World.Has<Harvested>(bush).ShouldBeTrue();
     }
 
+    [Fact]
+    public void Turning_free_will_off_ends_the_work_on_its_own_under_way()
+    {
+        var bed = FreeBed();
+        var bush = bed.AddPlant("bush", 13, 8, 1);
+        var colonist = bed.AddColonist(3, 8, 1);
+        RunUntil(bed, () => bed.JobOf(colonist) is { Initiative: true }, 300).ShouldBeTrue();
+
+        bed.Simulation.Commands.Enqueue(new SetFreeWillCommand(false));
+        bed.Simulation.Run(2);
+
+        bed.JobOf(colonist)?.Initiative.ShouldNotBe(true);
+        RunWatching(bed, colonist, 300).ShouldBeEmpty();
+        bed.World.Has<Harvested>(bush).ShouldBeFalse();
+    }
+
     [Theory]
     [InlineData(WorkPriorityLevels.Lowest, JobKind.Chop)]
     [InlineData(WorkPriorityLevels.Highest, JobKind.Harvest)]
