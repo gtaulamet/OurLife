@@ -88,7 +88,7 @@ public partial class ColonyPanel : PanelContainer
         }
 
         field.GrabFocus();
-        field.Text = target.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        field.Text = Number(target);
         field.ReleaseFocus();
     }
 
@@ -135,10 +135,13 @@ public partial class ColonyPanel : PanelContainer
         var target = current;
         if (field.Text.Length > 0 && FreeWillRules.ConfigOf(_session.Simulation.Content) is { } config)
         {
-            // Digits only, so the number can only be too big: past int, it is the highest anyway.
-            target = long.TryParse(field.Text, System.Globalization.CultureInfo.InvariantCulture, out var written)
-                ? (int)Math.Min(written, config.TargetMax)
-                : config.TargetMax;
+            // Digits only, so the number can only be too big: past long, it is the highest anyway.
+            // Leading zeros do not make it bigger.
+            var digits = field.Text.TrimStart('0');
+            target = digits.Length == 0 ? 0
+                : long.TryParse(digits, System.Globalization.CultureInfo.InvariantCulture, out var written)
+                    ? (int)Math.Min(written, config.TargetMax)
+                    : config.TargetMax;
         }
 
         field.Text = Number(target);
@@ -285,7 +288,7 @@ public partial class ColonyPanel : PanelContainer
     private void BuildTargets(HBoxContainer row)
     {
         var targets = FreeWillRules.Targets(_session.Simulation);
-        if (targets.Count == 0 || FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config)
+        if (targets.Count == 0)
         {
             return;
         }
@@ -420,8 +423,7 @@ public partial class ColonyPanel : PanelContainer
         }
     }
 
-    /// <summary>
-
+    /// <summary>Leaves only the digits of what the player typed or pasted, with the caret where it was among them.</summary>
     private static void KeepDigits(LineEdit line, string text)
     {
         var digits = new string(text.Where(char.IsAsciiDigit).ToArray());
