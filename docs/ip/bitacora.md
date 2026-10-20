@@ -48,6 +48,7 @@ En orden:
 - Mientras un campo de texto tiene el foco, `GameInput` y `CameraRig` no leen las teclas del juego (`TextFocus.IsTyping`): escribir "150" ya no cambia la velocidad. Un clic en el mapa suelta el campo.
 - El smoke escribe 123, el máximo más uno (queda en el máximo) y el valor original. Capturas es/en revisadas.
 - Revisión, primera ronda: un clic en las flechas suelta el campo (si no, las teclas del juego quedaban escribiendo en él); Esc mientras se escribe vuelve a la meta anterior y no abre la pausa; cualquier clic fuera del campo lo suelta y aplica lo escrito. El smoke prueba escribir con Enter y cancelar con Esc. Queda sin cambiar: las teclas del juego se leen por sondeo en `_Process` con la guarda `TextFocus` en lugar de pasar a eventos; es un cambio más grande que no hace falta para un solo campo.
+- Segunda ronda: el campo sólo toma dígitos ("10.000" daba 10, porque Godot lo lee como expresión); la rueda del mouse ya no suelta el campo; un clic en las flechas con un número escrito parte de ese número; las teclas del cuadro en que el campo se suelta tampoco actúan en el juego (`TextFocus.Released`); soltar el campo con un clic afuera pasa a `TextFocus.ReleaseOnClickOutside`, que llama `GameInput._Input`, para cualquier campo del juego. Descartado: partir "{category}: {count} de" para que otro idioma ponga la meta antes; queda anotado en la spec.
 
 ### 2026-10-19: L2, presentación del interruptor y las metas
 

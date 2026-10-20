@@ -233,6 +233,9 @@ public partial class GameInput : Node3D
         _selected.Visible = LevelShading.IsVisible(cell.Z, _view.ViewLevel);
     }
 
+    // Before the HUD and the map see a click: it lets go of a text field written in.
+    public override void _Input(InputEvent @event) => TextFocus.ReleaseOnClickOutside(this, @event);
+
     public override void _UnhandledInput(InputEvent @event)
     {
         switch (@event)

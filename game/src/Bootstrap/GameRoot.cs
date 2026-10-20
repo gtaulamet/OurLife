@@ -1311,20 +1311,26 @@ public partial class GameRoot : Node
             throw new InvalidOperationException($"the target of {first.Category} written as 123, {highest + 1} and {first.Count} became [{string.Join(", ", written)}]");
         }
 
-        // Written as the player does: the field takes the keys from the game, Enter applies the
-        // number and lets go, and Esc puts the target back and lets go.
+        // Written as the player does: the field takes the keys from the game, keeps only digits,
+        // Enter applies the number and lets go, and Esc puts the target back and lets go. The keys
+        // of the frame the field lets go of went into it, so the game still waits for that frame.
         var line = screen.Hud.Colony.TargetLine(first.Category)!;
+        bool Focused() => screen.GetViewport().GuiGetFocusOwner() == line;
         line.GrabFocus();
         var typing = TextFocus.IsTyping(screen);
-        line.Text = "777";
-        line.EmitSignal(LineEdit.SignalName.TextSubmitted, "777");
+        // What the player types, not text the game shows.
+        const string Typed = "7.770";
+        const string HalfTyped = "15";
+        line.Text = Typed;
+        line.EmitSignal(LineEdit.SignalName.TextChanged, Typed);
+        line.EmitSignal(LineEdit.SignalName.TextSubmitted, line.Text);
 
         // The SpinBox applies the text deferred, at the end of the frame, which the smoke does not wait for.
         line.GetParent<SpinBox>().Apply();
         screen.Advance(1);
-        var submitted = (FreeWillRules.Targets(game)[0].Count, TextFocus.IsTyping(screen));
+        var submitted = (FreeWillRules.Targets(game)[0].Count, Focused(), TextFocus.IsTyping(screen));
         line.GrabFocus();
-        line.Text = "15";
+        line.Text = HalfTyped;
         using (var escape = new InputEventAction { Action = "ui_cancel", Pressed = true })
         {
             line.EmitSignal(Control.SignalName.GuiInput, escape);
@@ -1332,10 +1338,10 @@ public partial class GameRoot : Node
 
         line.GetParent<SpinBox>().Apply();
         screen.Advance(1);
-        var cancelled = (FreeWillRules.Targets(game)[0].Count, TextFocus.IsTyping(screen));
+        var cancelled = (FreeWillRules.Targets(game)[0].Count, Focused());
         screen.Hud.Colony.WriteTarget(first.Category, first.Count);
         screen.Advance(1);
-        if (!typing || submitted != (777, false) || cancelled != (777, false) || FreeWillRules.Targets(game)[0].Count != first.Count)
+        if (!typing || submitted != (7770, false, true) || cancelled != (7770, false) || FreeWillRules.Targets(game)[0].Count != first.Count)
         {
             throw new InvalidOperationException($"writing the target of {first.Category}: typing {typing}, Enter gave {submitted}, Esc gave {cancelled}");
         }

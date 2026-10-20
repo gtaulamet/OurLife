@@ -53,7 +53,7 @@ public class FreeWillTests
         FreeWillRules.Targets(bed.Simulation).ShouldBe([new StockTarget("food", 999), new StockTarget("wood", 0)]);
     }
 
-[Fact]
+    [Fact]
     public void The_village_is_centred_on_the_arrival_and_reaches_its_radius_at_any_level()
     {
         var bed = new ColonyTestBed(ColonyTestBed.Level(20, 20, '#'), ColonyTestBed.Level(20, 20, '.'));

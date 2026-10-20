@@ -31,7 +31,7 @@ public partial class ColonyPanel : PanelContainer
     private GameInput _input = null!;
     private GridContainer _grid = null!;
 
-    private readonly List<(string Category, Label Label, SpinBox Field)> _targetRows = [];
+    private readonly List<(string Category, Label Label, SpinBox Field, LineEdit Line)> _targetRows = [];
 
     // The digits of a count the target lines make room for; more widen them.
     private int _countDigits = 4;
@@ -89,42 +89,20 @@ public partial class ColonyPanel : PanelContainer
 
     /// <summary>The text field of a target, or null for a category without one. For the smoke.</summary>
     public LineEdit? TargetLine(string category) =>
-        _targetRows.Find(entry => entry.Category == category).Field?.GetLineEdit();
+        _targetRows.Find(entry => entry.Category == category).Line;
 
-    /// <summary>
-    /// A click anywhere but on the field being written lets go of it, which applies what it holds:
-    /// a HUD button or the map, whose clicks go on as usual.
-    /// </summary>
-    public override void _Input(InputEvent @event)
-    {
-        if (@event is not InputEventMouseButton { Pressed: true }
-            || GetViewport().GuiGetFocusOwner() is not LineEdit focused
-            || !_targetRows.Exists(row => row.Field.GetLineEdit() == focused))
-        {
-            return;
-        }
-
-        // The text and the arrows belong to the field's SpinBox.
-        var field = focused.GetParent<Control>();
-        var hovered = GetViewport().GuiGetHoveredControl();
-        if (hovered is null || (hovered != field && !field.IsAncestorOf(hovered)))
-        {
-            focused.ReleaseFocus();
-        }
-    }
 
     /// <summary>
     /// Esc while writing a target puts back the one it had and lets go of the field, without the
     /// game seeing the key: no pause menu, and nothing applied.
     /// </summary>
-    private static void CancelWriting(SpinBox field, InputEvent input)
+    private static void CancelWriting(SpinBox field, LineEdit line, InputEvent input)
     {
         if (!input.IsActionPressed("ui_cancel"))
         {
             return;
         }
 
-        var line = field.GetLineEdit();
         line.Text = ((int)field.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
         line.AcceptEvent();
         line.ReleaseFocus();
@@ -321,7 +299,21 @@ public partial class ColonyPanel : PanelContainer
                 line.ReleaseFocus();
             };
             line.TextSubmitted += _ => line.ReleaseFocus();
-            line.GuiInput += input => CancelWriting(field, input);
+            line.GuiInput += input => CancelWriting(field, line, input);
+            line.FocusExited += TextFocus.Released;
+
+            // Only digits: "10.000", "10,000" or "10 000" become 10000, not an expression or nothing.
+            line.MaxLength = Digits(config.TargetMax);
+            line.TextChanged += text => KeepDigits(line, text);
+
+            // An arrow clicked while a number is written steps from that number.
+            field.GuiInput += input =>
+            {
+                if (input is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } && line.HasFocus())
+                {
+                    field.Apply();
+                }
+            };
 
             // A box that shows it can be written in, lighter than the panel.
             var box = new StyleBoxFlat
@@ -337,7 +329,7 @@ public partial class ColonyPanel : PanelContainer
             box.SetCornerRadiusAll(3);
             line.AddThemeStyleboxOverride("normal", box);
             group.AddChild(field);
-            _targetRows.Add((category, label, field));
+            _targetRows.Add((category, label, field, line));
         }
     }
 
@@ -384,12 +376,12 @@ public partial class ColonyPanel : PanelContainer
         var stock = ColonyStock.ByCategory(_session.Simulation);
         var targets = FreeWillRules.Targets(_session.Simulation);
         var widest = 0;
-        foreach (var (category, label, field) in _targetRows)
+        foreach (var (category, label, field, text) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
             label.Text = TargetText(line.Category, line.Count);
             widest = Math.Max(widest, Digits(line.Count));
-            if (!field.GetLineEdit().HasFocus())
+            if (!text.HasFocus())
             {
                 field.SetValueNoSignal(TargetOf(category, targets));
             }
@@ -418,13 +410,24 @@ public partial class ColonyPanel : PanelContainer
         // Eights, the widest digit of most fonts.
         var count = Eights(_countDigits);
         var highest = Eights(Digits(config.TargetMax)).ToString(System.Globalization.CultureInfo.InvariantCulture);
-        foreach (var (category, label, field) in _targetRows)
+        foreach (var (category, label, field, line) in _targetRows)
         {
             var text = TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), count);
             label.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(label, text)), 0);
 
             // Room for the arrows beside the number.
-            field.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(field.GetLineEdit(), highest)) + 36, 0);
+            field.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(line, highest)) + 36, 0);
+        }
+    }
+
+    private static void KeepDigits(LineEdit line, string text)
+    {
+        var digits = new string(text.Where(char.IsAsciiDigit).ToArray());
+        if (digits != text)
+        {
+            var caret = line.CaretColumn - (text.Length - digits.Length);
+            line.Text = digits;
+            line.CaretColumn = Math.Max(0, caret);
         }
     }
 

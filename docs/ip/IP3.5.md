@@ -47,7 +47,7 @@
 ## Decisiones de diseño a cerrar en L1
 
 - **Opción en Opciones y simulación:** la simulación tiene que saber si el libre albedrío está prendido, para que dos partidas iguales den lo mismo y el guardado lo conserve. Propuesta: la preferencia vive en `settings.cfg` y, al cambiarla o al cargar una partida, la sesión le manda un comando a la simulación con el valor.
-- **Metas:** en el panel Colonia (decidido). Falta el detalle: una meta por categoría de objetos (comida, madera, piedra), con botones de más y menos.
+- **Metas:** en el panel Colonia (decidido). Detalle en la spec: una meta para comida y otra para madera, en un campo que escribe el jugador (0 a 100 000, pedido del 20 de octubre).
 - **Cerca de la aldea:** radio de 20 celdas (decidido). Propuesta para el centro: el lugar de llegada de los colonos, fijo; se puede revisar si la aldea crece hacia un lado.
 - **Bosque:** el tope por especie, propuesto igual a la densidad con que la genera el valle (robles 3,5 % y pinos 4 % de las celdas donde pueden crecer), para que el bosque vuelva a su estado natural y no pase de ahí. ¿Retoños sólo junto a árboles adultos de su especie, o en cualquier lugar? Propuesta: a pocas celdas de uno adulto, así el bosque se extiende desde donde quedó. Sembrar a pedido del jugador, con semillas, queda para la agricultura de IP4.
 - **Estaciones visibles:** ¿el pasto se blanquea de a poco hasta el centro del invierno o queda blanco desde el primer día? Propuesta: de a poco. ¿Desde qué altura hay nieve en la roca? Propuesta: el último tercio de la altura del valle.
