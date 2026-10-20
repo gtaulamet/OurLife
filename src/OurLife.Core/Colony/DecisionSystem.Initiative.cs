@@ -12,8 +12,10 @@ public sealed partial class DecisionSystem
 
     private readonly List<(InitiativeTaskDef Task, int Priority, long MissingPerMille, int Order)> _tasks = [];
 
-    // The plants each task works on, by task id: those whose job gives items of its category.
+    // The plants each task works on, by task id: those whose job gives items of its category; and
+    // the work type of each task, in the order of the defs. Both found once.
     private Dictionary<string, HashSet<string>>? _taskPlants;
+    private WorkTypeDef[]? _taskWorkTypes;
 
     // The stock of the village by category, counted once per tick, when a colonist first needs it.
     private readonly Dictionary<string, int> _stock = new(StringComparer.Ordinal);
@@ -37,12 +39,14 @@ public sealed partial class DecisionSystem
             return false;
         }
 
-        FindTasks(simulation, colonist);
-        if (_tasks.Count == 0
-            || simulation.Random.Get(InitiativeStream).NextInt(100) >= FreeWillRules.InitiativeChancePercent(simulation, colonist))
+        // The roll comes first, so a colonist that will not take the initiative counts nothing.
+        if (simulation.Content.All<InitiativeTaskDef>().Count == 0
+            || !simulation.Random.Get(InitiativeStream).Chance(FreeWillRules.InitiativeChancePercent(simulation, colonist) * 100))
         {
             return false;
         }
+
+        FindTasks(simulation, colonist);
 
         _tasks.Sort((a, b) =>
         {
@@ -71,17 +75,13 @@ public sealed partial class DecisionSystem
     {
         _tasks.Clear();
         var tasks = simulation.Content.All<InitiativeTaskDef>();
-        if (tasks.Count == 0)
-        {
-            return;
-        }
-
+        _taskWorkTypes ??= [.. tasks.Select(task => _rules.WorkTypeOf(new Job { Kind = task.Kind })!)];
         CountIncoming(simulation);
         var stage = LifeRules.Stage(simulation, colonist);
         for (var i = 0; i < tasks.Count; i++)
         {
             var task = tasks[i];
-            var priority = PriorityOf(simulation, colonist, stage, _rules.WorkTypeOf(new Job { Kind = task.Kind })!);
+            var priority = PriorityOf(simulation, colonist, stage, _taskWorkTypes[i]);
             var target = FreeWillRules.TargetOf(simulation, task.Category) ?? 0;
             if (priority == WorkPriorityLevels.Never || target <= 0)
             {
@@ -144,10 +144,17 @@ public sealed partial class DecisionSystem
         var world = simulation.World;
         var plants = PlantsOf(simulation.Content, task);
         var kind = task.Kind;
+
+        // Near the village, as FreeWillRules.IsNearVillage, with the centre and the radius read once.
+        var center = simulation.VillageCenter!.Value;
+        long radius = FreeWillRules.ConfigOf(simulation.Content)!.VillageRadius;
         world.Query<Plant, Position>(_entities);
         foreach (var plant in _entities)
         {
-            if (FreeWillRules.IsNearVillage(simulation, world.Get<Position>(plant).Cell)
+            var cell = world.Get<Position>(plant).Cell;
+            long dx = cell.X - center.X;
+            long dy = cell.Y - center.Y;
+            if ((dx * dx) + (dy * dy) <= radius * radius
                 && plants.Contains(world.Get<Plant>(plant).Def)
                 && !world.Has<ChopOrder>(plant) && !world.Has<HarvestOrder>(plant)
                 && !(kind == JobKind.Harvest && world.Has<Harvested>(plant)))

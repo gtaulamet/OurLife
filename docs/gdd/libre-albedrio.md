@@ -48,7 +48,7 @@ Un colono libre, sin órdenes que tomar, puede inventarse trabajo:
 | Talar (`chop_wood`) | Tala | Madera de la aldea bajo su meta | Tala el árbol más cercano cerca de la aldea, aunque nadie lo haya ordenado |
 | Acarrear | Acarreo | Ya ocurre sin órdenes desde IP2 | Sin cambios |
 
-- **Cuándo decide:** después de las necesidades críticas, de las órdenes del jugador por prioridad y de las necesidades bajas; antes de jugar (niños), de la vida social con intención y de deambular. Las órdenes del jugador siempre van primero.
+- **Cuándo decide:** después de las necesidades críticas, de las órdenes del jugador por prioridad y de las necesidades bajas; antes de jugar (niños), de la vida social con intención y de deambular. Las órdenes del jugador siempre van primero. Un trabajo por iniciativa cede a otro trabajo o a una necesidad baja mientras el colono va hacia la planta; ya trabajando en ella, termina (sólo una necesidad crítica lo corta), así no se pierde lo hecho.
 - **Prioridades:** la tarea usa la prioridad del colono para su tipo de trabajo. Con "nunca", nunca la hace. Entre varias tareas posibles, la de prioridad más alta; con la misma, la de la meta más lejos de cumplirse.
 - **Etapas:** sólo quien puede hacer ese trabajo: un adolescente recolecta (trabajo liviano) pero no tala; un niño no hace ninguna.
 - **Ganas:** cada vez que decide, la tarea ocurre con una probabilidad: `initiativeChancePercent` (60 %) por la diligencia (de 50 % a 150 % del valor, de la diligencia más baja a la más alta) y por el ánimo (×50 % con ánimo bajo 30, ×120 % con ánimo sobre 70). Si no ocurre, deambula y vuelve a decidir en la próxima revisión, como hoy.

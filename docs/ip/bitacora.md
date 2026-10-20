@@ -12,7 +12,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | `main` | Con L2 de IP3.5 y las metas escritas (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 758 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Validación | `dotnet build` sin advertencias, 759 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -51,6 +51,7 @@ En orden:
 - 18 tests nuevos en `InitiativeTests` (criterios 1 a 6, etapas, crisis, trabajo en curso, prioridad contra falta, reparto, guardado).
 - Experimento de balance, cinco años en Normal sin órdenes del jugador y con la opción prendida: con la meta de comida de 150 la aldea se extingue en el primer invierno en las semillas 1 y 7 y sobrevive en la 42; con 600 sobrevive en las tres, sin muertes por hambre. Nadie nace en ningún caso, porque concebir pide comida guardada para 30 días por boca. 0,02 ms por tick con la opción prendida.
 - Revisión, primera ronda: lo que viene en camino se cuenta en cada decisión, no una vez por tick (un trabajo cambiado en el mismo tick quedaba contado); apagar la opción termina el trabajo por iniciativa en curso; `InitiativeTask` ya no lleva `workType`, que sale del trabajo; `FreeWillRules.TargetOf`, `PlantDef.OutputOf` y la prioridad por etapa compartida con `TryWork`; las plantas se filtran primero por la cercanía a la aldea.
+- Segunda ronda: el trabajo por iniciativa sólo cede a otro trabajo o a una necesidad baja mientras va hacia la planta; ya trabajando, termina (antes perdía lo hecho en cada revisión, y una orden sobre el mismo árbol lo hacía empezar de cero). La tirada va antes de contar (`Pcg32.Chance`), el tipo de trabajo de cada tarea se resuelve una vez y la cercanía se calcula con el centro y el radio leídos una vez.
 
 ### 2026-10-20: metas escritas por el jugador
 

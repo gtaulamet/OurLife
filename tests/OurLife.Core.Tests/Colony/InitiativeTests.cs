@@ -107,19 +107,38 @@ public class InitiativeTests
     }
 
     [Fact]
-    public void Work_on_its_own_gives_way_to_an_order_that_comes_later()
+    public void Work_on_its_own_gives_way_on_the_way_to_an_order_that_comes_later()
     {
-        var bed = FreeBed();
+        // A long walk to the bush, so the next recheck finds it still on the way.
+        var bed = ColonyTestBed.Flat(32);
+        bed.Simulation.FreeWill = true;
+        bed.Simulation.VillageCenter = new TileCoord(16, 16, 1);
         bed.Simulation.Commands.Enqueue(new SetStockTargetCommand("wood", 0));
-        var bush = bed.AddPlant("bush", 13, 8, 1);
-        bed.AddPlant("tree", 4, 4, 1);
-        var colonist = bed.AddColonist(3, 8, 1);
+        var bush = bed.AddPlant("bush", 21, 16, 1);
+        bed.AddPlant("tree", 2, 2, 1);
+        var colonist = bed.AddColonist(0, 16, 1);
         RunUntil(bed, () => bed.JobOf(colonist) is { Initiative: true }, 300).ShouldBeTrue();
 
-        bed.Designate(DesignationKind.Chop, new TileCoord(4, 4, 1), new TileCoord(4, 4, 1));
+        bed.Designate(DesignationKind.Chop, new TileCoord(2, 2, 1), new TileCoord(2, 2, 1));
         RunUntil(bed, () => bed.JobOf(colonist) is { Kind: JobKind.Chop, Initiative: false }, 40).ShouldBeTrue();
 
         bed.World.Has<Harvested>(bush).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void Work_on_its_own_already_started_is_finished_before_an_order()
+    {
+        var bed = FreeBed();
+        bed.Simulation.Commands.Enqueue(new SetStockTargetCommand("food", 0));
+        var tree = bed.AddPlant("tree", 9, 8, 1);
+        bed.AddPlant("tree", 3, 3, 1);
+        var colonist = bed.AddColonist(8, 9, 1);
+        RunUntil(bed, () => bed.JobOf(colonist) is { Initiative: true, Stage: JobStage.Working }, 300).ShouldBeTrue();
+
+        bed.Designate(DesignationKind.Chop, new TileCoord(3, 3, 1), new TileCoord(3, 3, 1));
+        RunUntil(bed, () => !bed.World.IsAlive(tree) || bed.JobOf(colonist) is { Initiative: false }, 200);
+
+        bed.World.IsAlive(tree).ShouldBeFalse();
     }
 
     [Fact]

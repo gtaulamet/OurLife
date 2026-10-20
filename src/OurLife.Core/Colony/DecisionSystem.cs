@@ -397,11 +397,12 @@ public sealed partial class DecisionSystem : ISimSystem
             }
         }
 
-        // Critical needs were tried above. Work and low needs interrupt work on its own, wandering
-        // and playing; a wanderer may also work on its own or go to play, but a player keeps its playmate.
+        // Critical needs were tried above. Work and low needs interrupt wandering and playing, and
+        // work on its own on the way to its plant: once at it, it finishes, so no work is lost. A
+        // wanderer may also work on its own or go to play, but a player keeps its playmate.
         if (job.Initiative)
         {
-            return TryWorkOrLowNeeds(simulation, colonist);
+            return job.Stage == JobStage.Moving && TryWorkOrLowNeeds(simulation, colonist);
         }
 
         return job.Kind switch
