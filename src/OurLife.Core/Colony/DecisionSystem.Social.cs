@@ -82,13 +82,7 @@ public sealed partial class DecisionSystem
         if (job.Count >= config.SeekFollows || !FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim)
             || !TryVisit(simulation, colonist, job.Target, job.Count + 1))
         {
-            // It gives up on the other for a while, as on a target it cannot reach, so it does not
-            // set off after it again at once.
-            world.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget
-            {
-                Entity = job.Target,
-                UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
-            });
+            FreeWillRules.LeaveAlone(simulation, colonist, job.Target, _rules.Ai.UnreachableCooldownTicks);
             Wander(simulation, colonist);
         }
 
@@ -200,10 +194,12 @@ public sealed partial class DecisionSystem
     private bool FindRivalsNear(Simulation simulation, EntityId colonist, TileCoord from)
     {
         _avoided.Clear();
-        if (!simulation.FreeWill || FreeWillRules.ConfigOf(simulation.Content) is not { } config)
+        if (!FreeWillRules.IsActive(simulation))
         {
             return false;
         }
+
+        var config = FreeWillRules.ConfigOf(simulation.Content)!;
 
         var world = simulation.World;
         foreach (var other in _colonists)

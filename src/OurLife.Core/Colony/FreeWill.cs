@@ -176,6 +176,13 @@ public static class FreeWillRules
     internal static bool WillBeNear(Simulation simulation, EntityId colonist, EntityId other) =>
         SocialSystem.InReach(Relationships.Config(simulation), AimOf(simulation.World, colonist), AimOf(simulation.World, other));
 
+    /// <summary>
+    /// A visitor that gave up on its company leaves it alone for <paramref name="ticks"/>, as a
+    /// target it cannot reach, so it does not set off after it again at once.
+    /// </summary>
+    internal static void LeaveAlone(Simulation simulation, EntityId colonist, EntityId other, int ticks) =>
+        simulation.World.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget { Entity = other, UntilTick = simulation.CurrentTick + ticks });
+
     /// <summary>Where a colonist will be: the end of its walk, whatever it walks for, or where it stands.</summary>
     internal static TileCoord AimOf(World world, EntityId colonist) =>
         world.TryGet<Movement>(colonist, out var movement) && movement.IsMoving ? movement.Path[^1] : world.Get<Position>(colonist).Cell;

@@ -238,8 +238,24 @@ public sealed class JobSystem : ISimSystem
             // Seeking company is free will too. Both must still be up for company and, once the
             // visitor waits, the other must not be heading off out of reach.
             case JobKind.Visit:
-                return FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target)
-                       && (job.Stage != JobStage.Working || FreeWillRules.WillBeNear(simulation, colonist, job.Target));
+                if (!FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target))
+                {
+                    return false;
+                }
+
+                if (job.Stage == JobStage.Working && !FreeWillRules.WillBeNear(simulation, colonist, job.Target))
+                {
+                    // The other left before they met: the visitor gives up on it, as when it stops following it.
+                    var cooldown = (long)Relationships.Config(simulation).PairCooldownHours * simulation.Time.TicksPerHour;
+                    if (!SocialSystem.Met(simulation, colonist, job.Target, cooldown) && !SocialSystem.Met(simulation, job.Target, colonist, cooldown))
+                    {
+                        FreeWillRules.LeaveAlone(simulation, colonist, job.Target, _rules.Ai.UnreachableCooldownTicks);
+                    }
+
+                    return false;
+                }
+
+                return true;
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:

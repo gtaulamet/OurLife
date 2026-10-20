@@ -183,9 +183,14 @@ public class SocialIntentTests
         var position = bed.World.Get<Position>(liked);
         (position.X, position.Y) = (far.X, far.Y);
         Settle(bed, liked, JobKind.Wander, far);
+        var met = Relationships.Of(bed.Simulation, seeker, liked)?.LastInteractionTick is not null
+                  || Relationships.Of(bed.Simulation, liked, seeker)?.LastInteractionTick is not null;
         bed.Simulation.Tick();
 
         (bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Working }).ShouldBeFalse();
+
+        // Unless the two met, it leaves the other alone a while.
+        bed.World.Get<Colonist>(seeker).Unreachable.Any(target => target.Entity == liked).ShouldBe(!met);
     }
 
     [Fact]

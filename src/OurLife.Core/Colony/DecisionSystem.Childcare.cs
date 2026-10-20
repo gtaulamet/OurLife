@@ -214,6 +214,7 @@ public sealed partial class DecisionSystem
                 || !(LifeRules.Stage(simulation, other)?.PlayRadius is not null || Relationships.IsFamily(simulation, colonist, other))
                 || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell)
                 || (FreeWillRules.IsActive(simulation) && Relationships.IsRival(simulation, colonist, other))
+                || IsIgnored(world.Get<Colonist>(colonist), other, cell)
                 || (world.TryGet<Job>(other, out var theirs) && theirs.Kind == JobKind.Visit && theirs.Target == colonist))
             {
                 continue;
