@@ -161,6 +161,14 @@ public static class FreeWillRules
         Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, other)
         && !(simulation.World.TryGet<Job>(other, out var job) && job.Kind == JobKind.Sleep) && !Relationships.IsRival(simulation, colonist, other);
 
+    /// <summary>
+    /// Whether a visitor and its company will be near enough to interact: where each will be, at
+    /// the end of its walk, within the interactions' reach. The one rule for following, starting
+    /// to wait and going on waiting.
+    /// </summary>
+    internal static bool WillBeNear(Simulation simulation, EntityId colonist, EntityId other) =>
+        SocialSystem.InReach(Relationships.Config(simulation), AimOf(simulation.World, colonist), AimOf(simulation.World, other));
+
     /// <summary>Where a colonist will be: the end of its walk, whatever it walks for, or where it stands.</summary>
     internal static TileCoord AimOf(World world, EntityId colonist) =>
         world.TryGet<Movement>(colonist, out var movement) && movement.IsMoving ? movement.Path[^1] : world.Get<Position>(colonist).Cell;

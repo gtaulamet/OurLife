@@ -97,7 +97,7 @@ public sealed class JobSystem : ISimSystem
 
                 // A visitor whose company is going elsewhere does not wait where nobody will be: it
                 // stays on its way, and the decisions of the next tick follow the other.
-                if (job.Kind == JobKind.Visit && !StillNear(simulation, colonist, job.Target))
+                if (job.Kind == JobKind.Visit && !FreeWillRules.WillBeNear(simulation, colonist, job.Target))
                 {
                     continue;
                 }
@@ -236,10 +236,10 @@ public sealed class JobSystem : ISimSystem
             case JobKind.Play:
                 return Relationships.IsLivingColonist(world, job.Target) && !(simulation.FreeWill && Relationships.IsRival(simulation, colonist, job.Target));
             // Seeking company is free will too. Both must still be up for company and, once the
-            // visitor waits, the other must be, or be going, near enough to it to interact.
+            // visitor waits, the other must not be heading off out of reach.
             case JobKind.Visit:
                 return FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target)
-                       && (job.Stage != JobStage.Working || StillNear(simulation, colonist, job.Target));
+                       && (job.Stage != JobStage.Working || FreeWillRules.WillBeNear(simulation, colonist, job.Target));
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -247,15 +247,6 @@ public sealed class JobSystem : ISimSystem
             default:
                 return true;
         }
-    }
-
-    /// <summary>Whether another colonist is near enough to interact with one, or is going to be at the end of its walk.</summary>
-    private static bool StillNear(Simulation simulation, EntityId colonist, EntityId other)
-    {
-        var world = simulation.World;
-        var config = Relationships.Config(simulation);
-        var cell = world.Get<Position>(colonist).Cell;
-        return SocialSystem.InReach(config, cell, world.Get<Position>(other).Cell) || SocialSystem.InReach(config, cell, FreeWillRules.AimOf(world, other));
     }
 
     /// <summary>True if the cell keeps its order and the order still makes sense; a senseless order is cleared.</summary>

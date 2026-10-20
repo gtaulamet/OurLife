@@ -69,7 +69,7 @@ public sealed partial class DecisionSystem
         }
 
         var aim = FreeWillRules.AimOf(world, job.Target);
-        if (aim == job.Cell || SocialSystem.InReach(Relationships.Config(simulation), FreeWillRules.AimOf(world, colonist), aim)
+        if (aim == job.Cell || FreeWillRules.WillBeNear(simulation, colonist, job.Target)
             || FreeWillRules.ConfigOf(simulation.Content) is not { } config || !FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target))
         {
             return false;
