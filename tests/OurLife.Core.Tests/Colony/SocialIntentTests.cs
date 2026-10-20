@@ -233,7 +233,7 @@ public class SocialIntentTests
     }
 
     [Fact]
-    public void A_visitor_gives_up_on_one_who_keeps_moving()
+    public void A_visitor_gives_up_on_one_who_keeps_moving_for_a_while()
     {
         var bed = WalledBed();
         var seeker = bed.AddColonist(2, 16, 1);
@@ -261,6 +261,9 @@ public class SocialIntentTests
                 job.Kind.ShouldBe(JobKind.Wander);
             }
         }
+
+        // And it leaves the other alone for a while.
+        Visits(bed, seeker, 500).ShouldNotContain(liked);
     }
 
     [Fact]

@@ -31,6 +31,9 @@ public sealed class FreeWillConfigDef : Def
     /// </summary>
     public required int SeekMinOpinion { get; init; }
 
+    /// <summary>Times a visitor follows its company to a new place before it gives up on it for a while.</summary>
+    public required int SeekFollows { get; init; }
+
     /// <summary>Rivals within this many cells are avoided when wandering.</summary>
     public required int AvoidRadius { get; init; }
 
@@ -77,9 +80,9 @@ public sealed class FreeWillConfigDef : Def
             yield return "initiativeChancePercent and seekChancePercent must be between 0 and 100.";
         }
 
-        if (SeekMinOpinion is < -100 or > 100)
+        if (SeekMinOpinion is < -100 or > 100 || SeekFollows < 0)
         {
-            yield return "seekMinOpinion must be an opinion between -100 and 100.";
+            yield return "seekMinOpinion must be an opinion between -100 and 100, and seekFollows zero or more.";
         }
 
         if (TraitPercent.Low < 0 || TraitPercent.Low > TraitPercent.High || LowMoodPercent < 0 || HighMoodPercent < 0)

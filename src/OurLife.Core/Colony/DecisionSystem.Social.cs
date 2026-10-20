@@ -12,10 +12,6 @@ namespace OurLife.Core.Colony;
 /// </summary>
 public sealed partial class DecisionSystem
 {
-    // Times a visitor follows its company to a new place before it gives up: a search limit, not
-    // balance, so it does not chase one who keeps moving.
-    private const int MaxFollows = 3;
-
     // Those a colonist may seek, with their weights: found at each decision.
     private readonly List<(EntityId Item, int Weight)> _liked = [];
 
@@ -64,8 +60,8 @@ public sealed partial class DecisionSystem
     /// <summary>
     /// A visitor on its way whose company will not be within reach of where it is going follows it
     /// to where it will be, while it is within reach for seeking, there is a way and it did not
-    /// follow it <see cref="MaxFollows"/> times yet; else the visit ends and it wanders. True if it
-    /// got another job.
+    /// follow it <see cref="FreeWillConfigDef.SeekFollows"/> times yet; else the visit ends and it
+    /// wanders. True if it got another job.
     /// </summary>
     private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
     {
@@ -83,9 +79,16 @@ public sealed partial class DecisionSystem
             return false;
         }
 
-        if (job.Count >= MaxFollows || !FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim)
+        if (job.Count >= config.SeekFollows || !FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim)
             || !TryVisit(simulation, colonist, job.Target, job.Count + 1))
         {
+            // It gives up on the other for a while, as on a target it cannot reach, so it does not
+            // set off after it again at once.
+            world.Get<Colonist>(colonist).Unreachable.Add(new IgnoredTarget
+            {
+                Entity = job.Target,
+                UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
+            });
             Wander(simulation, colonist);
         }
 
@@ -120,8 +123,8 @@ public sealed partial class DecisionSystem
     /// its partner, family and friends, with the weight they have in the interactions; those it
     /// thinks well enough of and those it wishes to befriend or make up with. A child, who plays
     /// with the others, seeks only its family. Never a rival, not even one of the family, nor one
-    /// who cannot interact now or is going to sleep, that the two met lately or that is already
-    /// coming to keep it company or to play.
+    /// who cannot interact now or is going to sleep, that the two met lately, that it gave up
+    /// following a while ago or that is already coming to keep it company or to play.
     /// </summary>
     private void FindLiked(Simulation simulation, EntityId colonist, FreeWillConfigDef config)
     {
@@ -133,6 +136,7 @@ public sealed partial class DecisionSystem
         var cooldown = (long)social.PairCooldownHours * simulation.Time.TicksPerHour;
         var onlyFamily = LifeRules.Stage(simulation, colonist)?.PlayRadius is not null;
         world.TryGet<Desires>(colonist, out var desires);
+        var person = world.Get<Colonist>(colonist);
         foreach (var other in _colonists)
         {
             if (other == colonist || !world.IsAlive(other))
@@ -156,7 +160,7 @@ public sealed partial class DecisionSystem
                     ? SocialSystem.OtherWeightPercent
                     : 0;
             // A weight of 0, as in the interactions, leaves one out.
-            if (weight == 0 || !FreeWillRules.CanVisit(simulation, colonist, other)
+            if (weight == 0 || IsIgnored(person, other, aim) || !FreeWillRules.CanVisit(simulation, colonist, other)
                 || SocialSystem.Met(simulation, colonist, other, cooldown) || SocialSystem.Met(simulation, other, colonist, cooldown)
                 || !connectivity.AreConnected(from, aim)
                 || (world.TryGet<Job>(other, out var theirs) && theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist))

@@ -375,7 +375,8 @@ public sealed partial class DecisionSystem : ISimSystem
         // A visitor on its way also looks at every tick whether its company is going elsewhere, so
         // it does not arrive where nobody is: only a new walk of the other makes it search a path.
         var recheck = (simulation.CurrentTick + colonist.Index) % _rules.Ai.RecheckTicks == 0;
-        if (!recheck && !(job.Kind == JobKind.Visit && job.Stage == JobStage.Moving))
+        if (!recheck && !(job.Kind == JobKind.Visit && job.Stage == JobStage.Moving && Relationships.IsLivingColonist(simulation.World, job.Target)
+                          && FreeWillRules.AimOf(simulation.World, job.Target) != job.Cell))
         {
             return;
         }

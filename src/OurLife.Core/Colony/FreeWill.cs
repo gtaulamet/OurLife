@@ -143,13 +143,20 @@ public static class FreeWillRules
         return (int)((long)basePercent * traitPercent * moodPercent / 100);
     }
 
+    /// <summary>Whether free will acts: the player's option is on and the content has free will.</summary>
+    public static bool IsActive(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return simulation.FreeWill && ConfigOf(simulation.Content) is not null;
+    }
+
     /// <summary>
     /// Whether a colonist may seek company now (see "Vida social con intención" in
     /// <c>docs/gdd/libre-albedrio.md</c>): free will is on and in the content, it can interact, it
     /// is in no crisis and it does not crawl.
     /// </summary>
     internal static bool CanSeekCompany(Simulation simulation, EntityId colonist) =>
-        simulation.FreeWill && ConfigOf(simulation.Content) is not null && LifeRules.Stage(simulation, colonist)?.CrawlRadius is null
+        IsActive(simulation) && LifeRules.Stage(simulation, colonist)?.CrawlRadius is null
         && SocialSystem.CanInteract(simulation, colonist) && MoodRules.CrisisOf(simulation, colonist) is null;
 
     /// <summary>Whether a visit to <paramref name="other"/> still makes sense: the visitor may still seek company, and visit it.</summary>

@@ -234,7 +234,7 @@ public sealed class JobSystem : ISimSystem
                        && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
             // With free will, nobody stays by a rival.
             case JobKind.Play:
-                return Relationships.IsLivingColonist(world, job.Target) && !(simulation.FreeWill && Relationships.IsRival(simulation, colonist, job.Target));
+                return Relationships.IsLivingColonist(world, job.Target) && !(FreeWillRules.IsActive(simulation) && Relationships.IsRival(simulation, colonist, job.Target));
             // Seeking company is free will too. Both must still be up for company and, once the
             // visitor waits, the other must not be heading off out of reach.
             case JobKind.Visit:
