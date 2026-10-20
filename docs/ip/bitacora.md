@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l2-metas`: L2 cerrado y en `main`. Sigue L3 en `ip3.5/l3-iniciativa` |
+| Rama de trabajo | `ip3.5/l2-metas`: metas escritas por el jugador (pedido del 20 de octubre), en revisión. Después, L3 en `ip3.5/l3-iniciativa` |
 | `main` | Con L2 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 746 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Validación | `dotnet build` sin advertencias, 735 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -41,6 +41,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-20: metas escritas por el jugador
+
+- Pedido del usuario: la meta de comida y de madera es un campo que completa el jugador, con máximo 100 000. El panel Colonia muestra "Comida: 42 de [150]" con un `SpinBox` (flechas de a 10, Enter o salir del campo aplica). `targetMax` pasa a 100 000; sale `FreeWillRules.NextTarget` y la regla de múltiplos del paso.
+- Mientras un campo de texto tiene el foco, `GameInput` y `CameraRig` no leen las teclas del juego (`TextFocus.IsTyping`): escribir "150" ya no cambia la velocidad. Un clic en el mapa suelta el campo.
+- El smoke escribe 123, el máximo más uno (queda en el máximo) y el valor original. Capturas es/en revisadas.
 
 ### 2026-10-19: L2, presentación del interruptor y las metas
 

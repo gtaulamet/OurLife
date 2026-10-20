@@ -1267,7 +1267,7 @@ public partial class GameRoot : Node
     }
 
     /// <summary>
-    /// Free will follows the option over the game, and the stock targets the buttons of the colony
+    /// Free will follows the option over the game, and the stock targets the fields of the colony
     /// panel, which say them in words (docs/gdd/libre-albedrio.md). Leaves the option as it was, and
     /// the first target at its value, now chosen by the player.
     /// </summary>
@@ -1294,23 +1294,21 @@ public partial class GameRoot : Node
             throw new InvalidOperationException($"the colony panel shows the targets as [{string.Join(" | ", lines)}]");
         }
 
-        // Two presses down and two back up, or up and down near zero: two quick clicks add up.
+        // A number written in the field, one above the highest that the field keeps at the highest,
+        // and the first one written back; the field shows each.
         var first = targets[0];
-        var config = FreeWillRules.ConfigOf(game.Content)!;
-        var up = first.Count < 2 * config.TargetStep;
-        var expectedMoved = FreeWillRules.NextTarget(config, FreeWillRules.NextTarget(config, first.Count, up), up);
-        var expectedBack = FreeWillRules.NextTarget(config, FreeWillRules.NextTarget(config, expectedMoved, !up), !up);
-        screen.Hud.Colony.StepTarget(first.Category, up);
-        screen.Hud.Colony.StepTarget(first.Category, up);
-        screen.Advance(1);
-        var moved = FreeWillRules.Targets(game)[0].Count;
-        screen.Hud.Colony.StepTarget(first.Category, !up);
-        screen.Hud.Colony.StepTarget(first.Category, !up);
-        screen.Advance(1);
-        var back = FreeWillRules.Targets(game)[0].Count;
-        if (moved != expectedMoved || back != expectedBack || moved == first.Count)
+        var highest = FreeWillRules.ConfigOf(game.Content)!.TargetMax;
+        var written = new List<(int Target, int Shown)>();
+        foreach (var target in new[] { 123, highest + 1, first.Count })
         {
-            throw new InvalidOperationException($"the target of {first.Category} went from {first.Count} to {moved} and back to {back}, not {expectedMoved} and {expectedBack}");
+            screen.Hud.Colony.WriteTarget(first.Category, target);
+            screen.Advance(1);
+            written.Add((FreeWillRules.Targets(game)[0].Count, screen.Hud.Colony.TargetShown(first.Category) ?? -1));
+        }
+
+        if (written[0] != (123, 123) || written[1] != (highest, highest) || written[2] != (first.Count, first.Count))
+        {
+            throw new InvalidOperationException($"the target of {first.Category} written as 123, {highest + 1} and {first.Count} became [{string.Join(", ", written)}]");
         }
 
         GD.Print($"[smoke] free will follows the option, and the targets the panel: {string.Join(", ", lines)}");

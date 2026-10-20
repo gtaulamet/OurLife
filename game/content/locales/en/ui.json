@@ -199,10 +199,8 @@
   "ui.colony.age": "Age",
   "ui.colony.mood": "Mood",
   "ui.colony.targets": "Stock targets",
-  "ui.colony.target": "{category}: {count} of {target}",
-  "ui.colony.target_less": "−",
-  "ui.colony.target_more": "+",
-  "ui.colony.targets_help": "With free will, colonists gather on their own what the target still lacks, near the village. At 0, they do not.",
+  "ui.colony.target": "{category}: {count} of",
+  "ui.colony.targets_help": "How much the village wants to have: write the target or use the arrows. With free will, colonists gather on their own what is missing, near the village. At 0, they do not.",
   "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
   "ui.sheet.skill_from": "{skill}, from {name}"
 }

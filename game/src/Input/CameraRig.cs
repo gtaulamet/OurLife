@@ -73,6 +73,17 @@ public partial class CameraRig : Node3D
 
     public override void _Process(double delta)
     {
+        // While the player writes in a field, the keys write.
+        if (!TextFocus.IsTyping(this))
+        {
+            HandleKeys(delta);
+        }
+
+        PlaceCamera();
+    }
+
+    private void HandleKeys(double delta)
+    {
         if (Godot.Input.IsActionJustPressed(InputActions.RotateLeft))
         {
             _quarterTurns = (_quarterTurns + 3) % 4;
@@ -109,8 +120,6 @@ public partial class CameraRig : Node3D
             _focus += ((right * move.X) + (back * move.Y)) * (float)delta * _distance * PanSpeedPerDistance;
             _focus = _focus.Clamp(Vector2.Zero, _mapSize);
         }
-
-        PlaceCamera();
     }
 
     public override void _UnhandledInput(InputEvent @event)

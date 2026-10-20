@@ -16,7 +16,7 @@ namespace OurLife.Game.UI;
 /// and a button per work type with its priority. A click
 /// moves it on (1 → 2 → 3 → 4 → No → 1), a right click back; a click on a name
 /// selects the colonist. Below, the stock targets of the village (<c>docs/gdd/libre-albedrio.md</c>),
-/// each with what the colony has and buttons to lower and raise it. The rows are built again when
+/// each with what the colony has and a field where the player writes the target. The rows are built again when
 /// colonists come or go, or the language changes, and their texts refresh a few times per second
 /// while the panel is open.
 /// </summary>
@@ -31,10 +31,7 @@ public partial class ColonyPanel : PanelContainer
     private GameInput _input = null!;
     private GridContainer _grid = null!;
 
-    private readonly List<(string Category, Label Label)> _targetRows = [];
-
-    // What the colony had of each target category at the last count, for a click between counts.
-    private readonly Dictionary<string, int> _counted = new(StringComparer.Ordinal);
+    private readonly List<(string Category, Label Label, SpinBox Field)> _targetRows = [];
 
     // The digits of a count the target lines make room for; more widen them.
     private int _countDigits = 4;
@@ -79,24 +76,27 @@ public partial class ColonyPanel : PanelContainer
     /// <summary>The lines of the stock targets as the player reads them, for the smoke.</summary>
     public IEnumerable<string> TargetTexts => _targetRows.Select(row => row.Label.Text);
 
-    /// <summary>Lowers or raises the target of a category to the next multiple of the step, as its buttons do.</summary>
-    public void StepTarget(string category, bool up)
-    {
-        // A category without a target is ignored, as the command does.
-        var targets = FreeWillRules.Targets(_session.Simulation);
-        if (FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config || !targets.Any(target => target.Category == category))
-        {
-            return;
-        }
+    /// <summary>
+    /// Writes a target in the field of its category, as the player does, which gives the order; a
+    /// category without a field is ignored. For the smoke.
+    /// </summary>
+    public void WriteTarget(string category, int target) =>
+        _targetRows.Find(entry => entry.Category == category).Field?.SetValue(target);
 
+    /// <summary>The target a field shows, or null for a category without one. For the smoke.</summary>
+    public int? TargetShown(string category) =>
+        _targetRows.Find(entry => entry.Category == category).Field is { } field ? (int)field.Value : null;
+
+    /// <summary>
+    /// Gives the order of a target the player wrote or stepped with the arrows; the field already
+    /// keeps it within 0 and the highest. Until the order applies, the panel shows what was asked.
+    /// </summary>
+    private void ChooseTarget(string category, double value)
+    {
         TrackPending();
-        var target = FreeWillRules.NextTarget(config, TargetOf(category, targets), up);
+        var target = (int)Math.Round(value);
         _session.Enqueue(new SetStockTargetCommand(category, target));
         _pendingTargets[category] = target;
-
-        // Only this line changes, with the last count: a click does not count the stock again.
-        var (_, label) = _targetRows.Find(row => row.Category == category);
-        label.Text = TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), _counted.GetValueOrDefault(category), target);
     }
 
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
@@ -225,14 +225,15 @@ public partial class ColonyPanel : PanelContainer
     }
 
     /// <summary>
-    /// One row for the stock targets, so the panel grows little on a small canvas: for each, buttons
-    /// to lower and raise it and what the colony has of it; what they do, in a tooltip. Built once:
-    /// the categories with targets do not change over a game, and the texts refresh with the rows.
+    /// One row for the stock targets, so the panel grows little on a small canvas: for each, what
+    /// the colony has of it and a field where the player writes the target, or steps it with the
+    /// arrows; what they do, in a tooltip. Built once: the categories with targets do not change
+    /// over a game, and the texts refresh with the rows.
     /// </summary>
     private void BuildTargets(HBoxContainer row)
     {
         var targets = FreeWillRules.Targets(_session.Simulation);
-        if (targets.Count == 0)
+        if (targets.Count == 0 || FreeWillRules.ConfigOf(_session.Simulation.Content) is not { } config)
         {
             return;
         }
@@ -245,17 +246,48 @@ public partial class ColonyPanel : PanelContainer
             group.AddThemeConstantOverride("separation", 6);
             row.AddChild(group);
             var category = target.Category;
-            foreach (var (key, up) in new[] { ("ui.colony.target_less", false), ("ui.colony.target_more", true) })
+            // Against the field, with the room for longer counts on its left.
+            var label = new Label
             {
-                // The buttons stop the mouse, so they carry the help too.
-                var button = new Button { Text = key, TooltipText = Help, FocusMode = FocusModeEnum.None, CustomMinimumSize = new Vector2(32, 0) };
-                button.Pressed += () => StepTarget(category, up);
-                group.AddChild(button);
-            }
-
-            var label = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, VerticalAlignment = VerticalAlignment.Center };
+                AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
             group.AddChild(label);
-            _targetRows.Add((category, label));
+
+            // A number the player writes, applied with Enter or on leaving the field; the arrows step it.
+            var field = new SpinBox
+            {
+                MinValue = 0,
+                MaxValue = config.TargetMax,
+                Step = 1,
+                Rounded = true,
+                CustomArrowStep = config.TargetStep,
+                SelectAllOnFocus = true,
+                Alignment = HorizontalAlignment.Left,
+                AutoTranslateMode = AutoTranslateModeEnum.Disabled,
+                TooltipText = Help,
+            };
+            field.SetValueNoSignal(target.Count);
+            field.ValueChanged += value => ChooseTarget(category, value);
+            var line = field.GetLineEdit();
+            line.TextSubmitted += _ => line.ReleaseFocus();
+
+            // A box that shows it can be written in, lighter than the panel.
+            var box = new StyleBoxFlat
+            {
+                BgColor = new Color(1f, 1f, 1f, 0.08f),
+                BorderColor = new Color(1f, 1f, 1f, 0.35f),
+                ContentMarginLeft = 6,
+                ContentMarginRight = 6,
+                ContentMarginTop = 2,
+                ContentMarginBottom = 2,
+            };
+            box.SetBorderWidthAll(1);
+            box.SetCornerRadiusAll(3);
+            line.AddThemeStyleboxOverride("normal", box);
+            group.AddChild(field);
+            _targetRows.Add((category, label, field));
         }
     }
 
@@ -286,7 +318,10 @@ public partial class ColonyPanel : PanelContainer
         }
     }
 
-    /// <summary>What the colony has of each target and the target, as the player last set it.</summary>
+    /// <summary>
+    /// What the colony has of each target, and the target as the player last set it, unless the
+    /// player is writing in its field.
+    /// </summary>
     private void RefreshTargets()
     {
         if (_targetRows.Count == 0)
@@ -298,26 +333,30 @@ public partial class ColonyPanel : PanelContainer
         TrackPending();
         var stock = ColonyStock.ByCategory(_session.Simulation);
         var targets = FreeWillRules.Targets(_session.Simulation);
-        var widen = false;
-        foreach (var (category, label) in _targetRows)
+        var widest = 0;
+        foreach (var (category, label, field) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
-            _counted[category] = line.Count;
-            label.Text = TargetText(line.Category, line.Count, TargetOf(category, targets));
-            widen |= Digits(line.Count) > _countDigits;
+            label.Text = TargetText(line.Category, line.Count);
+            widest = Math.Max(widest, Digits(line.Count));
+            if (!field.GetLineEdit().HasFocus())
+            {
+                field.SetValueNoSignal(TargetOf(category, targets));
+            }
         }
 
-        if (widen)
+        if (widest > _countDigits)
         {
-            _countDigits = _counted.Values.Max(Digits);
+            _countDigits = widest;
             FixTargetWidths();
         }
     }
 
     /// <summary>
     /// Each target line as wide as with the widest count it has made room for (four digits at
-    /// least) and the highest target, in the current language, so the buttons beside it stay still
-    /// while the numbers change. Measured when the panel is built again or a count needs more room.
+    /// least), in the current language, and each field as wide as the highest target, so the row
+    /// stays still while the numbers change. Measured when the panel is built again or a count
+    /// needs more room.
     /// </summary>
     private void FixTargetWidths()
     {
@@ -328,15 +367,14 @@ public partial class ColonyPanel : PanelContainer
 
         // Eights, the widest digit of most fonts.
         var count = Eights(_countDigits);
-        var target = Eights(Digits(config.TargetMax));
-        foreach (var (category, label) in _targetRows)
+        var highest = Eights(Digits(config.TargetMax)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        foreach (var (category, label, field) in _targetRows)
         {
-            var widest = label.GetThemeFont("font").GetStringSize(
-                TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), count, target),
-                HorizontalAlignment.Left,
-                -1,
-                label.GetThemeFontSize("font_size")).X;
-            label.CustomMinimumSize = new Vector2(Mathf.Ceil(widest), 0);
+            var text = TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), count);
+            label.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(label, text)), 0);
+
+            // Room for the arrows beside the number.
+            field.CustomMinimumSize = new Vector2(Mathf.Ceil(WidthOf(field.GetLineEdit(), highest)) + 36, 0);
         }
     }
 
@@ -344,8 +382,11 @@ public partial class ColonyPanel : PanelContainer
 
     private static int Eights(int digits) => int.Parse(new string('8', Math.Min(digits, 9)), System.Globalization.CultureInfo.InvariantCulture);
 
-    private string TargetText(ItemCategoryDef category, int count, int target) =>
-        _services.Text.Format("ui.colony.target", ("category", _services.Text.CategoryName(category)), ("count", count), ("target", target));
+    private static float WidthOf(Control control, string text) =>
+        control.GetThemeFont("font").GetStringSize(text, HorizontalAlignment.Left, -1, control.GetThemeFontSize("font_size")).X;
+
+    private string TargetText(ItemCategoryDef category, int count) =>
+        _services.Text.Format("ui.colony.target", ("category", _services.Text.CategoryName(category)), ("count", count));
 
     /// <summary>
     /// Moves a priority one step along the ring 1, 2, 3, 4, No, forwards or back, and gives the

@@ -192,7 +192,10 @@ public partial class GameInput : Node3D
 
     public override void _Process(double delta)
     {
-        HandleKeys();
+        if (!TextFocus.IsTyping(this))
+        {
+            HandleKeys();
+        }
 
         // Every frame, as the camera and the view level also move without the mouse. Over the
         // HUD the mouse points at no cell.
@@ -239,6 +242,8 @@ public partial class GameInput : Node3D
                 _mouse = motion.Position;
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press:
+                // A click on the map lets go of a field being written, which applies what it holds.
+                GetViewport().GuiReleaseFocus();
                 _pressed = true;
                 _dragStart = PickAt(press.Position);
                 _dragEnd = _dragStart;
