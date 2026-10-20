@@ -24,7 +24,7 @@
 |---|---|---|---|
 | L1 Spec y contrato | Hecho | `ip3.5/l1-spec` | Spec en `docs/gdd/libre-albedrio.md`, aprobada el 19 de octubre con dos cambios: aldea de 30 celdas alrededor de la llegada, y pinos que también cambian de color en otoño |
 | L2 Interruptor y metas | Hecho | `ip3.5/l2-metas` | Opción "Libre albedrío" en Opciones (prendida por defecto), metas de comida y madera en el panel Colonia en un campo que escribe el jugador (0 a 100 000), formato 8 con el centro de la aldea. La opción todavía no cambia la conducta: eso llega con L3 y L4 |
-| L3 Trabajo por iniciativa | Hecho | `ip3.5/l3-iniciativa` | Recolectar y talar por su cuenta cerca de la aldea bajo las metas, con prioridades, etapas, ganas por diligencia y ánimo, y reparto por lo que trae el trabajo en curso; formato 9. Pendiente de balance (L5): la meta de comida por defecto no alcanza para el invierno sin órdenes |
+| L3 Trabajo por iniciativa | Hecho | `ip3.5/l3-iniciativa` | Recolectar y talar por su cuenta cerca de la aldea bajo las metas, con prioridades, etapas, ganas por diligencia y ánimo, y reparto por lo que trae el trabajo en curso; formato 9. La meta de comida por defecto pasó a 600 (decisión del usuario): sin órdenes, la aldea pasa los inviernos. Los nacimientos con libre albedrío quedan para L5 |
 | L4 Vida social con intención | Pendiente | `ip3.5/l4-social` | |
 | L4b Bosque que vuelve | Pendiente | `ip3.5/l4b-bosque` | |
 | L4c Estaciones visibles | Pendiente | `ip3.5/l4c-estaciones` | |

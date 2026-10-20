@@ -35,7 +35,7 @@ Así, el pedido 1 ya está y el acarreo ya es por iniciativa. Lo nuevo es recole
 ## Aldea y metas
 
 - **Centro de la aldea:** el lugar de llegada de los colonos, fijo (`Simulation.VillageCenter`). "Cerca de la aldea" es a 30 celdas o menos de él en el plano, en cualquier nivel.
-- **Metas de existencias:** una por categoría de objetos que la iniciativa junta, **comida** y **madera**. La meta es cuántas unidades quiere tener la aldea (las que cuenta el HUD: en el suelo, en almacenes o en las manos). Los valores por defecto están en los datos (comida 150, madera 40) y el jugador los cambia en el panel Colonia en un campo donde escribe la cantidad, de 0 hasta 100 000 (pedido del usuario del 20 de octubre). El campo sólo toma dígitos ("10.000" queda en 10000). Mientras el jugador escribe, las teclas del juego (velocidades, órdenes, cámara) no actúan; la meta se aplica con Enter, Tab o un clic afuera, y Esc vuelve a la meta anterior. Un número más alto que el máximo queda en el máximo. La línea dice "Comida: 42 de [150]": el campo va después del texto en todos los idiomas; uno que necesite otro orden partirá la clave. Con meta 0, esa iniciativa no ocurre.
+- **Metas de existencias:** una por categoría de objetos que la iniciativa junta, **comida** y **madera**. La meta es cuántas unidades quiere tener la aldea (las que cuenta el HUD: en el suelo, en almacenes o en las manos). Los valores por defecto están en los datos (comida 600, madera 40) y el jugador los cambia en el panel Colonia en un campo donde escribe la cantidad, de 0 hasta 100 000 (pedido del usuario del 20 de octubre). El campo sólo toma dígitos ("10.000" queda en 10000). Mientras el jugador escribe, las teclas del juego (velocidades, órdenes, cámara) no actúan; la meta se aplica con Enter, Tab o un clic afuera, y Esc vuelve a la meta anterior. Un número más alto que el máximo queda en el máximo. La línea dice "Comida: 42 de [150]": el campo va después del texto en todos los idiomas; uno que necesite otro orden partirá la clave. Con meta 0, esa iniciativa no ocurre.
 - `SetStockTargetCommand(categoría, cantidad)` guarda la meta en la partida (`Simulation.StockTargets`).
 
 ## A. Trabajo por iniciativa
@@ -137,7 +137,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 Respondidas el 19 de octubre de 2026:
 
 1. La opción viene **prendida** por defecto en una instalación nueva. También al actualizar desde `v0.3.0`, cuyo `settings.cfg` no la tiene: el jugador la apaga en Opciones si no la quiere.
-2. Metas por defecto: **150 de comida y 40 de madera**. El 20 de octubre el usuario pidió que la meta sea un campo que el jugador completa, con máximo 100 000.
+2. Metas por defecto: **600 de comida y 40 de madera**. Al principio la de comida era 150; el 20 de octubre, con L3, se vio que sin órdenes del jugador la aldea se extinguía en el primer invierno en dos de tres semillas, y el usuario eligió 600, con la que sobrevive en las tres. El mismo día pidió que la meta sea un campo que el jugador completa, con máximo 100 000.
 3. El centro de la aldea es el lugar de llegada, fijo; "cerca" son **30 celdas** alrededor (se propusieron 20).
 4. Ganas de iniciativa: 60 % para un colono promedio en cada decisión libre; un perezoso, la mitad; un trabajador, una vez y media.
 5. Buscar compañía hasta 30 celdas; evitar a los rivales a 10 o menos.

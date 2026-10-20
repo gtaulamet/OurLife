@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **Decisión pendiente del usuario:** la meta de comida por defecto (150) no alcanza para el invierno sin órdenes (ver la entrada del 20 de octubre). Después, L4, L4b y L4c, que pueden ir en paralelo; L4b sube el formato a 10.
+1. **L4, L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 10. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,10 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-20: meta de comida por defecto en 600
+
+- Decisión del usuario, con el experimento de L3: la meta de comida por defecto pasa de 150 a 600 (`free_will.json`). Con 600, sin órdenes del jugador y con la opción prendida, la aldea pasa cinco años sin muertes por hambre en las semillas 1, 7 y 42.
 
 ### 2026-10-20: L3, trabajo por iniciativa
 
