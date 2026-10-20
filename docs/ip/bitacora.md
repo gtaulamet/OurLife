@@ -8,8 +8,8 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l2-metas`: metas escritas por el jugador (pedido del 20 de octubre), en revisión. Después, L3 en `ip3.5/l3-iniciativa` |
-| `main` | Con L2 de IP3.5 (después de `v0.3.0`), también en `origin` |
+| Rama de trabajo | `ip3.5/l2-metas`: L2 cerrado y en `main`, con las metas escritas por el jugador (pedido del 20 de octubre). Sigue L3 en `ip3.5/l3-iniciativa` |
+| `main` | Con L2 de IP3.5 y las metas escritas (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 735 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
@@ -53,6 +53,7 @@ En orden:
 - Cuarta ronda: casi todos los hallazgos venían del `SpinBox` (flechas que no soltaban el campo en los extremos, la rueda, Arriba y Abajo que pasaban a la cámara). Se cambió por un `LineEdit` sin flechas, que es lo que pidió el usuario: el panel aplica lo escrito al soltar el campo, Tab también lo suelta (antes podía pasar el foco a un botón del inspector) y no hay menú contextual, que traía textos del motor en inglés. Sale `targetStep` de `FreeWillConfig`.
 - Quinta ronda: ceros a la izquierda no inflan el número; limpiezas menores (comentario suelto, caso de `SpinBox` muerto en `TextFocus`).
 - Sexta ronda: al aplicar se vuelven a filtrar los dígitos, porque el campo los limpia de forma diferida y una tecla con Enter en el mismo cuadro llegaba con el punto ("1.000" daba el máximo). El smoke lo prueba así.
+- Séptima ronda: un texto sin dígitos (".", "abc") deja la meta como estaba, igual que el campo vacío; antes daba 0. El resto del rango quedó revisado sin hallazgos. `main` adelantado.
 
 ### 2026-10-19: L2, presentación del interruptor y las metas
 

@@ -133,14 +133,16 @@ public partial class ColonyPanel : PanelContainer
         TrackPending();
         var current = TargetOf(category, FreeWillRules.Targets(_session.Simulation));
         var target = current;
-        if (field.Text.Length > 0 && FreeWillRules.ConfigOf(_session.Simulation.Content) is { } config)
+
+        // The digits again: the field cleans them when its text changes, deferred, and a key and
+        // Enter in the same frame get here first. Without any, as when empty, nothing changes.
+        var digits = OnlyDigits(field.Text);
+        if (digits.Length > 0 && FreeWillRules.ConfigOf(_session.Simulation.Content) is { } config)
         {
-            // The digits again: the field cleans them when its text changes, deferred, and a key and
-            // Enter in the same frame get here first. Then the number can only be too big: past
-            // long, it is the highest anyway. Leading zeros do not make it bigger.
-            var digits = OnlyDigits(field.Text).TrimStart('0');
-            target = digits.Length == 0 ? 0
-                : long.TryParse(digits, System.Globalization.CultureInfo.InvariantCulture, out var written)
+            // Only too big is possible: past long, it is the highest anyway. Leading zeros do not make it bigger.
+            var number = digits.TrimStart('0');
+            target = number.Length == 0 ? 0
+                : long.TryParse(number, System.Globalization.CultureInfo.InvariantCulture, out var written)
                     ? (int)Math.Min(written, config.TargetMax)
                     : config.TargetMax;
         }
