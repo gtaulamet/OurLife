@@ -198,7 +198,6 @@ public sealed partial class DecisionSystem
         }
 
         var world = simulation.World;
-        var map = simulation.Map;
         var connectivity = simulation.Connectivity;
         var from = world.Get<Position>(colonist).Cell;
         var cooldown = (long)Relationships.Config(simulation).PairCooldownHours * simulation.Time.TicksPerHour;
@@ -213,7 +212,8 @@ public sealed partial class DecisionSystem
             var cell = world.Get<Position>(other).Cell;
             if (cell.Z != from.Z || Math.Max(Math.Abs(cell.X - from.X), Math.Abs(cell.Y - from.Y)) > radius
                 || !(LifeRules.Stage(simulation, other)?.PlayRadius is not null || Relationships.IsFamily(simulation, colonist, other))
-                || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell))
+                || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell)
+                || (simulation.FreeWill && Relationships.IsRival(simulation, colonist, other)))
             {
                 continue;
             }
@@ -221,26 +221,14 @@ public sealed partial class DecisionSystem
             _playmates.Add(other);
         }
 
-        var region = connectivity.RegionAt(from);
         var random = simulation.Random.Get("colony.decision");
         for (var attempt = 0; attempt < PathAttempts && _playmates.Count > 0; attempt++)
         {
             var index = random.NextInt(_playmates.Count);
             var playmate = _playmates[index];
             _playmates.RemoveAt(index);
-            var cell = world.Get<Position>(playmate).Cell;
-            FindSites(map, JobKind.Play, cell);
-            KeepInRegion(_sites, connectivity, region);
-            var job = new Job { Kind = JobKind.Play, Target = playmate, Cell = cell };
-            if (_sites.Contains(from))
+            if (TryGoTo(simulation, colonist, new Job { Kind = JobKind.Play, Target = playmate, Cell = world.Get<Position>(playmate).Cell }))
             {
-                Assign(simulation, colonist, job, []);
-                return true;
-            }
-
-            if (_paths.TryFind(map, from, _sites, _path))
-            {
-                Assign(simulation, colonist, job, _path);
                 return true;
             }
         }

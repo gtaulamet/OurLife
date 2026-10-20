@@ -51,18 +51,54 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    /// <summary>Sets off to keep <paramref name="other"/> company where it is now; true if there is a way.</summary>
-    private bool TryVisit(Simulation simulation, EntityId colonist, EntityId other)
+    /// <summary>
+    /// Whether a visit to <paramref name="other"/> still makes sense: free will is on, both can
+    /// interact and they are not rivals.
+    /// </summary>
+    internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
+        simulation.FreeWill && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, colonist)
+        && SocialSystem.CanInteract(simulation, other) && !Relationships.IsRival(simulation, colonist, other);
+
+    /// <summary>
+    /// Where to find a colonist to keep it company: where it is going if it is walking in its free
+    /// time, where it waits a while; else where it is.
+    /// </summary>
+    internal static TileCoord AimOf(World world, EntityId colonist) =>
+        world.TryGet<Job>(colonist, out var job) && JobKinds.IsLeisure(job.Kind) && job.Stage == JobStage.Moving
+            ? job.Cell
+            : world.Get<Position>(colonist).Cell;
+
+    /// <summary>Sets off to keep <paramref name="other"/> company; true if there is a way.</summary>
+    private bool TryVisit(Simulation simulation, EntityId colonist, EntityId other) =>
+        TryGoTo(simulation, colonist, new Job { Kind = JobKind.Visit, Target = other, Cell = AimOf(simulation.World, other) });
+
+    /// <summary>
+    /// A visitor on its way whose company is no longer where it was going sets off again, while
+    /// the visit makes sense and the other is still within reach for seeking. True if it did.
+    /// </summary>
+    private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
     {
+        if (job.Stage != JobStage.Moving || FreeWillRules.ConfigOf(simulation.Content) is not { } config
+            || !StillWorthVisiting(simulation, colonist, job.Target))
+        {
+            return false;
+        }
+
         var world = simulation.World;
+        var aim = AimOf(world, job.Target);
+        return !SocialSystem.InReach(Relationships.Config(simulation), job.Cell, aim)
+               && FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim)
+               && TryVisit(simulation, colonist, job.Target);
+    }
+
+    /// <summary>Sets off to a job next to its target or cell, by the way there; true if there is one.</summary>
+    private bool TryGoTo(Simulation simulation, EntityId colonist, Job job)
+    {
         var map = simulation.Map;
         var connectivity = simulation.Connectivity;
-        var from = world.Get<Position>(colonist).Cell;
-        var region = connectivity.RegionAt(from);
-        var cell = world.Get<Position>(other).Cell;
-        FindSites(map, JobKind.Visit, cell);
-        KeepInRegion(_sites, connectivity, region);
-        var job = new Job { Kind = JobKind.Visit, Target = other, Cell = cell };
+        var from = simulation.World.Get<Position>(colonist).Cell;
+        FindSites(map, job.Kind, job.Cell);
+        KeepInRegion(_sites, connectivity, connectivity.RegionAt(from));
         if (_sites.Contains(from))
         {
             Assign(simulation, colonist, job, []);
@@ -79,23 +115,11 @@ public sealed partial class DecisionSystem
     }
 
     /// <summary>
-    /// A visitor on its way whose company moved out of reach of where it was going sets off again
-    /// to where it is now. True if it did.
-    /// </summary>
-    private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
-    {
-        var world = simulation.World;
-        return job.Stage == JobStage.Moving && Relationships.IsLivingColonist(world, job.Target)
-               && !SocialSystem.InReach(Relationships.Config(simulation), job.Cell, world.Get<Position>(job.Target).Cell)
-               && TryVisit(simulation, colonist, job.Target);
-    }
-
-    /// <summary>
     /// Those a colonist may seek, within the config's radius and in its region: its partner, family
     /// and friends, with the weight they have in the interactions; those it thinks well enough of
     /// and those it wishes to befriend or make up with. A child, who plays with the others, seeks
-    /// only its family. Never a rival, not even one of the family, nor one who cannot interact now
-    /// or that the two met lately.
+    /// only its family. Never a rival, not even one of the family, nor one who cannot interact now,
+    /// that the two met lately or that is already coming to keep it company.
     /// </summary>
     private void FindLiked(Simulation simulation, EntityId colonist, FreeWillConfigDef config)
     {
@@ -116,7 +140,8 @@ public sealed partial class DecisionSystem
 
             var cell = world.Get<Position>(other).Cell;
             if (!FreeWillRules.IsNear(from, config.SeekRadius, cell) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
-                || !connectivity.AreConnected(from, cell) || IsRival(simulation, social, colonist, other))
+                || !connectivity.AreConnected(from, cell) || Relationships.IsRival(simulation, colonist, other)
+                || (world.TryGet<Job>(other, out var theirs) && theirs.Kind == JobKind.Visit && theirs.Target == colonist))
             {
                 continue;
             }
@@ -155,16 +180,9 @@ public sealed partial class DecisionSystem
     }
 
     /// <summary>
-    /// Whether either of two colonists thinks of the other as a rival, whatever else ties them: a
-    /// quarrel can sour family too, though forgetting does not.
-    /// </summary>
-    private static bool IsRival(Simulation simulation, SocialConfigDef social, EntityId a, EntityId b) =>
-        Relationships.Opinion(simulation, a, b) <= social.RivalOpinion || Relationships.Opinion(simulation, b, a) <= social.RivalOpinion;
-
-    /// <summary>
-    /// With free will on, where the rivals of a colonist near it are, and where those walking are
-    /// going, into <see cref="_avoided"/>: so two rivals do not wander off the same way. True if
-    /// there is any.
+    /// With free will on, where the rivals of a colonist near it on its level are, and where those
+    /// walking are going, into <see cref="_avoided"/>: so two rivals do not wander off the same way.
+    /// True if there is any. Its own level only, as it wanders away on it.
     /// </summary>
     private bool FindRivalsNear(Simulation simulation, EntityId colonist, TileCoord from)
     {
@@ -175,7 +193,6 @@ public sealed partial class DecisionSystem
         }
 
         var world = simulation.World;
-        var social = Relationships.Config(simulation);
         foreach (var other in _colonists)
         {
             if (other == colonist || !world.IsAlive(other))
@@ -184,7 +201,7 @@ public sealed partial class DecisionSystem
             }
 
             var cell = world.Get<Position>(other).Cell;
-            if (!FreeWillRules.IsNear(from, config.AvoidRadius, cell) || !IsRival(simulation, social, colonist, other))
+            if (cell.Z != from.Z || !FreeWillRules.IsNear(from, config.AvoidRadius, cell) || !Relationships.IsRival(simulation, colonist, other))
             {
                 continue;
             }

@@ -69,7 +69,7 @@ public sealed class JobSystem : ISimSystem
         foreach (var colonist in _colonists)
         {
             var job = world.Get<Job>(colonist);
-            if (!StillValid(simulation, job))
+            if (!StillValid(simulation, colonist, job))
             {
                 Drop(world, colonist);
                 continue;
@@ -190,7 +190,7 @@ public sealed class JobSystem : ISimSystem
 
     private StorageIndex Storage(Simulation simulation) => _storage.Fresh(simulation);
 
-    private bool StillValid(Simulation simulation, Job job)
+    private bool StillValid(Simulation simulation, EntityId colonist, Job job)
     {
         var world = simulation.World;
         var map = simulation.Map;
@@ -227,11 +227,11 @@ public sealed class JobSystem : ISimSystem
                        && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
             case JobKind.Play:
                 return Relationships.IsLivingColonist(world, job.Target);
-            // Seeking company is free will too. The other must still be up for company and, once the
-            // visitor waits by where it was, still near enough to interact.
+            // Seeking company is free will too. Both must still be up for company and, once the
+            // visitor waits where it went, the other must be, or be going, near enough to interact.
             case JobKind.Visit:
-                return Relationships.IsLivingColonist(world, job.Target) && simulation.FreeWill && SocialSystem.CanInteract(simulation, job.Target)
-                       && (job.Stage != JobStage.Working || SocialSystem.InReach(Relationships.Config(simulation), job.Cell, world.Get<Position>(job.Target).Cell));
+                return DecisionSystem.StillWorthVisiting(simulation, colonist, job.Target)
+                       && (job.Stage != JobStage.Working || SocialSystem.InReach(Relationships.Config(simulation), job.Cell, DecisionSystem.AimOf(world, job.Target)));
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:

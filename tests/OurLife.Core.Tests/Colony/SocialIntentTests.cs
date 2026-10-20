@@ -95,8 +95,11 @@ public class SocialIntentTests
         Visits(bed, child, 1_000).ShouldBeEmpty();
     }
 
-    [Fact]
-    public void A_visit_ends_when_the_other_falls_asleep()
+    [Theory]
+    [InlineData("asleep")]
+    [InlineData("isolating")]
+    [InlineData("rivals")]
+    public void A_visit_ends_when_the_other_falls_asleep_the_visitor_isolates_or_they_become_rivals(string change)
     {
         var bed = FreeBed();
         var seeker = bed.AddColonist(8, 16, 1);
@@ -104,10 +107,40 @@ public class SocialIntentTests
         Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
         RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit }, 600).ShouldBeTrue();
 
-        Settle(bed, liked, JobKind.Sleep, bed.World.Get<Position>(liked).Cell);
+        switch (change)
+        {
+            case "asleep":
+                Settle(bed, liked, JobKind.Sleep, bed.World.Get<Position>(liked).Cell);
+                break;
+            case "isolating":
+                bed.World.Add(seeker, new Crisis { Kind = "isolate", UntilTick = long.MaxValue });
+                break;
+            default:
+                Relationships.Ensure(bed.Simulation, liked, seeker).Opinion = -50;
+                break;
+        }
+
         bed.Simulation.Tick();
 
         (bed.JobOf(seeker)?.Kind).ShouldNotBe(JobKind.Visit);
+    }
+
+    [Fact]
+    public void Two_who_like_each_other_never_set_off_to_each_other_at_once()
+    {
+        for (ulong seed = 1; seed <= 10; seed++)
+        {
+            var bed = FreeBed(seed);
+            var a = bed.AddColonist(8, 16, 1);
+            var b = bed.AddColonist(17, 16, 1, name: "Sancha");
+            Relationships.Ensure(bed.Simulation, a, b).Opinion = 25;
+            Relationships.Ensure(bed.Simulation, b, a).Opinion = 25;
+            for (var tick = 0; tick < 1_000; tick++)
+            {
+                bed.Simulation.Tick();
+                (bed.JobOf(a) is { Kind: JobKind.Visit } && bed.JobOf(b) is { Kind: JobKind.Visit }).ShouldBeFalse($"seed {seed}");
+            }
+        }
     }
 
     [Fact]
@@ -123,12 +156,25 @@ public class SocialIntentTests
         Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
         RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Moving }, 600).ShouldBeTrue();
 
-        var moved = new TileCoord(10, 4, 1);
+        // Out of reach of where it was going, but within reach for seeking.
+        var moved = new TileCoord(4, 24, 1);
         var position = bed.World.Get<Position>(liked);
         (position.X, position.Y) = (moved.X, moved.Y);
         Settle(bed, liked, JobKind.Wander, moved);
 
-        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit } job && job.Cell == moved, 60).ShouldBeTrue();
+        // The same visit, on its way all along: neither dropped nor waiting where the other was.
+        var followed = false;
+        for (var tick = 0; tick < 60 && !followed; tick++)
+        {
+            bed.Simulation.Tick();
+            var job = bed.JobOf(seeker);
+            job.ShouldNotBeNull();
+            job.Kind.ShouldBe(JobKind.Visit);
+            followed = job.Cell == moved;
+            (followed || job.Stage == JobStage.Moving).ShouldBeTrue();
+        }
+
+        followed.ShouldBeTrue();
     }
 
     [Fact]

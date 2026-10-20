@@ -54,7 +54,19 @@ public static class Relationships
             return RelationKind.Friend;
         }
 
-        return ab <= config.RivalOpinion || ba <= config.RivalOpinion ? RelationKind.Rival : RelationKind.None;
+        return IsRival(simulation, a, b) ? RelationKind.Rival : RelationKind.None;
+    }
+
+    /// <summary>
+    /// Whether either of two colonists thinks of the other as a rival, whatever else ties them: a
+    /// quarrel can sour a partner or the family too, though forgetting does not. <see cref="Kind"/>
+    /// names the closer tie first.
+    /// </summary>
+    public static bool IsRival(Simulation simulation, EntityId a, EntityId b)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var rival = Config(simulation).RivalOpinion;
+        return Opinion(simulation, a, b) <= rival || Opinion(simulation, b, a) <= rival;
     }
 
     /// <summary>The living partner of a colonist, or none.</summary>
