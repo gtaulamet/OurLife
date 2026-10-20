@@ -116,6 +116,18 @@ public static class FreeWillRules
     }
 
     /// <summary>
+    /// The chance, in basis points, that a colonist seeks company when it decides: the config's,
+    /// by its trait for seeking and by its mood. Zero without free will in the content.
+    /// </summary>
+    public static int SeekChance(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return ConfigOf(simulation.Content) is { } config
+            ? Chance(simulation, colonist, config, config.SeekChancePercent, config.SeekTrait)
+            : 0;
+    }
+
+    /// <summary>
     /// A chance of the config, in basis points, scaled by a trait, from
     /// <see cref="FreeWillConfigDef.TraitPercent"/> at its lowest to its highest, and by the mood:
     /// less when it is low, more when it is high. Basis points keep the fractions of a percent.

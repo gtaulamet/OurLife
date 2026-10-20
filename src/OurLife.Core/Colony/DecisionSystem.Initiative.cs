@@ -8,7 +8,7 @@ namespace OurLife.Core.Colony;
 /// <summary>Work a colonist with free will does on its own (see "Trabajo por iniciativa" in <c>docs/gdd/libre-albedrio.md</c>).</summary>
 public sealed partial class DecisionSystem
 {
-    private const string InitiativeStream = "colony.free_will";
+    private const string FreeWillStream = "colony.free_will";
 
     private readonly List<(InitiativeTaskDef Task, int Priority, long MissingPerMille, int Order)> _tasks = [];
 
@@ -42,7 +42,7 @@ public sealed partial class DecisionSystem
 
         // The roll comes first, so a colonist that will not take the initiative counts nothing.
         if (simulation.Content.All<InitiativeTaskDef>().Count == 0
-            || !simulation.Random.Get(InitiativeStream).Chance(FreeWillRules.InitiativeChance(simulation, colonist)))
+            || !simulation.Random.Get(FreeWillStream).Chance(FreeWillRules.InitiativeChance(simulation, colonist)))
         {
             return false;
         }

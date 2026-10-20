@@ -62,9 +62,12 @@ Un colono libre, sin órdenes que tomar, puede inventarse trabajo:
 
 En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
-- **Buscar compañía:** con una probabilidad (`seekChancePercent`, 30 %, por la sociabilidad de 50 % a 150 % y por el ánimo), un colono camina hacia alguien que aprecia, a 30 celdas o menos y en su región, y se queda cerca un rato, como un niño que juega. Así las interacciones ocurren más.
-- **A quién:** con peso doble la pareja y la familia; luego los amigos, y quien tenga una opinión de 20 o más; también el objetivo de un deseo de hacer una amistad o de reconciliarse. Nunca a un rival, a alguien dormido o en crisis de aislamiento, ni a quien vio en las últimas 2 horas (como al jugar).
-- **Evitar a los rivales:** al deambular, de los lugares que sortea elige el más lejos de sus rivales que estén a 10 celdas o menos, como quien se aísla en una crisis.
+- **Buscar compañía:** con una probabilidad (`seekChancePercent`, 30 %, por la sociabilidad de 50 % a 150 % y por el ánimo), un colono camina hacia alguien que aprecia, a 30 celdas o menos y en su región, y se queda cerca un rato, como un niño que juega (el trabajo `Visit`, que espera lo mismo que deambular). Así las interacciones ocurren más. El inspector dice "Pasando un rato con alguien".
+- **Quién busca:** cualquiera que pueda interactuar (despierto, de una etapa que interactúa y sin aislarse), salvo un bebé que gatea. Un niño primero intenta jugar; si no tiene con quién, puede buscar a su familia.
+- **A quién:** con peso doble (`seekCloseWeightPercent`, 200 %) la pareja y la familia; luego los amigos, y quien tenga una opinión de 20 o más (`seekMinOpinion`); también el objetivo de un deseo de hacer una amistad o de reconciliarse. Nunca a un rival, tampoco cuando desea reconciliarse con él; ni a alguien dormido o en crisis de aislamiento, ni a quien vio en las últimas 2 horas (como al jugar).
+- **Cuándo deja de acompañar:** como el que juega, un trabajo o una necesidad baja lo interrumpen; la iniciativa no. Apagar la opción termina la visita.
+- **Evitar a los rivales:** al deambular, de los lugares que sortea elige el más lejos de sus rivales que estén a 10 celdas o menos, como quien se aísla en una crisis. Cuenta dónde está cada rival y, si camina, adónde va: así dos rivales que se esquivan no se van para el mismo lado.
+- Acompañar a alguien sigue siendo no tener trabajo: el aviso de "no tiene nada que hacer" vale igual que al deambular.
 - El lugar de reunión (fogón, mesas) llega con IP4.
 
 ## C. Preferencias por rasgos y ánimo
@@ -93,15 +96,17 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 | Estado | `Simulation.FreeWill`, `Simulation.VillageCenter`, `Simulation.StockTargets` | Entran en el guardado, y en la huella con la opción prendida o con metas elegidas (ver "Guardado") |
 | Componente | `Sapling` | En un retoño: el tick en que se vuelve adulto |
 | Campo | `Job.Initiative` | El trabajo es por iniciativa: vale sin la orden del jugador |
+| Trabajo | `JobKind.Visit` | Ir con alguien que aprecia y quedarse cerca un rato |
 | Consulta | `FreeWillRules.Targets`, `FreeWillRules.IsNearVillage` | El panel Colonia y el inspector |
 | Evento | `EntitySpawnedEvent`, `EntityChangedEvent` | Un retoño aparece; un retoño crece |
 | Texto | `job.<trabajo>.initiative` | El inspector dice "Recolectando por su cuenta" |
+| Texto | `job.visit.report` | El inspector dice "Pasando un rato con alguien" |
 
 ## Defs nuevos y cambios
 
 | Def | Campos | Archivo |
 |---|---|---|
-| `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
+| `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `seekMinOpinion` (20), `seekCloseWeightPercent` (200), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
 | `InitiativeTask` | `job` (`harvest` o `chop`; el tipo de trabajo es el que agrupa ese trabajo), `category` (la meta que mira) | `free_will.json` |
 | `PlantDef` | `regrowth`: `seedChancePerDay`, `seedRadius`, `growDays`, `maxCoverPercent`, `saplingVisual` | `plants.json` |
 
@@ -110,7 +115,8 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 ## Guardado
 
 - Formato 8 (L2): `Simulation.FreeWill`, `VillageCenter` y `StockTargets`.
-- Formato 9 (L3): `Job.Initiative`. Sólo se escribe cuando es verdadero, así una partida sin trabajo por iniciativa se escribe y da la huella de antes. No hay nada que migrar. El componente `Sapling` llega con L4b, que vuelve a subir el formato (ADR-013: sube cada vez que llega a `main` un cambio del estado).
+- Formato 9 (L3): `Job.Initiative`. Sólo se escribe cuando es verdadero, así una partida sin trabajo por iniciativa se escribe y da la huella de antes. No hay nada que migrar.
+- Formato 10 (L4): el trabajo `Visit`, que una versión anterior no sabe leer. No hay nada que migrar. El componente `Sapling` llega con L4b, que vuelve a subir el formato (ADR-013: sube cada vez que llega a `main` un cambio del estado).
 - Una partida de la versión 7 se migra: centro de la aldea en la celda del colono más cerca del medio de todos (la mediana en cada eje), así uno que trabaja lejos no lo corre; metas por defecto; el interruptor lo manda la sesión al cargar, como siempre.
 - Con la opción apagada y sin metas elegidas, la huella no incluye el libre albedrío: una partida da la misma huella que en `v0.3.0` (criterio 3). El smoke, que juega sin la opción, lo comprueba con las huellas de `v0.3.0`.
 - Una meta guardada que el contenido ya no admite (más alta que el máximo, o de una categoría que ya no tiene metas) baja al máximo o se descarta al cargar; la partida carga igual. Una categoría que ya no existe da "falta contenido", como cualquier def (ADR-013).

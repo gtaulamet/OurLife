@@ -153,10 +153,10 @@ public sealed class AlertSystem : ISimSystem
         {
             var person = world.Get<Colonist>(colonist);
 
-            // Between two walks a wanderer has no job for a tick: that is idle too. A child who
-            // plays instead of working is not idle.
+            // Between two walks a wanderer has no job for a tick: that is idle too, and so is
+            // keeping someone company. A child who plays instead of working is not idle.
             var works = LifeRules.Stage(simulation, colonist)?.Work != StageWork.None;
-            if (works && (!world.TryGet<Job>(colonist, out var job) || job.Kind == JobKind.Wander))
+            if (works && (!world.TryGet<Job>(colonist, out var job) || job.Kind is JobKind.Wander or JobKind.Visit))
             {
                 person.IdleSinceTick ??= tick;
                 if (!person.IdleAlerted && tick - person.IdleSinceTick >= idleTicks)

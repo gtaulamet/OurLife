@@ -203,6 +203,7 @@ public class SaveGameTests
     [InlineData(4)]
     [InlineData(7)]
     [InlineData(8)]
+    [InlineData(9)]
     public void A_game_of_an_older_format_gets_what_came_later_and_keeps_the_rest(int format)
     {
         var bed = BusyColony();
@@ -565,7 +566,8 @@ public class SaveGameTests
     /// no pace of life, ages or surnames, format 2 (H3.2) no personalities, format 3 (H3.3) no skills,
     /// format 4 (H3.4) no relations and format 7 (v0.3.0) no free will, village centre or stock
     /// targets. Format 8 (L2 of IP3.5) had no work on its own, which a game without it does not write
-    /// (<c>Job.Initiative</c>): only its header changes.
+    /// (<c>Job.Initiative</c>), and format 9 (L3) no visits, which a game without free will does not
+    /// have: only their header changes.
     /// </summary>
     private static byte[] AsFormat(int format, byte[] file)
     {

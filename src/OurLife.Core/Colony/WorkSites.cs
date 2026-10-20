@@ -40,8 +40,9 @@ public static class WorkSites
             case JobKind.Harvest:
             case JobKind.FeedBaby:
             case JobKind.Play:
+            case JobKind.Visit:
                 // A blocking plant makes its own cell unstandable, so only the neighbours remain;
-                // food, a baby or a playmate can be reached from beside it too.
+                // food, a baby, a playmate or a friend can be reached from beside it too.
                 if (map.IsStandable(target))
                 {
                     sites.Add(target);

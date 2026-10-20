@@ -227,6 +227,9 @@ public sealed class JobSystem : ISimSystem
                        && (job.Stage == JobStage.Carrying || (world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var food) && food.Count > 0));
             case JobKind.Play:
                 return Relationships.IsLivingColonist(world, job.Target);
+            // Seeking company is free will too.
+            case JobKind.Visit:
+                return Relationships.IsLivingColonist(world, job.Target) && simulation.FreeWill;
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -259,7 +262,7 @@ public sealed class JobSystem : ISimSystem
     {
         job.Stage = JobStage.Working;
         job.Progress = 0;
-        if (job.Kind is JobKind.Wander or JobKind.Play)
+        if (job.Kind is JobKind.Wander or JobKind.Play or JobKind.Visit)
         {
             var random = simulation.Random.Get(RandomStream);
             job.UntilTick = simulation.CurrentTick + random.NextInt(_rules.Ai.WanderWaitMin, _rules.Ai.WanderWaitMax + 1);
@@ -316,6 +319,7 @@ public sealed class JobSystem : ISimSystem
                 return NeedsFull(simulation, colonist, NeedSatisfaction.Sleeping) && !_night;
             case JobKind.Wander:
             case JobKind.Play:
+            case JobKind.Visit:
                 return simulation.CurrentTick >= job.UntilTick;
             case JobKind.FeedBaby:
                 return job.Stage == JobStage.Carrying ? Feed(simulation, colonist, job, speed) : PickUpFood(simulation, colonist, job);

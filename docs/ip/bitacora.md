@@ -4,15 +4,15 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-19.*
+*Actualizado el 2026-10-20.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l3-iniciativa`: L3 cerrado y en `main`. Siguen L4, L4b y L4c |
+| Rama de trabajo | `ip3.5/l4-social`: L4 hecho, en revisión. Siguen L4b y L4c |
 | `main` | Con L2 y L3 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 763 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Validación | `dotnet build` sin advertencias, 782 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L4, L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 10. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
+1. **Revisión de L4** y adelantar `main`. Después **L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,15 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-20: L4, vida social con intención
+
+- Rama `ip3.5/l4-social`. Con la opción prendida, un colono sin nada que hacer puede buscar compañía (`DecisionSystem.TrySeek`, después de jugar y antes de deambular): camina hacia la pareja o la familia (peso doble), un amigo, alguien con opinión de 20 o más o el objetivo de un deseo de amistad o de reconciliarse, a 30 celdas o menos y en su región, y se queda cerca un rato (trabajo nuevo `Visit`). Nunca a un rival, a alguien dormido o aislado, ni a quien vio en las últimas 2 horas. Ganas por sociabilidad y ánimo (`FreeWillRules.SeekChance`, flujo `colony.free_will`). Números nuevos en `FreeWillConfig`: `seekMinOpinion` (20) y `seekCloseWeightPercent` (200).
+- Al deambular, aleja de los rivales a 10 celdas o menos: elige el lugar más lejos de dónde están y, si caminan, de adónde van (si no, dos rivales que se esquivan se iban para el mismo lado).
+- El inspector dice "Pasando un rato con alguien" / "Spending time with someone" (`job.visit.report`). Capturas es/en revisadas.
+- Formato 10: el trabajo `Visit`. Partida real nueva `l3.olsave` (formato 9, 20 500 ticks, con dos colonos recolectando por su cuenta), escrita con el código de `main` antes de tocar nada.
+- 13 tests nuevos en `SocialIntentTests` (criterios 7 y 8, a quién busca y a quién no, peso de la pareja, deseos, opción apagada con la misma huella, guardado). Las huellas del smoke siguen siendo las de `v0.3.0`.
+- Experimento de tres años en Normal, sin órdenes, con la opción prendida: con la búsqueda de compañía, 7, 13 y 17 parejas de amigos (de 21) en las semillas 1, 7 y 42; sin ella, ninguna. Pasan cerca de un cuarto del tiempo acompañando a alguien. 0,012 ms por tick.
 
 ### 2026-10-20: meta de comida por defecto en 600
 

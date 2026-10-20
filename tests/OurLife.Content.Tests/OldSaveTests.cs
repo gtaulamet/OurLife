@@ -14,26 +14,28 @@ namespace OurLife.Content.Tests;
 /// <c>v0.2.5.olsave</c> in format 1, <c>h3.2.olsave</c> in format 2, by H3.2, <c>h3.3.olsave</c>
 /// in format 3, by H3.3, <c>h3.4.olsave</c> in format 4, by H3.4, <c>h3.5.olsave</c> in format 5,
 /// by H3.5, <c>h3.6.olsave</c> in format 6, by H3.6, <c>v0.3.0.olsave</c> in format 7, by v0.3.0,
-/// and <c>l2.olsave</c> in format 8, by L2 of IP3.5, with free will on and a wood target of 70.
+/// <c>l2.olsave</c> in format 8, by L2 of IP3.5, with free will on and a wood target of 70, and
+/// <c>l3.olsave</c> in format 9, by L3, the same with 20 500 ticks, while two gather on their own.
 /// </summary>
 public class OldSaveTests
 {
     [Theory]
-    [InlineData("v0.2.5.olsave", 1, "0.2.5", 5)]
-    [InlineData("h3.2.olsave", 2, "0.3.0-dev", 5)]
-    [InlineData("h3.3.olsave", 3, "0.3.0-dev", 5)]
-    [InlineData("h3.4.olsave", 4, "0.3.0-dev", 5)]
-    [InlineData("h3.5.olsave", 5, "0.3.0-dev", 5)]
-    [InlineData("h3.6.olsave", 6, "0.3.0-dev", 5)]
-    [InlineData("v0.3.0.olsave", 7, "0.3.0", 7)]
-    [InlineData("l2.olsave", 8, "0.3.5-dev", 7)]
-    public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders)
+    [InlineData("v0.2.5.olsave", 1, "0.2.5", 5, 20_000)]
+    [InlineData("h3.2.olsave", 2, "0.3.0-dev", 5, 20_000)]
+    [InlineData("h3.3.olsave", 3, "0.3.0-dev", 5, 20_000)]
+    [InlineData("h3.4.olsave", 4, "0.3.0-dev", 5, 20_000)]
+    [InlineData("h3.5.olsave", 5, "0.3.0-dev", 5, 20_000)]
+    [InlineData("h3.6.olsave", 6, "0.3.0-dev", 5, 20_000)]
+    [InlineData("v0.3.0.olsave", 7, "0.3.0", 7, 20_000)]
+    [InlineData("l2.olsave", 8, "0.3.5-dev", 7, 20_000)]
+    [InlineData("l3.olsave", 9, "0.3.5-dev", 7, 20_500)]
+    public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
 
         header.FormatVersion.ShouldBe(format);
         header.GameVersion.ShouldBe(gameVersion);
-        simulation.CurrentTick.ShouldBe(20_000);
+        simulation.CurrentTick.ShouldBe(tick);
         simulation.LifePace.ShouldBe("fast");
         var colonists = Colonists(simulation);
         colonists.Count.ShouldBe(founders);
@@ -69,6 +71,18 @@ public class OldSaveTests
         simulation.World.Store<Job>().Count.ShouldBeGreaterThan(0);
     }
 
+    [Fact]
+    public void A_game_of_format_9_keeps_the_work_on_its_own_under_way()
+    {
+        var simulation = Load("l3.olsave", out _);
+        var jobs = new List<EntityId>();
+        simulation.World.Query<Job>(jobs);
+
+        jobs.Count(colonist => simulation.World.Get<Job>(colonist) is { Kind: JobKind.Harvest, Initiative: true }).ShouldBe(2);
+        simulation.Run(2_000);
+        Colonists(simulation).Count.ShouldBe(7);
+    }
+
     [Theory]
     [InlineData("v0.2.5.olsave")]
     [InlineData("h3.2.olsave")]
@@ -78,6 +92,7 @@ public class OldSaveTests
     [InlineData("h3.6.olsave")]
     [InlineData("v0.3.0.olsave")]
     [InlineData("l2.olsave")]
+    [InlineData("l3.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 9;
+    public const int FormatVersion = 10;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step

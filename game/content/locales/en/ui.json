@@ -128,6 +128,7 @@
   "job.channel.report": "Channeling",
   "job.feed_baby.report": "Feeding a baby",
   "job.play.report": "Playing",
+  "job.visit.report": "Spending time with someone",
   "ui.inspector.shape.door": "door",
   "ui.inspector.order.deconstruct": "Marked for deconstruction",
   "ui.inspector.order.channel": "Marked for a channel",

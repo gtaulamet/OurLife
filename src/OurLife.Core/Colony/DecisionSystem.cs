@@ -10,13 +10,14 @@ namespace OurLife.Core.Colony;
 /// <summary>
 /// Gives idle colonists a job, in this order: a critical need, work by work type, a low need,
 /// work on its own with free will (<c>docs/gdd/libre-albedrio.md</c>), play for a stage that plays,
-/// wandering (see <c>docs/gdd/colonos-e-ia.md</c>). A baby, who does
+/// company with free will, wandering (see <c>docs/gdd/colonos-e-ia.md</c>), away from rivals with
+/// free will. A baby, who does
 /// not eat on its own, is fed as work and crawls near its mother (see "Crianza" in
 /// <c>docs/gdd/vida-y-generaciones.md</c>). Every <see cref="AiConfigDef.RecheckTicks"/>,
 /// a busy colonist checks whether a critical need should interrupt its job, and a wandering one
 /// looks again for something to do. Reservations come from the jobs colonists already have, so two
-/// never share a target. Draws from the random stream <c>colony.decision</c>, and the chance of
-/// work on its own from <c>colony.free_will</c>.
+/// never share a target. Draws from the random stream <c>colony.decision</c>, and the chances and
+/// choices of free will from <c>colony.free_will</c>.
 /// </summary>
 public sealed partial class DecisionSystem : ISimSystem
 {
@@ -77,6 +78,7 @@ public sealed partial class DecisionSystem : ISimSystem
     private readonly List<TileCoord> _recipientSites = [];
     private readonly List<JobKind> _cellJobs = [];
     private readonly List<EntityId> _playmates = [];
+    private readonly List<TileCoord> _avoided = [];
     private int[] _priorities = [];
 
     // The work type that feeds babies, so a parent's priority for it can be read.
@@ -398,9 +400,10 @@ public sealed partial class DecisionSystem : ISimSystem
             }
         }
 
-        // Critical needs were tried above. Work and low needs interrupt wandering and playing, and
-        // work on its own on the way to its plant: once at it, it finishes, so no work is lost. A
-        // wanderer may also work on its own or go to play, but a player keeps its playmate.
+        // Critical needs were tried above. Work and low needs interrupt wandering, playing and
+        // keeping company, and work on its own on the way to its plant: once at it, it finishes, so
+        // no work is lost. A wanderer may also work on its own, go to play or seek company, but a
+        // player keeps its playmate and a visitor its company.
         if (job.Initiative)
         {
             return job.Stage == JobStage.Moving && TryWorkOrLowNeeds(simulation, colonist);
@@ -408,8 +411,9 @@ public sealed partial class DecisionSystem : ISimSystem
 
         return job.Kind switch
         {
-            JobKind.Wander => TryWorkOrLowNeeds(simulation, colonist) || TryInitiative(simulation, colonist) || TryPlay(simulation, colonist),
-            JobKind.Play => TryWorkOrLowNeeds(simulation, colonist),
+            JobKind.Wander => TryWorkOrLowNeeds(simulation, colonist) || TryInitiative(simulation, colonist) || TryPlay(simulation, colonist)
+                              || TrySeek(simulation, colonist),
+            JobKind.Play or JobKind.Visit => TryWorkOrLowNeeds(simulation, colonist),
             _ => false,
         };
     }
@@ -424,7 +428,8 @@ public sealed partial class DecisionSystem : ISimSystem
             }
         }
 
-        if (!TryWorkOrLowNeeds(simulation, colonist) && !TryInitiative(simulation, colonist) && !TryPlay(simulation, colonist))
+        if (!TryWorkOrLowNeeds(simulation, colonist) && !TryInitiative(simulation, colonist) && !TryPlay(simulation, colonist)
+            && !TrySeek(simulation, colonist))
         {
             Wander(simulation, colonist);
         }
@@ -1057,8 +1062,8 @@ public sealed partial class DecisionSystem : ISimSystem
     }
 
     /// <summary>
-    /// Walks to a random place around, and waits there. A baby crawls near its mother instead, and
-    /// waits where it is while someone brings it food.
+    /// Walks to a random place around, and waits there; with free will, away from rivals near it. A
+    /// baby crawls near its mother instead, and waits where it is while someone brings it food.
     /// </summary>
     private void Wander(Simulation simulation, EntityId colonist)
     {
@@ -1069,7 +1074,12 @@ public sealed partial class DecisionSystem : ISimSystem
         var random = simulation.Random.Get("colony.decision");
         var radius = _rules.Ai.WanderRadius;
         var crawl = LifeRules.Stage(simulation, colonist)?.CrawlRadius;
-        if (crawl is null && MoodRules.Isolates(simulation, colonist) && TryWanderAway(simulation, colonist, from, region, random, radius))
+        if (crawl is null && MoodRules.Isolates(simulation, colonist) && TryWanderAway(simulation, colonist, from, region, random, radius, OthersOf(simulation, colonist)))
+        {
+            return;
+        }
+
+        if (crawl is null && FindRivalsNear(simulation, colonist, from) && TryWanderAway(simulation, colonist, from, region, random, radius, _avoided))
         {
             return;
         }
@@ -1112,11 +1122,27 @@ public sealed partial class DecisionSystem : ISimSystem
         Assign(simulation, colonist, new Job { Kind = JobKind.Wander, Cell = from }, []);
     }
 
+    /// <summary>The cells of all colonists but one, into <see cref="_avoided"/>.</summary>
+    private List<TileCoord> OthersOf(Simulation simulation, EntityId colonist)
+    {
+        _avoided.Clear();
+        foreach (var other in _colonists)
+        {
+            if (other != colonist)
+            {
+                _avoided.Add(simulation.World.Get<Position>(other).Cell);
+            }
+        }
+
+        return _avoided;
+    }
+
     /// <summary>
-    /// A colonist who isolates itself wanders to the place, among those drawn, farthest from the
-    /// nearest other colonist (see "Crisis" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// Wanders to the place, among those drawn, farthest from the nearest of <paramref name="avoided"/>:
+    /// the cells of all other colonists for one who isolates itself (see "Crisis" in
+    /// <c>docs/gdd/vida-y-generaciones.md</c>), those of its rivals for one with free will.
     /// </summary>
-    private bool TryWanderAway(Simulation simulation, EntityId colonist, TileCoord from, int region, Pcg32 random, int radius)
+    private bool TryWanderAway(Simulation simulation, EntityId colonist, TileCoord from, int region, Pcg32 random, int radius, List<TileCoord> avoided)
     {
         var map = simulation.Map;
         var connectivity = simulation.Connectivity;
@@ -1131,12 +1157,9 @@ public sealed partial class DecisionSystem : ISimSystem
             }
 
             var nearest = int.MaxValue;
-            foreach (var other in _colonists)
+            foreach (var other in avoided)
             {
-                if (other != colonist)
-                {
-                    nearest = Math.Min(nearest, PathFinder.Estimate(cell, simulation.World.Get<Position>(other).Cell));
-                }
+                nearest = Math.Min(nearest, PathFinder.Estimate(cell, other));
             }
 
             if (nearest > bestDistance)

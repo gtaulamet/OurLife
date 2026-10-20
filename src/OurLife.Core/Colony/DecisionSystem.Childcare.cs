@@ -57,10 +57,10 @@ public sealed partial class DecisionSystem
                 return false;
             }
 
-            // Idle, or wandering or playing and about to look again this tick: one who waits for its
-            // next look would keep the others from the baby meanwhile.
+            // Idle, or wandering, playing or keeping company and about to look again this tick: one
+            // who waits for its next look would keep the others from the baby meanwhile.
             var free = !world.TryGet<Job>(parent.Entity, out var job)
-                       || (job.Kind is JobKind.Wander or JobKind.Play && (simulation.CurrentTick + parent.Entity.Index) % _rules.Ai.RecheckTicks == 0);
+                       || (job.Kind is JobKind.Wander or JobKind.Play or JobKind.Visit && (simulation.CurrentTick + parent.Entity.Index) % _rules.Ai.RecheckTicks == 0);
             if (free && FeedsBabies(simulation, parent.Entity) && !IsIgnored(world.Get<Colonist>(parent.Entity), baby, babyCell)
                 && simulation.Connectivity.AreConnected(world.Get<Position>(parent.Entity).Cell, babyCell))
             {

@@ -128,6 +128,7 @@
   "job.channel.report": "Canalizando",
   "job.feed_baby.report": "Alimentando a un bebé",
   "job.play.report": "Jugando",
+  "job.visit.report": "Pasando un rato con alguien",
   "ui.inspector.shape.door": "puerta",
   "ui.inspector.order.deconstruct": "Marcado para desmontar",
   "ui.inspector.order.channel": "Marcado para canalizar",

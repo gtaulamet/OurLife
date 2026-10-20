@@ -35,6 +35,12 @@ public enum JobKind
 
     /// <summary>A child going to play with another, then staying by it a while.</summary>
     Play,
+
+    /// <summary>
+    /// A colonist with free will going to someone it likes, then staying by it a while (see "Vida
+    /// social con intención" in <c>docs/gdd/libre-albedrio.md</c>).
+    /// </summary>
+    Visit,
 }
 
 public enum JobStage
@@ -112,6 +118,7 @@ public static class JobKinds
         JobKind.Channel => "channel",
         JobKind.FeedBaby => "feed_baby",
         JobKind.Play => "play",
+        JobKind.Visit => "visit",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

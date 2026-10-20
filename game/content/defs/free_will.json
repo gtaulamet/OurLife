@@ -8,6 +8,8 @@
     "seekChancePercent": 30,
     "seekTrait": "sociability",
     "seekRadius": 30,
+    "seekMinOpinion": 20,
+    "seekCloseWeightPercent": 200,
     "avoidRadius": 10,
     "traitPercent": { "low": 50, "high": 150 },
     "lowMoodBelow": 30,
