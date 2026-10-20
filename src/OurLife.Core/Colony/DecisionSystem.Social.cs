@@ -61,15 +61,16 @@ public sealed partial class DecisionSystem
     /// </summary>
     private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
     {
-        if (job.Stage != JobStage.Moving || FreeWillRules.ConfigOf(simulation.Content) is not { } config
-            || !FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target))
+        // The cheap checks first: most of the time the other is still going where it was.
+        var world = simulation.World;
+        if (job.Stage != JobStage.Moving || !Relationships.IsLivingColonist(world, job.Target))
         {
             return false;
         }
 
-        var world = simulation.World;
         var aim = FreeWillRules.AimOf(world, job.Target);
-        if (SocialSystem.InReach(Relationships.Config(simulation), FreeWillRules.AimOf(world, colonist), aim))
+        if (aim == job.Cell || SocialSystem.InReach(Relationships.Config(simulation), FreeWillRules.AimOf(world, colonist), aim)
+            || FreeWillRules.ConfigOf(simulation.Content) is not { } config || !FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target))
         {
             return false;
         }
@@ -205,7 +206,7 @@ public sealed partial class DecisionSystem
             }
 
             _avoided.Add(cell);
-            if (FreeWillRules.AimOf(world, other) is var aim && aim != cell)
+            if (FreeWillRules.AimOf(world, other) is var aim && aim != cell && aim.Z == from.Z)
             {
                 _avoided.Add(aim);
             }

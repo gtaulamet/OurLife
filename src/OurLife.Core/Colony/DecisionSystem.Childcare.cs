@@ -210,7 +210,7 @@ public sealed partial class DecisionSystem
             }
 
             var cell = world.Get<Position>(other).Cell;
-            if (cell.Z != from.Z || Math.Max(Math.Abs(cell.X - from.X), Math.Abs(cell.Y - from.Y)) > radius
+            if (!SocialSystem.InReach(from, cell, radius)
                 || !(LifeRules.Stage(simulation, other)?.PlayRadius is not null || Relationships.IsFamily(simulation, colonist, other))
                 || !SocialSystem.CanMeet(simulation, colonist, other, cooldown) || !connectivity.AreConnected(from, cell)
                 || (simulation.FreeWill && Relationships.IsRival(simulation, colonist, other)))

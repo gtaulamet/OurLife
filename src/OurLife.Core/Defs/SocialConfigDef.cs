@@ -59,9 +59,10 @@ public sealed class SocialConfigDef : Def
 
     internal override IEnumerable<string> Validate()
     {
-        if (CheckTicks <= 0 || Radius < 0 || PairCooldownHours < 0 || RecentInteractions < 0 || WidowYears < 0 || ForgetPerDay < 0 || RetellMargin < 0)
+        // A radius of 0 would leave no room to stand by the other: one keeping it company could never be near enough.
+        if (CheckTicks <= 0 || Radius <= 0 || PairCooldownHours < 0 || RecentInteractions < 0 || WidowYears < 0 || ForgetPerDay < 0 || RetellMargin < 0)
         {
-            yield return "checkTicks must be positive, and radius, pairCooldownHours, forgetPerDay, widowYears, recentInteractions and retellMargin zero or more.";
+            yield return "checkTicks and radius must be positive, and pairCooldownHours, forgetPerDay, widowYears, recentInteractions and retellMargin zero or more.";
         }
 
         // A weight above the bound could overflow the sum of the weights drawn from.

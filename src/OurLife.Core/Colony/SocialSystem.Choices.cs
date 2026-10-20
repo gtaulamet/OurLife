@@ -36,8 +36,11 @@ public sealed partial class SocialSystem
     }
 
     /// <summary>Whether two cells are near enough for an interaction: on the same level, within the config's radius.</summary>
-    internal static bool InReach(SocialConfigDef config, TileCoord a, TileCoord b) =>
-        a.Z == b.Z && Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y)) <= config.Radius;
+    internal static bool InReach(SocialConfigDef config, TileCoord a, TileCoord b) => InReach(a, b, config.Radius);
+
+    /// <summary>Whether two cells are on the same level, within <paramref name="radius"/> cells of each other in each direction.</summary>
+    internal static bool InReach(TileCoord a, TileCoord b, int radius) =>
+        a.Z == b.Z && Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y)) <= radius;
 
     /// <summary>
     /// Whether <paramref name="colonist"/> may interact with <paramref name="other"/> now: the other

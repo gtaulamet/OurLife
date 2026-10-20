@@ -231,8 +231,7 @@ public sealed class JobSystem : ISimSystem
             // visitor waits, the other must be, or be going, near enough to it to interact.
             case JobKind.Visit:
                 return FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target)
-                       && (job.Stage != JobStage.Working
-                           || SocialSystem.InReach(Relationships.Config(simulation), world.Get<Position>(colonist).Cell, FreeWillRules.AimOf(world, job.Target)));
+                       && (job.Stage != JobStage.Working || StillNear(simulation, colonist, job.Target));
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -240,6 +239,15 @@ public sealed class JobSystem : ISimSystem
             default:
                 return true;
         }
+    }
+
+    /// <summary>Whether another colonist is near enough to interact with one, or is going to be at the end of its walk.</summary>
+    private static bool StillNear(Simulation simulation, EntityId colonist, EntityId other)
+    {
+        var world = simulation.World;
+        var config = Relationships.Config(simulation);
+        var cell = world.Get<Position>(colonist).Cell;
+        return SocialSystem.InReach(config, cell, world.Get<Position>(other).Cell) || SocialSystem.InReach(config, cell, FreeWillRules.AimOf(world, other));
     }
 
     /// <summary>True if the cell keeps its order and the order still makes sense; a senseless order is cleared.</summary>
