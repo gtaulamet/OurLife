@@ -144,37 +144,25 @@ public static class FreeWillRules
     }
 
     /// <summary>
-    /// Whether a visit to <paramref name="other"/> still makes sense (see "Vida social con
-    /// intención" in <c>docs/gdd/libre-albedrio.md</c>): free will is on, both can interact, the
-    /// visitor is in no crisis and they are not rivals.
+    /// Whether a colonist may seek company now (see "Vida social con intención" in
+    /// <c>docs/gdd/libre-albedrio.md</c>): free will is on, it can interact, it is in no crisis and
+    /// it does not crawl.
     /// </summary>
-    internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
-        simulation.FreeWill && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, colonist)
-        && MoodRules.CrisisOf(simulation, colonist) is null && SocialSystem.CanInteract(simulation, other)
-        && !Relationships.IsRival(simulation, colonist, other);
+    internal static bool CanSeekCompany(Simulation simulation, EntityId colonist) =>
+        simulation.FreeWill && LifeRules.Stage(simulation, colonist)?.CrawlRadius is null && SocialSystem.CanInteract(simulation, colonist)
+        && MoodRules.CrisisOf(simulation, colonist) is null;
 
     /// <summary>
-    /// Where to find a colonist to keep it company: where it is going if it is on its way to work
-    /// or to wait a while, or carrying a load to a stockpile or a blueprint; else where it is.
+    /// Whether a visit to <paramref name="other"/> still makes sense: the visitor may still seek
+    /// company, the other can interact and they are not rivals.
     /// </summary>
-    internal static TileCoord AimOf(World world, EntityId colonist)
-    {
-        if (world.TryGet<Job>(colonist, out var job))
-        {
-            if (job.Stage == JobStage.Moving)
-            {
-                return job.Cell;
-            }
+    internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>
+        CanSeekCompany(simulation, colonist) && Relationships.IsLivingColonist(simulation.World, other) && SocialSystem.CanInteract(simulation, other)
+        && !Relationships.IsRival(simulation, colonist, other);
 
-            // Only these carry to a fixed cell: a baby fed moves.
-            if (job.Stage == JobStage.Carrying && job.Kind is JobKind.Haul or JobKind.Deliver)
-            {
-                return job.Destination;
-            }
-        }
-
-        return world.Get<Position>(colonist).Cell;
-    }
+    /// <summary>Where a colonist will be: the end of its walk, whatever it walks for, or where it stands.</summary>
+    internal static TileCoord AimOf(World world, EntityId colonist) =>
+        world.TryGet<Movement>(colonist, out var movement) && movement.IsMoving ? movement.Path[^1] : world.Get<Position>(colonist).Cell;
 
     /// <summary>Whether a cell is near the village: within the config's radius of its centre on the plane, at any level.</summary>
     public static bool IsNearVillage(Simulation simulation, TileCoord cell)
