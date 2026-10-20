@@ -44,9 +44,6 @@ public sealed class FreeWillConfigDef : Def
     /// <summary>The stock target of each item category a new game starts with, by category id; only these have targets.</summary>
     public required IReadOnlyDictionary<string, int> DefaultTargets { get; init; }
 
-    /// <summary>How much an arrow of a target's field in the panel changes it; the player can also write any number.</summary>
-    public required int TargetStep { get; init; }
-
     /// <summary>The highest target the player can write.</summary>
     public required int TargetMax { get; init; }
 
@@ -84,9 +81,9 @@ public sealed class FreeWillConfigDef : Def
             yield return "lowMoodBelow and highMoodAbove must be moods between 0 and 100, and lowMoodBelow not above highMoodAbove.";
         }
 
-        if (TargetStep <= 0 || TargetMax < TargetStep || DefaultTargets.Values.Any(target => target < 0 || target > TargetMax))
+        if (TargetMax <= 0 || DefaultTargets.Values.Any(target => target < 0 || target > TargetMax))
         {
-            yield return "targetStep must be positive and targetMax at least targetStep, and every default target between 0 and targetMax.";
+            yield return "targetMax must be positive, and every default target between 0 and targetMax.";
         }
     }
 }

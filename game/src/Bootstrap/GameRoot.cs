@@ -1324,9 +1324,6 @@ public partial class GameRoot : Node
         line.Text = Typed;
         line.EmitSignal(LineEdit.SignalName.TextChanged, Typed);
         line.EmitSignal(LineEdit.SignalName.TextSubmitted, line.Text);
-
-        // The SpinBox applies the text deferred, at the end of the frame, which the smoke does not wait for.
-        line.GetParent<SpinBox>().Apply();
         screen.Advance(1);
         var submitted = (FreeWillRules.Targets(game)[0].Count, Focused(), TextFocus.IsTyping(screen));
         line.GrabFocus();
@@ -1336,7 +1333,6 @@ public partial class GameRoot : Node
             line.EmitSignal(Control.SignalName.GuiInput, escape);
         }
 
-        line.GetParent<SpinBox>().Apply();
         screen.Advance(1);
         var cancelled = (FreeWillRules.Targets(game)[0].Count, Focused());
         screen.Hud.Colony.WriteTarget(first.Category, first.Count);

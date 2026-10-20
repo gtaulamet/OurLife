@@ -153,7 +153,7 @@ public class FreeWillTests
     [InlineData("\"lowMoodBelow\": 30", "\"lowMoodBelow\": 80")]
     [InlineData("\"highMoodAbove\": 70", "\"highMoodAbove\": 101")]
     [InlineData("\"low\": 50", "\"low\": 160")]
-    [InlineData("\"targetStep\": 10", "\"targetStep\": 1000")]
+    [InlineData("\"targetMax\": 999", "\"targetMax\": 0")]
     [InlineData("\"food\": 150", "\"food\": 1000")]
     [InlineData("\"food\": 150", "\"gold\": 150")]
     [InlineData("\"initiativeTrait\": \"diligence\"", "\"initiativeTrait\": \"greed\"")]
@@ -170,6 +170,6 @@ public class FreeWillTests
         { "type": "FreeWillConfig", "id": "{{id}}", "villageRadius": 6, "initiativeChancePercent": 60, "initiativeTrait": "diligence",
           "seekChancePercent": 30, "seekTrait": "diligence", "seekRadius": 10, "avoidRadius": 4, "traitPercent": { "low": 50, "high": 150 },
           "lowMoodBelow": 30, "lowMoodPercent": 50, "highMoodAbove": 70, "highMoodPercent": 120,
-          "defaultTargets": { "food": 150 }, "targetStep": 10, "targetMax": 999 }
+          "defaultTargets": { "food": 150 }, "targetMax": 999 }
         """;
 }

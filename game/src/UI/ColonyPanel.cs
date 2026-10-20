@@ -31,7 +31,7 @@ public partial class ColonyPanel : PanelContainer
     private GameInput _input = null!;
     private GridContainer _grid = null!;
 
-    private readonly List<(string Category, Label Label, SpinBox Field, LineEdit Line)> _targetRows = [];
+    private readonly List<(string Category, Label Label, LineEdit Field)> _targetRows = [];
 
     // The digits of a count the target lines make room for; more widen them.
     private int _countDigits = 4;
@@ -77,46 +77,79 @@ public partial class ColonyPanel : PanelContainer
     public IEnumerable<string> TargetTexts => _targetRows.Select(row => row.Label.Text);
 
     /// <summary>
-    /// Writes a target in the field of its category, as the player does, which gives the order; a
-    /// category without a field is ignored. For the smoke.
+    /// Writes a target in the field of its category and leaves it, as the player does, which
+    /// gives the order; a category without a field is ignored. For the smoke.
     /// </summary>
-    public void WriteTarget(string category, int target) => FieldOf(category)?.SetValue(target);
-
-    /// <summary>The target a field shows, or null for a category without one. For the smoke.</summary>
-    public int? TargetShown(string category) => FieldOf(category) is { } field ? (int)field.Value : null;
-
-    /// <summary>The text field of a target, or null for a category without one. For the smoke.</summary>
-    public LineEdit? TargetLine(string category) => FieldOf(category)?.GetLineEdit();
-
-    private SpinBox? FieldOf(string category) => _targetRows.Find(entry => entry.Category == category).Field;
-
-    /// <summary>
-    /// Esc while writing a target puts back the one it had and lets go of the field, without the
-    /// game seeing the key: no pause menu, and nothing applied.
-    /// </summary>
-    private static void CancelWriting(SpinBox field, LineEdit line, InputEvent input)
+    public void WriteTarget(string category, int target)
     {
-        if (!input.IsActionPressed("ui_cancel"))
+        if (FieldOf(category) is not { } field)
         {
             return;
         }
 
-        line.Text = ((int)field.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
-        line.AcceptEvent();
-        line.ReleaseFocus();
+        field.GrabFocus();
+        field.Text = target.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        field.ReleaseFocus();
+    }
+
+    /// <summary>The target a field shows, or null for a category without one. For the smoke.</summary>
+    public int? TargetShown(string category) =>
+        FieldOf(category) is { } field && int.TryParse(field.Text, System.Globalization.CultureInfo.InvariantCulture, out var shown) ? shown : null;
+
+    /// <summary>The text field of a target, or null for a category without one. For the smoke.</summary>
+    public LineEdit? TargetLine(string category) => FieldOf(category);
+
+    private LineEdit? FieldOf(string category) => _targetRows.Find(entry => entry.Category == category).Field;
+
+    /// <summary>
+    /// Keys the field takes from the rest of the interface: Esc puts back the target it had, and
+    /// Tab, which would move to another control, leaves the field too; both let go of it, without
+    /// the game seeing the key.
+    /// </summary>
+    private void OnFieldKey(string category, LineEdit field, InputEvent input)
+    {
+        var cancel = input.IsActionPressed("ui_cancel");
+        if (!cancel && !input.IsActionPressed("ui_focus_next") && !input.IsActionPressed("ui_focus_prev"))
+        {
+            return;
+        }
+
+        if (cancel)
+        {
+            field.Text = Number(TargetOf(category, FreeWillRules.Targets(_session.Simulation)));
+        }
+
+        field.AcceptEvent();
+        field.ReleaseFocus();
     }
 
     /// <summary>
-    /// Gives the order of a target the player wrote or stepped with the arrows; the field already
-    /// keeps it within 0 and the highest. Until the order applies, the panel shows what was asked.
+    /// Gives the order of the target written in a field when the player leaves it: kept within 0
+    /// and the highest, and none if it is empty or did not change. Until the order applies, the
+    /// panel shows what was asked.
     /// </summary>
-    private void ChooseTarget(string category, double value)
+    private void ApplyWritten(string category, LineEdit field)
     {
         TrackPending();
-        var target = (int)Math.Round(value);
-        _session.Enqueue(new SetStockTargetCommand(category, target));
-        _pendingTargets[category] = target;
+        var current = TargetOf(category, FreeWillRules.Targets(_session.Simulation));
+        var target = current;
+        if (field.Text.Length > 0 && FreeWillRules.ConfigOf(_session.Simulation.Content) is { } config)
+        {
+            // Digits only, so the number can only be too big: past int, it is the highest anyway.
+            target = long.TryParse(field.Text, System.Globalization.CultureInfo.InvariantCulture, out var written)
+                ? (int)Math.Min(written, config.TargetMax)
+                : config.TargetMax;
+        }
+
+        field.Text = Number(target);
+        if (target != current)
+        {
+            _session.Enqueue(new SetStockTargetCommand(category, target));
+            _pendingTargets[category] = target;
+        }
     }
+
+    private static string Number(int value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
 
@@ -245,9 +278,9 @@ public partial class ColonyPanel : PanelContainer
 
     /// <summary>
     /// One row for the stock targets, so the panel grows little on a small canvas: for each, what
-    /// the colony has of it and a field where the player writes the target, or steps it with the
-    /// arrows; what they do, in a tooltip. Built once: the categories with targets do not change
-    /// over a game, and the texts refresh with the rows.
+    /// the colony has of it and a field where the player writes the target; what they do, in a
+    /// tooltip. Built once: the categories with targets do not change over a game, and the texts
+    /// refresh with the rows.
     /// </summary>
     private void BuildTargets(HBoxContainer row)
     {
@@ -274,40 +307,28 @@ public partial class ColonyPanel : PanelContainer
             };
             group.AddChild(label);
 
-            // A number the player writes, applied with Enter or on leaving the field; the arrows step it.
-            var field = new SpinBox
+            // A number the player writes, applied on leaving the field: with Enter, Tab or a click
+            // elsewhere. No context menu: its items are the engine's, in English.
+            var field = new LineEdit
             {
-                MinValue = 0,
-                MaxValue = config.TargetMax,
-                Step = 1,
-                Rounded = true,
-                CustomArrowStep = config.TargetStep,
+                Text = Number(target.Count),
                 SelectAllOnFocus = true,
-                Alignment = HorizontalAlignment.Left,
+                ContextMenuEnabled = false,
                 AutoTranslateMode = AutoTranslateModeEnum.Disabled,
                 TooltipText = Help,
 
                 // The number is not translated, its help is.
                 TooltipAutoTranslateMode = AutoTranslateModeEnum.Always,
             };
-            field.SetValueNoSignal(target.Count);
-            var line = field.GetLineEdit();
+            field.AddThemeStyleboxOverride("normal", UiTheme.FieldBox);
+            field.TextSubmitted += _ => field.ReleaseFocus();
+            field.FocusExited += () => ApplyWritten(category, field);
+            field.GuiInput += input => OnFieldKey(category, field, input);
 
-            // A click on an arrow also focuses the field: let go of it, so the game's keys work again.
-            field.ValueChanged += value =>
-            {
-                ChooseTarget(category, value);
-                line.ReleaseFocus();
-            };
-            line.TextSubmitted += _ => line.ReleaseFocus();
-            line.GuiInput += input => CancelWriting(field, line, input);
-
-            // Only digits: "10.000", "10,000" or "10 000" become 10000, not an expression or nothing.
-            line.TextChanged += text => KeepDigits(line, text);
-            field.GuiInput += input => OnFieldMouse(field, line, input);
-            line.AddThemeStyleboxOverride("normal", UiTheme.FieldBox);
+            // Only digits: "10.000", "10,000" or "10 000" become 10000.
+            field.TextChanged += text => KeepDigits(field, text);
             group.AddChild(field);
-            _targetRows.Add((category, label, field, line));
+            _targetRows.Add((category, label, field));
         }
     }
 
@@ -354,14 +375,15 @@ public partial class ColonyPanel : PanelContainer
         var stock = ColonyStock.ByCategory(_session.Simulation);
         var targets = FreeWillRules.Targets(_session.Simulation);
         var widest = 0;
-        foreach (var (category, label, field, text) in _targetRows)
+        foreach (var (category, label, field) in _targetRows)
         {
             var line = stock.First(entry => entry.Category.Id == category);
             label.Text = TargetText(line.Category, line.Count);
             widest = Math.Max(widest, Digits(line.Count));
-            if (!text.HasFocus())
+            var shown = Number(TargetOf(category, targets));
+            if (!field.HasFocus() && field.Text != shown)
             {
-                field.SetValueNoSignal(TargetOf(category, targets));
+                field.Text = shown;
             }
         }
 
@@ -388,36 +410,17 @@ public partial class ColonyPanel : PanelContainer
         // Eights, the widest digit of most fonts.
         var count = Eights(_countDigits);
         var highest = Eights(Digits(config.TargetMax)).ToString(System.Globalization.CultureInfo.InvariantCulture);
-        foreach (var (category, label, field, line) in _targetRows)
+        foreach (var (category, label, field) in _targetRows)
         {
             var text = TargetText(_session.Simulation.Content.Get<ItemCategoryDef>(category), count);
             label.CustomMinimumSize = new Vector2(Mathf.Ceil(UiTheme.TextWidth(label, text)), 0);
 
-            // Room for the arrows beside the number.
-            field.CustomMinimumSize = new Vector2(Mathf.Ceil(UiTheme.TextWidth(line, highest)) + 36, 0);
+            // Room for the box's margins and the caret beside the number.
+            field.CustomMinimumSize = new Vector2(Mathf.Ceil(UiTheme.TextWidth(field, highest)) + 20, 0);
         }
     }
 
     /// <summary>
-    /// The mouse on a field's arrows: an arrow or the wheel used while a number is written steps
-    /// from that number, and a right click, which would jump to 0 or the highest, does nothing.
-    /// </summary>
-    private static void OnFieldMouse(SpinBox field, LineEdit line, InputEvent input)
-    {
-        if (input is not InputEventMouseButton { Pressed: true } press)
-        {
-            return;
-        }
-
-        if (press.ButtonIndex == MouseButton.Right)
-        {
-            field.AcceptEvent();
-        }
-        else if (line.HasFocus())
-        {
-            field.Apply();
-        }
-    }
 
     private static void KeepDigits(LineEdit line, string text)
     {

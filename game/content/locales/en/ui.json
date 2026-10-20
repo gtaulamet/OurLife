@@ -200,7 +200,7 @@
   "ui.colony.mood": "Mood",
   "ui.colony.targets": "Stock targets",
   "ui.colony.target": "{category}: {count} of",
-  "ui.colony.targets_help": "How much the village wants to have: write the target or use the arrows. With free will, colonists gather on their own what is missing, near the village. At 0, they do not.",
+  "ui.colony.targets_help": "How much the village wants to have: write the target and press Enter. With free will, colonists gather on their own what is missing, near the village. At 0, they do not.",
   "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
   "ui.sheet.skill_from": "{skill}, from {name}"
 }
