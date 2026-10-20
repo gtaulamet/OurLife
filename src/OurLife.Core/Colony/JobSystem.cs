@@ -200,11 +200,12 @@ public sealed class JobSystem : ISimSystem
                 return StillOrdered(simulation, job.Cell, TileFlags.MineDesignation, map.ShapeAt(job.Cell) == TileShape.Wall);
             case JobKind.DigStairs:
                 return StillOrdered(simulation, job.Cell, TileFlags.StairsDesignation, Designations.CanDigStairs(map, job.Cell));
+            // Work on its own needs no order, and ends only when its plant is gone or gathered.
             case JobKind.Chop:
-                return world.IsAlive(job.Target) && world.Has<ChopOrder>(job.Target);
+                return world.IsAlive(job.Target) && (job.Initiative || world.Has<ChopOrder>(job.Target));
             case JobKind.Harvest:
                 return world.IsAlive(job.Target) && world.Has<Plant>(job.Target) && !world.Has<Harvested>(job.Target)
-                       && (job.ForFood || world.Has<HarvestOrder>(job.Target));
+                       && (job.ForFood || job.Initiative || world.Has<HarvestOrder>(job.Target));
             case JobKind.Eat:
                 return world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var stack) && stack.Count > 0;
             case JobKind.Haul:

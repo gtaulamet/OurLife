@@ -13,7 +13,8 @@ namespace OurLife.Content.Tests;
 /// was written by the code and content of its version, with seed 7 and 20 000 ticks:
 /// <c>v0.2.5.olsave</c> in format 1, <c>h3.2.olsave</c> in format 2, by H3.2, <c>h3.3.olsave</c>
 /// in format 3, by H3.3, <c>h3.4.olsave</c> in format 4, by H3.4, <c>h3.5.olsave</c> in format 5,
-/// by H3.5, <c>h3.6.olsave</c> in format 6, by H3.6, and <c>v0.3.0.olsave</c> in format 7, by v0.3.0.
+/// by H3.5, <c>h3.6.olsave</c> in format 6, by H3.6, <c>v0.3.0.olsave</c> in format 7, by v0.3.0,
+/// and <c>l2.olsave</c> in format 8, by L2 of IP3.5, with free will on and a wood target of 70.
 /// </summary>
 public class OldSaveTests
 {
@@ -25,6 +26,7 @@ public class OldSaveTests
     [InlineData("h3.5.olsave", 5, "0.3.0-dev", 5)]
     [InlineData("h3.6.olsave", 6, "0.3.0-dev", 5)]
     [InlineData("v0.3.0.olsave", 7, "0.3.0", 7)]
+    [InlineData("l2.olsave", 8, "0.3.5-dev", 7)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders)
     {
         var simulation = Load(file, out var header);
@@ -43,8 +45,26 @@ public class OldSaveTests
             .ShouldAllBe(count => count == GameContent.Defs.All<WorkTypeDef>().Count(type => type.Skill));
         colonists.Select(colonist => simulation.World.Get<Relations>(colonist).Others.Count).ShouldAllBe(count => count == founders - 1);
 
-        // Format 8 (IP3.5): the village centre, on the cell of one of the colonists.
-        colonists.Select(colonist => simulation.World.Get<Position>(colonist).Cell).ShouldContain(simulation.VillageCenter!.Value);
+        // Format 8 (IP3.5): the village centre, migrated to the cell of one of the colonists, or saved.
+        if (format <= 7)
+        {
+            colonists.Select(colonist => simulation.World.Get<Position>(colonist).Cell).ShouldContain(simulation.VillageCenter!.Value);
+        }
+        else
+        {
+            simulation.VillageCenter.ShouldNotBeNull();
+        }
+    }
+
+    [Fact]
+    public void A_game_of_format_8_keeps_free_will_and_its_targets()
+    {
+        var simulation = Load("l2.olsave", out _);
+
+        simulation.FreeWill.ShouldBeTrue();
+        simulation.VillageCenter.ShouldNotBeNull();
+        FreeWillRules.Targets(simulation).ShouldBe([new StockTarget("food", 150), new StockTarget("wood", 70)]);
+        simulation.World.Store<Job>().Count.ShouldBeGreaterThan(0);
     }
 
     [Theory]
@@ -55,6 +75,7 @@ public class OldSaveTests
     [InlineData("h3.5.olsave")]
     [InlineData("h3.6.olsave")]
     [InlineData("v0.3.0.olsave")]
+    [InlineData("l2.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

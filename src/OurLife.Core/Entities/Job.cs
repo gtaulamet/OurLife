@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using OurLife.Core.Ecs;
 using OurLife.Core.Map;
 
@@ -73,6 +74,15 @@ public sealed class Job
     /// <summary>True when the colonist gathers to eat, not because the player ordered it.</summary>
     public bool ForFood { get; set; }
 
+    /// <summary>
+    /// True for work the colonist does on its own, with free will (see "Trabajo por iniciativa" in
+    /// <c>docs/gdd/libre-albedrio.md</c>): it goes on without the player's order. Left out of the
+    /// saved game and the fingerprint while false, so a game without free will is written as
+    /// before it (criterion 3 of the spec).
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Initiative { get; set; }
+
     /// <summary>For hauling, the stockpile cell where the load goes; for delivering, the blueprint's cell.</summary>
     public TileCoord Destination { get; set; }
 
@@ -107,4 +117,11 @@ public static class JobKinds
 
     /// <summary>Key of the text that says what a colonist is doing, like <c>job.chop.report</c>.</summary>
     public static string ReportKey(JobKind kind) => $"job.{Id(kind)}.report";
+
+    /// <summary>The same for a job, which says when the colonist does it on its own, like <c>job.chop.initiative</c>.</summary>
+    public static string ReportKey(Job job)
+    {
+        ArgumentNullException.ThrowIfNull(job);
+        return job.Initiative ? $"job.{Id(job.Kind)}.initiative" : ReportKey(job.Kind);
+    }
 }

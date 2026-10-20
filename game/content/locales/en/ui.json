@@ -116,6 +116,8 @@
   "job.dig_stairs.report": "Digging stairs",
   "job.chop.report": "Chopping a tree",
   "job.harvest.report": "Gathering",
+  "job.chop.initiative": "Chopping a tree on their own",
+  "job.harvest.initiative": "Gathering on their own",
   "job.eat.report": "Eating",
   "job.sleep.report": "Sleeping",
   "job.wander.report": "Wandering",

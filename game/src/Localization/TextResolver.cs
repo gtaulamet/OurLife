@@ -68,7 +68,7 @@ public sealed class TextResolver
     {
         ArgumentNullException.ThrowIfNull(world);
         return world.TryGet<OurLife.Core.Entities.Job>(colonist, out var job)
-            ? Format(OurLife.Core.Entities.JobKinds.ReportKey(job.Kind))
+            ? Format(OurLife.Core.Entities.JobKinds.ReportKey(job))
             : Format("ui.inspector.idle");
     }
 

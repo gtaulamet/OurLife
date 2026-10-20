@@ -202,6 +202,7 @@ public class SaveGameTests
     [InlineData(3)]
     [InlineData(4)]
     [InlineData(7)]
+    [InlineData(8)]
     public void A_game_of_an_older_format_gets_what_came_later_and_keeps_the_rest(int format)
     {
         var bed = BusyColony();
@@ -212,7 +213,14 @@ public class SaveGameTests
 
         loaded.FreeWill.ShouldBeFalse();
         loaded.StockTargets.ShouldBeEmpty();
-        bed.Colonists().Select(colonist => bed.World.Get<Position>(colonist).Cell).ShouldContain(loaded.VillageCenter!.Value);
+        if (format <= 7)
+        {
+            bed.Colonists().Select(colonist => bed.World.Get<Position>(colonist).Cell).ShouldContain(loaded.VillageCenter!.Value);
+        }
+        else
+        {
+            loaded.VillageCenter.ShouldBe(bed.Simulation.VillageCenter);
+        }
         foreach (var colonist in bed.Colonists())
         {
             loaded.World.Get<Life>(colonist).AgeDays.ShouldBe(bed.World.Get<Life>(colonist).AgeDays);
@@ -555,12 +563,19 @@ public class SaveGameTests
     /// <summary>
     /// The saved game as an older format wrote it, without what came after: format 1 (v0.2.x) had
     /// no pace of life, ages or surnames, format 2 (H3.2) no personalities, format 3 (H3.3) no skills,
-    /// format 4 (H3.4) no relations and format 7 (v0.3.0) no free will, village centre or stock targets.
+    /// format 4 (H3.4) no relations and format 7 (v0.3.0) no free will, village centre or stock
+    /// targets. Format 8 (L2 of IP3.5) had no work on its own, which a game without it does not write
+    /// (<c>Job.Initiative</c>): only its header changes.
     /// </summary>
     private static byte[] AsFormat(int format, byte[] file)
     {
         var old = Rewrite(file, "header.json", json => json.Replace(
             $"\"FormatVersion\":{SaveGame.FormatVersion}", $"\"FormatVersion\":{format}", StringComparison.Ordinal));
+        if (format >= 8)
+        {
+            return old;
+        }
+
         return Rewrite(old, "state.json", json =>
         {
             var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
@@ -568,6 +583,7 @@ public class SaveGameTests
             state.Remove("FreeWill");
             state.Remove("VillageCenter");
             state.Remove("StockTargets");
+
             var added = new List<string>();
             if (format <= 4)
             {

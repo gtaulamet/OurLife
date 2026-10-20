@@ -134,6 +134,18 @@ public sealed partial class DefDatabase
             errors.Add($"The content can have at most one FreeWillConfig def, found {freeWillConfigs.Count}.");
         }
 
+        // A task works as its work type: the type must group its job.
+        if (byType.TryGetValue(typeof(InitiativeTaskDef), out var tasks) && byType.TryGetValue(typeof(WorkTypeDef), out var workTypes))
+        {
+            foreach (var task in tasks.Values.Cast<InitiativeTaskDef>())
+            {
+                if (workTypes.TryGetValue(task.WorkType, out var workType) && !((WorkTypeDef)workType).Jobs.Contains(task.Job))
+                {
+                    errors.Add($"{Describe(task)}: the work type '{task.WorkType}' has no job '{task.Job}'.");
+                }
+            }
+        }
+
         var timeConfigs = byType.TryGetValue(typeof(TimeConfigDef), out var configs) ? configs.Values.Cast<TimeConfigDef>().ToArray() : [];
         if (timeConfigs.Length != 1)
         {

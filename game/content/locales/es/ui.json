@@ -116,6 +116,8 @@
   "job.dig_stairs.report": "Abriendo una escalera",
   "job.chop.report": "Talando un árbol",
   "job.harvest.report": "Recolectando",
+  "job.chop.initiative": "Talando un árbol por su cuenta",
+  "job.harvest.initiative": "Recolectando por su cuenta",
   "job.eat.report": "Comiendo",
   "job.sleep.report": "Durmiendo",
   "job.wander.report": "Paseando",

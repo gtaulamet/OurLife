@@ -9,7 +9,8 @@ namespace OurLife.Core.Colony;
 
 /// <summary>
 /// Gives idle colonists a job, in this order: a critical need, work by work type, a low need,
-/// play for a stage that plays, wandering (see <c>docs/gdd/colonos-e-ia.md</c>). A baby, who does
+/// work on its own with free will (<c>docs/gdd/libre-albedrio.md</c>), play for a stage that plays,
+/// wandering (see <c>docs/gdd/colonos-e-ia.md</c>). A baby, who does
 /// not eat on its own, is fed as work and crawls near its mother (see "Crianza" in
 /// <c>docs/gdd/vida-y-generaciones.md</c>). Every <see cref="AiConfigDef.RecheckTicks"/>,
 /// a busy colonist checks whether a critical need should interrupt its job, and a wandering one
@@ -396,11 +397,16 @@ public sealed partial class DecisionSystem : ISimSystem
             }
         }
 
-        // Critical needs were tried above. Work and low needs interrupt wandering and playing;
-        // a wanderer may also go to play, but a player keeps its playmate.
+        // Critical needs were tried above. Work and low needs interrupt work on its own, wandering
+        // and playing; a wanderer may also work on its own or go to play, but a player keeps its playmate.
+        if (job.Initiative)
+        {
+            return TryWorkOrLowNeeds(simulation, colonist);
+        }
+
         return job.Kind switch
         {
-            JobKind.Wander => TryWorkOrLowNeeds(simulation, colonist) || TryPlay(simulation, colonist),
+            JobKind.Wander => TryWorkOrLowNeeds(simulation, colonist) || TryInitiative(simulation, colonist) || TryPlay(simulation, colonist),
             JobKind.Play => TryWorkOrLowNeeds(simulation, colonist),
             _ => false,
         };
@@ -416,7 +422,7 @@ public sealed partial class DecisionSystem : ISimSystem
             }
         }
 
-        if (!TryWorkOrLowNeeds(simulation, colonist) && !TryPlay(simulation, colonist))
+        if (!TryWorkOrLowNeeds(simulation, colonist) && !TryInitiative(simulation, colonist) && !TryPlay(simulation, colonist))
         {
             Wander(simulation, colonist);
         }
@@ -837,7 +843,7 @@ public sealed partial class DecisionSystem : ISimSystem
     /// Takes the nearest candidate the colonist can reach and finds a path to it. A candidate
     /// without a path is ignored for a while and the next one is tried.
     /// </summary>
-    private bool TryCandidates(Simulation simulation, EntityId colonist, bool forFood = false)
+    private bool TryCandidates(Simulation simulation, EntityId colonist, bool forFood = false, bool initiative = false)
     {
         if (_candidates.Count == 0)
         {
@@ -917,6 +923,7 @@ public sealed partial class DecisionSystem : ISimSystem
                     Target = target,
                     Cell = cell,
                     ForFood = forFood,
+                    Initiative = initiative,
                     Destination = destination,
                     Recipient = recipient,
                     Count = count,

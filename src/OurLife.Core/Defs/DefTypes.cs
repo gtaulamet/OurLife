@@ -33,6 +33,7 @@ internal static class DefTypes
         ("Desire", typeof(DesireDef), "desire"),
         ("MoodConfig", typeof(MoodConfigDef), null),
         ("FreeWillConfig", typeof(FreeWillConfigDef), null),
+        ("InitiativeTask", typeof(InitiativeTaskDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

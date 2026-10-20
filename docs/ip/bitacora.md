@@ -8,11 +8,11 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l2-metas`: L2 cerrado y en `main`, con las metas escritas por el jugador (pedido del 20 de octubre). Sigue L3 en `ip3.5/l3-iniciativa` |
+| Rama de trabajo | `ip3.5/l3-iniciativa`: Core, textos y tests de L3 hechos; falta la revisión de código |
 | `main` | Con L2 de IP3.5 y las metas escritas (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 735 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
+| Validación | `dotnet build` sin advertencias, 757 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
 | Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L3, trabajo por iniciativa** (`InitiativeTask` en `free_will.json`, `Job.Initiative`, recolectar y talar cerca de la aldea bajo la meta, dentro de las prioridades; el inspector dice "por su cuenta"). L4, L4b y L4c pueden ir en paralelo. L3 y L4b suben el formato a 9 si suman estado (ADR-013).
+1. **L3:** revisión de código y adelantar `main`. Decisión pendiente del usuario: la meta de comida por defecto (150) no alcanza para el invierno sin órdenes (ver la entrada del 20 de octubre). Después, L4, L4b y L4c, que pueden ir en paralelo; L4b sube el formato a 10.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,15 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-20: L3, trabajo por iniciativa
+
+- Rama `ip3.5/l3-iniciativa`. `InitiativeTaskDef` (`gather_food`: recolección, cosechar, comida; `chop_wood`: tala, talar, madera) en `free_will.json`. `Job.Initiative`: el trabajo vale sin la orden del jugador. `DecisionSystem.TryInitiative` va después del trabajo ordenado y de las necesidades bajas, y antes de jugar y de deambular; el trabajo por iniciativa lo interrumpe una orden o una necesidad. Etapas, prioridades ("nunca" no), crisis, cerca de la aldea, ganas por diligencia y ánimo (flujo `colony.free_will`).
+- Reparto: lo que traerá el trabajo por iniciativa en curso cuenta como existencias, así no van todos a la misma meta.
+- El inspector y el panel Colonia dicen "Recolectando por su cuenta" y "Talando un árbol por su cuenta".
+- Formato 9: `Job.Initiative` sólo se escribe cuando es verdadero, así las huellas del smoke siguen siendo las de `v0.3.0`. Partida real nueva `l2.olsave` (formato 8), escrita con el código de `main` antes de tocar nada.
+- 18 tests nuevos en `InitiativeTests` (criterios 1 a 6, etapas, crisis, trabajo en curso, prioridad contra falta, reparto, guardado).
+- Experimento de balance, cinco años en Normal sin órdenes del jugador y con la opción prendida: con la meta de comida de 150 la aldea se extingue en el primer invierno en las semillas 1 y 7 y sobrevive en la 42; con 600 sobrevive en las tres, sin muertes por hambre. Nadie nace en ningún caso, porque concebir pide comida guardada para 30 días por boca. 0,02 ms por tick con la opción prendida.
 
 ### 2026-10-20: metas escritas por el jugador
 

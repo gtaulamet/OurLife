@@ -52,6 +52,7 @@ Un colono libre, sin órdenes que tomar, puede inventarse trabajo:
 - **Prioridades:** la tarea usa la prioridad del colono para su tipo de trabajo. Con "nunca", nunca la hace. Entre varias tareas posibles, la de prioridad más alta; con la misma, la de la meta más lejos de cumplirse.
 - **Etapas:** sólo quien puede hacer ese trabajo: un adolescente recolecta (trabajo liviano) pero no tala; un niño no hace ninguna.
 - **Ganas:** cada vez que decide, la tarea ocurre con una probabilidad: `initiativeChancePercent` (60 %) por la diligencia (de 50 % a 150 % del valor, de la diligencia más baja a la más alta) y por el ánimo (×50 % con ánimo bajo 30, ×120 % con ánimo sobre 70). Si no ocurre, deambula y vuelve a decidir en la próxima revisión, como hoy.
+- **Reparto (L3):** cuánto le falta a una meta cuenta lo que ya traerá el trabajo por iniciativa en curso (los troncos del árbol que alguien tala, las bayas del arbusto que alguien recolecta). Así, con suficientes colonos talando para llegar a la meta de madera, el siguiente recolecta comida. Cuánto le falta se mide como parte de la meta (de 0 % a 100 %).
 - **Lo que junta:** recolectar o talar por iniciativa deja lo obtenido en el suelo, como con una orden; los acarreadores lo llevan al almacén. Ganan experiencia como en una orden.
 - **Lo que no toca:** un arbusto o árbol con una orden del jugador ya tiene quien lo haga; uno lejos de la aldea, nunca. No excava ni construye.
 - **Cuando se cumple la meta**, deja de tomar esa tarea; el trabajo en curso termina.
@@ -108,7 +109,8 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 ## Guardado
 
-- Formato 8 (L2): `Simulation.FreeWill`, `VillageCenter` y `StockTargets`. El componente `Sapling` y `Job.Initiative` llegan con L3 y L4b, que vuelven a subir el formato (ADR-013: sube cada vez que llega a `main` un cambio del estado).
+- Formato 8 (L2): `Simulation.FreeWill`, `VillageCenter` y `StockTargets`.
+- Formato 9 (L3): `Job.Initiative`. Sólo se escribe cuando es verdadero, así una partida sin trabajo por iniciativa se escribe y da la huella de antes. No hay nada que migrar. El componente `Sapling` llega con L4b, que vuelve a subir el formato (ADR-013: sube cada vez que llega a `main` un cambio del estado).
 - Una partida de la versión 7 se migra: centro de la aldea en la celda del colono más cerca del medio de todos (la mediana en cada eje), así uno que trabaja lejos no lo corre; metas por defecto; el interruptor lo manda la sesión al cargar, como siempre.
 - Con la opción apagada y sin metas elegidas, la huella no incluye el libre albedrío: una partida da la misma huella que en `v0.3.0` (criterio 3). El smoke, que juega sin la opción, lo comprueba con las huellas de `v0.3.0`.
 - Una meta guardada que el contenido ya no admite (más alta que el máximo, o de una categoría que ya no tiene metas) baja al máximo o se descarta al cargar; la partida carga igual. Una categoría que ya no existe da "falta contenido", como cualquier def (ADR-013).

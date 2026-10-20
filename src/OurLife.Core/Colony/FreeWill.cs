@@ -1,4 +1,5 @@
 using OurLife.Core.Defs;
+using OurLife.Core.Ecs;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
 
@@ -80,6 +81,32 @@ public static class FreeWillRules
             .Where(category => config.DefaultTargets.ContainsKey(category.Id))
             .Select(category => simulation.StockTargets.FirstOrDefault(target => target.Category == category.Id)
                                 ?? new StockTarget(category.Id, config.DefaultTargets[category.Id]))];
+    }
+
+    /// <summary>
+    /// The chance, in percent, that a colonist works on its own when it decides: the config's, by
+    /// its trait for initiative and by its mood. Zero without free will in the content.
+    /// </summary>
+    public static int InitiativeChancePercent(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        return ConfigOf(simulation.Content) is { } config
+            ? ChancePercent(simulation, colonist, config, config.InitiativeChancePercent, config.InitiativeTrait)
+            : 0;
+    }
+
+    /// <summary>
+    /// A chance of the config scaled by a trait, from <see cref="FreeWillConfigDef.TraitPercent"/>
+    /// at its lowest to its highest, and by the mood: less when it is low, more when it is high.
+    /// </summary>
+    internal static int ChancePercent(Simulation simulation, EntityId colonist, FreeWillConfigDef config, int basePercent, string trait)
+    {
+        var mood = MoodRules.Value(simulation, colonist);
+        var moodPercent = mood < config.LowMoodBelow ? config.LowMoodPercent
+            : mood > config.HighMoodAbove ? config.HighMoodPercent
+            : 100;
+        var traitPercent = config.TraitPercent.At(PersonalityRules.Value(simulation, colonist, trait));
+        return (int)((long)basePercent * traitPercent * moodPercent / 10_000);
     }
 
     /// <summary>Whether a cell is near the village: within the config's radius of its centre on the plane, at any level.</summary>

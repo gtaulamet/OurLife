@@ -143,11 +143,14 @@ public class ColonyTests
     [Fact]
     public void Every_job_has_its_report_in_every_language()
     {
-        foreach (var kind in Enum.GetValues<JobKind>())
+        // Jobs done on its own say so (docs/gdd/libre-albedrio.md).
+        var keys = Enum.GetValues<JobKind>().Select(JobKinds.ReportKey)
+            .Concat(InitiativeTaskDef.Jobs.Select(kind => JobKinds.ReportKey(new Job { Kind = kind, Initiative = true })));
+        foreach (var key in keys)
         {
             foreach (var catalog in GameContent.Catalogs.Values)
             {
-                catalog.Messages.ContainsKey(JobKinds.ReportKey(kind)).ShouldBeTrue($"{catalog.Locale}: missing {JobKinds.ReportKey(kind)}");
+                catalog.Messages.ContainsKey(key).ShouldBeTrue($"{catalog.Locale}: missing {key}");
             }
         }
     }
