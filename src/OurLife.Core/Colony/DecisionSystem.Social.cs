@@ -12,6 +12,10 @@ namespace OurLife.Core.Colony;
 /// </summary>
 public sealed partial class DecisionSystem
 {
+    // Times a visitor follows its company to a new place before it gives up: a search limit, not
+    // balance, so it does not chase one who keeps moving.
+    private const int MaxFollows = 3;
+
     // Those a colonist may seek, with their weights: found at each decision.
     private readonly List<(EntityId Item, int Weight)> _liked = [];
 
@@ -50,14 +54,18 @@ public sealed partial class DecisionSystem
         return false;
     }
 
-    /// <summary>Sets off to keep <paramref name="other"/> company; true if there is a way.</summary>
-    private bool TryVisit(Simulation simulation, EntityId colonist, EntityId other) =>
-        TryGoTo(simulation, colonist, new Job { Kind = JobKind.Visit, Target = other, Cell = FreeWillRules.AimOf(simulation.World, other) });
+    /// <summary>
+    /// Sets off to keep <paramref name="other"/> company, after following it <paramref name="follows"/>
+    /// times (kept in <see cref="Job.Count"/>); true if there is a way.
+    /// </summary>
+    private bool TryVisit(Simulation simulation, EntityId colonist, EntityId other, int follows = 0) =>
+        TryGoTo(simulation, colonist, new Job { Kind = JobKind.Visit, Target = other, Cell = FreeWillRules.AimOf(simulation.World, other), Count = follows });
 
     /// <summary>
     /// A visitor on its way whose company will not be within reach of where it is going follows it
-    /// to where it will be, while it is within reach for seeking and there is a way; else the visit
-    /// ends and it wanders. True if it got another job.
+    /// to where it will be, while it is within reach for seeking, there is a way and it did not
+    /// follow it <see cref="MaxFollows"/> times yet; else the visit ends and it wanders. True if it
+    /// got another job.
     /// </summary>
     private bool TryFollow(Simulation simulation, EntityId colonist, Job job)
     {
@@ -75,7 +83,8 @@ public sealed partial class DecisionSystem
             return false;
         }
 
-        if (!FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim) || !TryVisit(simulation, colonist, job.Target))
+        if (job.Count >= MaxFollows || !FreeWillRules.IsNear(world.Get<Position>(colonist).Cell, config.SeekRadius, aim)
+            || !TryVisit(simulation, colonist, job.Target, job.Count + 1))
         {
             Wander(simulation, colonist);
         }
@@ -147,7 +156,8 @@ public sealed partial class DecisionSystem
                     ? SocialSystem.OtherWeightPercent
                     : 0;
             // A weight of 0, as in the interactions, leaves one out.
-            if (weight == 0 || !FreeWillRules.CanVisit(simulation, colonist, other) || !SocialSystem.CanMeet(simulation, colonist, other, cooldown)
+            if (weight == 0 || !FreeWillRules.CanVisit(simulation, colonist, other)
+                || SocialSystem.Met(simulation, colonist, other, cooldown) || SocialSystem.Met(simulation, other, colonist, cooldown)
                 || !connectivity.AreConnected(from, aim)
                 || (world.TryGet<Job>(other, out var theirs) && theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist))
             {

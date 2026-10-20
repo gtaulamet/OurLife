@@ -145,12 +145,12 @@ public static class FreeWillRules
 
     /// <summary>
     /// Whether a colonist may seek company now (see "Vida social con intención" in
-    /// <c>docs/gdd/libre-albedrio.md</c>): free will is on, it can interact, it is in no crisis and
-    /// it does not crawl.
+    /// <c>docs/gdd/libre-albedrio.md</c>): free will is on and in the content, it can interact, it
+    /// is in no crisis and it does not crawl.
     /// </summary>
     internal static bool CanSeekCompany(Simulation simulation, EntityId colonist) =>
-        simulation.FreeWill && LifeRules.Stage(simulation, colonist)?.CrawlRadius is null && SocialSystem.CanInteract(simulation, colonist)
-        && MoodRules.CrisisOf(simulation, colonist) is null;
+        simulation.FreeWill && ConfigOf(simulation.Content) is not null && LifeRules.Stage(simulation, colonist)?.CrawlRadius is null
+        && SocialSystem.CanInteract(simulation, colonist) && MoodRules.CrisisOf(simulation, colonist) is null;
 
     /// <summary>Whether a visit to <paramref name="other"/> still makes sense: the visitor may still seek company, and visit it.</summary>
     internal static bool StillWorthVisiting(Simulation simulation, EntityId colonist, EntityId other) =>

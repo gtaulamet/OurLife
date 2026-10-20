@@ -233,6 +233,37 @@ public class SocialIntentTests
     }
 
     [Fact]
+    public void A_visitor_gives_up_on_one_who_keeps_moving()
+    {
+        var bed = WalledBed();
+        var seeker = bed.AddColonist(2, 16, 1);
+        var liked = bed.AddColonist(10, 16, 1, name: "Sancha");
+        Relationships.Ensure(bed.Simulation, seeker, liked).Opinion = 25;
+        RunUntil(bed, () => bed.JobOf(seeker) is { Kind: JobKind.Visit, Stage: JobStage.Moving }, 600).ShouldBeTrue();
+
+        // Each place out of reach of the one before: three times it follows, the fourth it gives up.
+        TileCoord[] places = [new(4, 22, 1), new(2, 14, 1), new(4, 22, 1), new(2, 14, 1)];
+        for (var i = 0; i < places.Length; i++)
+        {
+            var position = bed.World.Get<Position>(liked);
+            (position.X, position.Y) = (places[i].X, places[i].Y);
+            Settle(bed, liked, JobKind.Wander, places[i]);
+            bed.Simulation.Tick();
+
+            var job = bed.JobOf(seeker)!;
+            if (i < places.Length - 1)
+            {
+                job.Kind.ShouldBe(JobKind.Visit);
+                job.Count.ShouldBe(i + 1);
+            }
+            else
+            {
+                job.Kind.ShouldBe(JobKind.Wander);
+            }
+        }
+    }
+
+    [Fact]
     public void A_visitor_on_its_way_follows_the_other_where_it_went()
     {
         var bed = WalledBed();
@@ -380,6 +411,14 @@ public class SocialIntentTests
         loaded.Run(300);
         bed.Simulation.Run(300);
         loaded.ComputeStateHash().ShouldBe(bed.Simulation.ComputeStateHash());
+    }
+
+    [Theory]
+    [InlineData("\"radius\": 4", "\"radius\": 0")]
+    [InlineData("\"closeWeightPercent\": 200", "\"closeWeightPercent\": 10001")]
+    public void A_social_config_without_room_to_stand_by_another_or_with_too_big_a_weight_is_refused(string from, string to)
+    {
+        Should.Throw<DefValidationException>(() => TestContent.WithDefs(ColonyTestBed.ContentJson.Replace(from, to, StringComparison.Ordinal)));
     }
 
     [Theory]

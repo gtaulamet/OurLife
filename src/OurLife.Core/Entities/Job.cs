@@ -95,7 +95,10 @@ public sealed class Job
     /// <summary>For delivering, the blueprint the materials go to; for feeding, the baby.</summary>
     public EntityId Recipient { get; set; }
 
-    /// <summary>For feeding, the units of the food pile held for the baby: no more are lifted.</summary>
+    /// <summary>
+    /// For feeding, the units of the food pile held for the baby: no more are lifted. For keeping
+    /// company, the times the visitor followed the other to a new place.
+    /// </summary>
     public int Count { get; set; }
 }
 
