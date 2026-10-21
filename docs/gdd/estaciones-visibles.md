@@ -2,6 +2,8 @@
 
 Pedido del usuario del 18 de octubre de 2026. Aprobada en L1 de IP3.5 el 19 de octubre, con un cambio del usuario: en otoño los pinos también cambian de color, y en invierno todos los árboles tienen algo de nieve. El cambio de estación tiene que notarse en el paisaje.
 
+**Estado:** hecho en L4c (21 de octubre de 2026).
+
 **Objetivo.** Que el valle cambie de color con la estación: verde pleno en primavera y verano, amarillos y rojizos en otoño, blanco en invierno. Así el jugador ve cómo pasa el año sin mirar la fecha.
 
 Es de presentación, igual que el ciclo de día y noche: no cambia la simulación, ni el guardado, ni las huellas. La estación sale del calendario que ya existe (cuatro estaciones de 15 días).

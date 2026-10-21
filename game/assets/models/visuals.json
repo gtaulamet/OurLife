@@ -35,21 +35,55 @@
     "pebbles": { "model": "res://assets/models/kenney_nature-kit/rock_smallFlatA.glb", "scale": 1.0, "chance": 15 },
     "mushroom": { "model": "res://assets/models/kenney_nature-kit/mushroom_tan.glb", "scale": 1.6, "chance": 8 }
   },
+  "seasons": {
+    "transitionDays": 3,
+    "snowLine": 0.66,
+    "snowColor": "#F2F6FA",
+    "foliageMaterials": ["leafsGreen", "leafsDark", "grass"],
+    "spring": {
+      "grass": { "lush": "#5E8F34", "dry": "#7E9A3E", "deep": "#3E6E2C" },
+      "grassSnow": 0, "peakSnow": 0,
+      "deciduous": { "tint": "#8CC63F", "tintB": "#6FB33A", "amount": 0.35, "snow": 0 },
+      "evergreen": { "tint": "#4C7A2B", "tintB": "#4C7A2B", "amount": 0, "snow": 0 },
+      "flowers": { "flower_yellow": 45, "flower_purple": 40 }
+    },
+    "summer": {
+      "grass": { "lush": "#55762C", "dry": "#7A8034", "deep": "#355B26" },
+      "grassSnow": 0, "peakSnow": 0,
+      "deciduous": { "tint": "#4C7A2B", "tintB": "#4C7A2B", "amount": 0, "snow": 0 },
+      "evergreen": { "tint": "#4C7A2B", "tintB": "#4C7A2B", "amount": 0, "snow": 0 }
+    },
+    "autumn": {
+      "grass": { "lush": "#8A8A32", "dry": "#A07838", "deep": "#6B6A2C" },
+      "grassSnow": 0, "peakSnow": 0,
+      "deciduous": { "tint": "#E2B72E", "tintB": "#C8381E", "amount": 0.85, "snow": 0 },
+      "evergreen": { "tint": "#9A9A2E", "tintB": "#A8571F", "amount": 0.35, "snow": 0 },
+      "flowers": { "flower_yellow": 8, "flower_purple": 6 }
+    },
+    "winter": {
+      "grass": { "lush": "#DCE4E4", "dry": "#CFD8D6", "deep": "#B9C6C6" },
+      "grassSnow": 0.85, "peakSnow": 1,
+      "deciduous": { "tint": "#8B8F7A", "tintB": "#9AA08A", "amount": 0.3, "snow": 0.7 },
+      "evergreen": { "tint": "#2F5B36", "tintB": "#2F5B36", "amount": 0, "snow": 0.65 },
+      "flowers": { "flower_yellow": 0, "flower_purple": 0 }
+    }
+  },
   "models": {
-    "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },
-    "plant.pine": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 1.4 },
-    "plant.oak.sapling": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 0.55 },
-    "plant.pine.sapling": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 0.5 },
+    "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5, "foliage": "deciduous" },
+    "plant.pine": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 1.4, "foliage": "evergreen" },
+    "plant.oak.sapling": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 0.55, "foliage": "deciduous" },
+    "plant.pine.sapling": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 0.5, "foliage": "evergreen" },
     "plant.berry_bush": {
       "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb",
       "scale": 1.6,
+      "foliage": "deciduous",
       "parts": [
         { "model": "res://assets/models/kenney_food-kit/cherries.glb", "offset": [0.18, 0.36, 0.12], "scale": 1.6 },
         { "model": "res://assets/models/kenney_food-kit/cherries.glb", "offset": [-0.2, 0.32, 0.06], "scale": 1.6 },
         { "model": "res://assets/models/kenney_food-kit/cherries.glb", "offset": [0.02, 0.42, -0.2], "scale": 1.6 }
       ]
     },
-    "plant.berry_bush.harvested": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 1.4 },
+    "plant.berry_bush.harvested": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 1.4, "foliage": "deciduous" },
     "item.log": { "model": "res://assets/models/kenney_nature-kit/log.glb", "scale": 1.0 },
     "item.stone": { "model": "res://assets/models/kenney_nature-kit/rock_smallA.glb", "scale": 1.0 },
     "item.berries": { "model": "res://assets/models/kenney_food-kit/cherries.glb", "scale": 2.4 },

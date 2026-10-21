@@ -119,6 +119,9 @@ public partial class EntityRenderer : Node3D
         }
     }
 
+    /// <summary>Paints the leaves of the trees and bushes for a moment of the year (see <see cref="ModelLibrary.ApplySeason"/>).</summary>
+    public void ApplySeason(SeasonLook look) => _models.ApplySeason(look);
+
     /// <summary>Follows what the simulation reports about its entities.</summary>
     public void Apply(ISimEvent simEvent)
     {

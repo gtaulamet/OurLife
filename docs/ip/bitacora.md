@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l4-social`: L4 cerrado y en `main`. Siguen L4b y L4c |
+| Rama de trabajo | `ip3.5/l4c-estaciones`: L4c hecho, falta `/code-review` y adelantar `main`. L4b también falta adelantarlo. Sigue L5 |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L4c** (estaciones visibles); L4b hecho, formato 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
+1. **L5** (integración). L4b y L4c hechos. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,14 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-21: L4c, estaciones visibles
+
+- Rama `ip3.5/l4c-estaciones`, sobre `ip3.5/l4b-bosque`. Sólo presentación. Bloque `seasons` en `visuals.json` (`VisualCatalog`: `SeasonCatalog`, `SeasonDef`, `FoliageDef`) con los verdes del pasto, la nieve de la roca (`snowLine` 0,66 de la altura del valle), el tinte de hojas caducas y perennes (con dos tonos entre los que se reparte cada árbol), la nieve de las copas y las flores por estación; campo `foliage` en los modelos de robles, pinos, retoños y arbustos.
+- `SeasonLook` (C# puro, con tests en `SeasonLookTests`) mezcla dos estaciones en los últimos 3 días de cada una. `SeasonCycle` la calcula una vez por hora del juego y la reparte: `MapRenderer.ApplySeason` (uniformes del shader del terreno y de la decoración nuevo `decoration.gdshader`; la decoración se rearma sólo al cambiar de estación, por las flores) y `ModelLibrary.ApplySeason` (shader `foliage.gdshader` compartido por todos los árboles; el tono de cada uno sale de su posición).
+- `--season <spring|summer|autumn|winter>` fuerza la estación (capturas). Capturas de las cuatro con `--seed 1 --play --hour 12 --level 14 --zoom 22`: otoño amarillo y rojizo con pinos y robles, invierno blanco con nieve sobre las copas, primavera y verano verdes.
+- Las huellas del smoke no cambian (`3E6090980A92B35A`, `5905A0BCAA4F5860`). FPS del benchmark de 30 s: base 270 a 273, con L4c 244 a 283 (ruido de la máquina; sin diferencia sostenida).
+- Sin cambiar, para ver en el playtest de L5: los arbustos con bayas siguen mostrando las bayas en invierno (la simulación ya los tiene dormidos, pero el modelo no cambia); las flores cambian de golpe al entrar la estación, no en la transición.
 
 ### 2026-10-21: L4b, bosque que vuelve
 

@@ -13,7 +13,12 @@ public sealed class ModelLibrary : IDisposable
 {
     private readonly Dictionary<string, PackedScene> _scenes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Texture2D?> _textures = new(StringComparer.Ordinal);
-    private readonly Dictionary<(Material Source, int Depth, bool SrgbAsLinear), Material> _shaded = [];
+    private readonly Dictionary<(Material Source, int Depth, bool SrgbAsLinear, string? Foliage), Material> _shaded = [];
+
+    // The leaves that change with the season, by the kind of foliage, and the look they have now.
+    private readonly List<(ShaderMaterial Material, string Foliage)> _leaves = [];
+    private Shader? _foliageShader;
+    private SeasonLook? _season;
     private readonly Dictionary<(Material Source, Color? Color, float Alpha, bool OnTop), Material> _ghosts = [];
 
     public ModelLibrary(VisualCatalog catalog)
@@ -231,7 +236,34 @@ public sealed class ModelLibrary : IDisposable
 
     /// <summary>Gives every surface of the meshes of an instance of a model its lit material for that depth.</summary>
     public void Shade(VisualModel model, IReadOnlyList<MeshInstance3D> meshes, int depth) =>
-        Override(meshes, source => ShadedCopy(source, depth, model.SrgbAsLinear));
+        Override(meshes, source => ShadedCopy(source, depth, model.SrgbAsLinear, model.Foliage));
+
+    /// <summary>
+    /// Paints the leaves of the trees and bushes for a moment of the year
+    /// (<c>docs/gdd/estaciones-visibles.md</c>): a few shader parameters shared by every tree of
+    /// a kind, so it costs the same whatever the number of trees.
+    /// </summary>
+    public void ApplySeason(SeasonLook look)
+    {
+        ArgumentNullException.ThrowIfNull(look);
+        _season = look;
+        foreach (var (material, foliage) in _leaves)
+        {
+            Paint(material, foliage, look);
+        }
+    }
+
+    private static void Paint(ShaderMaterial material, string foliage, SeasonLook look)
+    {
+        var tint = foliage == FoliageKinds.Evergreen ? look.Evergreen : look.Deciduous;
+        material.SetShaderParameter("tint_a", ColorOf(tint.Tint));
+        material.SetShaderParameter("tint_b", ColorOf(tint.TintB));
+        material.SetShaderParameter("tint_amount", tint.Amount);
+        material.SetShaderParameter("snow_color", ColorOf(look.SnowColor));
+        material.SetShaderParameter("snow_amount", tint.Snow);
+    }
+
+    private static Color ColorOf(Rgb color) => new(color.R, color.G, color.B);
 
     /// <summary>
     /// Gives every surface of an instance a translucent copy of its material, for the previews and
@@ -275,10 +307,15 @@ public sealed class ModelLibrary : IDisposable
         // A source material appears once per depth, and an unconverted one is its own copy.
         var resources = new HashSet<Resource>(_scenes.Values);
         resources.UnionWith(_textures.Values.OfType<Texture2D>());
-        foreach (var ((source, _, _), shaded) in _shaded)
+        foreach (var ((source, _, _, _), shaded) in _shaded)
         {
             resources.Add(source);
             resources.Add(shaded);
+        }
+
+        if (_foliageShader is not null)
+        {
+            resources.Add(_foliageShader);
         }
 
         foreach (var ((source, _, _, _), ghost) in _ghosts)
@@ -293,6 +330,7 @@ public sealed class ModelLibrary : IDisposable
         }
 
         _shaded.Clear();
+        _leaves.Clear();
         _ghosts.Clear();
         _scenes.Clear();
         _textures.Clear();
@@ -316,16 +354,20 @@ public sealed class ModelLibrary : IDisposable
     /// A lit copy of a material for a depth and a colour correction. The same file may be drawn
     /// alone and as a part of another model, so the correction is part of the cache's key.
     /// </summary>
-    private Material ShadedCopy(Material source, int depth, bool srgbAsLinear)
+    private Material ShadedCopy(Material source, int depth, bool srgbAsLinear, string? foliage)
     {
-        if (_shaded.TryGetValue((source, depth, srgbAsLinear), out var cached))
+        if (_shaded.TryGetValue((source, depth, srgbAsLinear, foliage), out var cached))
         {
             return cached;
         }
 
         var brightness = LevelShading.Brightness(depth);
         Material shaded = source;
-        if (source is BaseMaterial3D original)
+        if (foliage is not null && source is BaseMaterial3D leaf && Catalog.Seasons?.FoliageMaterials.Contains(leaf.ResourceName) == true)
+        {
+            shaded = LeafMaterial(leaf, srgbAsLinear, foliage, brightness);
+        }
+        else if (source is BaseMaterial3D original)
         {
             using var texture = original.AlbedoTexture;
             shaded = new StandardMaterial3D
@@ -341,8 +383,24 @@ public sealed class ModelLibrary : IDisposable
             };
         }
 
-        _shaded.Add((source, depth, srgbAsLinear), shaded);
+        _shaded.Add((source, depth, srgbAsLinear, foliage), shaded);
         return shaded;
+    }
+
+    /// <summary>The leaves of a tree or bush: its colour, and the tone of the season on top of it.</summary>
+    private ShaderMaterial LeafMaterial(BaseMaterial3D leaf, bool srgbAsLinear, string foliage, float brightness)
+    {
+        _foliageShader ??= GD.Load<Shader>("res://assets/shaders/foliage.gdshader");
+        var material = new ShaderMaterial { Shader = _foliageShader };
+        material.SetShaderParameter("base_color", ColorOf(leaf, srgbAsLinear));
+        material.SetShaderParameter("brightness", brightness);
+        _leaves.Add((material, foliage));
+        if (_season is { } look)
+        {
+            Paint(material, foliage, look);
+        }
+
+        return material;
     }
 
     /// <summary>A translucent copy of a material, cached; one that is not a <see cref="BaseMaterial3D"/> stays as it is.</summary>

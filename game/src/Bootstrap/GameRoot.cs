@@ -145,6 +145,8 @@ public partial class GameRoot : Node
             return;
         }
 
+        Rendering.SeasonCycle.Forced = options.Season;
+
         foreach (var argument in options.UnknownArguments)
         {
             GD.PushWarning($"Unknown command line argument ignored: {argument}");

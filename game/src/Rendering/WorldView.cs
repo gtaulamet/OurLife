@@ -69,11 +69,24 @@ public partial class WorldView : Node3D
             var ai = rules.Ai;
             view.AddChild(DayNightCycle.Create(simulation, sun, environment.Environment, ai.NightEndHour, ai.NightStartHour, dayNight));
 
-            view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration));
+            var painted = SeasonCycle.CanPaint(simulation, catalog);
+            var season = painted ? SeasonCycle.LookAt(simulation, catalog.Seasons!, SeasonCycle.Forced) : null;
+            view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration), season);
             view.AddChild(view._map);
 
-            view._entities = EntityRenderer.Create(simulation, rules, new ModelLibrary(catalog), viewLevel, animationSpeed);
+            var models = new ModelLibrary(catalog);
+            if (season is not null)
+            {
+                models.ApplySeason(season);
+            }
+
+            view._entities = EntityRenderer.Create(simulation, rules, models, viewLevel, animationSpeed);
             view.AddChild(view._entities);
+            if (painted)
+            {
+                // The look was shown at the start; from here on, once per hour of the game.
+                view.AddChild(SeasonCycle.Create(simulation, catalog.Seasons!, view.ShowSeason));
+            }
             view._orders = OrderMarkers.Create(simulation, catalog, viewLevel);
             view.AddChild(view._orders);
             view.Previews = FurnitureGhosts.Create(catalog, "Previews");
@@ -105,6 +118,12 @@ public partial class WorldView : Node3D
             _orders.Apply(simEvent);
             _plantsChanged |= simEvent is EntitySpawnedEvent or EntityRemovedEvent;
         }
+    }
+
+    private void ShowSeason(SeasonLook look)
+    {
+        _map.ApplySeason(look);
+        _entities.ApplySeason(look);
     }
 
     /// <summary>Dresses the grass with this much decoration, as the options over the game may ask.</summary>

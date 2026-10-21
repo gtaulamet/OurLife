@@ -16,6 +16,12 @@ uniform vec3 grass_lush = vec3(0.302, 0.459, 0.180);
 uniform vec3 grass_dry = vec3(0.447, 0.502, 0.220);
 uniform vec3 grass_deep = vec3(0.208, 0.357, 0.149);
 
+// Snow on the rock of the heights (docs/gdd/estaciones-visibles.md): the faces that look up of
+// granite and sedimentary rock, from snow_line up in the world's height, whiter the higher.
+uniform vec3 snow_color = vec3(0.95, 0.96, 0.98);
+uniform float snow_line = 1000.0;
+uniform float snow_amount = 0.0;
+
 const int PATTERN_PLAIN = 0;
 const int PATTERN_SOIL = 1;
 const int PATTERN_SPECKLED = 2;
@@ -178,6 +184,11 @@ void fragment() {
 	}
 
 	vec3 color = is_grass ? grass(uv, cell) : material(pattern, base, uv, pos, cell, top);
+	if (!is_grass && top && snow_amount > 0.0 && (pattern == PATTERN_SPECKLED || pattern == PATTERN_LAYERED)) {
+		float height = smoothstep(snow_line - 0.5, snow_line + 3.0, pos.y);
+		float patchy = 0.75 + 0.25 * fbm(uv * 0.5);
+		color = mix(color, snow_color * (0.94 + 0.06 * hash13(cell)), clamp(snow_amount * height * patchy * 1.3, 0.0, 1.0));
+	}
 
 	// Edges of the cells read as a faint bevel on top, and the bottom of the sides darkens a
 	// little, as if in the shade of the block in front.

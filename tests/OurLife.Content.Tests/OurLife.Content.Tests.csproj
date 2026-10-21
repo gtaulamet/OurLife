@@ -27,6 +27,7 @@
     <Compile Include="..\..\game\src\Content\LocaleCatalogs.cs" Link="Game\LocaleCatalogs.cs" />
     <!-- So is the visual catalog (ADR-009). -->
     <Compile Include="..\..\game\src\Rendering\VisualCatalog.cs" Link="Game\VisualCatalog.cs" />
+    <Compile Include="..\..\game\src\Rendering\SeasonLook.cs" Link="Game\SeasonLook.cs" />
     <!-- And the rules of the interface size (docs/gdd/tamano-de-la-interfaz.md). -->
     <Compile Include="..\..\game\src\UI\UiScaleRules.cs" Link="Game\UiScaleRules.cs" />
   </ItemGroup>

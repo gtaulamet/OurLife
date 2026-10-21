@@ -29,6 +29,7 @@ public partial class MapRenderer : Node3D
     private const int GrassFringe = 4;
 
     private const string ShaderPath = "res://assets/shaders/terrain.gdshader";
+    private const string DecorationShaderPath = "res://assets/shaders/decoration.gdshader";
 
     private static readonly TerrainPiece[] ChunkPieces =
         [TerrainPiece.Block, TerrainPiece.Floor, TerrainPiece.Ramp, TerrainPiece.Steps, TerrainPiece.Hole, TerrainPiece.Door];
@@ -57,7 +58,16 @@ public partial class MapRenderer : Node3D
     private IReadOnlySet<TileCoord> _plants = new HashSet<TileCoord>();
     private DecorationMesh?[] _decorationMeshes = [];
     private readonly List<(int Model, Transform3D Transform)> _decorationBuffer = [];
-    private StandardMaterial3D[] _decorationMaterials = [];
+    private ShaderMaterial[] _decorationMaterials = [];
+
+    // The seasons (docs/gdd/estaciones-visibles.md): the catalog's, the grass it is measured against,
+    // the height of the highest surface of the valley, and the chance of each decoration in the
+    // season of the look shown, in a thousand.
+    private SeasonCatalog? _seasons;
+    private Rgb _baseLush;
+    private int _valleyHeight;
+    private string? _decorationSeason;
+    private int[] _chances = [];
 
     private GameMap _map = null!;
     private Color[] _materialColors = [];
@@ -71,7 +81,8 @@ public partial class MapRenderer : Node3D
 
     /// <param name="plantCells">The cells with a plant: no decoration grows inside a bush or a tree.</param>
     /// <param name="decorationDensity">What the chances of the decoration are multiplied by (see <see cref="DecorationLevels"/>).</param>
-    public static MapRenderer Create(GameMap map, VisualCatalog catalog, int viewLevel, Func<IReadOnlySet<TileCoord>> plantCells, float decorationDensity)
+    /// <param name="season">The look of the year at the start, so the decoration is built once, with that season's flowers.</param>
+    public static MapRenderer Create(GameMap map, VisualCatalog catalog, int viewLevel, Func<IReadOnlySet<TileCoord>> plantCells, float decorationDensity, SeasonLook? season = null)
     {
         ArgumentNullException.ThrowIfNull(map);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -86,7 +97,11 @@ public partial class MapRenderer : Node3D
             _materialPatterns = map.Materials.Select(material => (int)catalog.Patterns.GetValueOrDefault(material.Id)).ToArray(),
             _grass = catalog.Grass,
             _cutColor = Color.FromHtml(catalog.CutColor),
+            _seasons = catalog.Seasons,
+            _baseLush = Rgb.FromHex(catalog.Grass.Lush),
+            _chances = catalog.Decorations.Select(decoration => decoration.Chance).ToArray(),
         };
+        renderer._valleyHeight = renderer.HighestSurface() + 1;
         renderer._levelMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(renderer.TerrainMaterial).ToArray();
         renderer._decorationMaterials = Enumerable.Range(0, LevelShading.MaxDepth + 1).Select(DecorationMaterial).ToArray();
         renderer._decorations = catalog.Decorations;
@@ -110,6 +125,11 @@ public partial class MapRenderer : Node3D
         renderer.AddChild(renderer._cutLayer);
 
         renderer.ViewLevel = Math.Clamp(viewLevel, 0, map.Size.Depth - 1);
+        if (season is not null)
+        {
+            renderer.ApplySeason(season);
+        }
+
         renderer.BuildAllChunks();
         renderer.RebuildCutLayer();
         return renderer;
@@ -136,6 +156,69 @@ public partial class MapRenderer : Node3D
             BuildDecoration(chunk, ref instances);
             Keep(chunk, instances);
         }
+    }
+
+    /// <summary>
+    /// Paints the grass, the decoration and the high rock for a moment of the year. The colours are
+    /// shader parameters, so it costs the same whatever the map; the decoration is built again only
+    /// when the season changes, because its flowers do.
+    /// </summary>
+    public void ApplySeason(SeasonLook look)
+    {
+        ArgumentNullException.ThrowIfNull(look);
+        foreach (var material in _levelMaterials)
+        {
+            material.SetShaderParameter("grass_lush", Parameter(look.Grass.Lush));
+            material.SetShaderParameter("grass_dry", Parameter(look.Grass.Dry));
+            material.SetShaderParameter("grass_deep", Parameter(look.Grass.Deep));
+            material.SetShaderParameter("snow_color", Parameter(look.SnowColor));
+            material.SetShaderParameter("snow_line", look.SnowLine * _valleyHeight);
+            material.SetShaderParameter("snow_amount", look.PeakSnow);
+        }
+
+        var ratio = new Vector3(
+            look.Grass.Lush.R / Math.Max(_baseLush.R, 0.05f),
+            look.Grass.Lush.G / Math.Max(_baseLush.G, 0.05f),
+            look.Grass.Lush.B / Math.Max(_baseLush.B, 0.05f));
+        foreach (var material in _decorationMaterials)
+        {
+            material.SetShaderParameter("season_ratio", ratio);
+            material.SetShaderParameter("snow_color", Parameter(look.SnowColor));
+            material.SetShaderParameter("snow_amount", look.GrassSnow);
+        }
+
+        if (_decorationSeason == look.Season || _seasons is null)
+        {
+            return;
+        }
+
+        _decorationSeason = look.Season;
+        var flowers = _seasons.Seasons[look.Season].Flowers;
+        _chances = _decorations.Select(decoration => flowers.GetValueOrDefault(decoration.Id, decoration.Chance)).ToArray();
+        _decorationTotal = _chances.Sum();
+        _plants = _plantCells();
+        foreach (var chunk in _chunks.Keys.ToList())
+        {
+            var instances = _chunks[chunk];
+            BuildDecoration(chunk, ref instances);
+            Keep(chunk, instances);
+        }
+    }
+
+    private static Vector3 Parameter(Rgb color) => new(color.R, color.G, color.B);
+
+    private int HighestSurface()
+    {
+        var highest = 0;
+        for (var y = 0; y < _map.Size.Height; y++)
+        {
+            for (var x = 0; x < _map.Size.Width; x++)
+            {
+                highest = Math.Max(highest, _map.SurfaceZ(x, y));
+            }
+        }
+
+        return highest;
     }
 
     /// <summary>Moves the cut to another level, clamped to the map.</summary>
@@ -199,18 +282,13 @@ public partial class MapRenderer : Node3D
     }
 
     /// <summary>The decoration's colours are in its vertices, as #RRGGBB values like the albedo colours of the models.</summary>
-    private static StandardMaterial3D DecorationMaterial(int depth)
+    private static ShaderMaterial DecorationMaterial(int depth)
     {
-        var brightness = LevelShading.Brightness(depth);
-        // Both faces: thin blades of grass are often single sheets.
-        return new StandardMaterial3D
-        {
-            VertexColorUseAsAlbedo = true,
-            VertexColorIsSrgb = true,
-            AlbedoColor = new Color(brightness, brightness, brightness),
-            Roughness = 1f,
-            CullMode = BaseMaterial3D.CullModeEnum.Disabled,
-        };
+        // Both faces: thin blades of grass are often single sheets (the shader draws them).
+        using var shader = GD.Load<Shader>(DecorationShaderPath);
+        var material = new ShaderMaterial { Shader = shader };
+        material.SetShaderParameter("brightness", LevelShading.Brightness(depth));
+        return material;
     }
 
     /// <summary>A #RRGGBB colour as the shader takes it: the same values, converted there (see TerrainMaterial).</summary>
@@ -406,7 +484,7 @@ public partial class MapRenderer : Node3D
         var pick = (long)(CellHash(x, y, z, 5) % (uint)_decorationTotal);
         for (var i = 0; i < _decorations.Count; i++)
         {
-            pick -= _decorations[i].Chance;
+            pick -= _chances[i];
             if (pick >= 0)
             {
                 continue;

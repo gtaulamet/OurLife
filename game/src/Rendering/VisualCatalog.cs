@@ -23,6 +23,10 @@ namespace OurLife.Game.Rendering;
 /// sits (<c>sit</c>) where others stand; one left out plays as asked.
 /// </param>
 /// <param name="RestHeight">For a bed, how high over the floor a sleeper lies on it, in the world's units.</param>
+/// <param name="Foliage">
+/// <c>deciduous</c> or <c>evergreen</c> for a plant whose leaves change with the season
+/// (<c>docs/gdd/estaciones-visibles.md</c>); null for a model that keeps its colours.
+/// </param>
 public sealed record VisualModel(
     string Id,
     string ModelPath,
@@ -34,7 +38,8 @@ public sealed record VisualModel(
     int Turn = 0,
     IReadOnlyDictionary<string, float>? BoneScales = null,
     IReadOnlyDictionary<string, string>? Animations = null,
-    float RestHeight = 0f)
+    float RestHeight = 0f,
+    string? Foliage = null)
 {
     /// <summary>The animation the model plays when <paramref name="name"/> is asked for.</summary>
     public string AnimationFor(string name) => Animations is not null && Animations.TryGetValue(name, out var own) ? own : name;
@@ -67,8 +72,44 @@ public enum TerrainPattern
     Bricks = 6,
 }
 
+/// <summary>The kinds of foliage a model may have (<see cref="VisualModel.Foliage"/>).</summary>
+public static class FoliageKinds
+{
+    public const string Deciduous = "deciduous";
+    public const string Evergreen = "evergreen";
+}
+
 /// <summary>The three greens the shader mixes into grass, as #RRGGBB: the usual one, patches of dry grass and of deep grass.</summary>
 public sealed record GrassColors(string Lush, string Dry, string Deep);
+
+/// <summary>The tone the leaves of a kind of foliage take in a season, as in <see cref="FoliageTint"/>; colours are #RRGGBB.</summary>
+public sealed record FoliageDef(string Tint, string TintB, float Amount, float Snow);
+
+/// <summary>
+/// A season of the catalog: the greens of the grass, how white the grass and the high rock are
+/// (0 to 1), the leaves of each kind of foliage, and the chance in a thousand of the decorations
+/// that change with it, like flowers (the others keep their own).
+/// </summary>
+public sealed record SeasonDef(
+    GrassColors Grass,
+    float GrassSnow,
+    float PeakSnow,
+    FoliageDef Deciduous,
+    FoliageDef Evergreen,
+    IReadOnlyDictionary<string, int> Flowers);
+
+/// <summary>
+/// The look of the year (<c>docs/gdd/estaciones-visibles.md</c>): the colour of the snow and the
+/// height where it starts on the rock, as a fraction of the height of the valley, the days over
+/// which one season gives way to the next, the materials of the models that change with it, and
+/// every season by its id.
+/// </summary>
+public sealed record SeasonCatalog(
+    int TransitionDays,
+    float SnowLine,
+    string SnowColor,
+    IReadOnlyList<string> FoliageMaterials,
+    IReadOnlyDictionary<string, SeasonDef> Seasons);
 
 /// <summary>
 /// A model scattered on grass to dress it, like a tuft or a flower: presentation only, never an
@@ -98,7 +139,8 @@ public sealed class VisualCatalog
         string cutColor,
         Dictionary<string, TerrainPattern> patterns,
         List<DecorationModel> decorations,
-        List<string> kits)
+        List<string> kits,
+        SeasonCatalog? seasons)
     {
         _models = models;
         _kits = kits;
@@ -107,7 +149,11 @@ public sealed class VisualCatalog
         CutColor = cutColor;
         Patterns = patterns;
         Decorations = decorations;
+        Seasons = seasons;
     }
+
+    /// <summary>How the year changes the look of the valley, or null if the catalog has no seasons.</summary>
+    public SeasonCatalog? Seasons { get; }
 
     /// <summary>
     /// Colours that replace those of the kits, by the name of the material inside the models
@@ -137,7 +183,7 @@ public sealed class VisualCatalog
         {
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
-            OnlyFields(root, "catalog", "terrain", "srgbAsLinearKits", "palette", "decoration", "models");
+            OnlyFields(root, "catalog", "terrain", "srgbAsLinearKits", "palette", "decoration", "seasons", "models");
             var kits = new List<string>();
             if (root.TryGetProperty("srgbAsLinearKits", out var kitsElement))
             {
@@ -190,7 +236,7 @@ public sealed class VisualCatalog
             var models = new Dictionary<string, VisualModel>(StringComparer.Ordinal);
             foreach (var entry in root.GetProperty("models").EnumerateObject())
             {
-                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn", "boneScales", "animations", "restHeight");
+                OnlyFields(entry.Value, $"'{entry.Name}'", "model", "scale", "center", "variants", "parts", "turn", "boneScales", "animations", "restHeight", "foliage");
                 var scale = entry.Value.TryGetProperty("scale", out var scaleValue) ? scaleValue.GetSingle() : 1f;
                 if (scale <= 0)
                 {
@@ -262,7 +308,17 @@ public sealed class VisualCatalog
                     throw new FormatException($"'{entry.Name}': restHeight must be zero or positive.");
                 }
 
-                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn, boneScales, animations, restHeight));
+                string? foliage = null;
+                if (entry.Value.TryGetProperty("foliage", out var foliageValue))
+                {
+                    foliage = StringValue(foliageValue, $"{entry.Name}.foliage");
+                    if (foliage is not (FoliageKinds.Deciduous or FoliageKinds.Evergreen))
+                    {
+                        throw new FormatException($"'{entry.Name}': foliage must be '{FoliageKinds.Deciduous}' or '{FoliageKinds.Evergreen}'.");
+                    }
+                }
+
+                models.Add(entry.Name, new VisualModel(entry.Name, path, scale, srgbAsLinear, center, variants, parts, turn, boneScales, animations, restHeight, foliage));
             }
 
             var palette = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -274,12 +330,75 @@ public sealed class VisualCatalog
                 }
             }
 
-            return new VisualCatalog(models, palette, grass, ColorField(terrain, "cutColor"), patterns, decorations, kits);
+            var seasons = root.TryGetProperty("seasons", out var seasonsElement) ? ParseSeasons(seasonsElement, decorations) : null;
+            return new VisualCatalog(models, palette, grass, ColorField(terrain, "cutColor"), patterns, decorations, kits, seasons);
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or InvalidOperationException or ArgumentException)
         {
             throw new FormatException($"Invalid visual catalog: {ex.Message}", ex);
         }
+    }
+
+    private static SeasonCatalog ParseSeasons(JsonElement element, List<DecorationModel> decorations)
+    {
+        OnlyFields(element, "seasons", "transitionDays", "snowLine", "snowColor", "foliageMaterials", "spring", "summer", "autumn", "winter");
+        var transition = element.GetProperty("transitionDays").GetInt32();
+        var snowLine = element.GetProperty("snowLine").GetSingle();
+        if (transition < 0 || snowLine is < 0f or > 1f)
+        {
+            throw new FormatException("seasons: transitionDays must be zero or positive and snowLine from 0 to 1.");
+        }
+
+        var materials = element.GetProperty("foliageMaterials").EnumerateArray().Select(name => StringValue(name, "seasons.foliageMaterials")).ToList();
+        var seasons = new Dictionary<string, SeasonDef>(StringComparer.Ordinal);
+        foreach (var id in new[] { "spring", "summer", "autumn", "winter" })
+        {
+            var season = element.GetProperty(id);
+            OnlyFields(season, $"seasons.{id}", "grass", "grassSnow", "peakSnow", "deciduous", "evergreen", "flowers");
+            var grass = season.GetProperty("grass");
+            OnlyFields(grass, $"seasons.{id}.grass", "lush", "dry", "deep");
+            var flowers = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (season.TryGetProperty("flowers", out var flowersElement))
+            {
+                foreach (var flower in flowersElement.EnumerateObject())
+                {
+                    if (!decorations.Exists(decoration => decoration.Id == flower.Name) || flower.Value.GetInt32() < 0)
+                    {
+                        throw new FormatException($"seasons.{id}.flowers: '{flower.Name}' is not a decoration or its chance is negative.");
+                    }
+
+                    flowers.Add(flower.Name, flower.Value.GetInt32());
+                }
+            }
+
+            if (decorations.Sum(decoration => (long)flowers.GetValueOrDefault(decoration.Id, decoration.Chance)) > 1000)
+            {
+                throw new FormatException($"seasons.{id}.flowers: the chances add up to more than 1000 in a thousand.");
+            }
+
+            seasons.Add(id, new SeasonDef(
+                new GrassColors(ColorField(grass, "lush"), ColorField(grass, "dry"), ColorField(grass, "deep")),
+                Unit(season, "grassSnow", id),
+                Unit(season, "peakSnow", id),
+                Foliage(season.GetProperty("deciduous"), $"seasons.{id}.deciduous"),
+                Foliage(season.GetProperty("evergreen"), $"seasons.{id}.evergreen"),
+                flowers));
+        }
+
+        return new SeasonCatalog(transition, snowLine, ColorField(element, "snowColor"), materials, seasons);
+    }
+
+    private static FoliageDef Foliage(JsonElement element, string where)
+    {
+        OnlyFields(element, where, "tint", "tintB", "amount", "snow");
+        return new FoliageDef(ColorField(element, "tint"), ColorField(element, "tintB"), Unit(element, "amount", where), Unit(element, "snow", where));
+    }
+
+    /// <summary>A number from 0 to 1.</summary>
+    private static float Unit(JsonElement element, string name, string where)
+    {
+        var value = element.GetProperty(name).GetSingle();
+        return value is >= 0f and <= 1f ? value : throw new FormatException($"{where}.{name} must be from 0 to 1.");
     }
 
     /// <summary>Whether a model file comes from a kit that stores its colours in glTF's linear field (<c>srgbAsLinearKits</c>).</summary>

@@ -34,6 +34,12 @@ public sealed record CommandLineOptions
     /// <summary>Distance from the camera to what it looks at, to look closer in screenshots (milestone H1.7).</summary>
     public int? Zoom { get; init; }
 
+    /// <summary>
+    /// Hold this season's look (<c>spring</c>, <c>summer</c>, <c>autumn</c> or <c>winter</c>) all
+    /// year, to capture the four (milestone L4c, <c>docs/gdd/estaciones-visibles.md</c>).
+    /// </summary>
+    public string? Season { get; init; }
+
     /// <summary>Start a game at once instead of showing the main menu (milestone H1.7).</summary>
     public bool Play { get; init; }
 
@@ -210,6 +216,15 @@ public sealed record CommandLineOptions
                 case "--orders":
                     options = options with { Orders = true };
                     break;
+                case "--season":
+                    var season = ValueAfter(args, ref i);
+                    if (season is not ("spring" or "summer" or "autumn" or "winter"))
+                    {
+                        throw new ArgumentException("--season must be spring, summer, autumn or winter.");
+                    }
+
+                    options = options with { Season = season };
+                    break;
                 case "--zoom":
                     var zoom = NumberAfter<int>(args, ref i);
                     if (zoom <= 0)
@@ -341,7 +356,7 @@ public sealed record CommandLineOptions
         $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
-        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
+        $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, season={Season ?? "-"}, " +
         $"ui-scale={(UiScale is null ? "-" : UiScale == UI.UiScaleRules.Auto ? "auto" : UiScale.Value.ToString(CultureInfo.InvariantCulture))}, " +
         $"decoration={Decoration?.ToString().ToLowerInvariant() ?? "-"}, fps={Fps}, sheet={Sheet}, furniture={Furniture ?? "-"}, rotation={Rotation?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"point={(Point is { } point ? $"{point.X},{point.Y}" : "-")}, drag-to={(DragTo is { } drag ? $"{drag.X},{drag.Y}" : "-")}";
