@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l5-integracion`, sobre `l4c-estaciones` (L4b y L4c todavía no están en `main`). L5: balance, `/code-review` y checklist hechos; faltan paquetes y release `v0.3.5` |
+| Rama de trabajo | `ip3.5/l5-integracion`: IP3.5 completa, falta publicar la release `v0.3.5`. Sigue IP4 |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **Cerrar L5:** playtest humano con `docs/ip/playtest-ip3.5.md` (el usuario), armar los paquetes de `v0.3.5` (`./tools/package-windows.ps1` y `./tools/package-macos.ps1`, versión en `game/project.godot`), adelantar `main` y publicar la release (pide confirmación).
+1. **Publicar `v0.3.5`:** tag y release de GitHub con los zips de `builds/` (pide confirmación). Después, IP4.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -42,12 +42,12 @@ En orden:
 
 ## Historial
 
-### 2026-10-21: L5, integración (en curso)
+### 2026-10-21: L5, integración y cierre de IP3.5
 
 - Rama `ip3.5/l5-integracion`. Experimento de diez años con libre albedrío y sin órdenes, semillas 1, 7 y 42: sin muertes por hambre, 0,04 ms por tick, pero con la meta de comida en 600 nadie nace (la reserva para concebir son unas 360 bayas por colono). Con 3000, un nacimiento por semilla y la aldea llega a 8; con 6000, la semilla 7 se extinguió (vacían los arbustos). Decisión del usuario: meta de comida por defecto **3000** (`free_will.json`). Test lento nuevo en `BalanceTests` (diez años solos, sin hambre y con un hijo).
 - Validación: 816 tests, smoke con código 0 y huella `3E6090980A92B35A`, benchmark de 30 s con 304 FPS y 0,16 ms por tick.
 - `/code-review` de `main...HEAD` (incluye L4b y L4c): corregido que un retoño no madura sobre una celda con orden (antes marcaba la celda como bloqueada bajo un plano de excavar) y el comentario de formatos de `SaveGame`. Descartados: retoño bajo zona, plano o mueble (zonas y planos ya esquivan toda celda con planta), estaciones fijas en código (el calendario es de cuatro estaciones por diseño), reconstruir la decoración de todos los chunks al cambiar de estación y recalcular el aspecto con `--season` (una vez por hora, costo medido dentro del ruido), y `TakenCells` (una vez por medianoche). Queda a la vista en el playtest: las flores y piedras de la decoración reciben el mismo tinte del pasto.
-- Checklist `docs/ip/playtest-ip3.5.md`.
+- Checklist `docs/ip/playtest-ip3.5.md`: el usuario lo jugó completo, todo en ✅ y sin hallazgos. Versión `0.3.5`, README al día y zips de Windows (con el smoke sobre el exportado) y macOS en `builds/`. IP3.5 cerrada; `main` adelantado. Falta publicar la release `v0.3.5` (con confirmación).
 
 ### 2026-10-21: L4c, estaciones visibles
 

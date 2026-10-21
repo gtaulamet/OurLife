@@ -2,13 +2,15 @@
 
 Simulador de colonias al estilo de Dwarf Fortress. Un grupo de colonos funda una aldea medieval en un valle con niveles Z: talan, excavan, construyen y sobreviven. Más adelante, la aldea podrá avanzar por la Edad Moderna y la Contemporánea. El juego está en español por defecto y también en inglés.
 
-**Estado:** versión `0.3.0`, el cierre de IP3 "Vida y generaciones": los colonos tienen edad, personalidad, habilidades, relaciones, ánimo y deseos, forman parejas, tienen hijos que crecen y mueren de viejos. Lo que sigue es IP3.5 "Libre albedrío" ([plan](docs/ip/IP3.5.md) y [plan maestro](docs/plan-maestro.md)). Los registros están en [docs/ip/IP1.md](docs/ip/IP1.md), [docs/ip/IP2.md](docs/ip/IP2.md), [docs/ip/IP2.5.md](docs/ip/IP2.5.md) y [docs/ip/IP3.md](docs/ip/IP3.md).
+**Estado:** versión `0.3.5`, el cierre de IP3.5 "Libre albedrío": sin órdenes, los colonos recolectan y talan por su cuenta según las metas de existencias, buscan compañía y se alejan de sus rivales; el bosque vuelve con retoños y el valle cambia de color con la estación. Lo que sigue es IP4 "Oficios" ([plan maestro](docs/plan-maestro.md)). Los registros están en [docs/ip/IP1.md](docs/ip/IP1.md), [docs/ip/IP2.md](docs/ip/IP2.md), [docs/ip/IP2.5.md](docs/ip/IP2.5.md), [docs/ip/IP3.md](docs/ip/IP3.md) y [docs/ip/IP3.5.md](docs/ip/IP3.5.md).
 
-## Cómo se juega (v0.3.0)
+## Cómo se juega (v0.3.5)
 
 Siete colonos llegan en primavera a un valle con 42 raciones; seis de ellos son tres parejas. Comen, duermen de noche y cumplen tus órdenes: talan, excavan, recolectan, llevan lo suelto al almacén y construyen casas con muebles. Las bayas rebrotan cada pocos días, salvo en invierno: si no juntaste comida en otoño, la colonia muere de hambre. La orden de recolectar un arbusto se cumple al recolectarlo: hay que volver a darla cuando rebrota.
 
 Cada colono tiene edad, personalidad, habilidades que mejoran con el trabajo, opiniones de los demás, ánimo y deseos. Charlan, bromean, se enseñan y discuten; se hacen amigos, rivales o pareja. Las parejas tienen hijos si la aldea tiene comida guardada y el valle da para uno más; los bebés necesitan que alguien les lleve comida (Crianza), los niños juegan y los ancianos mueren de viejos. En Nueva partida eliges el ritmo de la vida: Normal, Rápido o Muy rápido. La partida se guarda desde la pausa y se autoguarda cada medianoche.
+
+Sin órdenes, los colonos libres recolectan bayas y talan cerca de la aldea hasta cumplir las metas de comida y madera (se escriben en el panel Colonia), buscan a su pareja, su familia y sus amigos, y esquivan a sus rivales. La opción "Libre albedrío" de Opciones lo apaga. Una orden tuya siempre gana.
 
 | Acción | Teclado | Ratón |
 |---|---|---|

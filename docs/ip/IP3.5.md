@@ -16,7 +16,7 @@
 
 **Estimación:** 48 a 70 h. **Versión al cerrar:** `v0.3.5`, para Windows y macOS.
 
-**Estado:** en curso desde el 19 de octubre de 2026, al cerrar IP3. L1 hecho: spec aprobada el mismo día.
+**Estado:** hecha el 21 de octubre de 2026 (`v0.3.5`).
 
 ## Estado de los hitos
 
@@ -28,7 +28,7 @@
 | L4 Vida social con intención | Hecho | `ip3.5/l4-social` | En el tiempo libre, buscar a la pareja, la familia, los amigos y a quien aprecia, y quedarse cerca un rato (`Visit`); al deambular, alejarse de los rivales cercanos. Ganas por sociabilidad y ánimo; formato 10. En tres años sin órdenes, de 14 a 18 parejas de amigos (de 21) contra ninguna sin buscar compañía |
 | L4b Bosque que vuelve | Hecho | `ip3.5/l4b-bosque` | Retoños junto a los robles y pinos adultos (2 % por árbol y por día, 10 días para crecer), con tope por especie en milésimas de las celdas donde crece (35 y 40); `ForestSystem` a medianoche, componente `Sapling`; formato 11. Las huellas del smoke cambian porque el bosque no depende de la opción |
 | L4c Estaciones visibles | Hecho | `ip3.5/l4c-estaciones` | Pasto, copas (robles, pinos y arbustos), decoración y roca de las cumbres cambian con la estación, con transición de 3 días; todo por datos en el bloque `seasons` de `visuals.json`; `--season <id>` para las capturas. Sólo presentación: las huellas del smoke no cambian (`3E60…` y `5905…`) y los FPS quedan dentro del ruido (270 de base, 244 a 283 con L4c) |
-| L5 Integración | En curso | `ip3.5/l5-integracion` | Meta de comida por defecto en 3000 (con 600 nadie nace), revisión de código de L4b y L4c, benchmark (304 FPS, 0,16 ms por tick) y checklist `docs/ip/playtest-ip3.5.md`. Faltan el playtest, los paquetes y `v0.3.5` |
+| L5 Integración | Hecho | `ip3.5/l5-integracion` | Meta de comida por defecto en 3000 (con 600 nadie nace), revisión de código de L4b y L4c, benchmark (304 FPS, 0,16 ms por tick) y checklist `docs/ip/playtest-ip3.5.md`. Playtest del usuario completo (todo en ✅) y paquetes de `v0.3.5` armados |
 
 **Ruta crítica:** L1 → L2 → (L3 ∥ L4 ∥ L4b ∥ L4c) → L5. L4c es sólo de presentación y puede empezar apenas se apruebe la spec.
 

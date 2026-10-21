@@ -20,38 +20,38 @@ Marcar cada punto con ✅ (bien), ❌ (falla, anotar el hallazgo abajo) o ➖ (n
 
 ### Opción y metas
 
-- [ ] Opciones tiene "Libre albedrío", prendida en una instalación nueva; el cambio se conserva al reiniciar.
-- [ ] El panel Colonia (P) muestra "Comida: N de [3000]" y "Madera: N de [40]"; el campo acepta dígitos, Enter, Tab o un clic afuera aplican y Esc cancela; escribir no mueve la cámara ni cambia la velocidad.
-- [ ] Todo se ve igual de bien en inglés.
+- [✅] Opciones tiene "Libre albedrío", prendida en una instalación nueva; el cambio se conserva al reiniciar.
+- [✅] El panel Colonia (P) muestra "Comida: N de [3000]" y "Madera: N de [40]"; el campo acepta dígitos, Enter, Tab o un clic afuera aplican y Esc cancela; escribir no mueve la cámara ni cambia la velocidad.
+- [✅] Todo se ve igual de bien en inglés.
 
 ### Trabajo por iniciativa
 
-- [ ] Sin dar órdenes, los colonos libres recolectan bayas y talan por su cuenta; el inspector dice "Recolectando por su cuenta" / "Talando un árbol por su cuenta".
-- [ ] Con la meta de comida en 0, nadie recolecta por su cuenta. Con una prioridad en "nunca" (panel Colonia), ese colono no hace esa tarea.
-- [ ] Una orden del jugador sobre un arbusto o un árbol la toma un colono antes que cualquier iniciativa.
-- [ ] Nadie va a talar a más de 30 celdas de la llegada.
-- [ ] Con la opción apagada, nadie trabaja por su cuenta.
+- [✅] Sin dar órdenes, los colonos libres recolectan bayas y talan por su cuenta; el inspector dice "Recolectando por su cuenta" / "Talando un árbol por su cuenta".
+- [✅] Con la meta de comida en 0, nadie recolecta por su cuenta. Con una prioridad en "nunca" (panel Colonia), ese colono no hace esa tarea.
+- [✅] Una orden del jugador sobre un arbusto o un árbol la toma un colono antes que cualquier iniciativa.
+- [✅] Nadie va a talar a más de 30 celdas de la llegada.
+- [✅] Con la opción apagada, nadie trabaja por su cuenta.
 
 ### Vida social con intención
 
-- [ ] Quien no tiene nada que hacer camina hacia la pareja, un familiar o un amigo y se queda cerca un rato; el inspector dice "Pasando un rato con alguien".
-- [ ] Al deambular, un colono se aleja de su rival cercano.
-- [ ] En un año sin órdenes se forman varias amistades, y el registro las avisa.
+- [✅] Quien no tiene nada que hacer camina hacia la pareja, un familiar o un amigo y se queda cerca un rato; el inspector dice "Pasando un rato con alguien".
+- [✅] Al deambular, un colono se aleja de su rival cercano.
+- [✅] En un año sin órdenes se forman varias amistades, y el registro las avisa.
 
 ### Bosque y estaciones
 
-- [ ] Después de talar un sector, junto a los árboles que quedan aparecen retoños (más chicos), que crecen en unos días; el bosque no pasa de su densidad original.
-- [ ] En otoño los robles y los pinos se ven amarillos y rojizos con variación entre árboles; en invierno hay nieve en las copas y el pasto se blanquea de a poco; las cumbres de roca se ven nevadas; en primavera y verano todo vuelve al verde. La transición dura unos 3 días.
-- [ ] En invierno los pinos y los robles se siguen distinguiendo entre sí.
+- [✅] Después de talar un sector, junto a los árboles que quedan aparecen retoños (más chicos), que crecen en unos días; el bosque no pasa de su densidad original.
+- [✅] En otoño los robles y los pinos se ven amarillos y rojizos con variación entre árboles; en invierno hay nieve en las copas y el pasto se blanquea de a poco; las cumbres de roca se ven nevadas; en primavera y verano todo vuelve al verde. La transición dura unos 3 días.
+- [✅] En invierno los pinos y los robles se siguen distinguiendo entre sí.
 
 ### Partida larga
 
-- [ ] Una aldea sin órdenes pasa varios años sin morir de hambre y nace al menos un hijo.
-- [ ] Guardar y cargar conserva la opción, las metas, los retoños y la estación.
+- [✅] Una aldea sin órdenes pasa varios años sin morir de hambre y nace al menos un hijo.
+- [✅] Guardar y cargar conserva la opción, las metas, los retoños y la estación.
 
 ### Rendimiento y paquetes
 
-- [ ] `.\OurLife.exe -- --benchmark 20 --seed 42 --ticks 5000` termina con "within the budget" en `%APPDATA%\OurLife\logs\godot.log`.
+- [✅] `.\OurLife.exe -- --benchmark 20 --seed 42 --ticks 5000` termina con "within the budget" en `%APPDATA%\OurLife\logs\godot.log`.
 
 ## Pasada automática (L5, 21 de octubre de 2026)
 
