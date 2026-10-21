@@ -102,6 +102,7 @@ El script, que necesita PowerShell 7.4 o posterior, exporta a `builds/linux-arm6
 
 **En la Raspberry Pi 4** (Raspberry Pi OS de 64 bits):
 
+- Se descomprime y se corre `./OurLife.arm64` desde la carpeta. Pide glibc 2.28 o posterior y la librería ICU, que usa .NET para los idiomas; Raspberry Pi OS con escritorio la trae, y si el juego dice que no encuentra ICU: `sudo apt install libicu72` (o la versión de ICU del sistema).
 - La GPU de la Pi no tiene OpenGL 3.3 de escritorio; el juego cae solo a OpenGL ES 3 (`rendering/gl_compatibility/fallback_to_gles`). Hace falta el escritorio con el driver gráfico de Mesa (V3D), el que trae el sistema.
 - Smoke: `./OurLife.arm64 --headless -- --smoke --seed 42 --ticks 5000`. Tiene que terminar con `[smoke] OK` y dar la misma huella que en Windows (la que figura en `docs/ip/bitacora.md`).
 - Rendimiento: `./OurLife.arm64 -- --benchmark 20`. El presupuesto del juego (60 FPS) es el de una PC; en la Pi se esperan muchos menos. Bajar la "Decoración del pasto" en Opciones ayuda.

@@ -23,7 +23,7 @@ En orden:
 
 1. **L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
-3. **Linux ARM64:** faltan las plantillas `linux_release.arm64` y `linux_debug.arm64` en esta PC para exportar, y probar el smoke y el benchmark en la Pi.
+3. **Linux ARM64:** el usuario prueba en la Pi el smoke y el benchmark; si anda, adelantar `main` con `tools/linux-arm64`.
 4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -48,7 +48,8 @@ En orden:
 - Pedido del usuario: poder correr el juego en una Raspberry Pi 4 de 8 GB. Rama `tools/linux-arm64`, fuera de los hitos de IP3.5.
 - Preset "Linux ARM64" en `export_presets.cfg`, con texturas ETC2/ASTC (la GPU de la Pi no lee S3TC; las del juego no van comprimidas, así que no hubo que reimportar). `rendering/gl_compatibility/fallback_to_gles` explícito: la Pi no tiene OpenGL 3.3 de escritorio y cae a OpenGL ES 3.
 - `tools/package-linux-arm64.ps1`: exporta, agrega `LICENSES.txt` y `CREDITS.md`, arma el zip y marca el ejecutable como ejecutable. La reparación de permisos del zip pasó de `package-macos.ps1` a `common.ps1` (`Repair-UnixPermissions`), y ahora también le da permiso de ejecución al binario si le falta. Probada con un zip de prueba: binario 755, el resto 644.
-- README con la sección para la Pi. Sin exportar todavía: en esta PC no están las plantillas de Linux ARM64 (el `.tpz` oficial pesa 1,2 GB).
+- README con la sección para la Pi.
+- Con el visto bueno del usuario se bajó el `.tpz` oficial de Godot 4.7.2 mono (1,2 GB, SHA-512 igual al publicado) y se instalaron sólo `linux_release.arm64` y `linux_debug.arm64`. El script exportó `builds/OurLife-v0.3.0-linux-arm64.zip` (64 MB): binario ELF aarch64 (glibc 2.28 o posterior), .NET 8.0.27 para linux-arm64, ejecutable con permisos 755 dentro del zip. .NET necesita ICU en la Pi (anotado en el README). Falta probarlo en la Pi.
 
 ### 2026-10-20: L4, vida social con intención
 
