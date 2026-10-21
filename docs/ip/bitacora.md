@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l4-social`: L4 cerrado y en `main`. Siguen L4b y L4c |
+| Rama de trabajo | `tools/linux-arm64`: exportación para Linux ARM64 (Raspberry Pi 4), pedido del usuario. L4 cerrado y en `main`; siguen L4b y L4c |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -23,7 +23,8 @@ En orden:
 
 1. **L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
-3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+3. **Linux ARM64:** faltan las plantillas `linux_release.arm64` y `linux_debug.arm64` en esta PC para exportar, y probar el smoke y el benchmark en la Pi.
+4. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -41,6 +42,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-21: exportación para Linux ARM64
+
+- Pedido del usuario: poder correr el juego en una Raspberry Pi 4 de 8 GB. Rama `tools/linux-arm64`, fuera de los hitos de IP3.5.
+- Preset "Linux ARM64" en `export_presets.cfg`, con texturas ETC2/ASTC (la GPU de la Pi no lee S3TC; las del juego no van comprimidas, así que no hubo que reimportar). `rendering/gl_compatibility/fallback_to_gles` explícito: la Pi no tiene OpenGL 3.3 de escritorio y cae a OpenGL ES 3.
+- `tools/package-linux-arm64.ps1`: exporta, agrega `LICENSES.txt` y `CREDITS.md`, arma el zip y marca el ejecutable como ejecutable. La reparación de permisos del zip pasó de `package-macos.ps1` a `common.ps1` (`Repair-UnixPermissions`), y ahora también le da permiso de ejecución al binario si le falta. Probada con un zip de prueba: binario 755, el resto 644.
+- README con la sección para la Pi. Sin exportar todavía: en esta PC no están las plantillas de Linux ARM64 (el `.tpz` oficial pesa 1,2 GB).
 
 ### 2026-10-20: L4, vida social con intención
 

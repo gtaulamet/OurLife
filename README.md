@@ -90,6 +90,23 @@ El script, que necesita PowerShell 7.4 o posterior, exporta `OurLife.app`, le ag
 - Smoke: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`. Tiene que terminar con `[smoke] OK` y dar la misma huella que en Windows (la que figura en `docs/ip/bitacora.md`).
 - El juego guarda sus preferencias y partidas en `~/Library/Application Support/OurLife`.
 
+## Exportar para Linux ARM64 (Raspberry Pi 4)
+
+La versión para Linux en ARM64 se exporta desde Windows. Hacen falta además `linux_release.arm64` y `linux_debug.arm64`, del mismo `.tpz` de las plantillas, en `%APPDATA%\Godot\export_templates\4.7.2.stable.mono`.
+
+```powershell
+./tools/package-linux-arm64.ps1
+```
+
+El script, que necesita PowerShell 7.4 o posterior, exporta a `builds/linux-arm64`, agrega `LICENSES.txt` y `CREDITS.md`, arma `builds/OurLife-v<versión>-linux-arm64.zip` y marca el ejecutable como ejecutable dentro del zip. Las texturas van en ETC2/ASTC, que es lo que lee la GPU de la Pi (no S3TC, como en Windows). No puede correr el smoke: eso se hace en la Pi.
+
+**En la Raspberry Pi 4** (Raspberry Pi OS de 64 bits):
+
+- La GPU de la Pi no tiene OpenGL 3.3 de escritorio; el juego cae solo a OpenGL ES 3 (`rendering/gl_compatibility/fallback_to_gles`). Hace falta el escritorio con el driver gráfico de Mesa (V3D), el que trae el sistema.
+- Smoke: `./OurLife.arm64 --headless -- --smoke --seed 42 --ticks 5000`. Tiene que terminar con `[smoke] OK` y dar la misma huella que en Windows (la que figura en `docs/ip/bitacora.md`).
+- Rendimiento: `./OurLife.arm64 -- --benchmark 20`. El presupuesto del juego (60 FPS) es el de una PC; en la Pi se esperan muchos menos. Bajar la "Decoración del pasto" en Opciones ayuda.
+- El juego guarda sus preferencias y partidas en `~/.local/share/OurLife`.
+
 ## Medir el rendimiento
 
 ```powershell
