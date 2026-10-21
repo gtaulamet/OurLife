@@ -58,7 +58,7 @@ public sealed class ForestSystem : ISimSystem
         return species;
     }
 
-    /// <summary>Saplings past their days become trees, if nothing stands on their cell.</summary>
+    /// <summary>Saplings past their days become trees, if nothing stands on their cell and no order is on it.</summary>
     private void GrowUp(Simulation simulation, Dictionary<string, PlantDef> species)
     {
         var world = simulation.World;
@@ -74,7 +74,7 @@ public sealed class ForestSystem : ISimSystem
 
             var cell = world.Get<Position>(plant).Cell;
             taken ??= TakenCells(simulation, skipPlants: true);
-            if (taken.Contains(map.Size.IndexOf(cell.X, cell.Y, cell.Z)))
+            if (taken.Contains(map.Size.IndexOf(cell.X, cell.Y, cell.Z)) || (map.FlagsAt(cell) & GameMap.OrderFlags) != 0)
             {
                 continue;
             }

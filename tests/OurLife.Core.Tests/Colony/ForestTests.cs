@@ -87,6 +87,22 @@ public class ForestTests
     }
 
     [Fact]
+    public void A_sapling_does_not_grow_into_a_cell_with_an_order_until_it_is_gone()
+    {
+        var bed = Bed();
+        bed.AddPlant("tree", 10, 10, 1);
+        RunDays(bed, 1);
+        var sapling = Saplings(bed).ShouldHaveSingleItem();
+        var cell = bed.World.Get<Position>(sapling).Cell;
+        bed.Map.SetFlags(cell.X, cell.Y, cell.Z, bed.Map.FlagsAt(cell) | TileFlags.StairsDesignation);
+
+        RunDays(bed, 2);
+
+        bed.World.Has<Sapling>(sapling).ShouldBeTrue();
+        bed.Map.IsStandable(cell).ShouldBeTrue();
+    }
+
+    [Fact]
     public void No_sapling_appears_on_a_cell_with_an_order_or_a_plant()
     {
         var bed = Bed();
