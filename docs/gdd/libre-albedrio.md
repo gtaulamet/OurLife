@@ -78,14 +78,14 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 ## D. Bosque que vuelve
 
-- **Retoños:** a medianoche, cada árbol adulto de una especie que puede volver a crecer tiene una probabilidad (`seedChancePerDay`, 2 %) de dejar un retoño en una celda libre a 3 celdas o menos: pasto o tierra a cielo abierto, en la banda de altura donde la especie crece en el valle.
+- **Retoños:** a medianoche, cada árbol adulto de una especie que puede volver a crecer tiene una probabilidad (`seedChanceBasisPoints`, 200 = 2 %) de dejar un retoño en una celda libre a 3 celdas o menos: pasto o tierra a cielo abierto, en la banda de altura donde la especie crece en el valle.
 - **Crecer:** un retoño se ve chico y no bloquea el paso; en `growDays` días del juego (10) se vuelve árbol adulto, que bloquea el paso y se puede talar. Un retoño no se puede talar ni da madera.
 - **Tope:** cada especie tiene un máximo de celdas ocupadas, árboles y retoños, como porcentaje de las celdas donde puede crecer: el mismo con que la genera el valle (robles 3,5 %, pinos 4 %). Llegado el tope, no deja retoños.
 - **Dónde no:** nunca sobre construcciones, muebles, planos, almacenes, celdas con órdenes del jugador, objetos, colonos ni otras plantas.
 - **No en invierno:** las especies que duermen en invierno no dejan retoños; los retoños siguen creciendo.
 - Los arbustos de bayas no se reproducen en IP3.5: la comida ya tiene su tope y su balance.
 - Sembrar a pedido del jugador queda para la agricultura de IP4.
-- Usa el flujo aleatorio `nature.forest`, recorre los árboles por `EntityId` y cuenta las celdas posibles una vez por partida.
+- Usa el flujo aleatorio `nature.forest`, recorre los árboles por `EntityId` y cuenta las celdas posibles al sembrar (suelo con cielo abierto en la banda de la regla de vegetación del valle). Un retoño espera a madurar mientras algo esté en su celda, y ninguna zona de almacén toma celdas con retoño.
 
 ## Contrato con la presentación
 
@@ -108,7 +108,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 |---|---|---|
 | `FreeWillConfig` | `villageRadius` (30), `initiativeChancePercent` (60), `initiativeTrait` (`diligence`), `seekChancePercent` (30), `seekTrait` (`sociability`), `seekRadius` (30), `seekMinOpinion` (20), `seekFollows` (3), `avoidRadius` (10), bandas de ánimo, `defaultTargets` por categoría | `free_will.json` |
 | `InitiativeTask` | `job` (`harvest` o `chop`; el tipo de trabajo es el que agrupa ese trabajo), `category` (la meta que mira) | `free_will.json` |
-| `PlantDef` | `regrowth`: `seedChancePerDay`, `seedRadius`, `growDays`, `maxCoverPercent`, `saplingVisual` | `plants.json` |
+| `PlantDef` | `regrowth`: `seedChanceBasisPoints`, `seedRadius`, `growDays`, `maxCoverPerMille` (35 y 40), `noSeedSeasons` (robles: invierno); el retoño usa el modelo `<visual>.sapling` | `plants.json` |
 
 - Cada def con textos lleva `name`, `desc` y `gender` en es y en. El retoño necesita un modelo en el catálogo de visuales (el árbol en chico).
 
@@ -116,7 +116,7 @@ En el tiempo libre, cuando no hay órdenes ni iniciativa:
 
 - Formato 8 (L2): `Simulation.FreeWill`, `VillageCenter` y `StockTargets`.
 - Formato 9 (L3): `Job.Initiative`. Sólo se escribe cuando es verdadero, así una partida sin trabajo por iniciativa se escribe y da la huella de antes. No hay nada que migrar.
-- Formato 10 (L4): el trabajo `Visit`, que una versión anterior no sabe leer. No hay nada que migrar. El componente `Sapling` llega con L4b, que vuelve a subir el formato (ADR-013: sube cada vez que llega a `main` un cambio del estado).
+- Formato 10 (L4): el trabajo `Visit`, que una versión anterior no sabe leer. No hay nada que migrar. Formato 11 (L4b): el componente `Sapling`; no hay nada que migrar. Con el bosque, las huellas del smoke cambian respecto de `v0.3.0` (el bosque no depende de la opción): nuevas con `--ticks 5000`, `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42).
 - Una partida de la versión 7 se migra: centro de la aldea en la celda del colono más cerca del medio de todos (la mediana en cada eje), así uno que trabaja lejos no lo corre; metas por defecto; el interruptor lo manda la sesión al cargar, como siempre.
 - Con la opción apagada y sin metas elegidas, la huella no incluye el libre albedrío: una partida da la misma huella que en `v0.3.0` (criterio 3). El smoke, que juega sin la opción, lo comprueba con las huellas de `v0.3.0`.
 - Una meta guardada que el contenido ya no admite (más alta que el máximo, o de una categoría que ya no tiene metas) baja al máximo o se descarta al cargar; la partida carga igual. Una categoría que ya no existe da "falta contenido", como cualquier def (ADR-013).

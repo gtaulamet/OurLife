@@ -101,6 +101,7 @@
   "ui.inspector.order.chop": "Marked for chopping",
   "ui.inspector.order.harvest": "Marked for gathering",
   "ui.inspector.plant_harvested": "{plant}, no fruit",
+  "ui.inspector.plant_sapling": "{plant}, sapling",
   "ui.inspector.items": "{count} {item}",
   "ui.inspector.stockpile": "Stockpile",
   "ui.inspector.carrying": "Carrying {count} {item}",

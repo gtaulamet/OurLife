@@ -214,7 +214,8 @@ public partial class InspectorPanel : PanelContainer
             if (world.TryGet<Plant>(entity, out var plant))
             {
                 var name = text.Capitalized(NameOf(_simulation.Content.Get<PlantDef>(plant.Def), 1));
-                _lines.Add(world.Has<Harvested>(entity) ? text.Format("ui.inspector.plant_harvested", ("plant", name)) : name);
+                _lines.Add(world.Has<Harvested>(entity) ? text.Format("ui.inspector.plant_harvested", ("plant", name))
+                    : world.Has<Sapling>(entity) ? text.Format("ui.inspector.plant_sapling", ("plant", name)) : name);
                 if (world.Has<ChopOrder>(entity))
                 {
                     _lines.Add(text.Format("ui.inspector.order.chop"));

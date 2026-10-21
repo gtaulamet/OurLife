@@ -12,6 +12,31 @@ public sealed class ItemYield
     public required int WorkTicks { get; init; }
 }
 
+/// <summary>
+/// How a tree spreads on its own (see "Bosque que vuelve" in <c>docs/gdd/libre-albedrio.md</c>): each day an
+/// adult may leave a sapling near it, until the species covers its share of the ground where it grows.
+/// </summary>
+public sealed class PlantRegrowth
+{
+    /// <summary>Chance, in basis points, that an adult leaves a sapling on a day.</summary>
+    public required int SeedChanceBasisPoints { get; init; }
+
+    /// <summary>The farthest, in cells on the plane, from the adult that a sapling appears.</summary>
+    public required int SeedRadius { get; init; }
+
+    /// <summary>Days until a sapling becomes an adult.</summary>
+    public required int GrowDays { get; init; }
+
+    /// <summary>
+    /// The most cells, in thousandths of the cells where the species grows in the valley, that adults
+    /// and saplings of the species take.
+    /// </summary>
+    public required int MaxCoverPerMille { get; init; }
+
+    /// <summary>Seasons, by the ids of the calendar, in which the species leaves no saplings; the ones there keep growing.</summary>
+    public IReadOnlyList<string> NoSeedSeasons { get; init; } = [];
+}
+
 /// <summary>A tree, bush or crop growing on the map.</summary>
 public sealed class PlantDef : Def, IHasVisual
 {
@@ -33,6 +58,9 @@ public sealed class PlantDef : Def, IHasVisual
         JobKind.Harvest => Harvest,
         _ => null,
     };
+
+    /// <summary>How the plant spreads by itself; null for a plant that does not.</summary>
+    public PlantRegrowth? Regrowth { get; init; }
 
     /// <summary>Days until a gathered plant can be gathered again.</summary>
     public int RegrowDays { get; init; }
@@ -57,6 +85,25 @@ public sealed class PlantDef : Def, IHasVisual
             if (output is not null && (output.Count <= 0 || output.WorkTicks <= 0))
             {
                 yield return $"{field}.count and {field}.workTicks must be positive.";
+            }
+        }
+
+        if (Regrowth is { } regrowth)
+        {
+            if (regrowth.SeedChanceBasisPoints is < 0 or > 10_000 || regrowth.SeedRadius < 1 || regrowth.GrowDays < 1
+                || regrowth.MaxCoverPerMille is < 0 or > 1000)
+            {
+                yield return "regrowth needs a seed chance up to 10000, a radius and grow days of at least 1 and a cover up to 1000.";
+            }
+
+            if (!BlocksMovement || Chop is null)
+            {
+                yield return "only a tree, which blocks the way and can be felled, spreads by itself.";
+            }
+
+            if (regrowth.NoSeedSeasons.Distinct(StringComparer.Ordinal).Count() != regrowth.NoSeedSeasons.Count)
+            {
+                yield return "regrowth.noSeedSeasons repeats a season.";
             }
         }
 

@@ -439,6 +439,10 @@ public partial class EntityRenderer : Node3D
             {
                 harvestedVisual = $"{visual}.harvested";
             }
+            else if (world.Has<Sapling>(entity))
+            {
+                harvestedVisual = $"{visual}.sapling";
+            }
         }
         else if (world.TryGet<ItemStack>(entity, out var stack))
         {

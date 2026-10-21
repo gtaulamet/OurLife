@@ -40,6 +40,12 @@ public class VisualCatalogTests
             used.Add($"{plant.Visual}.harvested");
         }
 
+        // A tree that spreads by itself has a "<visual>.sapling" model for its saplings.
+        foreach (var plant in GameContent.Defs.All<PlantDef>().Where(plant => plant.Regrowth is not null))
+        {
+            used.Add($"{plant.Visual}.sapling");
+        }
+
         // A creature may have a "<visual>.<stage>" model for each stage of life.
         foreach (var creature in GameContent.Defs.All<CreatureDef>())
         {

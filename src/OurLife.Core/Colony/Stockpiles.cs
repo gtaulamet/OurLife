@@ -88,6 +88,15 @@ public static class Stockpiles
             taken.Add(map.Size.IndexOf(cell.X, cell.Y, cell.Z));
         }
 
+        // A sapling blocks its cell once grown, so no zone takes it.
+        var saplings = new List<EntityId>();
+        simulation.World.Query<Sapling, Position>(saplings);
+        foreach (var sapling in saplings)
+        {
+            var cell = simulation.World.Get<Position>(sapling).Cell;
+            taken.Add(map.Size.IndexOf(cell.X, cell.Y, cell.Z));
+        }
+
         var cells = new List<TileCoord>();
         for (var z = min.Z; z <= max.Z; z++)
         {

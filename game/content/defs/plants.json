@@ -4,14 +4,16 @@
     "id": "oak",
     "visual": "plant.oak",
     "blocksMovement": true,
-    "chop": { "item": "log", "count": 4, "workTicks": 240 }
+    "chop": { "item": "log", "count": 4, "workTicks": 240 },
+    "regrowth": { "seedChanceBasisPoints": 200, "seedRadius": 3, "growDays": 10, "maxCoverPerMille": 35, "noSeedSeasons": ["winter"] }
   },
   {
     "type": "Plant",
     "id": "pine",
     "visual": "plant.pine",
     "blocksMovement": true,
-    "chop": { "item": "log", "count": 3, "workTicks": 180 }
+    "chop": { "item": "log", "count": 3, "workTicks": 180 },
+    "regrowth": { "seedChanceBasisPoints": 200, "seedRadius": 3, "growDays": 10, "maxCoverPerMille": 40 }
   },
   {
     "type": "Plant",

@@ -27,6 +27,7 @@ public static class SaveTypes
         Component<ChopOrder>("chop_order");
         Component<HarvestOrder>("harvest_order");
         Component<Harvested>("harvested");
+        Component<Sapling>("sapling");
         Component<Stockpile>("stockpile");
         Component<Carried>("carried");
         Component<Blueprint>("blueprint");

@@ -13,7 +13,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 800 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
-| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Tienen que seguir iguales en todo IP3.5 |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42) |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
+1. **L4c** (estaciones visibles); L4b hecho, formato 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -41,6 +41,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-21: L4b, bosque que vuelve
+
+- Rama `ip3.5/l4b-bosque`, desde `main`. `ForestSystem` (a medianoche): los retoños maduran si nada está en su celda, y cada árbol adulto de una especie con `regrowth` deja un retoño con 2 % por día en una celda libre a 3 o menos (suelo con cielo abierto, banda de la regla de vegetación, sin construcciones, muebles, planos, almacenes, órdenes, objetos, colonos ni plantas), hasta el tope: 35 ‰ de las celdas donde crece el roble y 40 ‰ el pino. Los robles no dejan retoños en invierno.
+- Componente `Sapling`, formato 11. El retoño no bloquea el paso ni se ordena talar ni lo toma la iniciativa; las zonas de almacén no lo toman. Modelos `plant.oak.sapling` y `plant.pine.sapling` (el árbol en chico), inspector "Roble, retoño".
+- 5 tests nuevos en `ForestTests` (tope, retoño que no bloquea hasta crecer, espera con algo encima, nada sobre celdas con órdenes, misma semilla). 800+ tests en verde.
+- Las huellas del smoke cambian: `3E6090980A92B35A` y `5905A0BCAA4F5860`. Falta ajustar el balance del bosque en L5 con partidas largas, y capturas con retoños.
 
 ### 2026-10-20: L4, vida social con intención
 

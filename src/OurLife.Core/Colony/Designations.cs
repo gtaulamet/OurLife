@@ -143,6 +143,11 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
         var world = simulation.World;
         foreach (var (plant, _) in plants)
         {
+            if (world.Has<Sapling>(plant))
+            {
+                continue;
+            }
+
             var def = simulation.Content.Get<PlantDef>(world.Get<Plant>(plant).Def);
             if (Kind == DesignationKind.Chop && def.Chop is not null && !world.Has<ChopOrder>(plant))
             {

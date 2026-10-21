@@ -101,6 +101,7 @@
   "ui.inspector.order.chop": "Marcado para talar",
   "ui.inspector.order.harvest": "Marcado para recolectar",
   "ui.inspector.plant_harvested": "{plant}, sin frutos",
+  "ui.inspector.plant_sapling": "{plant}, retoño",
   "ui.inspector.items": "{count} {item}",
   "ui.inspector.stockpile": "Almacén",
   "ui.inspector.carrying": "Lleva {count} {item}",

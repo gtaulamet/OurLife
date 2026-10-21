@@ -27,3 +27,12 @@ public sealed class Harvested
 {
     public long RegrowsAtTick { get; set; }
 }
+
+/// <summary>
+/// A plant that is still a sapling: it blocks nothing, gives nothing and takes no order until
+/// <see cref="GrowsAtTick"/>, when it becomes an adult (see <c>ForestSystem</c>).
+/// </summary>
+public sealed class Sapling
+{
+    public long GrowsAtTick { get; set; }
+}

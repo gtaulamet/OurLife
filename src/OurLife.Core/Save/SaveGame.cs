@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 10;
+    public const int FormatVersion = 11;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -34,7 +34,7 @@ public static class SaveGame
     /// childcare, drawn as on arrival, and pregnancies, which start with none (see "Guardado y
     /// migración" in <c>docs/gdd/vida-y-generaciones.md</c>). Format 7 (v0.3.0) gets the village
     /// centre (IP3.5, <c>docs/gdd/libre-albedrio.md</c>); formats 8 (work on its own,
-    /// <c>Job.Initiative</c>) and 9 (keeping company, <c>JobKind.Visit</c>) need nothing.
+    /// <c>Job.Initiative</c>) and 9 (keeping company, <c>JobKind.Visit</c>) and 10 (saplings, <c>Sapling</c>) need nothing.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

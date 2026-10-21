@@ -26,7 +26,7 @@
 | L2 Interruptor y metas | Hecho | `ip3.5/l2-metas` | Opción "Libre albedrío" en Opciones (prendida por defecto), metas de comida y madera en el panel Colonia en un campo que escribe el jugador (0 a 100 000), formato 8 con el centro de la aldea. La opción todavía no cambia la conducta: eso llega con L3 y L4 |
 | L3 Trabajo por iniciativa | Hecho | `ip3.5/l3-iniciativa` | Recolectar y talar por su cuenta cerca de la aldea bajo las metas, con prioridades, etapas, ganas por diligencia y ánimo, y reparto por lo que trae el trabajo en curso; formato 9. La meta de comida por defecto pasó a 600 (decisión del usuario): sin órdenes, la aldea pasa los inviernos. Los nacimientos con libre albedrío quedan para L5 |
 | L4 Vida social con intención | Hecho | `ip3.5/l4-social` | En el tiempo libre, buscar a la pareja, la familia, los amigos y a quien aprecia, y quedarse cerca un rato (`Visit`); al deambular, alejarse de los rivales cercanos. Ganas por sociabilidad y ánimo; formato 10. En tres años sin órdenes, de 14 a 18 parejas de amigos (de 21) contra ninguna sin buscar compañía |
-| L4b Bosque que vuelve | Pendiente | `ip3.5/l4b-bosque` | |
+| L4b Bosque que vuelve | Hecho | `ip3.5/l4b-bosque` | Retoños junto a los robles y pinos adultos (2 % por árbol y por día, 10 días para crecer), con tope por especie en milésimas de las celdas donde crece (35 y 40); `ForestSystem` a medianoche, componente `Sapling`; formato 11. Las huellas del smoke cambian porque el bosque no depende de la opción |
 | L4c Estaciones visibles | Pendiente | `ip3.5/l4c-estaciones` | |
 | L5 Integración | Pendiente | `ip3.5/l5-integracion` | |
 

@@ -152,7 +152,7 @@ public sealed partial class DecisionSystem
         var kind = task.Kind;
         foreach (var plant in _nearPlants)
         {
-            if (plants.Contains(world.Get<Plant>(plant).Def)
+            if (plants.Contains(world.Get<Plant>(plant).Def) && !world.Has<Sapling>(plant)
                 && !world.Has<ChopOrder>(plant) && !world.Has<HarvestOrder>(plant)
                 && !(kind == JobKind.Harvest && world.Has<Harvested>(plant)))
             {

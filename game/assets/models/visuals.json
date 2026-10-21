@@ -38,6 +38,8 @@
   "models": {
     "plant.oak": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 1.5 },
     "plant.pine": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 1.4 },
+    "plant.oak.sapling": { "model": "res://assets/models/kenney_nature-kit/tree_oak.glb", "scale": 0.55 },
+    "plant.pine.sapling": { "model": "res://assets/models/kenney_nature-kit/tree_pineTallA.glb", "scale": 0.5 },
     "plant.berry_bush": {
       "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb",
       "scale": 1.6,
