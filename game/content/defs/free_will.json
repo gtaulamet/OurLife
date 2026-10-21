@@ -16,7 +16,7 @@
     "lowMoodPercent": 50,
     "highMoodAbove": 70,
     "highMoodPercent": 120,
-    "defaultTargets": { "food": 600, "wood": 40 },
+    "defaultTargets": { "food": 3000, "wood": 40 },
     "targetMax": 100000
   },
   { "type": "InitiativeTask", "id": "gather_food", "job": "harvest", "category": "food" },

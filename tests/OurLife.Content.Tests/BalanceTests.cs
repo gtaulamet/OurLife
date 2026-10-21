@@ -54,4 +54,37 @@ public class BalanceTests
         born.ShouldBeGreaterThan(0);
         simulation.World.Store<Colonist>().Count.ShouldBeGreaterThanOrEqualTo(5);
     }
+
+    /// <summary>
+    /// The balance of L5: with free will on and no orders from the player, the default stock targets
+    /// keep the village fed for ten years and let a child be born (the food reserve for a birth is
+    /// far above the old default goal of 600).
+    /// </summary>
+    [Theory]
+    [Trait("Category", "Slow")]
+    [InlineData(1UL)]
+    [InlineData(42UL)]
+    public void In_ten_years_a_village_on_its_own_never_starves_and_has_a_child(ulong seed)
+    {
+        var simulation = new Simulation(seed, GameContent.Defs);
+        WorldGenerator.Generate(simulation, GameContent.Defs.All<WorldGenDef>()[0]);
+        ColonyStart.Settle(simulation, ColonyStart.TheOnlyScenario(GameContent.Defs), "Valdeolmos");
+        ColonySystems.AddTo(simulation);
+        simulation.Commands.Enqueue(new SetFreeWillCommand(true));
+        var events = new List<ISimEvent>();
+        var starved = 0;
+        var born = 0;
+
+        for (var day = 1; day <= 10 * simulation.Time.DaysPerYear; day++)
+        {
+            simulation.Run(simulation.Time.TicksPerDay);
+            events.Clear();
+            simulation.Events.DrainTo(events);
+            starved += events.OfType<NotificationEvent>().Count(notice => notice.Text.Key == NeedsSystem.DeathKey(GameContent.Defs.Get<NeedDef>("hunger")));
+            born += events.OfType<NotificationEvent>().Count(notice => notice.Text.Key == BirthSystem.BirthKey);
+        }
+
+        starved.ShouldBe(0);
+        born.ShouldBeGreaterThan(0);
+    }
 }
