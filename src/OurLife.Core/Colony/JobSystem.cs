@@ -71,6 +71,7 @@ public sealed class JobSystem : ISimSystem
             var job = world.Get<Job>(colonist);
             if (!StillValid(simulation, colonist, job))
             {
+                GiveUpIfLeft(simulation, colonist, job);
                 Drop(world, colonist);
                 continue;
             }
@@ -243,25 +244,26 @@ public sealed class JobSystem : ISimSystem
                     return false;
                 }
 
-                if (job.Stage == JobStage.Working && !FreeWillRules.WillBeNear(simulation, colonist, job.Target))
-                {
-                    // The other left before they met: the visitor gives up on it, as when it stops following it.
-                    var cooldown = (long)Relationships.Config(simulation).PairCooldownHours * simulation.Time.TicksPerHour;
-                    if (!SocialSystem.Met(simulation, colonist, job.Target, cooldown) && !SocialSystem.Met(simulation, job.Target, colonist, cooldown))
-                    {
-                        FreeWillRules.LeaveAlone(simulation, colonist, job.Target, _rules.Ai.UnreachableCooldownTicks);
-                    }
-
-                    return false;
-                }
-
-                return true;
+                return job.Stage != JobStage.Working || FreeWillRules.WillBeNear(simulation, colonist, job.Target);
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
                 return StillOrdered(simulation, job.Cell, TileFlags.ChannelDesignation, Construction.CanChannel(map, job.Cell));
             default:
                 return true;
+        }
+    }
+
+    /// <summary>
+    /// A visitor whose company left while it waited, before they met, gives up on it, as when it
+    /// stops following it (see "Vida social con intención" in <c>docs/gdd/libre-albedrio.md</c>).
+    /// </summary>
+    private void GiveUpIfLeft(Simulation simulation, EntityId colonist, Job job)
+    {
+        if (job.Kind == JobKind.Visit && job.Stage == JobStage.Working && FreeWillRules.StillWorthVisiting(simulation, colonist, job.Target)
+            && !SocialSystem.MetLately(simulation, colonist, job.Target, SocialSystem.PairCooldownTicks(simulation)))
+        {
+            FreeWillRules.LeaveAlone(simulation, colonist, job.Target, _rules.Ai.UnreachableCooldownTicks);
         }
     }
 

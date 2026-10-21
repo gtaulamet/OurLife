@@ -4,12 +4,12 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-20.*
+*Actualizado el 2026-10-21.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip3.5/l4-social`: L4 hecho, en revisión. Siguen L4b y L4c |
-| `main` | Con L2 y L3 de IP3.5 (después de `v0.3.0`), también en `origin` |
+| Rama de trabajo | `ip3.5/l4-social`: L4 cerrado y en `main`. Siguen L4b y L4c |
+| `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 800 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-1. **Revisión de L4** y adelantar `main`. Después **L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
+1. **L4b y L4c**, que pueden ir en paralelo; L4b sube el formato a 11. Balance de nacimientos con libre albedrío en L5: con las metas por defecto nadie nace, porque concebir pide comida guardada para 30 días por boca.
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
@@ -60,7 +60,8 @@ En orden:
 - Octava ronda: una sola regla de "cerca" para seguir, empezar a esperar y seguir esperando (`FreeWillRules.WillBeNear`: el final del camino de cada uno, al alcance de las interacciones). Antes, al llegar se miraba también dónde estaba el otro, y un visitante podía quedarse esperando a alguien que ya se iba. Ya esperando, la visita termina apenas el otro sale para un lugar a más de 6 celdas. Sin cambiar, por lo dicho antes: el diseño del seguimiento en dos sistemas, el costo de las búsquedas, el 100 de los pesos, el aviso de inactividad y las validaciones de `SocialConfig` (no rechazan ningún contenido real). Experimento: 12, 16 y 17 parejas de amigos; 0,009 ms por tick.
 - Novena ronda: un visitante sigue al otro a lo sumo tres veces (`Job.Count`; antes podía perseguir para siempre a alguien que no paraba de moverse); con un contenido sin `FreeWillConfig`, una visita cargada termina en lugar de quedar trabada; `FindLiked` no repite `CanInteract`; tests de las validaciones nuevas de `SocialConfig` y del tope de seguimientos. Sin cambiar: jugar sigue como en IP3 (apunta a donde está el compañero y no mira si va a dormir), porque con la opción apagada tiene que dar la misma huella; los radios del libre albedrío son círculos en el plano, como la aldea; y lo dicho en las rondas anteriores. 31 tests en `SocialIntentTests`, 799 en total.
 - Décima ronda: después de abandonar a alguien que no para de moverse, el visitante lo deja tranquilo un rato (lo anota como un objetivo inalcanzable, `unreachableCooldownTicks`); antes podía volver a elegirlo enseguida. El tope de seguimientos pasa a los datos (`seekFollows`, 3); una sola regla de libre albedrío activo (`FreeWillRules.IsActive`: la opción y el contenido) también para jugar con un rival; quien va de visita sólo reserva y libera de nuevo si el destino del otro cambió. Sin cambiar: jugar como en IP3, `FindLiked` sin `CanMeet` (así no repite `CanInteract`) y el aviso de inactividad. 800 tests.
-- Undécima ronda: si la visita termina mientras espera porque el otro se fue sin que se encontraran, también lo deja tranquilo un rato (`FreeWillRules.LeaveAlone`); jugar respeta esa marca (con la opción apagada nadie anota colonos, así que la huella no cambia); la evasión de rivales usa `IsActive`. Sin cambiar: jugar como en IP3, reservar de nuevo en cada tick mientras el destino del otro difiere (barato) y lo ya discutido. Experimento: 14, 14 y 18 parejas de amigos; 0,009 ms por tick. Nota práctica: restaurar un archivo con `cp` en el disco exFAT puede no disparar la recompilación; para una prueba de mutación, compilar con `--no-incremental`.
+- Undécima ronda: si la visita termina mientras espera porque el otro se fue sin que se encontraran, también lo deja tranquilo un rato (`FreeWillRules.LeaveAlone`); jugar respeta esa marca (con la opción apagada nadie anota colonos, así que la huella no cambia); la evasión de rivales usa `IsActive`. Sin cambiar: jugar como en IP3, reservar de nuevo en cada tick mientras el destino del otro difiere (barato) y lo ya discutido. Experimento: 14, 14 y 18 parejas de amigos; 0,009 ms por tick.
+- Duodécima ronda, sin defectos de conducta: `SocialSystem.MetLately` y `PairCooldownTicks` en lugar de cuatro copias; `StillValid` vuelve a ser sólo una comprobación (dejar tranquilo al otro pasa a `JobSystem.GiveUpIfLeft`, al soltar el trabajo); el comentario de los formatos en `SaveGame.cs` llega hasta el 10. Sin cambiar lo ya discutido (costo por tick, jugar como en IP3, aviso de inactividad). L4 cerrado y `main` adelantado. Nota práctica: restaurar un archivo con `cp` en el disco exFAT puede no disparar la recompilación; para una prueba de mutación, compilar con `--no-incremental`.
 
 ### 2026-10-20: meta de comida por defecto en 600
 

@@ -16,7 +16,7 @@ public sealed partial class SocialSystem
         var world = simulation.World;
         var config = _rules.Config;
         var cell = world.Get<Position>(colonist).Cell;
-        var cooldown = (long)config.PairCooldownHours * simulation.Time.TicksPerHour;
+        var cooldown = PairCooldownTicks(simulation);
         foreach (var other in _colonists)
         {
             if (other == colonist || !world.IsAlive(other))
@@ -47,7 +47,15 @@ public sealed partial class SocialSystem
     /// can, and the two did not meet less than <paramref name="cooldown"/> ticks ago.
     /// </summary>
     internal static bool CanMeet(Simulation simulation, EntityId colonist, EntityId other, long cooldown) =>
-        CanInteract(simulation, other) && !Met(simulation, colonist, other, cooldown) && !Met(simulation, other, colonist, cooldown);
+        CanInteract(simulation, other) && !MetLately(simulation, colonist, other, cooldown);
+
+    /// <summary>Whether either of two colonists interacted with the other less than <paramref name="cooldown"/> ticks ago.</summary>
+    internal static bool MetLately(Simulation simulation, EntityId a, EntityId b, long cooldown) =>
+        Met(simulation, a, b, cooldown) || Met(simulation, b, a, cooldown);
+
+    /// <summary>The ticks two colonists wait before they interact again, from the config's hours.</summary>
+    internal static long PairCooldownTicks(Simulation simulation) =>
+        (long)Relationships.Config(simulation).PairCooldownHours * simulation.Time.TicksPerHour;
 
     /// <summary>Whether <paramref name="from"/> interacted with <paramref name="to"/> less than <paramref name="cooldown"/> ticks ago.</summary>
     internal static bool Met(Simulation simulation, EntityId from, EntityId to, long cooldown) =>

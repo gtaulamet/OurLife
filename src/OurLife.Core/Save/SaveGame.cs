@@ -32,7 +32,9 @@ public static class SaveGame
     /// personalities, format 3 (H3.3) skills and format 4 (H3.4) relations; format 5 (H3.5) only
     /// lacks thoughts, desires and crises, which start empty, and format 6 (H3.6) the skill of
     /// childcare, drawn as on arrival, and pregnancies, which start with none (see "Guardado y
-    /// migración" in <c>docs/gdd/vida-y-generaciones.md</c>).
+    /// migración" in <c>docs/gdd/vida-y-generaciones.md</c>). Format 7 (v0.3.0) gets the village
+    /// centre (IP3.5, <c>docs/gdd/libre-albedrio.md</c>); formats 8 (work on its own,
+    /// <c>Job.Initiative</c>) and 9 (keeping company, <c>JobKind.Visit</c>) need nothing.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

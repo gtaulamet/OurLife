@@ -127,7 +127,7 @@ public sealed partial class DecisionSystem
         var connectivity = simulation.Connectivity;
         var social = Relationships.Config(simulation);
         var from = world.Get<Position>(colonist).Cell;
-        var cooldown = (long)social.PairCooldownHours * simulation.Time.TicksPerHour;
+        var cooldown = SocialSystem.PairCooldownTicks(simulation);
         var onlyFamily = LifeRules.Stage(simulation, colonist)?.PlayRadius is not null;
         world.TryGet<Desires>(colonist, out var desires);
         var person = world.Get<Colonist>(colonist);
@@ -155,7 +155,7 @@ public sealed partial class DecisionSystem
                     : 0;
             // A weight of 0, as in the interactions, leaves one out.
             if (weight == 0 || IsIgnored(person, other, aim) || !FreeWillRules.CanVisit(simulation, colonist, other)
-                || SocialSystem.Met(simulation, colonist, other, cooldown) || SocialSystem.Met(simulation, other, colonist, cooldown)
+                || SocialSystem.MetLately(simulation, colonist, other, cooldown)
                 || !connectivity.AreConnected(from, aim)
                 || (world.TryGet<Job>(other, out var theirs) && theirs.Kind is JobKind.Visit or JobKind.Play && theirs.Target == colonist))
             {

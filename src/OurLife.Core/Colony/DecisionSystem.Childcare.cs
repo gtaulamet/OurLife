@@ -200,7 +200,7 @@ public sealed partial class DecisionSystem
         var world = simulation.World;
         var connectivity = simulation.Connectivity;
         var from = world.Get<Position>(colonist).Cell;
-        var cooldown = (long)Relationships.Config(simulation).PairCooldownHours * simulation.Time.TicksPerHour;
+        var cooldown = SocialSystem.PairCooldownTicks(simulation);
         _playmates.Clear();
         foreach (var other in _colonists)
         {
