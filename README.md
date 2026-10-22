@@ -94,7 +94,7 @@ El script, que necesita PowerShell 7.4 o posterior, exporta `OurLife.app`, le ag
 
 ## Exportar para Linux x86_64
 
-La versión para Linux de 64 bits (Intel y AMD) se exporta desde Windows. Hacen falta además `linux_release.x86_64` y `linux_debug.x86_64`, del mismo `.tpz` de las plantillas, en `%APPDATA%\Godot\export_templates.7.2.stable.mono`.
+La versión para Linux de 64 bits (Intel y AMD) se exporta desde Windows. Hacen falta además `linux_release.x86_64` y `linux_debug.x86_64`, del mismo `.tpz` de las plantillas, en `%APPDATA%\Godot\export_templates\4.7.2.stable.mono`.
 
 ```powershell
 ./tools/package-linux-x86_64.ps1
