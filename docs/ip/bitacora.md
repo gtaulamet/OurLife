@@ -46,7 +46,8 @@ En orden:
 
 - Rama `tools/linux-x86_64`, aparte de `ip4/o3-talleres`. Preset "Linux x86_64" en `game/export_presets.cfg` (S3TC/BPTC), `tools/package-linux-x86_64.ps1` y sección en el README. `Repair-UnixPermissions` pasa a `tools/common.ps1`, idéntica a la de `tools/linux-arm64` (que sigue sin integrar), y `package-macos.ps1` no se toca.
 - El código ya era portable: no hay rutas de Windows en Core ni en el juego, y la CI corre build y tests en Ubuntu en verde.
-- **Sin verificar:** falta la plantilla `linux_release.x86_64` (Godot reconoce el preset y se queja sólo de eso). Hay que instalarla del `.tpz` de 4.7.2 mono, correr el script y probar el smoke en una máquina Linux real.
+- Plantillas `linux_*.x86_64` instaladas y `./tools/package-linux-x86_64.ps1` corrido: `builds/OurLife-v0.3.5-linux-x86_64.zip` (66 MB) con `OurLife.x86_64` ejecutable, `.pck`, `data_OurLife_linuxbsd_x86_64`, `LICENSES.txt` y `CREDITS.md`.
+- **Sin verificar:** el smoke en Linux real (`./OurLife.x86_64 --headless -- --smoke --seed 42 --ticks 5000`, huella `1284D40F4588F8FE`); Docker Desktop estaba apagado.
 
 ### 2026-10-21: L5, integración y cierre de IP3.5
 
