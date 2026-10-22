@@ -38,6 +38,40 @@ public class SaveGameTests
         loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
     }
 
+    [Theory]
+    [InlineData(7UL)]
+    [InlineData(42UL)]
+    public void Saving_a_colony_with_piles_of_quality_and_freshness_halfway_gives_the_same_game_as_never_stopping(ulong seed)
+    {
+        var uninterrupted = NewColonyAtWork(seed);
+        var arrival = uninterrupted.World.Get<Position>(Colonists(uninterrupted)[0]).Cell;
+
+        // Piles of every quality and stale berries, loose near the stockpile: haulers lift, carry and store them as the game goes on.
+        ItemPiles.Drop(uninterrupted, "plank", 12, arrival with { X = arrival.X - 4 }, "good");
+        ItemPiles.Drop(uninterrupted, "plank", 7, arrival with { X = arrival.X - 3 }, "poor");
+        ItemPiles.Drop(uninterrupted, "berries", 30, arrival with { X = arrival.X - 5, Y = arrival.Y + 1 }, freshness: 3_000);
+        ItemPiles.Drop(uninterrupted, "berries", 30, arrival with { X = arrival.X - 5, Y = arrival.Y + 2 }, "good", 6_500);
+
+        uninterrupted.Run(400);
+        var output = new MemoryStream();
+        SaveGame.Write(output, uninterrupted, Info);
+        var loaded = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs);
+        ColonySystems.AddTo(loaded);
+
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
+        uninterrupted.Run(3_000);
+        loaded.Run(3_000);
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
+
+        // Nothing was lost or turned into another quality on the way: the planks of the arrival are normal.
+        Stocks.Count(loaded, "plank").ShouldBe(16 + 12 + 7);
+        Stocks.Count(loaded, "plank", "good").ShouldBe(12);
+        Stocks.Count(loaded, "plank", "normal").ShouldBe(16 + 12);
+        Stocks.Count(loaded, "plank", "poor").ShouldBe(35);
+        Stocks.Totals(loaded).Where(line => line.Item.Id == "plank").Select(line => (line.Quality, line.Count))
+            .ShouldBe([("poor", 7), (null, 16), ("good", 12)]);
+    }
+
     [Fact]
     public void A_saved_valley_is_small()
     {

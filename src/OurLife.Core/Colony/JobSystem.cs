@@ -190,7 +190,7 @@ public sealed class JobSystem : ISimSystem
 
             var carried = world.Get<Carried>(colonist);
             world.Remove<Carried>(colonist);
-            ItemPiles.Drop(simulation, carried.Def, carried.Count, world.Get<Position>(colonist).Cell);
+            ItemPiles.Drop(simulation, carried.Def, carried.Count, world.Get<Position>(colonist).Cell, carried.Quality, carried.Freshness);
             _storage.Invalidate();
             simulation.Events.Emit(new EntityChangedEvent(colonist));
         }
@@ -604,7 +604,7 @@ public sealed class JobSystem : ISimSystem
         var supplying = job.Kind == JobKind.Deliver;
         var wanted = supplying
             ? Construction.Needs(simulation, world.Get<Blueprint>(job.Recipient)).Missing
-            : Storage(simulation).SpaceFor(simulation, item, job.Destination);
+            : Storage(simulation).SpaceFor(simulation, item, stack.Quality, job.Destination);
         var count = Math.Min(stack.Count, wanted);
         if (count <= 0)
         {
@@ -634,9 +634,10 @@ public sealed class JobSystem : ISimSystem
             return true;
         }
 
+        var (quality, freshness) = (stack.Quality, stack.Freshness);
         ItemPiles.Take(simulation, job.Target, count);
         _storage.Invalidate();
-        world.Add(colonist, new Carried { Def = item, Count = count });
+        world.Add(colonist, new Carried { Def = item, Count = count, Quality = quality, Freshness = freshness });
         simulation.Events.Emit(new EntityChangedEvent(colonist));
         job.Stage = JobStage.Carrying;
         job.Cell = job.Destination;
@@ -692,13 +693,13 @@ public sealed class JobSystem : ISimSystem
         }
 
         var carried = world.Get<Carried>(colonist);
-        var count = Math.Min(carried.Count, Storage(simulation).SpaceFor(simulation, carried.Def, job.Destination));
+        var count = Math.Min(carried.Count, Storage(simulation).SpaceFor(simulation, carried.Def, carried.Quality, job.Destination));
         if (count == 0)
         {
             return true;
         }
 
-        ItemPiles.Drop(simulation, carried.Def, count, job.Destination);
+        ItemPiles.Drop(simulation, carried.Def, count, job.Destination, carried.Quality, carried.Freshness);
         _storage.Invalidate();
         carried.Count -= count;
         if (carried.Count == 0)
@@ -741,9 +742,10 @@ public sealed class JobSystem : ISimSystem
             return true;
         }
 
+        var (foodQuality, foodFreshness) = (stack.Quality, stack.Freshness);
         ItemPiles.Take(simulation, job.Target, count);
         _storage.Invalidate();
-        world.Add(colonist, new Carried { Def = item, Count = count });
+        world.Add(colonist, new Carried { Def = item, Count = count, Quality = foodQuality, Freshness = foodFreshness });
         simulation.Events.Emit(new EntityChangedEvent(colonist));
         job.Stage = JobStage.Carrying;
         job.Progress = 0;

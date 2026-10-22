@@ -168,9 +168,11 @@ public static class ColonyStart
     }
 
     /// <summary>
-    /// Gives the colonists of a game saved before H3.7 (format 6) the skills the content added
-    /// since, like childcare, each drawn between the levels of the founders, from the random stream
-    /// <c>life.migration</c> by ascending id and work type (ADR-013).
+    /// Gives the colonists of a game saved before H3.7 (format 6) or before the trades of IP4
+    /// (format 11) the skills the content added since, like childcare and the seven of the trades,
+    /// each drawn between the levels of the founders (without the bonus of one skill, which they
+    /// already got on arrival), from the random stream <c>life.migration</c> by ascending id and
+    /// work type (ADR-013). Their work priorities are the default one: only the others are saved.
     /// </summary>
     internal static void MigrateNewSkills(Simulation simulation)
     {

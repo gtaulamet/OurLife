@@ -61,7 +61,7 @@ public sealed partial class DecisionSystem : ISimSystem
     private readonly HashSet<EntityId> _hauledPiles = [];
 
     // Items with no stockpile cell to go to in this search, so the other piles of them are skipped.
-    private readonly HashSet<string> _noDestination = new(StringComparer.Ordinal);
+    private readonly HashSet<(string Item, string? Quality)> _noDestination = [];
 
     // Blueprints that lack materials and nobody supplies, by ascending id, with the item they lack;
     // and the items any of them lacks. Found when a work type with deliveries is searched.
@@ -692,7 +692,7 @@ public sealed partial class DecisionSystem : ISimSystem
                 world.Query<ItemStack, Position>(_entities);
                 foreach (var pile in _entities)
                 {
-                    if (!storage.IsStored(simulation, pile) && storage.AnyRoomFor(simulation, world.Get<ItemStack>(pile).Def))
+                    if (!storage.IsStored(simulation, pile) && storage.AnyRoomFor(simulation, world.Get<ItemStack>(pile).Def, world.Get<ItemStack>(pile).Quality))
                     {
                         AddEntity(simulation, kind, pile, capacity: 1);
                     }
@@ -982,9 +982,11 @@ public sealed partial class DecisionSystem : ISimSystem
         var storage = Storage(simulation);
         var map = simulation.Map;
         var connectivity = simulation.Connectivity;
-        var item = simulation.World.Get<ItemStack>(candidate.Target).Def;
+        var stack = simulation.World.Get<ItemStack>(candidate.Target);
+        var item = stack.Def;
+        var kind = (item, stack.Quality);
         destination = default;
-        if (_noDestination.Contains(item))
+        if (_noDestination.Contains(kind))
         {
             return false;
         }
@@ -995,7 +997,7 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             foreach (var cell in simulation.World.Get<Stockpile>(zone).Cells)
             {
-                if (cell == candidate.Cell || IsReserved(map, cell) || storage.SpaceFor(simulation, item, cell) == 0
+                if (cell == candidate.Cell || IsReserved(map, cell) || storage.SpaceFor(simulation, item, kind.Quality, cell) == 0
                     || connectivity.RegionAt(cell) != region || IsIgnored(person, EntityId.None, cell))
                 {
                     continue;
@@ -1012,7 +1014,7 @@ public sealed partial class DecisionSystem : ISimSystem
 
         if (best == int.MaxValue)
         {
-            _noDestination.Add(item);
+            _noDestination.Add(kind);
             return false;
         }
 

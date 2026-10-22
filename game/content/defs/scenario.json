@@ -11,6 +11,6 @@
     "founderSkillMax": 10,
     "founderSkillBonus": 4,
     "foundingCouple": { "count": 3, "minYears": 20, "maxYears": 30, "opinion": 70, "romance": 100 },
-    "items": [{ "item": "provisions", "count": 42 }]
+    "items": [{ "item": "provisions", "count": 42 }, { "item": "plank", "count": 16 }]
   }
 ]

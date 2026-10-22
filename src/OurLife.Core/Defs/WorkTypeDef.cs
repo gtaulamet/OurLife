@@ -17,7 +17,11 @@ public sealed class WorkTypeDef : Def
 
     public required int Order { get; init; }
 
-    /// <summary>Ids of the jobs of this type, like <c>mine</c> or <c>chop</c>.</summary>
+    /// <summary>
+    /// Ids of the jobs of this type, like <c>mine</c> or <c>chop</c>. Empty for the types of the
+    /// workshops (carpentry, cooking...): their one job, <c>craft</c>, takes its type from the
+    /// workshop (see "Habilidades de oficio" in <c>docs/gdd/oficios.md</c>).
+    /// </summary>
     public required IReadOnlyList<string> Jobs { get; init; }
 
     /// <summary>Light work, which colonists at a stage of life with <see cref="StageWork.Light"/> also do.</summary>
@@ -34,11 +38,6 @@ public sealed class WorkTypeDef : Def
         if (Order < 0)
         {
             yield return "order must be zero or positive.";
-        }
-
-        if (Jobs.Count == 0)
-        {
-            yield return "jobs cannot be empty.";
         }
 
         foreach (var job in Jobs.Where(job => !OrderJobs.Any(kind => JobKinds.Id(kind) == job)))

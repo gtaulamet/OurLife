@@ -206,5 +206,7 @@
   "ui.colony.target": "{category}: {count} de",
   "ui.colony.targets_help": "Cuánto quiere tener la aldea: escribe la meta y pulsa Enter. Con libre albedrío, los colonos juntan por su cuenta lo que falta, cerca de la aldea. Con 0, no lo juntan.",
   "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
-  "ui.sheet.skill_from": "{skill}, de {name}"
+  "ui.sheet.skill_from": "{skill}, de {name}",
+
+  "ui.quality.label": "{item} (calidad {quality})"
 }

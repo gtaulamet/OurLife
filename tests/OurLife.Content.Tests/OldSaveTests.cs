@@ -15,7 +15,9 @@ namespace OurLife.Content.Tests;
 /// in format 3, by H3.3, <c>h3.4.olsave</c> in format 4, by H3.4, <c>h3.5.olsave</c> in format 5,
 /// by H3.5, <c>h3.6.olsave</c> in format 6, by H3.6, <c>v0.3.0.olsave</c> in format 7, by v0.3.0,
 /// <c>l2.olsave</c> in format 8, by L2 of IP3.5, with free will on and a wood target of 70, and
-/// <c>l3.olsave</c> in format 9, by L3, the same with 20 500 ticks, while two gather on their own.
+/// <c>l3.olsave</c> in format 9, by L3, the same with 20 500 ticks, while two gather on their own,
+/// and <c>o2.olsave</c> in format 11, by the code of <c>main</c> before O2 of IP4 (the seven skills of
+/// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b.
 /// </summary>
 public class OldSaveTests
 {
@@ -29,6 +31,7 @@ public class OldSaveTests
     [InlineData("v0.3.0.olsave", 7, "0.3.0", 7, 20_000)]
     [InlineData("l2.olsave", 8, "0.3.5-dev", 7, 20_000)]
     [InlineData("l3.olsave", 9, "0.3.5-dev", 7, 20_500)]
+    [InlineData("o2.olsave", 11, "0.3.5-dev", 7, 20_500)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
@@ -83,6 +86,58 @@ public class OldSaveTests
         Colonists(simulation).Count.ShouldBe(7);
     }
 
+    [Fact]
+    public void A_game_of_format_11_gets_the_seven_skills_of_the_trades_like_a_founder_and_the_default_priorities()
+    {
+        var simulation = Load("o2.olsave", out _);
+        var trades = new[] { "carpentry", "stonecutting", "cooking", "farming", "research", "smelting", "smithing" };
+        var scenario = ColonyStart.TheOnlyScenario(GameContent.Defs);
+
+        var colonists = Colonists(simulation);
+        colonists.Count.ShouldBe(7);
+        foreach (var colonist in colonists)
+        {
+            var skills = simulation.World.Get<Skills>(colonist).Values;
+            skills.Count.ShouldBe(13);
+            skills.Select(skill => skill.WorkType).ShouldBe(skills.Select(skill => skill.WorkType).Order(StringComparer.Ordinal));
+            foreach (var trade in trades)
+            {
+                var skill = skills.Single(skill => skill.WorkType == trade);
+                skill.Level.ShouldBeInRange(scenario.FounderSkillMin, scenario.FounderSkillMax);
+                skill.Experience.ShouldBe(0);
+            }
+
+            // The priorities are kept only when they differ from the default one: the game had none.
+            simulation.World.Has<WorkPriorities>(colonist).ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public void A_game_of_format_11_has_no_planks_from_the_arrival_and_keeps_its_piles_as_they_were()
+    {
+        var simulation = Load("o2.olsave", out _);
+
+        Stocks.Count(simulation, "plank").ShouldBe(0);
+        var piles = new List<EntityId>();
+        simulation.World.Query<ItemStack>(piles);
+        piles.ShouldNotBeEmpty();
+        piles.Select(simulation.World.Get<ItemStack>).ShouldAllBe(stack => stack.Quality == null && stack.Freshness == null);
+    }
+
+    [Fact]
+    public void A_migrated_game_is_saved_in_the_new_format_and_loads_again_with_the_same_state()
+    {
+        var simulation = Load("o2.olsave", out _);
+        var output = new MemoryStream();
+        SaveGame.Write(output, simulation, new SaveInfo("old-game", IsAutosave: false, "test", DateTimeOffset.UnixEpoch));
+
+        var again = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs, out var header);
+
+        header.FormatVersion.ShouldBe(SaveGame.FormatVersion);
+        header.FormatVersion.ShouldBe(12);
+        again.ComputeStateHash().ShouldBe(simulation.ComputeStateHash());
+    }
+
     [Theory]
     [InlineData("v0.2.5.olsave")]
     [InlineData("h3.2.olsave")]
@@ -93,6 +148,7 @@ public class OldSaveTests
     [InlineData("v0.3.0.olsave")]
     [InlineData("l2.olsave")]
     [InlineData("l3.olsave")]
+    [InlineData("o2.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

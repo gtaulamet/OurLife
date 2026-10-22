@@ -16,7 +16,7 @@ internal static class ColonistDeath
             simulation.CurrentTick, ColonyText.Freeze(message, simulation.World), NotificationSeverity.Danger));
         if (simulation.World.TryGet<Carried>(colonist, out var carried))
         {
-            ItemPiles.Drop(simulation, carried.Def, carried.Count, simulation.World.Get<Position>(colonist).Cell);
+            ItemPiles.Drop(simulation, carried.Def, carried.Count, simulation.World.Get<Position>(colonist).Cell, carried.Quality, carried.Freshness);
         }
 
         Relationships.ForgetTheDead(simulation, colonist);

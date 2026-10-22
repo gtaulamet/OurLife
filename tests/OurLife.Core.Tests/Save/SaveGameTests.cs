@@ -204,6 +204,8 @@ public class SaveGameTests
     [InlineData(7)]
     [InlineData(8)]
     [InlineData(9)]
+    [InlineData(10)]
+    [InlineData(11)]
     public void A_game_of_an_older_format_gets_what_came_later_and_keeps_the_rest(int format)
     {
         var bed = BusyColony();
@@ -444,6 +446,97 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void Piles_and_loads_with_quality_and_freshness_survive_a_save_and_go_on_the_same()
+    {
+        var uninterrupted = BusyColony();
+        uninterrupted.Simulation.Run(200);
+        ItemPiles.Drop(uninterrupted.Simulation, "plank", 12, new TileCoord(10, 12, 1), "good");
+        ItemPiles.Drop(uninterrupted.Simulation, "berries", 9, new TileCoord(11, 12, 1), freshness: 3_333);
+        uninterrupted.World.Add(uninterrupted.Colonists()[0], new Carried { Def = "plank", Count = 3, Quality = "excellent" });
+
+        var loaded = Load(Save(uninterrupted.Simulation));
+
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.Simulation.ComputeStateHash());
+        var carried = loaded.World.Get<Carried>(uninterrupted.Colonists()[0]);
+        (carried.Def, carried.Count, carried.Quality).ShouldBe(("plank", 3, "excellent"));
+        uninterrupted.Simulation.Run(2_000);
+        loaded.Run(2_000);
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.Simulation.ComputeStateHash());
+    }
+
+    [Fact]
+    public void A_quality_and_a_freshness_are_written_only_when_they_are_not_the_default_ones()
+    {
+        var bed = BusyColony();
+        ItemPiles.Drop(bed.Simulation, "plank", 12, new TileCoord(10, 12, 1));
+        ItemPiles.Drop(bed.Simulation, "berries", 9, new TileCoord(11, 12, 1));
+        var plain = StateJson(Save(bed.Simulation));
+
+        ItemPiles.Drop(bed.Simulation, "plank", 5, new TileCoord(10, 13, 1), "good");
+        ItemPiles.Drop(bed.Simulation, "berries", 4, new TileCoord(11, 13, 1), freshness: 2_000);
+        var marked = StateJson(Save(bed.Simulation));
+
+        plain.ShouldNotContain("\"Quality\"");
+        plain.ShouldNotContain("\"Freshness\"");
+        marked.ShouldContain("\"Quality\":\"good\"");
+        marked.ShouldContain("\"Freshness\":2000");
+    }
+
+    [Fact]
+    public void A_pile_of_a_quality_the_content_lacks_is_named()
+    {
+        var bed = BusyColony();
+        ItemPiles.Drop(bed.Simulation, "plank", 5, new TileCoord(10, 13, 1), "good");
+        var file = Rewrite(Save(bed.Simulation), "state.json", json => json.Replace("\"Quality\":\"good\"", "\"Quality\":\"legendary\"", StringComparison.Ordinal));
+
+        var failure = LoadFails(file);
+
+        failure.Reason.ShouldBe(SaveLoadError.MissingContent);
+        failure.Message.ShouldContain("legendary");
+    }
+
+    [Fact]
+    public void A_game_of_format_11_gets_the_skills_it_lacks_drawn_like_a_founders_without_touching_the_others()
+    {
+        var bed = BusyColony();
+        bed.Simulation.Run(200);
+        var file = AsFormat(11, Save(bed.Simulation));
+        file = Rewrite(file, "state.json", json =>
+        {
+            var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            var skills = state["Components"]!.AsArray().Single(store => (string)store!["Type"]! == "skills")!["Entities"]!.AsArray();
+            foreach (var saved in skills)
+            {
+                var values = saved!["Value"]!["Values"]!.AsArray();
+                foreach (var skill in values.Where(skill => (string)skill!["WorkType"]! == "hauling").ToList())
+                {
+                    values.Remove(skill);
+                }
+            }
+
+            return state.ToJsonString();
+        });
+
+        var loaded = Load(file);
+
+        foreach (var colonist in bed.Colonists())
+        {
+            var migrated = loaded.World.Get<Skills>(colonist).Values;
+            var original = bed.World.Get<Skills>(colonist).Values;
+            migrated.Select(skill => skill.WorkType).ShouldBe(original.Select(skill => skill.WorkType));
+            migrated.Single(skill => skill.WorkType == "hauling").Level.ShouldBeInRange(3, 10);
+            migrated.Single(skill => skill.WorkType == "hauling").Experience.ShouldBe(0);
+            foreach (var skill in migrated.Where(skill => skill.WorkType != "hauling"))
+            {
+                skill.Level.ShouldBe(original.Single(other => other.WorkType == skill.WorkType).Level);
+            }
+        }
+
+        Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+        loaded.Random.Streams.Select(stream => stream.Key).ShouldContain("life.migration");
+    }
+
+    [Fact]
     public void Every_command_of_the_core_is_registered()
     {
         var commands = typeof(Simulation).Assembly.GetTypes()
@@ -619,6 +712,14 @@ public class SaveGameTests
 
             return state.ToJsonString();
         });
+    }
+
+    /// <summary>The text of the state of a saved game.</summary>
+    private static string StateJson(byte[] file)
+    {
+        using var archive = new ZipArchive(new MemoryStream(file), ZipArchiveMode.Read);
+        using var reader = new StreamReader(archive.GetEntry("state.json")!.Open());
+        return reader.ReadToEnd();
     }
 
     /// <summary>Changes the text of one entry of a saved game.</summary>

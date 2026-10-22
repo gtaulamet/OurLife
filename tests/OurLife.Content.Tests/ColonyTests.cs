@@ -80,7 +80,10 @@ public class ColonyTests
     {
         var skills = SkillRules.From(GameContent.Defs);
 
-        skills.WorkTypes.Select(type => type.Id).ShouldBe(new[] { "childcare", "construction", "gathering", "hauling", "mining", "woodcutting" });
+        skills.WorkTypes.Select(type => type.Id).ShouldBe(new[]
+        {
+            "carpentry", "childcare", "construction", "cooking", "farming", "gathering", "hauling", "mining", "research", "smelting", "smithing", "stonecutting", "woodcutting",
+        });
         skills.Config.MaxLevel.ShouldBe(20);
         GameContent.Defs.All<TraitDef>().Where(trait => trait.Experience is not null).Select(trait => trait.Id).ShouldBe(new[] { "intelligence" });
     }
@@ -133,11 +136,12 @@ public class ColonyTests
     }
 
     [Fact]
-    public void The_hud_shows_food_wood_and_stone_in_that_order()
+    public void The_stock_lists_food_wood_and_stone_first_and_then_the_categories_of_the_trades()
     {
         var simulation = new Simulation(1, GameContent.Defs);
 
-        ColonyStock.ByCategory(simulation).Select(line => line.Category.Id).ShouldBe(new[] { "food", "wood", "stone" });
+        ColonyStock.ByCategory(simulation).Select(line => line.Category.Id)
+            .ShouldBe(new[] { "food", "wood", "stone", "grain", "refined", "ore", "tool" });
     }
 
     [Fact]

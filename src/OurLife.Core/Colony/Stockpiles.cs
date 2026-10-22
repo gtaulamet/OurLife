@@ -205,8 +205,8 @@ public static class Stockpiles
 internal sealed class StorageIndex
 {
     private readonly Dictionary<int, EntityId> _zoneByCell = [];
-    private readonly Dictionary<int, (EntityId Pile, string Item, int Count, bool Extra)> _loadByCell = [];
-    private readonly Dictionary<string, bool> _roomByItem = new(StringComparer.Ordinal);
+    private readonly Dictionary<int, (EntityId Pile, string Item, string? Quality, int Count, bool Extra)> _loadByCell = [];
+    private readonly Dictionary<(string Item, string? Quality), bool> _roomByKind = [];
     private readonly List<EntityId> _entities = [];
     private long _builtTick = -1;
 
@@ -234,7 +234,7 @@ internal sealed class StorageIndex
         var size = simulation.Map.Size;
         _zoneByCell.Clear();
         _loadByCell.Clear();
-        _roomByItem.Clear();
+        _roomByKind.Clear();
         world.Query<Stockpile>(Zones);
         foreach (var zone in Zones)
         {
@@ -263,7 +263,7 @@ internal sealed class StorageIndex
             var stack = world.Get<ItemStack>(pile);
             _loadByCell[index] = _loadByCell.TryGetValue(index, out var load)
                 ? load with { Extra = true }
-                : (pile, stack.Def, stack.Count, false);
+                : (pile, stack.Def, stack.Quality, stack.Count, false);
         }
     }
 
@@ -280,10 +280,11 @@ internal sealed class StorageIndex
     }
 
     /// <summary>
-    /// Units of the item that still fit on a zone cell; 0 off the zones, where the item is not
-    /// accepted, off a usable floor, or on a cell with another item or a loose pile on it.
+    /// Units of the item of a quality that still fit on a zone cell; 0 off the zones, where the item
+    /// is not accepted, off a usable floor, or on a cell with another item or quality, or a loose
+    /// pile, on it: a cell keeps one pile of one item and one quality.
     /// </summary>
-    public int SpaceFor(Simulation simulation, string item, TileCoord cell)
+    public int SpaceFor(Simulation simulation, string item, string? quality, TileCoord cell)
     {
         if (!Usable(simulation, cell, item))
         {
@@ -296,17 +297,17 @@ internal sealed class StorageIndex
             return limit;
         }
 
-        return load.Item == item && !load.Extra ? Math.Max(0, limit - load.Count) : 0;
+        return load.Item == item && load.Quality == quality && !load.Extra ? Math.Max(0, limit - load.Count) : 0;
     }
 
     /// <summary>A zone cell that accepts the item and is still a free flat floor, as stockpiles are made of.</summary>
     private bool Usable(Simulation simulation, TileCoord cell, string item) =>
         Accepts(simulation, cell, item) && simulation.Map.ShapeAt(cell) == TileShape.Floor && simulation.Map.IsStandable(cell);
 
-    /// <summary>Some zone cell has room for the item, reserved or not: a quick way to skip piles with nowhere to go.</summary>
-    public bool AnyRoomFor(Simulation simulation, string item)
+    /// <summary>Some zone cell has room for the item of a quality, reserved or not: a quick way to skip piles with nowhere to go.</summary>
+    public bool AnyRoomFor(Simulation simulation, string item, string? quality)
     {
-        if (_roomByItem.TryGetValue(item, out var room))
+        if (_roomByKind.TryGetValue((item, quality), out var room))
         {
             return room;
         }
@@ -316,7 +317,7 @@ internal sealed class StorageIndex
         {
             foreach (var cell in simulation.World.Get<Stockpile>(zone).Cells)
             {
-                if (SpaceFor(simulation, item, cell) > 0)
+                if (SpaceFor(simulation, item, quality, cell) > 0)
                 {
                     room = true;
                     break;
@@ -329,7 +330,7 @@ internal sealed class StorageIndex
             }
         }
 
-        _roomByItem[item] = room;
+        _roomByKind[(item, quality)] = room;
         return room;
     }
 

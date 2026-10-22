@@ -169,11 +169,45 @@ public class DefLoaderTests
     [InlineData("""[{ "type": "Interaction", "id": "chat", "initiatorStages": ["toddler"], "receiverStages": ["toddler"], "weight": 60 }]""", "stages points to 'toddler'")]
     [InlineData("""[{ "type": "Interaction", "id": "chat", "initiatorStages": [], "receiverStages": [], "weight": 60, "opinion": { "min": 3, "max": 1 } }]""", "min <= max")]
     [InlineData("""[{ "type": "PersonalityConfig", "id": "p", "rolls": 3, "inheritedPercent": 50, "maxDriftPerDay": 3, "orientations": { "opposite": 1, "same": 0, "both": 0 }, "words": [{ "upTo": 50, "word": "low" }] }]""", "words need bands going up to 100")]
+    [InlineData("""[{ "type": "Item", "id": "bread", "category": "food", "kind": "food", "visual": "item.bread", "stackLimit": 50, "nutrition": 800, "spoilDays": -1 }]""", "spoilDays must be zero or positive")]
+    [InlineData("""[{ "type": "Item", "id": "plank", "category": "wood", "kind": "raw", "visual": "item.plank", "stackLimit": 25, "meal": true }]""", "only food can be a meal")]
+    [InlineData("""[{ "type": "Item", "id": "bread", "category": "food", "kind": "food", "visual": "item.bread", "stackLimit": 50, "nutrition": 800, "reserveValue": 800 }]""", "only for what is not food")]
+    [InlineData("""[{ "type": "Item", "id": "iron_axe", "category": "misc", "kind": "raw", "visual": "item.iron_axe", "stackLimit": 5, "tool": { "workType": "woodcutting", "speedPercent": 30 } }, { "type": "WorkType", "id": "woodcutting", "order": 0, "jobs": ["chop"] }]""", "a stackLimit of 1")]
+    [InlineData("""[{ "type": "Item", "id": "iron_axe", "category": "misc", "kind": "raw", "visual": "item.iron_axe", "stackLimit": 1, "tool": { "workType": "woodcutting", "speedPercent": 0 } }, { "type": "WorkType", "id": "woodcutting", "order": 0, "jobs": ["chop"] }]""", "positive speedPercent")]
+    [InlineData("""[{ "type": "Item", "id": "iron_axe", "category": "misc", "kind": "raw", "visual": "item.iron_axe", "stackLimit": 1, "tool": { "workType": "juggling", "speedPercent": 30 } }]""", "tool.workType points to 'juggling'")]
+    [InlineData("""[{ "type": "Quality", "id": "poor", "order": 0, "below": 0, "valuePercent": 75, "comfortPercent": 90 }]""", "below must be positive")]
+    [InlineData("""[{ "type": "Quality", "id": "poor", "order": 0, "below": 30, "valuePercent": 0, "comfortPercent": 90 }]""", "valuePercent and comfortPercent must be positive")]
+    [InlineData("""[{ "type": "QualityConfig", "id": "q", "defaultQuality": "normal", "die": 100, "perLevel": 3 }]""", "defaultQuality points to 'normal'")]
+    [InlineData("""[{ "type": "Quality", "id": "normal", "order": 1, "below": 100, "valuePercent": 100, "comfortPercent": 100 }, { "type": "QualityConfig", "id": "q", "defaultQuality": "normal", "die": 0, "perLevel": 3 }]""", "die must be at least 1")]
     public void Invalid_content_is_rejected_with_a_clear_message(string json, string expectedFragment)
     {
         var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));
 
         error.Message.ShouldContain(expectedFragment);
+    }
+
+    [Fact]
+    public void A_work_type_of_the_workshops_has_no_jobs_of_its_own()
+    {
+        var defs = TestContent.WithDefs("""[{ "type": "WorkType", "id": "carpentry", "order": 6, "jobs": [], "skill": true }]""");
+
+        defs.Get<WorkTypeDef>("carpentry").Jobs.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_tool_names_the_work_it_speeds_up()
+    {
+        var defs = TestContent.WithDefs("""
+            [
+              { "type": "WorkType", "id": "woodcutting", "order": 2, "jobs": ["chop"], "skill": true },
+              { "type": "Item", "id": "iron_axe", "category": "misc", "kind": "raw", "visual": "item.iron_axe", "stackLimit": 1, "tool": { "workType": "woodcutting", "speedPercent": 30 } },
+              { "type": "Item", "id": "wheat", "category": "misc", "kind": "raw", "visual": "item.wheat", "stackLimit": 75, "spoilDays": 200, "reserveValue": 800 }
+            ]
+            """);
+
+        defs.Get<ItemDef>("iron_axe").Tool.ShouldNotBeNull().SpeedPercent.ShouldBe(30);
+        defs.Get<ItemDef>("wheat").ReserveValue.ShouldBe(800);
+        defs.Get<ItemDef>("wheat").SpoilDays.ShouldBe(200);
     }
 
     [Fact]

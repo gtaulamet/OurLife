@@ -619,9 +619,9 @@ public static class Construction
             }
 
             var stack = world.Get<ItemStack>(pile);
-            var (item, count) = (stack.Def, stack.Count);
+            var (item, count, quality, freshness) = (stack.Def, stack.Count, stack.Quality, stack.Freshness);
             ItemPiles.Take(simulation, pile, count);
-            ItemPiles.Drop(simulation, item, count, to);
+            ItemPiles.Drop(simulation, item, count, to, quality, freshness);
         }
     }
 

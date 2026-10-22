@@ -1,0 +1,8 @@
+[
+  { "type": "QualityConfig", "id": "default", "defaultQuality": "normal", "die": 100, "perLevel": 3 },
+  { "type": "Quality", "id": "poor", "order": 0, "below": 30, "valuePercent": 75, "comfortPercent": 90 },
+  { "type": "Quality", "id": "normal", "order": 1, "below": 100, "valuePercent": 100, "comfortPercent": 100 },
+  { "type": "Quality", "id": "good", "order": 2, "below": 130, "valuePercent": 120, "comfortPercent": 110 },
+  { "type": "Quality", "id": "excellent", "order": 3, "below": 150, "valuePercent": 150, "comfortPercent": 120 },
+  { "type": "Quality", "id": "masterwork", "order": 4, "below": 9999, "valuePercent": 200, "comfortPercent": 130 }
+]

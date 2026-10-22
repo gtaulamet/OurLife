@@ -28,5 +28,7 @@
     "minedItemChance": 2500
   },
   { "type": "Material", "id": "timber", "kind": "wood", "color": "#7E5531", "mineWorkTicks": 150, "builtFrom": "log" },
-  { "type": "Material", "id": "masonry", "kind": "stone", "color": "#9E9A92", "mineWorkTicks": 150, "builtFrom": "stone" }
+  { "type": "Material", "id": "masonry", "kind": "stone", "color": "#9E9A92", "mineWorkTicks": 150, "builtFrom": "stone" },
+  { "type": "Material", "id": "planks", "kind": "wood", "color": "#A57A4B", "mineWorkTicks": 150, "builtFrom": "plank" },
+  { "type": "Material", "id": "ashlar", "kind": "stone", "color": "#B5B0A6", "mineWorkTicks": 150, "builtFrom": "stone_block" }
 ]

@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 11;
+    public const int FormatVersion = 12;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -35,7 +35,10 @@ public static class SaveGame
     /// migración" in <c>docs/gdd/vida-y-generaciones.md</c>). Format 7 (v0.3.0) gets the village
     /// centre (IP3.5, <c>docs/gdd/libre-albedrio.md</c>); formats 9 (work on its
     /// own, <c>Job.Initiative</c>), 10 (keeping company, <c>JobKind.Visit</c>) and 11 (saplings,
-    /// <c>Sapling</c>) need nothing.
+    /// <c>Sapling</c>) need nothing. Format 12 (O2 of IP4, <c>docs/gdd/oficios.md</c>) adds the
+    /// quality and freshness of piles, written only when they are not the default ones, and the seven skills
+    /// of the trades, which a game of a lower format gets drawn as the childcare skill was (see
+    /// <see cref="ColonyStart.MigrateNewSkills"/>); their priorities are the default one.
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -149,7 +152,7 @@ public static class SaveGame
                 ColonyStart.MigrateRelations(simulation);
             }
 
-            if (header.FormatVersion <= 6)
+            if (header.FormatVersion <= 11)
             {
                 ColonyStart.MigrateNewSkills(simulation);
             }
