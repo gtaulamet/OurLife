@@ -92,6 +92,22 @@ El script, que necesita PowerShell 7.4 o posterior, exporta `OurLife.app`, le ag
 - Smoke: `./OurLife.app/Contents/MacOS/OurLife --headless -- --smoke --seed 42 --ticks 5000`. Tiene que terminar con `[smoke] OK` y dar la misma huella que en Windows (la que figura en `docs/ip/bitacora.md`).
 - El juego guarda sus preferencias y partidas en `~/Library/Application Support/OurLife`.
 
+## Exportar para Linux x86_64
+
+La versión para Linux de 64 bits (Intel y AMD) se exporta desde Windows. Hacen falta además `linux_release.x86_64` y `linux_debug.x86_64`, del mismo `.tpz` de las plantillas, en `%APPDATA%\Godot\export_templates.7.2.stable.mono`.
+
+```powershell
+./tools/package-linux-x86_64.ps1
+```
+
+El script, que necesita PowerShell 7.4 o posterior, exporta a `builds/linux-x86_64`, agrega `LICENSES.txt` y `CREDITS.md`, arma `builds/OurLife-v<versión>-linux-x86_64.zip` y marca el ejecutable como ejecutable dentro del zip. Las texturas van en S3TC/BPTC, como en Windows. No puede correr el smoke: eso se hace en Linux.
+
+**En Linux:**
+
+- Hace falta un escritorio con OpenGL 3.3 o superior (driver de Mesa o el propietario de NVIDIA).
+- Smoke: `./OurLife.x86_64 --headless -- --smoke --seed 42 --ticks 5000`. Tiene que terminar con `[smoke] OK` y dar la misma huella que en Windows (la que figura en `docs/ip/bitacora.md`).
+- El juego guarda sus preferencias y partidas en `~/.local/share/OurLife`.
+
 ## Medir el rendimiento
 
 ```powershell

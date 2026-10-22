@@ -42,6 +42,12 @@ En orden:
 
 ## Historial
 
+### 2026-10-22: compatibilidad con Linux x86_64
+
+- Rama `tools/linux-x86_64`, aparte de `ip4/o3-talleres`. Preset "Linux x86_64" en `game/export_presets.cfg` (S3TC/BPTC), `tools/package-linux-x86_64.ps1` y sección en el README. `Repair-UnixPermissions` pasa a `tools/common.ps1`, idéntica a la de `tools/linux-arm64` (que sigue sin integrar), y `package-macos.ps1` no se toca.
+- El código ya era portable: no hay rutas de Windows en Core ni en el juego, y la CI corre build y tests en Ubuntu en verde.
+- **Sin verificar:** falta la plantilla `linux_release.x86_64` (Godot reconoce el preset y se queja sólo de eso). Hay que instalarla del `.tpz` de 4.7.2 mono, correr el script y probar el smoke en una máquina Linux real.
+
 ### 2026-10-21: L5, integración y cierre de IP3.5
 
 - Rama `ip3.5/l5-integracion`. Experimento de diez años con libre albedrío y sin órdenes, semillas 1, 7 y 42: sin muertes por hambre, 0,04 ms por tick, pero con la meta de comida en 600 nadie nace (la reserva para concebir son unas 360 bayas por colono). Con 3000, un nacimiento por semilla y la aldea llega a 8; con 6000, la semilla 7 se extinguió (vacían los arbustos). Decisión del usuario: meta de comida por defecto **3000** (`free_will.json`). Test lento nuevo en `BalanceTests` (diez años solos, sin hambre y con un hijo).
