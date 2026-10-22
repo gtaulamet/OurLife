@@ -44,6 +44,9 @@ public partial class Hud : CanvasLayer
     private Label _date = null!;
     private Label _level = null!;
     private readonly List<(ItemCategoryDef Category, Label Label)> _stock = [];
+
+    // The categories the bar always shows, even with none: the colony's first needs.
+    private static readonly string[] AlwaysShownStock = ["food", "wood", "stone"];
     private Label _fps = null!;
     private Control _fpsPanel = null!;
     private double _sinceFps;
@@ -75,6 +78,9 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Whether the frames per second show, for the smoke.</summary>
     public bool ShowsFps => _fpsPanel.Visible && _fps.Text.Length > 0;
+
+    /// <summary>The lines of the stock that are on the bar now, for the smoke.</summary>
+    public IEnumerable<string> ShownStockTexts => _stock.Where(entry => entry.Label.Visible).Select(entry => entry.Label.Text);
 
     /// <summary>The lines of the stock as the player reads them, for the smoke.</summary>
     public IEnumerable<string> StockTexts => _stock.Select(entry => entry.Label.Text);
@@ -542,6 +548,9 @@ public partial class Hud : CanvasLayer
         for (var i = 0; i < _stock.Count; i++)
         {
             _stock[i].Label.Text = StockText(_stock[i].Category, stock[i].Count);
+
+            // The categories that came with the trades only show once the colony has some, so the bar is not full of zeros.
+            _stock[i].Label.Visible = stock[i].Count > 0 || AlwaysShownStock.Contains(_stock[i].Category.Id);
         }
     }
 

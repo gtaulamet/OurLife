@@ -42,6 +42,10 @@ public partial class ColonyPanel : PanelContainer
     private readonly Dictionary<string, int> _pendingTargets = new(StringComparer.Ordinal);
     private long _pendingTick = -1;
     private double _sinceRefresh;
+    private ScrollContainer _scroll = null!;
+
+    // Room the panel leaves at the sides of the canvas: the margin of the HUD on each side.
+    private const float SideMargin = 12;
 
     public static ColonyPanel Create(GameServices services, GameSession session, GameInput input)
     {
@@ -64,13 +68,37 @@ public partial class ColonyPanel : PanelContainer
         panel._grid = new GridContainer();
         panel._grid.AddThemeConstantOverride("h_separation", 6);
         panel._grid.AddThemeConstantOverride("v_separation", 4);
-        column.AddChild(panel._grid);
+
+        // Thirteen work types are wider than a canvas of 960: the table scrolls sideways, and the
+        // scroll is as wide as the table or the room there is, whichever is less (FitScroll).
+        panel._scroll = new ScrollContainer
+        {
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        panel._scroll.AddChild(panel._grid);
+        column.AddChild(panel._scroll);
         column.AddChild(new Label { Text = "ui.colony.help", AutowrapMode = TextServer.AutowrapMode.WordSmart, CustomMinimumSize = new Vector2(480, 0) });
         var targets = new HBoxContainer();
         targets.AddThemeConstantOverride("separation", 18);
         column.AddChild(targets);
         panel.BuildTargets(targets);
         return panel;
+    }
+
+    /// <summary>How many work-type columns the table has, for the smoke.</summary>
+    public int WorkColumns => _grid.Columns - 4;
+
+    /// <summary>
+    /// Whether the table fits the canvas as it is, either whole or scrolling sideways: the scroll
+    /// is no wider than the canvas and, when it is narrower than the table, shows its scrollbar. For the smoke.
+    /// </summary>
+    public bool TableFits()
+    {
+        FitScroll();
+        var table = _grid.GetCombinedMinimumSize().X;
+        var canvas = GetViewportRect().Size.X;
+        return _scroll.CustomMinimumSize.X <= canvas && (_scroll.CustomMinimumSize.X >= table || _scroll.HorizontalScrollMode == ScrollContainer.ScrollMode.Auto);
     }
 
     /// <summary>The lines of the stock targets as the player reads them, for the smoke.</summary>
@@ -178,6 +206,7 @@ public partial class ColonyPanel : PanelContainer
         }
 
         _sinceRefresh += delta;
+        FitScroll();
         if (_sinceRefresh < RefreshSeconds)
         {
             return;
@@ -280,6 +309,26 @@ public partial class ColonyPanel : PanelContainer
         FixTargetWidths();
         RefreshRows();
         RefreshTargets();
+        FitScroll();
+    }
+
+    /// <summary>
+    /// The table's scroll gets the width of the table when it fits the canvas, or what is left of
+    /// the canvas when it does not, so the panel never goes past the screen (960 × 540 and every
+    /// size of the interface). The scrollbar's room is added to the height, so no row is covered.
+    /// </summary>
+    private void FitScroll()
+    {
+        var chrome = GetThemeStylebox("panel").GetMinimumSize().X;
+        var room = Mathf.Max(0, GetViewportRect().Size.X - (2 * SideMargin) - chrome);
+        var table = _grid.GetCombinedMinimumSize();
+        var width = Mathf.Min(table.X, room);
+        var height = table.Y + (table.X > room ? _scroll.GetHScrollBar().GetCombinedMinimumSize().Y : 0);
+        var size = new Vector2(Mathf.Ceil(width), Mathf.Ceil(height));
+        if (!_scroll.CustomMinimumSize.IsEqualApprox(size))
+        {
+            _scroll.CustomMinimumSize = size;
+        }
     }
 
     /// <summary>

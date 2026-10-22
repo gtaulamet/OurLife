@@ -27,6 +27,7 @@ public partial class InspectorPanel : PanelContainer
     private readonly List<EntityId> _entities = [];
     private GameServices _services = null!;
     private Simulation _simulation = null!;
+    private QualityRules _quality = null!;
     private Label _text = null!;
     private VBoxContainer _filters = null!;
     private Button _sheet = null!;
@@ -46,7 +47,7 @@ public partial class InspectorPanel : PanelContainer
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(simulation);
         ArgumentNullException.ThrowIfNull(enqueue);
-        var panel = new InspectorPanel { Name = nameof(InspectorPanel), _services = services, _simulation = simulation, _enqueue = enqueue, Visible = false };
+        var panel = new InspectorPanel { Name = nameof(InspectorPanel), _services = services, _simulation = simulation, _quality = QualityRules.From(simulation.Content), _enqueue = enqueue, Visible = false };
         panel.CustomMinimumSize = new Vector2(320, 0);
         var column = new VBoxContainer();
         panel.AddChild(column);
@@ -229,6 +230,13 @@ public partial class InspectorPanel : PanelContainer
             else if (world.TryGet<ItemStack>(entity, out var stack))
             {
                 var item = NameOf(_simulation.Content.Get<ItemDef>(stack.Def), stack.Count);
+
+                // Only a quality other than the usual one is worth a word (docs/gdd/oficios.md).
+                if (stack.Quality is { } quality && quality != _quality.Default.Id)
+                {
+                    item = text.Format("ui.quality.label", ("item", item), ("quality", NameOf(_simulation.Content.Get<QualityDef>(quality))));
+                }
+
                 _lines.Add(text.Format("ui.inspector.items", ("count", stack.Count), ("item", item)));
             }
             else if (world.TryGet<Furniture>(entity, out var furniture))

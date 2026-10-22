@@ -957,7 +957,13 @@ public partial class GameRoot : Node
             throw new InvalidOperationException($"the HUD shows the stock as [{string.Join(" | ", stockTexts)}]");
         }
 
-        GD.Print($"[smoke] stock in the HUD: {string.Join(", ", stockTexts)}");
+        var shownStock = screen.Hud.ShownStockTexts.Count();
+        if (shownStock < 3 || shownStock > stockTexts.Count || (stock.Count(line => line.Count > 0) > 3 && shownStock <= 3))
+        {
+            throw new InvalidOperationException($"the HUD shows {shownStock} of {stockTexts.Count} stock lines");
+        }
+
+        GD.Print($"[smoke] stock in the HUD: {string.Join(", ", screen.Hud.ShownStockTexts)} ({shownStock} of {stockTexts.Count} categories shown)");
         var showFps = _services.Settings.ShowFps;
         _services.Settings.SetShowFps(true, save: false);
         var shown = screen.Hud.ShowsFps;
@@ -1018,6 +1024,13 @@ public partial class GameRoot : Node
         // The colony panel, with a row per colonist and its priorities.
         screen.Hud.Colony.Toggle();
         screen.Advance(10);
+        var workTypes = ColonyRules.From(screen.Session.Simulation.Content).WorkTypes.Count;
+        if (screen.Hud.Colony.WorkColumns != workTypes || workTypes < 13 || !screen.Hud.Colony.TableFits())
+        {
+            throw new InvalidOperationException($"the colony panel has {screen.Hud.Colony.WorkColumns} work columns for {workTypes} work types, fits: {screen.Hud.Colony.TableFits()}");
+        }
+
+        GD.Print($"[smoke] the colony panel has {workTypes} work columns and scrolls within the canvas");
         CheckFreeWill(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
