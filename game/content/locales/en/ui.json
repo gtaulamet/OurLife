@@ -208,5 +208,6 @@
   "ui.sheet.thought_many": "{thought} (×{count}): {mood}",
   "ui.sheet.skill_from": "{skill}, from {name}",
 
-  "ui.quality.label": "{item} ({quality} quality)"
+  "ui.quality.label": "{item} ({quality} quality)",
+  "job.craft.report": "Working at a workshop"
 }

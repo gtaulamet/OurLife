@@ -186,6 +186,32 @@ public sealed partial class DefDatabase
             }
         }
 
+        // A workshop works with a work type of workshops, and a recipe is made at a workshop.
+        var workTypes = byType.TryGetValue(typeof(WorkTypeDef), out var workTypeDefs)
+            ? workTypeDefs.Values.Cast<WorkTypeDef>().ToDictionary(workType => workType.Id, StringComparer.Ordinal)
+            : [];
+        var buildables = byType.TryGetValue(typeof(BuildableDef), out var allBuildables)
+            ? allBuildables.Values.Cast<BuildableDef>().ToDictionary(buildable => buildable.Id, StringComparer.Ordinal)
+            : [];
+        foreach (var buildable in buildables.Values)
+        {
+            if (buildable.Workstation is { } station && workTypes.TryGetValue(station.WorkType, out var stationType) && !stationType.Workshop)
+            {
+                errors.Add($"{Describe(buildable)}: workstation.workType '{station.WorkType}' is not a work type of workshops (workshop: true).");
+            }
+        }
+
+        if (byType.TryGetValue(typeof(RecipeDef), out var recipeDefs))
+        {
+            foreach (var recipe in recipeDefs.Values.Cast<RecipeDef>())
+            {
+                if (buildables.TryGetValue(recipe.Workshop, out var workshop) && workshop.Workstation is null)
+                {
+                    errors.Add($"{Describe(recipe)}: workshop '{recipe.Workshop}' is not a workshop (it has no workstation).");
+                }
+            }
+        }
+
         if (errors.Count > 0)
         {
             throw new DefValidationException(errors);

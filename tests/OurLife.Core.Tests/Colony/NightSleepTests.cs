@@ -129,6 +129,7 @@ public class NightSleepTests
             DeconstructRefundPercent = ai.DeconstructRefundPercent,
             DefaultWorkPriority = ai.DefaultWorkPriority,
             IdleAlertHours = ai.IdleAlertHours,
+            CraftFetchRadius = ai.CraftFetchRadius,
         };
 
         config.IsNight(hour).ShouldBe(night);

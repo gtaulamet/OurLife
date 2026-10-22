@@ -1,0 +1,16 @@
+[
+  { "type": "Recipe", "id": "plank", "era": "medieval", "requires": ["carpentry"], "workshop": "carpenter_bench",
+    "inputs": [{ "item": "log", "count": 1 }], "outputs": [{ "item": "plank", "count": 2 }], "workTicks": 90, "order": 0 },
+  { "type": "Recipe", "id": "handle", "era": "medieval", "requires": ["carpentry"], "workshop": "carpenter_bench",
+    "inputs": [{ "item": "plank", "count": 1 }], "outputs": [{ "item": "handle", "count": 2 }], "workTicks": 60, "order": 1 },
+  { "type": "Recipe", "id": "stone_block", "era": "medieval", "requires": ["stonecutting"], "workshop": "mason_bench",
+    "inputs": [{ "item": "stone", "count": 1 }], "outputs": [{ "item": "stone_block", "count": 1 }], "workTicks": 90, "order": 0 },
+  { "type": "Recipe", "id": "flour", "era": "medieval", "requires": ["milling"], "workshop": "kitchen",
+    "inputs": [{ "item": "wheat", "count": 2 }], "outputs": [{ "item": "flour", "count": 2 }], "workTicks": 90, "order": 0 },
+  { "type": "Recipe", "id": "bread", "era": "medieval", "requires": ["milling"], "workshop": "kitchen",
+    "inputs": [{ "item": "flour", "count": 2 }], "outputs": [{ "item": "bread", "count": 3 }], "workTicks": 150, "order": 1 },
+  { "type": "Recipe", "id": "pottage", "era": "medieval", "requires": ["cooking"], "workshop": "kitchen",
+    "inputs": [{ "item": "cabbage", "count": 2 }, { "item": "peas", "count": 1 }], "outputs": [{ "item": "pottage", "count": 2 }], "workTicks": 120, "order": 2 },
+  { "type": "Recipe", "id": "pickled_cabbage", "era": "medieval", "requires": ["food_preservation"], "workshop": "kitchen",
+    "inputs": [{ "item": "cabbage", "count": 3 }], "outputs": [{ "item": "pickled_cabbage", "count": 3 }], "workTicks": 100, "order": 3 }
+]

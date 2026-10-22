@@ -1,0 +1,8 @@
+[
+  { "type": "Knowledge", "id": "carpentry", "era": "medieval" },
+  { "type": "Knowledge", "id": "cooking", "era": "medieval" },
+  { "type": "Knowledge", "id": "stonecutting", "era": "medieval" },
+  { "type": "Knowledge", "id": "joinery", "era": "medieval", "requires": ["carpentry"] },
+  { "type": "Knowledge", "id": "milling", "era": "medieval", "requires": ["cooking"] },
+  { "type": "Knowledge", "id": "food_preservation", "era": "medieval", "requires": ["cooking"] }
+]

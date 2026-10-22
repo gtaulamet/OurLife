@@ -44,6 +44,8 @@ public static class SaveTypes
         Component<Desires>("desires");
         Component<Crisis>("crisis");
         Component<Pregnancy>("pregnancy");
+        Component<Workshop>("workshop");
+        Component<WorkOrder>("work_order");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");
@@ -52,6 +54,8 @@ public static class SaveTypes
         Command<SetChildrenAllowedCommand>("set_children_allowed");
         Command<SetFreeWillCommand>("set_free_will");
         Command<SetStockTargetCommand>("set_stock_target");
+        Command<CreateWorkOrderCommand>("create_work_order");
+        Command<RemoveWorkOrderCommand>("remove_work_order");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

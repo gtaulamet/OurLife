@@ -36,6 +36,7 @@ internal static class DefTypes
         ("InitiativeTask", typeof(InitiativeTaskDef), null),
         ("Quality", typeof(QualityDef), "quality"),
         ("QualityConfig", typeof(QualityConfigDef), null),
+        ("Recipe", typeof(RecipeDef), "recipe"),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

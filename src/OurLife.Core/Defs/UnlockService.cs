@@ -37,4 +37,15 @@ public sealed class UnlockService
 
         return true;
     }
+
+    /// <summary>
+    /// The knowledge a def requires that the colony does not have yet, in the order the def lists
+    /// it: what the panels say is missing. Empty when only the era is what blocks the def.
+    /// </summary>
+    public IReadOnlyList<string> Missing(Def def, ProgressState progress)
+    {
+        ArgumentNullException.ThrowIfNull(def);
+        ArgumentNullException.ThrowIfNull(progress);
+        return [.. def.Requires.Where(knowledge => !progress.Knowledge.Contains(knowledge))];
+    }
 }

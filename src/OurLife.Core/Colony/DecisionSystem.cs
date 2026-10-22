@@ -201,15 +201,16 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             ReserveCell(map, job.Destination);
         }
-        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft)
         {
+            // A crafter holds its workshop: one colonist at a time works at it.
             _entityUses[job.Recipient] = _entityUses.GetValueOrDefault(job.Recipient) + 1;
         }
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
             _entityUses[held] = _entityUses.GetValueOrDefault(held) + UsesOf(job);
-            if (job.Kind is JobKind.Haul or JobKind.Deliver)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.Craft)
             {
                 _hauledPiles.Add(held);
             }
@@ -235,14 +236,14 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             UnreserveCell(map, job.Destination);
         }
-        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft)
         {
             ReleaseEntity(job.Recipient);
         }
 
         if (HeldEntity(job) is { IsNone: false } held)
         {
-            if (job.Kind is JobKind.Haul or JobKind.Deliver)
+            if (job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.Craft)
             {
                 _hauledPiles.Remove(held);
             }
@@ -358,11 +359,11 @@ public sealed partial class DecisionSystem : ISimSystem
     }
 
     /// <summary>
-    /// The entity a job holds: none for a hauler, deliverer or feeder that already lifted its load,
-    /// which leaves the rest of the pile free.
+    /// The entity a job holds: none for a hauler, deliverer, feeder or crafter that already lifted its
+    /// load, which leaves the rest of the pile free; a crafter at work holds no pile either.
     /// </summary>
     private static EntityId HeldEntity(Job job) =>
-        job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
+        job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
 
     /// <summary>
     /// A colonist with a job drops it only for something more urgent. It checks every
@@ -620,7 +621,11 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             for (var type = 0; type < types; type++)
             {
-                if (_priorities[type] == priority && TryWorkType(simulation, colonist, _rules.WorkJobs[type]))
+                // The one job of a workshop's work type is crafting, which takes its orders from the workshops.
+                if (_priorities[type] == priority
+                    && (_rules.WorkTypes[type].Workshop
+                        ? TryCraft(simulation, colonist, _rules.WorkTypes[type])
+                        : TryWorkType(simulation, colonist, _rules.WorkJobs[type])))
                 {
                     return true;
                 }

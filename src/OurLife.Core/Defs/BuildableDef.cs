@@ -16,6 +16,16 @@ public enum BuildShape
 }
 
 /// <summary>
+/// What makes a piece of furniture a workshop (see "Talleres" in <c>docs/gdd/oficios.md</c>): the
+/// work type of whoever works at it, which gives the skill and the priority of the work.
+/// </summary>
+public sealed class BuildableWorkstation
+{
+    /// <summary>Id of the <see cref="WorkTypeDef"/> of the work done here, one that is of a workshop.</summary>
+    public required string WorkType { get; init; }
+}
+
+/// <summary>
 /// Something colonists build from a blueprint: a wall, a floor, a door, a ramp, stairs, or a piece
 /// of furniture.
 /// </summary>
@@ -55,11 +65,24 @@ public sealed class BuildableDef : Def
     /// <summary>The furniture is a chest: a stockpile of one cell.</summary>
     public bool Storage { get; init; }
 
+    /// <summary>
+    /// Set for a workshop: furniture where colonists make what the <see cref="RecipeDef"/>s of
+    /// this buildable say. Null for the rest.
+    /// </summary>
+    public BuildableWorkstation? Workstation { get; init; }
+
+    /// <summary>What the furniture adds to the beauty of its room, before the multiplier of its quality; negative for a workshop.</summary>
+    public int Beauty { get; init; }
+
     public bool IsFurniture => Shape == BuildShape.Furniture;
+
+    /// <summary>Whether the quality of the builder is rolled for what is built: furniture other than a workshop.</summary>
+    public bool HasQuality => IsFurniture && Workstation is null;
 
     internal override IEnumerable<DefReference> References() =>
         Materials.Select(material => new DefReference(typeof(MaterialDef), material, "materials"))
-            .Concat(ForStages.Select(stage => new DefReference(typeof(LifeStageDef), stage, "forStages")));
+            .Concat(ForStages.Select(stage => new DefReference(typeof(LifeStageDef), stage, "forStages")))
+            .Append(new DefReference(typeof(WorkTypeDef), Workstation?.WorkType, "workstation.workType"));
 
     internal override IEnumerable<string> Validate()
     {
@@ -106,6 +129,16 @@ public sealed class BuildableDef : Def
         if (RestRecoveryPercent is not null && Storage)
         {
             yield return "a piece of furniture is a bed or a chest, not both.";
+        }
+
+        if (Workstation is not null && (!IsFurniture || RestRecoveryPercent is not null || Storage))
+        {
+            yield return "only furniture that is neither a bed nor a chest can be a workshop (workstation).";
+        }
+
+        if (Beauty != 0 && !IsFurniture)
+        {
+            yield return "only furniture has beauty.";
         }
     }
 }

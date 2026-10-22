@@ -43,9 +43,17 @@ public sealed class ScenarioDef : Def
     /// <summary>Items left at the arrival point.</summary>
     public IReadOnlyList<ItemCount> Items { get; init; } = [];
 
+    /// <summary>Ids of the <see cref="KnowledgeDef"/>s the colony knows on arrival (see <c>docs/gdd/conocimientos.md</c>).</summary>
+    public IReadOnlyList<string> StartingKnowledge { get; init; } = [];
+
     internal override IEnumerable<DefReference> References()
     {
         yield return new DefReference(typeof(CreatureDef), Creature, "creature");
+        foreach (var knowledge in StartingKnowledge)
+        {
+            yield return new DefReference(typeof(KnowledgeDef), knowledge, "startingKnowledge");
+        }
+
         foreach (var item in Items)
         {
             yield return new DefReference(typeof(ItemDef), item.Item, "items.item");

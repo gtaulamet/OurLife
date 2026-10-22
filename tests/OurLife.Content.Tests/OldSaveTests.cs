@@ -17,7 +17,10 @@ namespace OurLife.Content.Tests;
 /// <c>l2.olsave</c> in format 8, by L2 of IP3.5, with free will on and a wood target of 70, and
 /// <c>l3.olsave</c> in format 9, by L3, the same with 20 500 ticks, while two gather on their own,
 /// and <c>o2.olsave</c> in format 11, by the code of <c>main</c> before O2 of IP4 (the seven skills of
-/// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b.
+/// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b, and <c>o3.olsave</c>
+/// in format 12, by the code of <c>main</c> before O3 of IP4 (workshops, recipes and furniture of
+/// planks): seed 7, 20 500 ticks, free will on, a stockpile, every tree near the arrival ordered
+/// down and a bed of timber built from the logs.
 /// </summary>
 public class OldSaveTests
 {
@@ -32,6 +35,7 @@ public class OldSaveTests
     [InlineData("l2.olsave", 8, "0.3.5-dev", 7, 20_000)]
     [InlineData("l3.olsave", 9, "0.3.5-dev", 7, 20_500)]
     [InlineData("o2.olsave", 11, "0.3.5-dev", 7, 20_500)]
+    [InlineData("o3.olsave", 12, "0.3.5-dev", 7, 20_500)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
@@ -125,16 +129,37 @@ public class OldSaveTests
     }
 
     [Fact]
+    public void A_game_of_format_12_keeps_its_bed_of_timber_and_needs_nothing_for_workshops()
+    {
+        var simulation = Load("o3.olsave", out _);
+        var world = simulation.World;
+
+        // The furniture of timber of the old content still works, with the default quality, which is not written.
+        var beds = new List<EntityId>();
+        world.Query<Bed>(beds);
+        beds.Count.ShouldBe(1);
+        var furniture = world.Get<Furniture>(beds[0]);
+        (furniture.Buildable, furniture.Material, furniture.Quality).ShouldBe(("bed", "timber", null));
+
+        // There was nothing of workshops: no workshops, no production orders, no knowledge from the migration.
+        world.Store<Workshop>().Count.ShouldBe(0);
+        world.Store<WorkOrder>().Count.ShouldBe(0);
+        simulation.Progress.Knowledge.ShouldBeEmpty();
+        simulation.Run(3_000);
+        Colonists(simulation).Count.ShouldBe(7);
+    }
+
+    [Fact]
     public void A_migrated_game_is_saved_in_the_new_format_and_loads_again_with_the_same_state()
     {
-        var simulation = Load("o2.olsave", out _);
+        var simulation = Load("o3.olsave", out _);
         var output = new MemoryStream();
         SaveGame.Write(output, simulation, new SaveInfo("old-game", IsAutosave: false, "test", DateTimeOffset.UnixEpoch));
 
         var again = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs, out var header);
 
         header.FormatVersion.ShouldBe(SaveGame.FormatVersion);
-        header.FormatVersion.ShouldBe(12);
+        header.FormatVersion.ShouldBe(13);
         again.ComputeStateHash().ShouldBe(simulation.ComputeStateHash());
     }
 
@@ -149,6 +174,7 @@ public class OldSaveTests
     [InlineData("l2.olsave")]
     [InlineData("l3.olsave")]
     [InlineData("o2.olsave")]
+    [InlineData("o3.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

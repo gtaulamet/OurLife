@@ -9,7 +9,8 @@ namespace OurLife.Core.Colony;
 /// <summary>
 /// Places blueprints of a buildable, of one of its materials, on the valid cells of a box, corners
 /// included; only on its border if the buildable is drawn as an outline. Unknown defs, or a
-/// material the buildable does not allow, are ignored. <paramref name="Rotation"/> turns furniture
+/// material the buildable does not allow, are ignored, and so is what the colony does not know yet
+/// to build (<see cref="UnlockService"/>): the Core decides, not the build bar. <paramref name="Rotation"/> turns furniture
 /// by quarters (see <c>docs/gdd/muebles-y-camas.md</c>).
 /// </summary>
 public sealed record PlaceBlueprintCommand(
@@ -22,7 +23,9 @@ public sealed record PlaceBlueprintCommand(
     public void Apply(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        if (!simulation.Content.TryGet<BuildableDef>(Buildable, out var buildable) || !buildable.Materials.Contains(Material))
+        if (!simulation.Content.TryGet<BuildableDef>(Buildable, out var buildable) || !buildable.Materials.Contains(Material)
+            || !simulation.Unlocks.IsUnlocked(buildable, simulation.Progress)
+            || !simulation.Unlocks.IsUnlocked(simulation.Content.Get<MaterialDef>(Material), simulation.Progress))
         {
             return;
         }
@@ -323,9 +326,10 @@ public static class Construction
 
     /// <summary>
     /// Finishes a blueprint: the cell takes its shape and material, loses its grass, and piles left
-    /// on a cell nobody can stand on any more fall on the builder's.
+    /// on a cell nobody can stand on any more fall on the builder's. A piece of furniture gets the
+    /// quality that the builder (<c>builderEntity</c>, if any) rolls with the skill of construction.
     /// </summary>
-    internal static void Finish(Simulation simulation, EntityId blueprint, TileCoord builder)
+    internal static void Finish(Simulation simulation, EntityId blueprint, TileCoord builder, EntityId builderEntity = default)
     {
         var world = simulation.World;
         var map = simulation.Map;
@@ -337,7 +341,7 @@ public static class Construction
         Remove(simulation, blueprint, dropDelivered: false);
         if (buildable.IsFurniture)
         {
-            AddFurniture(simulation, buildable, plan, cell);
+            AddFurniture(simulation, buildable, plan, cell, builderEntity);
             return;
         }
 
@@ -480,14 +484,19 @@ public static class Construction
     /// A finished piece of furniture on the cell: a bed starts free, and a chest is a stockpile of
     /// its cell that accepts every category.
     /// </summary>
-    private static void AddFurniture(Simulation simulation, BuildableDef buildable, Blueprint plan, TileCoord cell)
+    private static void AddFurniture(Simulation simulation, BuildableDef buildable, Blueprint plan, TileCoord cell, EntityId builder)
     {
         var world = simulation.World;
         var map = simulation.Map;
         map.SetFlags(cell.X, cell.Y, cell.Z, map.FlagsAt(cell) | TileFlags.Furniture);
         var piece = world.CreateEntity();
         world.Add(piece, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
-        world.Add(piece, new Furniture { Buildable = buildable.Id, Material = plan.Material, Rotation = plan.Rotation });
+        world.Add(piece, new Furniture { Buildable = buildable.Id, Material = plan.Material, Rotation = plan.Rotation, Quality = RollQuality(simulation, buildable, builder) });
+        if (buildable.Workstation is not null)
+        {
+            world.Add(piece, new Workshop());
+        }
+
         if (buildable.RestRecoveryPercent is not null)
         {
             world.Add(piece, new Bed());
@@ -504,6 +513,28 @@ public static class Construction
         }
 
         simulation.Events.Emit(new EntitySpawnedEvent(piece));
+    }
+
+    /// <summary>
+    /// The quality of a piece of furniture just built: what the builder rolls with its skill of
+    /// construction, stored (null for the default one). A workshop has none, nor does a piece built
+    /// by nobody (a test or a migration), nor content without qualities.
+    /// </summary>
+    private static string? RollQuality(Simulation simulation, BuildableDef buildable, EntityId builder)
+    {
+        if (!buildable.HasQuality || builder.IsNone || !simulation.World.IsAlive(builder) || simulation.Content.All<QualityConfigDef>().Count != 1)
+        {
+            return null;
+        }
+
+        var construction = simulation.Content.All<WorkTypeDef>().FirstOrDefault(type => type.Jobs.Contains(JobKinds.Id(JobKind.Build)));
+        if (construction is null)
+        {
+            return null;
+        }
+
+        var rules = QualityRules.From(simulation.Content);
+        return rules.Store(rules.Roll(simulation, builder, construction.Id).Id);
     }
 
     /// <summary>
@@ -525,6 +556,13 @@ public static class Construction
         }
         var item = simulation.Content.Get<MaterialDef>(furniture.Material).BuiltFrom!;
         var wasChest = world.Has<Stockpile>(piece);
+
+        // The ingredients delivered to a workshop are not lost with it.
+        if (world.Has<Workshop>(piece))
+        {
+            Crafting.ReleaseInputs(simulation, piece);
+        }
+
         simulation.Events.Emit(new EntityRemovedEvent(piece));
         world.DestroyEntity(piece);
         if (wasChest)
@@ -560,7 +598,7 @@ public static class Construction
     }
 
     /// <summary>The cell if it can be stood on, or else its first standable neighbour on the level; the cell itself if there is none.</summary>
-    private static TileCoord StandableNear(GameMap map, TileCoord cell)
+    internal static TileCoord StandableNear(GameMap map, TileCoord cell)
     {
         if (map.IsStandable(cell))
         {

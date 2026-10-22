@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 
@@ -36,6 +37,15 @@ public sealed class Furniture
 
     /// <summary>Quarter turns, from 0 to 3; only the presentation uses them.</summary>
     public int Rotation { get; set; }
+
+    /// <summary>
+    /// Id of its <see cref="QualityDef"/>, rolled by whoever finished building it with the skill of
+    /// construction; null for the default quality, and then not written, so furniture of a game
+    /// from before it is saved as it was.
+    /// </summary>
+    [DefRef(typeof(QualityDef))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Quality { get; set; }
 }
 
 /// <summary>A bed and the colonist it belongs to; none, or a colonist no longer alive, means it is free.</summary>

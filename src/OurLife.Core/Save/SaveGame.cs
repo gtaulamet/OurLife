@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 12;
+    public const int FormatVersion = 13;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -38,7 +38,10 @@ public static class SaveGame
     /// <c>Sapling</c>) need nothing. Format 12 (O2 of IP4, <c>docs/gdd/oficios.md</c>) adds the
     /// quality and freshness of piles, written only when they are not the default ones, and the seven skills
     /// of the trades, which a game of a lower format gets drawn as the childcare skill was (see
-    /// <see cref="ColonyStart.MigrateNewSkills"/>); their priorities are the default one.
+    /// <see cref="ColonyStart.MigrateNewSkills"/>); their priorities are the default one. Format 13
+    /// (O3, workshops and recipes) adds the components <c>Workshop</c> (with the ingredients delivered
+    /// to it) and <c>WorkOrder</c>, the quality of furniture (<c>Furniture.Quality</c>, written only
+    /// when it is not the default one) and the job <c>Craft</c>: a game of format 12 needs nothing.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

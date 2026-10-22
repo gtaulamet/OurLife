@@ -72,6 +72,50 @@ public class SaveGameTests
             .ShouldBe([("poor", 7), (null, 16), ("good", 12)]);
     }
 
+    [Theory]
+    [InlineData(7UL)]
+    [InlineData(42UL)]
+    public void Saving_a_colony_with_a_workshop_in_use_and_orders_halfway_gives_the_same_game_as_never_stopping(ulong seed)
+    {
+        var uninterrupted = NewColonyAtWork(seed);
+        var arrival = uninterrupted.World.Get<Position>(Colonists(uninterrupted)[0]).Cell;
+
+        // The arrival brings 16 planks: a carpenter's bench, a bed and a table of planks, and orders for planks and handles.
+        var (from, to) = (new TileCoord(arrival.X + 1, arrival.Y - 6, arrival.Z), new TileCoord(arrival.X + 6, arrival.Y + 6, arrival.Z));
+        var bench = GameContent.Defs.Get<BuildableDef>("carpenter_bench");
+        var cells = Construction.CellsToPlan(uninterrupted, bench, from, to);
+        cells.Count.ShouldBeGreaterThan(2);
+        uninterrupted.Commands.Enqueue(new PlaceBlueprintCommand("carpenter_bench", "planks", cells[0], cells[0]));
+        uninterrupted.Commands.Enqueue(new PlaceBlueprintCommand("bed", "planks", cells[^1], cells[^1]));
+        uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Count, 20));
+        uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("handle", WorkOrderMode.Count, 4));
+
+        // Until the workshop holds delivered ingredients: the save catches a craft under way.
+        var world = uninterrupted.World;
+        var shops = new List<Core.Ecs.EntityId>();
+        for (var tick = 0; tick < 10_000 && !shops.Any(shop => world.Get<Workshop>(shop).Inputs.Count > 0); tick += 10)
+        {
+            uninterrupted.Run(10);
+            world.Query<Workshop>(shops);
+        }
+
+        shops.Count.ShouldBe(1);
+        world.Get<Workshop>(shops[0]).Inputs.ShouldNotBeEmpty();
+        world.Store<WorkOrder>().Count.ShouldBe(2);
+        var output = new MemoryStream();
+        SaveGame.Write(output, uninterrupted, Info);
+        var loaded = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs);
+        ColonySystems.AddTo(loaded);
+
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
+        uninterrupted.Run(10_000);
+        loaded.Run(10_000);
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
+        var orders = new List<Core.Ecs.EntityId>();
+        loaded.World.Query<WorkOrder>(orders);
+        orders.Select(order => loaded.World.Get<WorkOrder>(order).Done).Sum().ShouldBeGreaterThan(0);
+    }
+
     [Fact]
     public void A_saved_valley_is_small()
     {

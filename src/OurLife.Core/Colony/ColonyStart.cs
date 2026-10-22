@@ -105,6 +105,11 @@ public static class ColonyStart
             ItemPiles.Drop(simulation, item.Item, item.Count, arrival);
         }
 
+        foreach (var knowledge in scenario.StartingKnowledge)
+        {
+            simulation.Progress.Learn(knowledge);
+        }
+
         // Named once the colony is there: a failure above leaves the simulation as it was.
         simulation.ColonyName = colonyName;
         simulation.LifePace = lifePace ?? life.DefaultPace.Id;

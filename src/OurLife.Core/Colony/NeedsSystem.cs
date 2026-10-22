@@ -86,6 +86,8 @@ public sealed class NeedsSystem : ISimSystem
             return 100;
         }
 
-        return simulation.Content.Get<BuildableDef>(furniture.Buildable).RestRecoveryPercent ?? 100;
+        // The comfort of the bed's quality scales its rest recovery (see "Calidad" in docs/gdd/oficios.md).
+        var percent = simulation.Content.Get<BuildableDef>(furniture.Buildable).RestRecoveryPercent ?? 100;
+        return furniture.Quality is null ? percent : percent * QualityRules.From(simulation.Content).Of(furniture.Quality).ComfortPercent / 100;
     }
 }

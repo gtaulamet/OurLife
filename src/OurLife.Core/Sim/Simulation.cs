@@ -26,6 +26,7 @@ public sealed class Simulation
         Calendar = new Calendar(content.Time);
         Random = new RngStreams(seed);
         Progress = new ProgressState(content.FirstEra.Id);
+        Unlocks = new UnlockService(content);
     }
 
     public ulong Seed { get; }
@@ -65,6 +66,9 @@ public sealed class Simulation
 
     /// <summary>Current era and known knowledge of the colony.</summary>
     public ProgressState Progress { get; }
+
+    /// <summary>Whether content is available to the colony: its era and its knowledge (ADR-008).</summary>
+    public UnlockService Unlocks { get; }
 
     public Calendar Calendar { get; }
 

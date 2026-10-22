@@ -70,7 +70,7 @@ public static class ItemPiles
     public static int Average(int countA, int freshnessA, int countB, int freshnessB) =>
         (int)((((long)countA * freshnessA) + ((long)countB * freshnessB)) / Math.Max(1, countA + countB));
 
-    private static int? AsStored(int freshness) => freshness >= ItemStack.FullFreshness ? null : freshness;
+    internal static int? AsStored(int freshness) => freshness >= ItemStack.FullFreshness ? null : freshness;
 
     /// <summary>Takes one unit from a pile, which disappears when it runs out.</summary>
     public static void TakeOne(Simulation simulation, EntityId pile) => Take(simulation, pile, 1);

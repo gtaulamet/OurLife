@@ -13,7 +13,7 @@ namespace OurLife.Core.Colony;
 /// in <c>docs/gdd/colonos-e-ia.md</c>). A job that no longer makes sense is dropped, and an order
 /// that lost its meaning is cleared.
 /// </summary>
-public sealed class JobSystem : ISimSystem
+public sealed partial class JobSystem : ISimSystem
 {
     private const string RandomStream = "colony.jobs";
 
@@ -25,6 +25,13 @@ public sealed class JobSystem : ISimSystem
     private readonly List<EntityId> _blueprints = [];
     private readonly List<EntityId> _occupants = [];
     private int? _blueprintsCheckedAt;
+
+    // The simulation of the tick in progress, for the predicate that tells which piles are in use.
+    private Simulation? _current;
+    private Predicate<EntityId>? _pileInUse;
+    private readonly List<EntityId> _pileUsers = [];
+    private readonly List<EntityId> _piles = [];
+    private readonly List<EntityId> _workshops = [];
 
     // Whether this tick falls in the night of the AiConfig; set at the start of each tick.
     private bool _night;
@@ -62,9 +69,15 @@ public sealed class JobSystem : ISimSystem
     {
         ArgumentNullException.ThrowIfNull(simulation);
         _night = _rules.Ai.IsNight(simulation.CurrentDate.Hour);
+        _current = simulation;
         var world = simulation.World;
         RemoveSenselessBlueprints(simulation);
         DropLoadsOfOtherJobs(simulation);
+        if (simulation.CurrentTick % simulation.Time.TicksPerHour == 0)
+        {
+            ReleaseStaleInputs(simulation);
+        }
+
         world.Query<Job, Position>(_colonists);
         foreach (var colonist in _colonists)
         {
@@ -77,8 +90,8 @@ public sealed class JobSystem : ISimSystem
             }
 
             // Carrying for the player is the work of hauling, of supplying a building and of feeding a baby.
-            var workType = _rules.WorkTypeOf(job);
-            if (workType is not null && job.Stage == JobStage.Carrying)
+            var workType = job.Kind == JobKind.Craft ? CraftWorkType(simulation, job) : _rules.WorkTypeOf(job);
+            if (workType is not null && job.Stage == JobStage.Carrying && job.Kind != JobKind.Craft)
             {
                 _rules.Skills.Gain(simulation, colonist, workType, 1);
             }
@@ -90,7 +103,7 @@ public sealed class JobSystem : ISimSystem
 
             if (job.Stage == JobStage.Moving)
             {
-                if (!WorkSites.IsSite(simulation.Map, job.Kind, job.Cell, world.Get<Position>(colonist).Cell))
+                if (!WorkSites.IsSite(simulation.Map, SiteKind(job), job.Cell, world.Get<Position>(colonist).Cell))
                 {
                     Drop(world, colonist);
                     continue;
@@ -182,7 +195,7 @@ public sealed class JobSystem : ISimSystem
         world.Query<Carried, Position>(_carriers);
         foreach (var colonist in _carriers)
         {
-            if (world.TryGet<Job>(colonist, out var job) && job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby
+            if (world.TryGet<Job>(colonist, out var job) && job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft
                 && job.Stage == JobStage.Carrying)
             {
                 continue;
@@ -245,6 +258,8 @@ public sealed class JobSystem : ISimSystem
                 }
 
                 return job.Stage != JobStage.Working || FreeWillRules.WillBeNear(simulation, colonist, job.Target);
+            case JobKind.Craft:
+                return IsCraftValid(simulation, job);
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -357,6 +372,8 @@ public sealed class JobSystem : ISimSystem
                 return job.Stage == JobStage.Carrying ? Supply(simulation, colonist, job) : PickUp(simulation, colonist, job);
             case JobKind.Build:
                 return Build(simulation, colonist, job, speed);
+            case JobKind.Craft:
+                return Craft(simulation, colonist, job, workType, speed);
             case JobKind.Deconstruct:
                 return Deconstruct(simulation, colonist, job, speed);
             case JobKind.Channel:
@@ -397,7 +414,7 @@ public sealed class JobSystem : ISimSystem
             return false;
         }
 
-        Construction.Finish(simulation, job.Target, world.Get<Position>(colonist).Cell);
+        Construction.Finish(simulation, job.Target, world.Get<Position>(colonist).Cell, colonist);
         _storage.Invalidate();
         return true;
     }
@@ -478,7 +495,8 @@ public sealed class JobSystem : ISimSystem
     /// <summary>Whether the job is work for the player, which goes at the speed of the worker.</summary>
     private static bool IsWork(Job job) => job.Kind switch
     {
-        JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct or JobKind.FeedBaby => true,
+        JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct or JobKind.FeedBaby
+            or JobKind.Craft => true,
         JobKind.Harvest => !job.ForFood,
         _ => false,
     };

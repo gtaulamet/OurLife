@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Map;
 
@@ -41,6 +42,12 @@ public enum JobKind
     /// social con intención" in <c>docs/gdd/libre-albedrio.md</c>).
     /// </summary>
     Visit,
+
+    /// <summary>
+    /// Making a recipe at a workshop: fetching the ingredients it lacks, then working (see "El
+    /// trabajo craft" in <c>docs/gdd/oficios.md</c>). Its work type is the one of the workshop.
+    /// </summary>
+    Craft,
 }
 
 public enum JobStage
@@ -92,7 +99,7 @@ public sealed class Job
     /// <summary>For hauling, the stockpile cell where the load goes; for delivering, the blueprint's cell.</summary>
     public TileCoord Destination { get; set; }
 
-    /// <summary>For delivering, the blueprint the materials go to; for feeding, the baby.</summary>
+    /// <summary>For delivering, the blueprint the materials go to; for feeding, the baby; for crafting, the workshop.</summary>
     public EntityId Recipient { get; set; }
 
     /// <summary>
@@ -100,6 +107,15 @@ public sealed class Job
     /// company, the times the visitor followed the other to a new place.
     /// </summary>
     public int Count { get; set; }
+
+    /// <summary>For crafting, the recipe being made; the job keeps going if its order is removed.</summary>
+    [DefRef(typeof(RecipeDef))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Recipe { get; set; }
+
+    /// <summary>For crafting, the production order that asked for it, which gets what is made; none if it is gone.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public EntityId Order { get; set; }
 }
 
 public static class JobKinds
@@ -122,6 +138,7 @@ public static class JobKinds
         JobKind.FeedBaby => "feed_baby",
         JobKind.Play => "play",
         JobKind.Visit => "visit",
+        JobKind.Craft => "craft",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

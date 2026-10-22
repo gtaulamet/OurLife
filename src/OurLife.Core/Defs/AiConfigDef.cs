@@ -39,6 +39,12 @@ public sealed class AiConfigDef : Def
     /// <summary>Hours a colonist wanders with nothing to do before the player is told.</summary>
     public required int IdleAlertHours { get; init; }
 
+    /// <summary>
+    /// Farthest from a workshop, in cells, a pile can be for a colonist to fetch it as an
+    /// ingredient (see "El trabajo craft" in <c>docs/gdd/oficios.md</c>).
+    /// </summary>
+    public required int CraftFetchRadius { get; init; }
+
     /// <summary>True from <see cref="NightStartHour"/> until just before <see cref="NightEndHour"/>.</summary>
     public bool IsNight(int hour) =>
         NightStartHour < NightEndHour
@@ -94,6 +100,11 @@ public sealed class AiConfigDef : Def
         if (IdleAlertHours <= 0)
         {
             yield return "idleAlertHours must be positive.";
+        }
+
+        if (CraftFetchRadius <= 0)
+        {
+            yield return "craftFetchRadius must be positive.";
         }
     }
 }
