@@ -2,17 +2,17 @@
 
 **Objetivo.** Que la aldea produzca: talleres con recetas y calidad según la habilidad, órdenes de producción, conocimientos que se investigan en un scriptorium o se ganan trabajando, campos con siembra y cosecha, comida cocinada que se pudre, minerales bajo tierra que se descubren al cavar, herramientas de hierro y casas con calidad, dormitorios asignados y comedor. Al terminar, una aldea puede ir de talar un tronco a forjar un hacha, de sembrar trigo a hornear pan y de dormir en el suelo a darle a cada familia una casa digna.
 
-**Origen.** Es la IP4 del plan maestro (antes IP3; pasó a IP4 el 15 de octubre de 2026, cuando la vida de los colonos se adelantó). Junta lo que el plan reservó para esta IP: talleres, recetas, calidad, órdenes de producción, árbol de conocimientos medieval (el gancho de `docs/gdd/eras.md`, unas 10 h), agricultura, deterioro, vetas y niebla, paneles y las habitaciones y el comedor de la antigua IP4. También cobra lo que IP3.5 dejó para esta IP: el lugar de reunión (fogón y mesas) y sembrar árboles a pedido. Usa las habilidades de IP3 y los pensamientos y el ánimo de IP3. Spec de contrato en `docs/gdd/oficios.md` y sus cuatro hermanas. Decisiones del usuario: por cerrar (ver "Decisiones a cerrar en O1").
+**Origen.** Es la IP4 del plan maestro (antes IP3; pasó a IP4 el 15 de octubre de 2026, cuando la vida de los colonos se adelantó). Junta lo que el plan reservó para esta IP: talleres, recetas, calidad, órdenes de producción, árbol de conocimientos medieval (el gancho de `docs/gdd/eras.md`, unas 10 h), agricultura, deterioro, vetas y niebla, paneles y las habitaciones y el comedor de la antigua IP4. También cobra lo que IP3.5 dejó para esta IP: el lugar de reunión (fogón y mesas) y sembrar árboles a pedido. Usa las habilidades de IP3 y los pensamientos y el ánimo de IP3. Spec de contrato en `docs/gdd/oficios.md` y sus cuatro hermanas. Decisiones del usuario: las ocho de O1 aprobadas el 22 de octubre de 2026, con la recomendación del diseñador en cada una.
 
 **Estimación:** 105 a 130 h. **Versión al cerrar:** `v0.4.0`, para Windows y macOS.
 
-**Estado:** en planificación desde el 21 de octubre de 2026 (O1 en curso, rama `ip4/o1-spec`).
+**Estado:** en curso desde el 22 de octubre de 2026 (O1 hecho, sigue O2).
 
 ## Estado de los hitos
 
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
-| O1 Spec y contrato | En curso | `ip4/o1-spec` | Specs en `docs/gdd/oficios.md`, `conocimientos.md`, `agricultura.md`, `habitaciones.md` y `subsuelo.md`; pendiente de aprobación con ocho decisiones |
+| O1 Spec y contrato | Hecho | `ip4/o1-spec` | Specs en `docs/gdd/oficios.md`, `conocimientos.md`, `agricultura.md`, `habitaciones.md` y `subsuelo.md`; aprobadas por el usuario el 22 de octubre de 2026, con las ocho decisiones como se recomendaron |
 | O2 Calidad y habilidades de oficio | Pendiente | `ip4/o2-calidad` | |
 | O3 Talleres y recetas | Pendiente | `ip4/o3-talleres` | |
 | O4 Órdenes de producción | Pendiente | `ip4/o4-ordenes` | |
