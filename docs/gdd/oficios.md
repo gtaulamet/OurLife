@@ -122,7 +122,7 @@ Siete tipos de trabajo nuevos, cada uno con `skill: true`, que dan siete habilid
 | `smelting` | Fundición | No | Carbonera y horno de fundición | O8 |
 | `smithing` | Herrería | No | Fragua | O8 |
 
-- **Los trabajos de taller no se listan en `jobs`:** `craft` es un solo trabajo y su tipo sale del taller (`Buildable.workstation.workType`), así que `carpentry`, `stonecutting`, `cooking`, `smelting` y `smithing` llevan `jobs` vacío (el cargador lo admite desde O3). El test de contenido comprueba que cada taller apunta a un tipo de trabajo que existe.
+- **Los trabajos de taller no se listan en `jobs`:** `craft` es un solo trabajo y su tipo sale del taller (`Buildable.workstation.workType`), así que `carpentry`, `stonecutting`, `cooking`, `farming`, `research`, `smelting` y `smithing` llevan `jobs` vacío y `workshop: true` (el cargador sólo admite `jobs` vacío con esa marca). El test de contenido comprueba que cada taller apunta a un tipo de trabajo que existe.
 - **Prioridades:** cada colono tiene prioridad de 1 a 4 o "nunca" para cada tipo, como hoy. El valor por defecto de un tipo nuevo es 3 (el mismo de los demás tipos). En la tabla de trabajo del panel Colonia las columnas pasan de 6 a 13: la tabla se desplaza en horizontal (O2).
 - **Fundadores:** las siete habilidades se sortean como las de IP3 (de 3 a 10, y una al azar con 4 más).
 - **Niños y adolescentes:** un niño no trabaja; un adolescente sólo hace los trabajos livianos, así que ayuda en la cocina, el campo y el scriptorium.

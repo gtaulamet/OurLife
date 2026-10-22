@@ -692,7 +692,8 @@ public sealed partial class DecisionSystem : ISimSystem
                 world.Query<ItemStack, Position>(_entities);
                 foreach (var pile in _entities)
                 {
-                    if (!storage.IsStored(simulation, pile) && storage.AnyRoomFor(simulation, world.Get<ItemStack>(pile).Def, world.Get<ItemStack>(pile).Quality))
+                    var stack = world.Get<ItemStack>(pile);
+                    if (!storage.IsStored(simulation, pile) && storage.AnyRoomFor(simulation, stack.Def, stack.Quality))
                     {
                         AddEntity(simulation, kind, pile, capacity: 1);
                     }

@@ -16,6 +16,8 @@ public sealed class QualityRules
     /// <summary>The random stream of the quality rolls.</summary>
     public const string Stream = "craft.quality";
 
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<DefDatabase, QualityRules> Cache = new();
+
     private readonly Dictionary<string, int> _rankById = new(StringComparer.Ordinal);
 
     private QualityRules(QualityConfigDef config, IReadOnlyList<QualityDef> ladder)
@@ -46,6 +48,21 @@ public sealed class QualityRules
     public static QualityRules From(DefDatabase content)
     {
         ArgumentNullException.ThrowIfNull(content);
+
+        // The rules only depend on the (immutable) content, so they are built once per database; a
+        // content that fails the checks throws every time and is never cached. Not part of the state.
+        if (Cache.TryGetValue(content, out var cached))
+        {
+            return cached;
+        }
+
+        var rules = Build(content);
+        Cache.AddOrUpdate(content, rules);
+        return rules;
+    }
+
+    private static QualityRules Build(DefDatabase content)
+    {
         var configs = content.All<QualityConfigDef>();
         if (configs.Count != 1)
         {
@@ -125,7 +142,7 @@ public sealed class QualityRules
     }
 
     /// <summary>The value to keep in a pile or a piece of furniture for a quality: null for the default one.</summary>
-    public string? Store(string? quality) => quality is null || quality == Default.Id ? null : quality;
+    public string? Store(string? quality) => Normalize(quality, Default.Id);
 
     /// <summary>The id of a stored quality: the default one when null.</summary>
     public string IdOf(string? stored) => stored ?? Default.Id;
@@ -153,6 +170,8 @@ public sealed class QualityRules
         }
 
         var configs = content.All<QualityConfigDef>();
-        return configs.Count == 1 && configs[0].DefaultQuality == quality ? null : quality;
+        return configs.Count == 1 ? Normalize(quality, configs[0].DefaultQuality) : quality;
     }
+
+    private static string? Normalize(string? quality, string defaultId) => quality is null || quality == defaultId ? null : quality;
 }

@@ -90,16 +90,26 @@ public partial class ColonyPanel : PanelContainer
     public int WorkColumns => _grid.Columns - 4;
 
     /// <summary>
-    /// Whether the table fits the canvas as it is, either whole or scrolling sideways: the scroll
-    /// is no wider than the canvas and, when it is narrower than the table, shows its scrollbar. For the smoke.
+    /// Whether the table fits the canvas as it is: the panel's own minimum width (the scroll's
+    /// included) is no wider than the canvas, and the table either fits whole in the scroll or
+    /// overflows a scroll that has room and a horizontal scrollbar to reach the rest. Measured on
+    /// minimum sizes, which are current at once, unlike the sizes of a layout still pending. For the smoke.
     /// </summary>
     public bool TableFits()
     {
         FitScroll();
         var table = _grid.GetCombinedMinimumSize().X;
         var canvas = GetViewportRect().Size.X;
-        return _scroll.CustomMinimumSize.X <= canvas && (_scroll.CustomMinimumSize.X >= table || _scroll.HorizontalScrollMode == ScrollContainer.ScrollMode.Auto);
+        var room = _scroll.CustomMinimumSize.X;
+        var panelFits = GetCombinedMinimumSize().X <= canvas;
+        var tableFitsWhole = table <= room;
+        var barReachesTheRest = room > 0 && _scroll.HorizontalScrollMode != ScrollContainer.ScrollMode.Disabled;
+        FitDetail = $"canvas {canvas}, panel minimum {GetCombinedMinimumSize().X}, table {table}, scroll {room}, mode {_scroll.HorizontalScrollMode}";
+        return panelFits && (tableFitsWhole || barReachesTheRest);
     }
+
+    /// <summary>The measures behind the last <see cref="TableFits"/>, for the smoke's message.</summary>
+    public string FitDetail { get; private set; } = string.Empty;
 
     /// <summary>The lines of the stock targets as the player reads them, for the smoke.</summary>
     public IEnumerable<string> TargetTexts => _targetRows.Select(row => row.Label.Text);

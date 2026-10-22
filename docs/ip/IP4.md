@@ -13,7 +13,7 @@
 | Hito | Estado | Rama | Notas |
 |---|---|---|---|
 | O1 Spec y contrato | Hecho | `ip4/o1-spec` | Specs en `docs/gdd/oficios.md`, `conocimientos.md`, `agricultura.md`, `habitaciones.md` y `subsuelo.md`; aprobadas por el usuario el 22 de octubre de 2026, con las ocho decisiones como se recomendaron |
-| O2 Calidad y habilidades de oficio | Pendiente | `ip4/o2-calidad` | |
+| O2 Calidad y habilidades de oficio | Hecho | `ip4/o2-calidad` | Calidad y frescura en las pilas, 17 objetos, `planks` y `ashlar`, 13 habilidades, 16 tablones iniciales, formato 12, HUD por categorías y panel Colonia de 13 columnas. Un hallazgo de diseño queda a la vista: una celda de almacén guarda una sola calidad |
 | O3 Talleres y recetas | Pendiente | `ip4/o3-talleres` | |
 | O4 Órdenes de producción | Pendiente | `ip4/o4-ordenes` | |
 | O5 Conocimientos y scriptorium | Pendiente | `ip4/o5-conocimientos` | |

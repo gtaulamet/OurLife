@@ -958,9 +958,14 @@ public partial class GameRoot : Node
         }
 
         var shownStock = screen.Hud.ShownStockTexts.Count();
-        if (shownStock < 3 || shownStock > stockTexts.Count || (stock.Count(line => line.Count > 0) > 3 && shownStock <= 3))
+        var withStock = stock.Count(line => line.Count > 0);
+        var neededLines = Math.Max(3, withStock);
+        if (shownStock < neededLines || shownStock > stockTexts.Count)
         {
-            throw new InvalidOperationException($"the HUD shows {shownStock} of {stockTexts.Count} stock lines");
+            var failed = shownStock < neededLines
+                ? $"fewer than the {neededLines} it needs (at least 3, and one per category with stock: {withStock})"
+                : "more than the categories there are";
+            throw new InvalidOperationException($"the HUD shows {shownStock} of {stockTexts.Count} stock lines, {failed}");
         }
 
         GD.Print($"[smoke] stock in the HUD: {string.Join(", ", screen.Hud.ShownStockTexts)} ({shownStock} of {stockTexts.Count} categories shown)");
@@ -1025,9 +1030,32 @@ public partial class GameRoot : Node
         screen.Hud.Colony.Toggle();
         screen.Advance(10);
         var workTypes = ColonyRules.From(screen.Session.Simulation.Content).WorkTypes.Count;
-        if (screen.Hud.Colony.WorkColumns != workTypes || workTypes < 13 || !screen.Hud.Colony.TableFits())
+        if (screen.Hud.Colony.WorkColumns != workTypes || workTypes < 13)
         {
-            throw new InvalidOperationException($"the colony panel has {screen.Hud.Colony.WorkColumns} work columns for {workTypes} work types, fits: {screen.Hud.Colony.TableFits()}");
+            throw new InvalidOperationException($"the colony panel has {screen.Hud.Colony.WorkColumns} work columns for {workTypes} work types");
+        }
+
+        // Without a window the root is 64x64 pixels: measure the table on the smallest canvas the
+        // game supports (960x540 at 100 %) and on a larger one, then put the window back.
+        var window = GetTree().Root;
+        var (uiScale, windowSize) = (_services!.Settings.UiScale, window.Size);
+        try
+        {
+            foreach (var canvas in new[] { new Vector2I(960, 540), new Vector2I(1920, 1080) })
+            {
+                window.Size = canvas;
+                _services.Settings.SetUiScale(100, save: false);
+                var okFit = screen.Hud.Colony.TableFits();
+                if (!okFit)
+                {
+                    throw new InvalidOperationException($"the colony panel does not fit a canvas of {canvas.X}x{canvas.Y}: {screen.Hud.Colony.FitDetail}");
+                }
+            }
+        }
+        finally
+        {
+            _services.Settings.SetUiScale(uiScale, save: false);
+            window.Size = windowSize;
         }
 
         GD.Print($"[smoke] the colony panel has {workTypes} work columns and scrolls within the canvas");

@@ -54,7 +54,7 @@ public static class Stocks
             (a, b) => a.Item == b.Item ? a.Rank.CompareTo(b.Rank) : string.CompareOrdinal(a.Item, b.Item)));
         foreach (var load in Everything(simulation))
         {
-            var key = (load.Item.Id, load.Quality is null ? rank(null) : rank(load.Quality));
+            var key = (load.Item.Id, rank(load.Quality));
             var (def, quality, count, freshness) = sums.TryGetValue(key, out var sum) ? sum : (load.Item, load.Quality, 0L, 0L);
             sums[key] = (def, quality, count + load.Count, freshness + ((long)load.Count * load.Freshness));
         }

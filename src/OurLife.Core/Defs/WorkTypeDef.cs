@@ -24,6 +24,9 @@ public sealed class WorkTypeDef : Def
     /// </summary>
     public required IReadOnlyList<string> Jobs { get; init; }
 
+    /// <summary>The work is done at a workshop, not for the player's orders: it lists no jobs.</summary>
+    public bool Workshop { get; init; }
+
     /// <summary>Light work, which colonists at a stage of life with <see cref="StageWork.Light"/> also do.</summary>
     public bool Light { get; init; }
 
@@ -38,6 +41,16 @@ public sealed class WorkTypeDef : Def
         if (Order < 0)
         {
             yield return "order must be zero or positive.";
+        }
+
+        if (Jobs.Count == 0 && !Workshop)
+        {
+            yield return "jobs cannot be empty, unless the work type is of a workshop (workshop: true).";
+        }
+
+        if (Jobs.Count > 0 && Workshop)
+        {
+            yield return "a work type of a workshop has no jobs: its one job, craft, takes its type from the workshop.";
         }
 
         foreach (var job in Jobs.Where(job => !OrderJobs.Any(kind => JobKinds.Id(kind) == job)))

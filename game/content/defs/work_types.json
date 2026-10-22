@@ -5,11 +5,11 @@
   { "type": "WorkType", "id": "gathering", "order": 3, "jobs": ["harvest"], "light": true, "skill": true },
   { "type": "WorkType", "id": "construction", "order": 4, "jobs": ["deliver", "build", "deconstruct"], "skill": true },
   { "type": "WorkType", "id": "hauling", "order": 5, "jobs": ["haul"], "light": true, "skill": true },
-  { "type": "WorkType", "id": "carpentry", "order": 6, "jobs": [], "skill": true },
-  { "type": "WorkType", "id": "stonecutting", "order": 7, "jobs": [], "skill": true },
-  { "type": "WorkType", "id": "cooking", "order": 8, "jobs": [], "light": true, "skill": true },
-  { "type": "WorkType", "id": "farming", "order": 9, "jobs": [], "light": true, "skill": true },
-  { "type": "WorkType", "id": "research", "order": 10, "jobs": [], "light": true, "skill": true },
-  { "type": "WorkType", "id": "smelting", "order": 11, "jobs": [], "skill": true },
-  { "type": "WorkType", "id": "smithing", "order": 12, "jobs": [], "skill": true }
+  { "type": "WorkType", "id": "carpentry", "order": 6, "jobs": [], "workshop": true, "skill": true },
+  { "type": "WorkType", "id": "stonecutting", "order": 7, "jobs": [], "workshop": true, "skill": true },
+  { "type": "WorkType", "id": "cooking", "order": 8, "jobs": [], "workshop": true, "light": true, "skill": true },
+  { "type": "WorkType", "id": "farming", "order": 9, "jobs": [], "workshop": true, "light": true, "skill": true },
+  { "type": "WorkType", "id": "research", "order": 10, "jobs": [], "workshop": true, "light": true, "skill": true },
+  { "type": "WorkType", "id": "smelting", "order": 11, "jobs": [], "workshop": true, "skill": true },
+  { "type": "WorkType", "id": "smithing", "order": 12, "jobs": [], "workshop": true, "skill": true }
 ]

@@ -189,9 +189,19 @@ public class DefLoaderTests
     [Fact]
     public void A_work_type_of_the_workshops_has_no_jobs_of_its_own()
     {
-        var defs = TestContent.WithDefs("""[{ "type": "WorkType", "id": "carpentry", "order": 6, "jobs": [], "skill": true }]""");
+        var defs = TestContent.WithDefs("""[{ "type": "WorkType", "id": "carpentry", "order": 6, "jobs": [], "workshop": true, "skill": true }]""");
 
         defs.Get<WorkTypeDef>("carpentry").Jobs.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData("""[{ "type": "WorkType", "id": "mining", "order": 1, "jobs": [] }]""", "jobs cannot be empty")]
+    [InlineData("""[{ "type": "WorkType", "id": "carpentry", "order": 6, "jobs": ["chop"], "workshop": true }]""", "has no jobs")]
+    public void A_work_type_without_jobs_must_be_of_a_workshop_and_the_other_way_round(string json, string expectedFragment)
+    {
+        var error = Should.Throw<DefValidationException>(() => TestContent.WithDefs(json));
+
+        error.Message.ShouldContain(expectedFragment);
     }
 
     [Fact]
