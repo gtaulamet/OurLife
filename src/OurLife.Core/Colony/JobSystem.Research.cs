@@ -11,10 +11,10 @@ public sealed partial class JobSystem
     /// point as the speed of the worker, in percent, so a stretch interrupted keeps what it gave.
     /// The stretch ends after the ticks of the config, and the researcher decides again.
     /// </summary>
-    private static bool Research(Simulation simulation, Job job, int speed)
+    private bool Research(Simulation simulation, Job job, int speed)
     {
         ResearchRules.AddResearch(simulation, speed);
         job.Progress++;
-        return job.Progress >= (ResearchRules.ConfigOf(simulation)?.ResearchChunkTicks ?? 1);
+        return job.Progress >= _rules.Knowledge!.ResearchChunkTicks;
     }
 }

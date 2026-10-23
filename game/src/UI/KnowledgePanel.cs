@@ -149,7 +149,7 @@ public partial class KnowledgePanel : PanelContainer
         "crafts" => "ui.knowledge.branch.crafts",
         "field" => "ui.knowledge.branch.field",
         "fire_metal" => "ui.knowledge.branch.fire_metal",
-        _ => throw new InvalidOperationException($"Unknown branch of knowledge '{branch}'."),
+        _ => branch,
     };
 
     private Button Card(Simulation simulation, KnowledgeDef def)

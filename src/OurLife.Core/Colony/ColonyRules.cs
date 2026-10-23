@@ -11,7 +11,8 @@ public sealed class ColonyRules
         Knowledge = knowledge;
         _practiced = practiced.GroupBy(def => def.Practice!.WorkType, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => (IReadOnlyList<KnowledgeDef>)[.. group], StringComparer.Ordinal);
-        ResearchWorkType = knowledge is null ? null : workTypes.First(type => type.Id == knowledge.WorkType);
+        ResearchWorkType = knowledge is null ? null : workTypes.FirstOrDefault(type => type.Id == knowledge.WorkType && type.Workshop)
+            ?? throw new InvalidOperationException($"The work type of research '{knowledge.WorkType}' must be a work type of workshops (workshop: true).");
         _recipeWorkTypes = recipeWorkTypes;
         Ai = ai;
         Skills = skills;
@@ -55,12 +56,12 @@ public sealed class ColonyRules
             return null;
         }
 
-        // A craft is the work of the workshop of its recipe.
         if (job.Kind == JobKind.Research)
         {
             return ResearchWorkType;
         }
 
+        // A craft is the work of the workshop of its recipe.
         if (job.Kind == JobKind.Craft)
         {
             return job.Recipe is not null && _recipeWorkTypes.TryGetValue(job.Recipe, out var crafted) ? crafted : null;

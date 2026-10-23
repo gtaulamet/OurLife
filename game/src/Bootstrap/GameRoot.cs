@@ -1341,7 +1341,7 @@ public partial class GameRoot : Node
         screen.Session.Enqueue(new SetResearchQueueCommand(["stonecutting"]));
         screen.Advance(2);
         knowledge.Refresh();
-        if (!knowledge.CardTexts.Any(card => card.Contains('1', StringComparison.Ordinal) && card.Contains("(1)", StringComparison.Ordinal)))
+        if (!knowledge.CardTexts.Any(card => card.Contains("(1)", StringComparison.Ordinal)))
         {
             throw new InvalidOperationException("the knowledge panel does not show the queued knowledge in position 1");
         }

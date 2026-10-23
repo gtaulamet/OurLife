@@ -34,7 +34,7 @@ public enum KnowledgeState
 /// than the most the config allows, a knowledge twice, or one that is not available (learned,
 /// blocked or not in the content).
 /// </summary>
-public sealed record SetResearchQueueCommand(IReadOnlyList<string> Queue) : ISimCommand
+public sealed record SetResearchQueueCommand([property: DefRef(typeof(KnowledgeDef))] IReadOnlyList<string> Queue) : ISimCommand
 {
     public void Apply(Simulation simulation)
     {
@@ -112,11 +112,14 @@ public static class ResearchRules
         return (int)Math.Min(10_000, (points.Research + (long)points.Practice) * 10_000 / cost);
     }
 
-    /// <summary>The knowledge being researched: the first of the queue; none if it is empty.</summary>
+    /// <summary>
+    /// The knowledge being researched: the first of the queue, if it can be (a game saved with one
+    /// that is blocked or learned does not research it); none if it is empty.
+    /// </summary>
     public static string? Current(Simulation simulation)
     {
         ArgumentNullException.ThrowIfNull(simulation);
-        return simulation.Progress.ResearchQueue.Count > 0 ? simulation.Progress.ResearchQueue[0] : null;
+        return simulation.Progress.ResearchQueue is [{ } first, ..] && IsAvailable(simulation, first) ? first : null;
     }
 
     /// <summary>The content a knowledge opens: what lists it among its requirements.</summary>
