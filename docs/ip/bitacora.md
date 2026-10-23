@@ -47,7 +47,8 @@ En orden:
 - Rama `ip4/o3-talleres`. El inspector de un taller (`InspectorPanel.Workshop.cs`) lista sus recetas, con un botón "Hacer 5" que manda `CreateWorkOrderCommand` (una receta bloqueada se marca como tal), y las órdenes del tipo de taller con su estado calculado (`WorkOrderRules.Status`) y un botón "Quitar" (`RemoveWorkOrderCommand`). Las filas se rearman sólo cuando cambia su firma, así un botón conserva el ratón. Textos `ui.workshop.*` en es y en. Los modelos de los talleres ya estaban en `visuals.json`; la barra de construcción los toma de `BuildablesInOrder`.
 - `--inspect-furniture` elige primero un taller.
 - Validación: build sin advertencias, 949 tests en verde, smoke con código 0 (sin cambios en la huella).
-- Pendiente: capturas es/en del inspector de un taller (hace falta una partida con taller; se puede ver jugando: construir un banco de carpintero, abrir el inspector) y la pasada de `/code-review`.
+- Partida preparada `docs/ip/playtest-o3/taller.olsave` (semilla 1, banco de carpintero de tablones ya construido y una orden de aserrar 5 tablones, que espera troncos). Capturas es/en con `--saves docs/ip/playtest-o3 --load taller --play --inspect-furniture --zoom 22`, revisadas: recetas, órdenes con su estado y "Quitar".
+- Pendiente: jugar tronco → tablón → mesa y la pasada de `/code-review`.
 
 ### 2026-10-22: O3, Core de talleres y recetas
 
