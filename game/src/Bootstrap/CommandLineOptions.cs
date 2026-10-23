@@ -64,6 +64,9 @@ public sealed record CommandLineOptions
     /// <summary>Open the production panel, to see it in screenshots (milestone O4).</summary>
     public bool Production { get; init; }
 
+    /// <summary>Open the knowledge panel, with something in its queue, to see it in screenshots (milestone O5).</summary>
+    public bool Knowledge { get; init; }
+
     /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
     public bool Build { get; init; }
 
@@ -209,6 +212,9 @@ public sealed record CommandLineOptions
                     break;
                 case "--inspect-furniture":
                     options = options with { InspectFurniture = true };
+                    break;
+                case "--knowledge":
+                    options = options with { Knowledge = true };
                     break;
                 case "--production":
                     options = options with { Production = true };
@@ -359,7 +365,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, season={Season ?? "-"}, " +

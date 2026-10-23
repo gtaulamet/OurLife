@@ -244,5 +244,27 @@
   "ui.production.down": "Down",
   "ui.production.mode": "Mode",
   "ui.production.pause": "Pause",
-  "ui.production.resume": "Resume"
+  "ui.production.resume": "Resume",
+
+  "ui.knowledge.card": "{name}\n{state}",
+  "ui.knowledge.card_progress": "{name}\n{state} {percent} %",
+  "ui.knowledge.queue_row": "{position}. {name} {percent} %",
+  "ui.knowledge.button": "Knowledge (K)",
+  "ui.knowledge.title": "Knowledge",
+  "ui.knowledge.branch.crafts": "Crafts",
+  "ui.knowledge.branch.field": "Field",
+  "ui.knowledge.branch.fire_metal": "Fire and metal",
+  "ui.knowledge.state.learned": "Learned",
+  "ui.knowledge.state.available": "Available",
+  "ui.knowledge.state.queued": "Queued ({position})",
+  "ui.knowledge.state.blocked": "Locked",
+  "ui.knowledge.cost": "{points} points",
+  "ui.knowledge.requires": "Requires: {knowledge}",
+  "ui.knowledge.unlocks": "Unlocks: {items}",
+  "ui.knowledge.practice": "Progresses by working: {work_type}",
+  "ui.knowledge.queue": "Research queue",
+  "ui.knowledge.queue_empty": "Nothing in the queue. Choose an available knowledge.",
+  "ui.knowledge.no_scriptorium": "A scriptorium is needed to research.",
+  "ui.hud.research": "Researching: {knowledge} ({percent} %)",
+  "ui.orders.locked_hint": "Requires: {knowledge}"
 }

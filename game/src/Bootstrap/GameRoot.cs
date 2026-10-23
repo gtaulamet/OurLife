@@ -493,6 +493,13 @@ public partial class GameRoot : Node
             screen.View.Camera.Focus(new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
         }
 
+        if (options.Knowledge)
+        {
+            screen.Session.Enqueue(new SetResearchQueueCommand(["stonecutting", "agriculture"]));
+            screen.Advance(1);
+            screen.Hud.Knowledge.Toggle();
+        }
+
         if (options.Production)
         {
             screen.Hud.Production.Toggle();
@@ -1068,6 +1075,7 @@ public partial class GameRoot : Node
         GD.Print($"[smoke] the colony panel has {workTypes} work columns and scrolls within the canvas");
         CheckFreeWill(screen);
         CheckProduction(screen);
+        CheckKnowledge(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
         screen.OpenSaveScreen();
@@ -1315,6 +1323,34 @@ public partial class GameRoot : Node
         var taken = beds.Count(bed => Beds.IsTaken(simulation, bed));
         GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors, "
                  + $"{simulation.World.Store<Furniture>().Count} pieces of furniture, {taken} beds taken");
+    }
+
+    /// <summary>The knowledge panel shows the whole tree, lets a click queue a knowledge and a click again take it out.</summary>
+    private static void CheckKnowledge(GameScreen screen)
+    {
+        var simulation = screen.Session.Simulation;
+        var knowledge = screen.Hud.Knowledge;
+        knowledge.Toggle();
+        var cards = knowledge.CardTexts.ToList();
+        var defs = simulation.Content.All<KnowledgeDef>().Count;
+        if (cards.Count != defs || cards.Any(card => card.StartsWith("ui.", StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"the knowledge panel shows {cards.Count} cards for {defs} knowledge");
+        }
+
+        screen.Session.Enqueue(new SetResearchQueueCommand(["stonecutting"]));
+        screen.Advance(2);
+        knowledge.Refresh();
+        if (!knowledge.CardTexts.Any(card => card.Contains('1', StringComparison.Ordinal) && card.Contains("(1)", StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException("the knowledge panel does not show the queued knowledge in position 1");
+        }
+
+        screen.Session.Enqueue(new SetResearchQueueCommand([]));
+        screen.Advance(2);
+        knowledge.Refresh();
+        knowledge.Toggle();
+        GD.Print($"[smoke] the knowledge panel shows {cards.Count} cards and follows the queue");
     }
 
     /// <summary>The production panel lists an order made by command, with its mode and state, and forgets it when it is removed.</summary>

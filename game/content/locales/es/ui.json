@@ -244,5 +244,27 @@
   "ui.production.down": "Bajar",
   "ui.production.mode": "Modo",
   "ui.production.pause": "Pausar",
-  "ui.production.resume": "Reanudar"
+  "ui.production.resume": "Reanudar",
+
+  "ui.knowledge.card": "{name}\n{state}",
+  "ui.knowledge.card_progress": "{name}\n{state} {percent} %",
+  "ui.knowledge.queue_row": "{position}. {name} {percent} %",
+  "ui.knowledge.button": "Conocimientos (K)",
+  "ui.knowledge.title": "Conocimientos",
+  "ui.knowledge.branch.crafts": "Oficios",
+  "ui.knowledge.branch.field": "Campo",
+  "ui.knowledge.branch.fire_metal": "Fuego y metal",
+  "ui.knowledge.state.learned": "Aprendido",
+  "ui.knowledge.state.available": "Disponible",
+  "ui.knowledge.state.queued": "En cola ({position})",
+  "ui.knowledge.state.blocked": "Bloqueado",
+  "ui.knowledge.cost": "{points} puntos",
+  "ui.knowledge.requires": "Requiere: {knowledge}",
+  "ui.knowledge.unlocks": "Desbloquea: {items}",
+  "ui.knowledge.practice": "Se avanza trabajando: {work_type}",
+  "ui.knowledge.queue": "Cola de investigación",
+  "ui.knowledge.queue_empty": "Sin nada en cola. Elige un conocimiento disponible.",
+  "ui.knowledge.no_scriptorium": "Hace falta un scriptorium para investigar.",
+  "ui.hud.research": "Investigando: {knowledge} ({percent} %)",
+  "ui.orders.locked_hint": "Requiere: {knowledge}"
 }

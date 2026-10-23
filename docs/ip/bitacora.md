@@ -50,6 +50,8 @@ En orden:
 - Formato 15, sin migración (una partida de formato 14 empieza sin cola ni puntos). Fixture `o5.olsave` (formato 14, escrito con el código de `main` en un worktree: banco, una orden de Mantener y una de Repetir). La huella incluye la cola y los puntos.
 - Tests: `ResearchTests` (9), `KnowledgeContentTests` (4), continuidad con cola y `o5.olsave`. 724 tests del Core, 203 de contenido, smoke con código 0. Huellas nuevas con `--ticks 5000`: `92D81D2C63BAB178` (semilla 1) y `9130C54E3B654499` (semilla 42): cambian porque la práctica ya suma puntos.
 - Criterio 9 (época posterior bloquea) sigue cubierto por los tests de `UnlockService` de ADR-008.
+- Presentación: `KnowledgePanel` (tecla K y botón "Conocimientos (K)"): una fila por rama y una columna por nivel, tarjetas con estado y avance, tooltip con descripción, costo, requisitos, qué desbloquea y cómo se practica; clic pone o saca de la cola; la cola con Subir, Bajar y Quitar; aviso sin scriptorium. El HUD muestra "Investigando: X (n %)" sobre las alertas con algo en cola, y la barra de construcción atenúa lo bloqueado con "Requiere: ..." y se rearma al aprender. Textos `ui.knowledge.*`. El smoke comprueba las 12 tarjetas y la cola. Opción `--knowledge` para capturas (es y en revisadas, también la barra de construcción con el banco de cantero atenuado).
+- Sin hacer: íconos pixel de rama, de estado y del HUD (por ahora texto; van a una pasada de arte), modelo propio del scriptorium (usa la mesa pequeña) y capturas con un scriptorium en uso (se ven jugando).
 
 ### 2026-10-23: O4, órdenes de producción
 

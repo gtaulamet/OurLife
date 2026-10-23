@@ -73,6 +73,13 @@ public partial class Hud : CanvasLayer
     /// <summary>The production orders, opened with the key or its button.</summary>
     public ProductionPanel Production { get; private set; } = null!;
 
+    /// <summary>The tree of knowledge and the research queue, opened with the key or its button.</summary>
+    public KnowledgePanel Knowledge { get; private set; } = null!;
+
+    private Label _research = null!;
+    private double _sinceResearch;
+    private bool _buildBarStale;
+
     /// <summary>The sheet of a colonist, over the game (see <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
     public ColonistSheet Sheet { get; private set; } = null!;
 
@@ -111,12 +118,16 @@ public partial class Hud : CanvasLayer
         left.AddThemeConstantOverride("separation", Gap);
         root.AddChild(left);
         hud._alerts = new VBoxContainer { Name = "Alerts", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        hud._research = new Label { Name = "Research", AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, Visible = false };
+        left.AddChild(hud._research);
         left.AddChild(hud._alerts);
         hud.Colony = ColonyPanel.Create(services, session, input);
         left.AddChild(hud.Colony);
         hud.Colony.VisibilityChanged += hud.ShowAlertsUnlessColony;
         hud.Production = ProductionPanel.Create(services, session);
         left.AddChild(hud.Production);
+        hud.Knowledge = KnowledgePanel.Create(services, session);
+        left.AddChild(hud.Knowledge);
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
@@ -145,6 +156,7 @@ public partial class Hud : CanvasLayer
         input.BuildChanged += hud.OnBuildChanged;
         input.ColonyPanelRequested += hud.Colony.Toggle;
         input.ProductionPanelRequested += hud.Production.Toggle;
+        input.KnowledgePanelRequested += hud.Knowledge.Toggle;
         session.ClockChanged += hud.RefreshTimeButtons;
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
@@ -206,10 +218,14 @@ public partial class Hud : CanvasLayer
         _alertsChanged = true;
         foreach (var simEvent in events)
         {
+            if (simEvent is KnowledgeLearnedEvent)
+            {
+                _buildBarStale = true;
+            }
+
             if (simEvent is EntitySpawnedEvent or EntityChangedEvent or EntityRemovedEvent)
             {
                 _stockChanged = true;
-                break;
             }
         }
     }
@@ -226,6 +242,18 @@ public partial class Hud : CanvasLayer
         if (_stockChanged)
         {
             RefreshStock();
+        }
+
+        _sinceResearch += delta;
+        if (_sinceResearch >= 0.5 || _buildBarStale)
+        {
+            _sinceResearch = 0;
+            RefreshResearch();
+            if (_buildBarStale)
+            {
+                _buildBarStale = false;
+                RefreshBuildBar();
+            }
         }
 
         if (_stockWidthsChanged)
@@ -334,6 +362,9 @@ public partial class Hud : CanvasLayer
         var production = new Button { Text = "ui.production.button", FocusMode = Control.FocusModeEnum.None };
         production.Pressed += () => Production.Toggle();
         row.AddChild(production);
+        var knowledge = new Button { Text = "ui.knowledge.button", FocusMode = Control.FocusModeEnum.None };
+        knowledge.Pressed += () => Knowledge.Toggle();
+        row.AddChild(knowledge);
 
         _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(90, 0), HorizontalAlignment = HorizontalAlignment.Right };
         row.AddChild(_level);
@@ -500,6 +531,24 @@ public partial class Hud : CanvasLayer
         }
     }
 
+    /// <summary>The line of what is being researched, only with something in the queue.</summary>
+    private void RefreshResearch()
+    {
+        var simulation = _session.Simulation;
+        var current = ResearchRules.Current(simulation);
+        _research.Visible = current is not null;
+        if (current is null)
+        {
+            return;
+        }
+
+        var text = _services.Text;
+        _research.Text = text.Format(
+            "ui.hud.research",
+            ("knowledge", text.Format(simulation.Content.Get<KnowledgeDef>(current).NameKey!)),
+            ("percent", ResearchRules.Progress(simulation, current) / 100));
+    }
+
     private void AddBuildButton(Def def, bool chosen, BuildChoice choice)
     {
         var text = _services.Text;
@@ -511,6 +560,18 @@ public partial class Hud : CanvasLayer
             ButtonPressed = chosen,
             FocusMode = Control.FocusModeEnum.None,
         };
+
+        // What the village lacks the knowledge for shows dimmed, and says which in its hint.
+        var simulation = _session.Simulation;
+        if (!simulation.Unlocks.IsUnlocked(def, simulation.Progress))
+        {
+            var missing = simulation.Unlocks.Missing(def, simulation.Progress);
+            button.Disabled = true;
+            button.TooltipAutoTranslateMode = Node.AutoTranslateModeEnum.Disabled;
+            button.TooltipText = missing.Count == 0
+                ? string.Empty
+                : text.Format("ui.orders.locked_hint", ("knowledge", string.Join(", ", missing.Select(id => text.Format(simulation.Content.Get<KnowledgeDef>(id).NameKey!)))));
+        }
 
         // Pressing the chosen one again keeps it chosen: the bar is drawn again either way.
         button.Pressed += () =>
