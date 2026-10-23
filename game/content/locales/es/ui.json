@@ -209,5 +209,18 @@
   "ui.sheet.skill_from": "{skill}, de {name}",
 
   "ui.quality.label": "{item} (calidad {quality})",
-  "job.craft.report": "Trabajando en un taller"
+  "job.craft.report": "Trabajando en un taller",
+
+  "ui.workshop.recipes": "Recetas",
+  "ui.workshop.make": "Hacer {count}: {recipe}",
+  "ui.workshop.make_locked": "Hacer {count}: {recipe} (bloqueada)",
+  "ui.workshop.orders": "Órdenes",
+  "ui.workshop.order": "{recipe}: {done} de {quantity}, {status}",
+  "ui.workshop.remove": "Quitar",
+  "ui.workshop.status.running": "en marcha",
+  "ui.workshop.status.waiting_inputs": "faltan ingredientes",
+  "ui.workshop.status.no_workshop": "falta el taller",
+  "ui.workshop.status.locked": "falta un conocimiento",
+  "ui.workshop.status.no_worker": "nadie puede trabajar aquí",
+  "ui.workshop.status.done": "terminada"
 }

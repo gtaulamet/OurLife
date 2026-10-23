@@ -486,7 +486,9 @@ public partial class GameRoot : Node
         simulation.World.Query<Furniture, Position>(pieces);
         if (options.InspectFurniture && pieces.Count > 0)
         {
-            var cell = simulation.World.Get<Position>(pieces[0]).Cell;
+            // A workshop first, to see its recipes and orders (milestone O3).
+            var chosen = pieces.FirstOrDefault(piece => simulation.World.Has<Workshop>(piece), pieces[0]);
+            var cell = simulation.World.Get<Position>(chosen).Cell;
             screen.Input.SelectCell(cell);
             screen.View.Camera.Focus(new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
         }

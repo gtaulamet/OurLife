@@ -30,6 +30,8 @@ public partial class InspectorPanel : PanelContainer
     private QualityRules _quality = null!;
     private Label _text = null!;
     private VBoxContainer _filters = null!;
+    private VBoxContainer _workshop = null!;
+    private EntityId _shown;
     private Button _sheet = null!;
     private Action<ISimCommand> _enqueue = null!;
 
@@ -55,6 +57,8 @@ public partial class InspectorPanel : PanelContainer
         column.AddChild(panel._text);
         panel._filters = new VBoxContainer();
         column.AddChild(panel._filters);
+        panel._workshop = new VBoxContainer();
+        column.AddChild(panel._workshop);
         panel._sheet = new Button { Text = "ui.inspector.sheet", FocusMode = FocusModeEnum.None, Visible = false };
         panel._sheet.Pressed += () =>
         {
@@ -111,6 +115,7 @@ public partial class InspectorPanel : PanelContainer
         }
 
         _lines.Clear();
+        _shown = EntityId.None;
         var zone = EntityId.None;
         if (selection.IsColonist && _simulation.World.IsAlive(selection.Colonist))
         {
@@ -125,6 +130,7 @@ public partial class InspectorPanel : PanelContainer
         _text.Text = string.Join("\n", _lines);
         _sheet.Visible = selection.IsColonist && _simulation.World.IsAlive(selection.Colonist);
         ShowFilters(zone);
+        ShowWorkshop(_shown);
     }
 
     private void DescribeColonist(EntityId colonist)
@@ -245,6 +251,11 @@ public partial class InspectorPanel : PanelContainer
                     "ui.inspector.furniture",
                     ("buildable", NameOf(_simulation.Content.Get<BuildableDef>(furniture.Buildable))),
                     ("material", NameOf(_simulation.Content.Get<MaterialDef>(furniture.Material))))));
+                if (world.Has<Workshop>(entity))
+                {
+                    _shown = entity;
+                }
+
                 if (world.TryGet<Bed>(entity, out var bed))
                 {
                     // A bed whose owner grew out of it, like a cradle, is free (see Beds).
