@@ -493,6 +493,11 @@ public partial class GameRoot : Node
             screen.View.Camera.Focus(new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
         }
 
+        if (options.Production)
+        {
+            screen.Hud.Production.Toggle();
+        }
+
         if (options.Colony)
         {
             screen.Hud.Colony.Toggle();
@@ -1062,6 +1067,7 @@ public partial class GameRoot : Node
 
         GD.Print($"[smoke] the colony panel has {workTypes} work columns and scrolls within the canvas");
         CheckFreeWill(screen);
+        CheckProduction(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
         screen.OpenSaveScreen();
@@ -1309,6 +1315,33 @@ public partial class GameRoot : Node
         var taken = beds.Count(bed => Beds.IsTaken(simulation, bed));
         GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors, "
                  + $"{simulation.World.Store<Furniture>().Count} pieces of furniture, {taken} beds taken");
+    }
+
+    /// <summary>The production panel lists an order made by command, with its mode and state, and forgets it when it is removed.</summary>
+    private static void CheckProduction(GameScreen screen)
+    {
+        var simulation = screen.Session.Simulation;
+        screen.Hud.Production.Toggle();
+        screen.Session.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Keep, 6));
+        screen.Advance(10);
+        screen.Hud.Production.Refresh();
+        var texts = screen.Hud.Production.OrderTexts.ToList();
+        if (texts.Count != 1 || texts[0].StartsWith("ui.", StringComparison.Ordinal) || !texts[0].Contains('6', StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"the production panel shows {texts.Count} orders: '{string.Join(" | ", texts)}'");
+        }
+
+        var orders = WorkOrderRules.InOrder(simulation);
+        screen.Session.Enqueue(new RemoveWorkOrderCommand(orders[0]));
+        screen.Advance(30);
+        screen.Hud.Production.Refresh();
+        if (screen.Hud.Production.OrderTexts.Any())
+        {
+            throw new InvalidOperationException("the production panel still shows an order that was removed");
+        }
+
+        screen.Hud.Production.Toggle();
+        GD.Print($"[smoke] the production panel lists and forgets an order: '{texts[0]}'");
     }
 
     /// <summary>

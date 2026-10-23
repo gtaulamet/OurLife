@@ -18,18 +18,22 @@ public sealed class Workshop
     public long InputsSinceTick { get; set; }
 }
 
-/// <summary>How a production order decides when it is done. O4 adds <c>Keep</c> and <c>Forever</c>.</summary>
+/// <summary>How a production order decides when it is done.</summary>
 public enum WorkOrderMode
 {
     /// <summary>Make the recipe until the units of its main output sum <see cref="WorkOrder.Quantity"/>.</summary>
     Count,
+
+    /// <summary>Make the recipe while the stock of its main output, with what is being made, is under <see cref="WorkOrder.Quantity"/>.</summary>
+    Keep,
+
+    /// <summary>Make the recipe without stopping.</summary>
+    Forever,
 }
 
 /// <summary>
 /// A production order (see "Órdenes de producción" in <c>docs/gdd/oficios.md</c>), its own entity
-/// like a blueprint; the list of orders is the order of the entities. O3 only has the mode
-/// <see cref="WorkOrderMode.Count"/>: pausing, the other modes and reordering come with O4, which
-/// adds fields here without changing these.
+/// like a blueprint; the list of orders is the order of <see cref="Sequence"/>, then of the entities.
 /// </summary>
 public sealed class WorkOrder
 {
@@ -43,6 +47,14 @@ public sealed class WorkOrder
 
     /// <summary>Units of the main output made so far.</summary>
     public int Done { get; set; }
+
+    /// <summary>The player paused the order: nobody makes it until it is resumed.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Paused { get; set; }
+
+    /// <summary>Place in the list of orders, lowest first (the player reorders them).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int Sequence { get; set; }
 
     /// <summary>The workshop to use; none for any workshop of the recipe's kind.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

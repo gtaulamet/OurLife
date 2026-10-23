@@ -32,6 +32,9 @@ public static class InputActions
     /// <summary>Opens or closes the colony panel (see <c>docs/gdd/gestion.md</c>).</summary>
     public const string ToggleColony = "colony_toggle";
 
+    /// <summary>Opens or closes the panel of production orders (see <c>docs/gdd/oficios.md</c>).</summary>
+    public const string ToggleProduction = "production_toggle";
+
     /// <summary>Opens or closes the sheet of the selected colonist (see <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
     public const string ToggleSheet = "sheet_toggle";
 
@@ -55,6 +58,7 @@ public static class InputActions
         (Build, [Key.C]),
         (RotateBuild, [Key.G]),
         (ToggleColony, [Key.P]),
+        (ToggleProduction, [Key.O]),
         (ToggleSheet, [Key.F]),
     ];
 

@@ -111,12 +111,15 @@ public partial class InspectorPanel
         }
     }
 
-    private static string StatusId(WorkOrderStatus status) => status switch
+    /// <summary>The id of a state in the texts (<c>ui.workshop.status.&lt;id&gt;</c>).</summary>
+    internal static string StatusId(WorkOrderStatus status) => status switch
     {
         WorkOrderStatus.Running => "running",
         WorkOrderStatus.WaitingInputs => "waiting_inputs",
         WorkOrderStatus.NoWorkshop => "no_workshop",
         WorkOrderStatus.Locked => "locked",
+        WorkOrderStatus.Paused => "paused",
+        WorkOrderStatus.Satisfied => "satisfied",
         WorkOrderStatus.NoWorker => "no_worker",
         WorkOrderStatus.Done => "done",
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),

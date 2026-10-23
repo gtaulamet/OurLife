@@ -17,7 +17,8 @@ namespace OurLife.Content.Tests;
 /// <c>l2.olsave</c> in format 8, by L2 of IP3.5, with free will on and a wood target of 70, and
 /// <c>l3.olsave</c> in format 9, by L3, the same with 20 500 ticks, while two gather on their own,
 /// and <c>o2.olsave</c> in format 11, by the code of <c>main</c> before O2 of IP4 (the seven skills of
-/// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b, and <c>o3.olsave</c>
+/// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b, <c>o4.olsave</c> in format 13
+/// (a bench of planks and an order for five planks, seed 1, 8 640 ticks, by the code of <c>main</c> before O4), and <c>o3.olsave</c>
 /// in format 12, by the code of <c>main</c> before O3 of IP4 (workshops, recipes and furniture of
 /// planks): seed 7, 20 500 ticks, free will on, a stockpile, every tree near the arrival ordered
 /// down and a bed of timber built from the logs.
@@ -36,6 +37,7 @@ public class OldSaveTests
     [InlineData("l3.olsave", 9, "0.3.5-dev", 7, 20_500)]
     [InlineData("o2.olsave", 11, "0.3.5-dev", 7, 20_500)]
     [InlineData("o3.olsave", 12, "0.3.5-dev", 7, 20_500)]
+    [InlineData("o4.olsave", 13, "0.4.0-dev", 7, 8_640)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
@@ -150,6 +152,21 @@ public class OldSaveTests
     }
 
     [Fact]
+    public void A_game_of_format_13_keeps_its_workshop_and_its_order_which_is_not_paused_and_goes_first()
+    {
+        var simulation = Load("o4.olsave", out _);
+        var world = simulation.World;
+
+        world.Store<Workshop>().Count.ShouldBe(1);
+        var orders = WorkOrderRules.InOrder(simulation);
+        orders.Count.ShouldBe(1);
+        var order = world.Get<WorkOrder>(orders[0]);
+        (order.Recipe, order.Mode, order.Quantity, order.Paused, order.Sequence).ShouldBe(("plank", WorkOrderMode.Count, 5, false, 0));
+        simulation.Run(3_000);
+        Colonists(simulation).Count.ShouldBe(7);
+    }
+
+    [Fact]
     public void A_migrated_game_is_saved_in_the_new_format_and_loads_again_with_the_same_state()
     {
         var simulation = Load("o3.olsave", out _);
@@ -159,7 +176,7 @@ public class OldSaveTests
         var again = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs, out var header);
 
         header.FormatVersion.ShouldBe(SaveGame.FormatVersion);
-        header.FormatVersion.ShouldBe(13);
+        header.FormatVersion.ShouldBe(14);
         again.ComputeStateHash().ShouldBe(simulation.ComputeStateHash());
     }
 
@@ -175,6 +192,7 @@ public class OldSaveTests
     [InlineData("l3.olsave")]
     [InlineData("o2.olsave")]
     [InlineData("o3.olsave")]
+    [InlineData("o4.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

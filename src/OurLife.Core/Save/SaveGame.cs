@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 13;
+    public const int FormatVersion = 14;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -42,6 +42,8 @@ public static class SaveGame
     /// (O3, workshops and recipes) adds the components <c>Workshop</c> (with the ingredients delivered
     /// to it) and <c>WorkOrder</c>, the quality of furniture (<c>Furniture.Quality</c>, written only
     /// when it is not the default one) and the job <c>Craft</c>: a game of format 12 needs nothing.
+    /// Format 14 (O4, production orders) adds the modes <c>Keep</c> and <c>Forever</c>, <c>WorkOrder.Paused</c> and
+    /// <c>WorkOrder.Sequence</c> (both written only when not the default): a game of format 13 needs nothing.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

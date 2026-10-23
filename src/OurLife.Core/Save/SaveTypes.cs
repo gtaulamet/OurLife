@@ -56,6 +56,8 @@ public static class SaveTypes
         Command<SetStockTargetCommand>("set_stock_target");
         Command<CreateWorkOrderCommand>("create_work_order");
         Command<RemoveWorkOrderCommand>("remove_work_order");
+        Command<SetWorkOrderCommand>("set_work_order");
+        Command<MoveWorkOrderCommand>("move_work_order");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

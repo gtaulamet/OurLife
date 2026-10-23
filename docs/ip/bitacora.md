@@ -42,6 +42,15 @@ En orden:
 
 ## Historial
 
+### 2026-10-23: O4, órdenes de producción
+
+- Rama `ip4/o4-ordenes`, sobre `main` con O3 cerrado (corregido tras `/code-review`: ver la entrada de O3).
+- Core: `WorkOrderMode` suma `Keep` y `Forever`; `WorkOrder` suma `Paused` y `Sequence` (el lugar en la lista, ambos escritos sólo si no son los de por defecto). Comandos `SetWorkOrderCommand` (modo, cantidad, pausa) y `MoveWorkOrderCommand` (posición); `CreateWorkOrderCommand` acepta los tres modos. `WorkOrderRules.InOrder` da la lista ordenada y `Wants` decide si una orden pide otra tanda (Hacer N cuenta lo hecho y lo en curso; Mantener N cuenta las existencias, `Stocks.Count`, y lo en curso). Estados nuevos `Paused` y `Satisfied`. `TryCraft` recorre las órdenes en el orden de la lista.
+- Formato 14, sin migración. Fixture `o4.olsave` (formato 13, `taller.olsave` de la partida de O3: banco de tablones y una orden de aserrar 5). El test de continuidad suma una orden de Mantener y una de Repetir.
+- Presentación: `ProductionPanel` (tecla O y botón "Producción (O)") con una fila por orden (Subir, Bajar, Modo, − y +, Pausar o Reanudar, Quitar) y el formulario de una orden nueva (receta, modo, número). Textos `ui.production.*` y dos estados nuevos en `ui.workshop.status.*`. El smoke crea una orden de Mantener 6 por comando, la ve en el panel y la quita. Opción `--production` para capturas (es y en revisadas con `--saves docs/ip/playtest-o3 --load taller --play --production --zoom 22`).
+- Validación: 715 tests del Core, 196 de contenido, smoke con código 0 y las mismas huellas (`CFDA6D91EF34C721`, `BC74B881EBCCDB7F`).
+- Sin hacer: orden con `minQuality` (no está en el contrato de O4) y elegir un taller concreto desde el panel (el comando ya lo admite). Pendiente: `/code-review`.
+
 ### 2026-10-23: O3, presentación de los talleres
 
 - Rama `ip4/o3-talleres`. El inspector de un taller (`InspectorPanel.Workshop.cs`) lista sus recetas, con un botón "Hacer 5" que manda `CreateWorkOrderCommand` (una receta bloqueada se marca como tal), y las órdenes del tipo de taller con su estado calculado (`WorkOrderRules.Status`) y un botón "Quitar" (`RemoveWorkOrderCommand`). Las filas se rearman sólo cuando cambia su firma, así un botón conserva el ratón. Textos `ui.workshop.*` en es y en. Los modelos de los talleres ya estaban en `visuals.json`; la barra de construcción los toma de `BuildablesInOrder`.

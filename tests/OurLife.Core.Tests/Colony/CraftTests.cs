@@ -72,9 +72,9 @@ public class CraftTests
         return workshops.Single(entity => bed.World.Get<Position>(entity).Cell == cell);
     }
 
-    private static EntityId Order(ColonyTestBed bed, string recipe, int quantity)
+    private static EntityId Order(ColonyTestBed bed, string recipe, int quantity, WorkOrderMode mode = WorkOrderMode.Count)
     {
-        bed.Simulation.Commands.Enqueue(new CreateWorkOrderCommand(recipe, WorkOrderMode.Count, quantity));
+        bed.Simulation.Commands.Enqueue(new CreateWorkOrderCommand(recipe, mode, quantity));
         bed.Simulation.ApplyCommandsNow();
         var orders = new List<EntityId>();
         bed.World.Query<WorkOrder>(orders);
@@ -383,6 +383,124 @@ public class CraftTests
 
         rules.WorkTypeOf(new Job { Kind = JobKind.Craft, Recipe = "plank" })!.Id.ShouldBe("carpentry");
         rules.WorkTypeOf(new Job { Kind = JobKind.Craft }).ShouldBeNull();
+    }
+
+    [Fact]
+    public void An_order_to_keep_six_planks_makes_batches_until_there_are_six_or_more_and_makes_again_when_they_are_spent()
+    {
+        var bed = Village();
+        Build(bed, "carpenter_bench", BenchCell);
+        bed.AddItems("log", 10, 2, 2, 1);
+        Worker(bed, 6, 6, "Carpenter");
+        var order = Order(bed, "plank", 6, WorkOrderMode.Keep);
+
+        bed.Simulation.Run(2_000);
+
+        bed.CountItems("plank").ShouldBe(6);
+        WorkOrderRules.Status(bed.Simulation, order).ShouldBe(WorkOrderStatus.Satisfied);
+        bed.World.Get<WorkOrder>(order).Done.ShouldBe(6);
+
+        // Spending planks is the same as asking for more of them: it keeps going to the new number.
+        bed.Simulation.Commands.Enqueue(new SetWorkOrderCommand(order, WorkOrderMode.Keep, 10, false));
+        bed.Simulation.ApplyCommandsNow();
+        WorkOrderRules.Status(bed.Simulation, order).ShouldNotBe(WorkOrderStatus.Satisfied);
+        bed.Simulation.Run(2_000);
+        bed.CountItems("plank").ShouldBe(10);
+    }
+
+    [Fact]
+    public void An_order_to_repeat_never_ends_and_one_to_make_a_number_ends()
+    {
+        var bed = Village();
+        Build(bed, "carpenter_bench", BenchCell);
+        bed.AddItems("log", 5, 2, 2, 1);
+        Worker(bed, 6, 6, "Carpenter");
+        var forever = Order(bed, "plank", 0, WorkOrderMode.Forever);
+
+        bed.Simulation.Run(3_000);
+
+        // The five logs became ten planks, and the order is still there waiting for more logs.
+        bed.CountItems("plank").ShouldBe(10);
+        bed.World.Get<WorkOrder>(forever).Done.ShouldBe(10);
+        WorkOrderRules.Status(bed.Simulation, forever).ShouldBe(WorkOrderStatus.WaitingInputs);
+        bed.AddItems("log", 1, 2, 2, 1);
+        bed.Simulation.Run(1_000);
+        bed.CountItems("plank").ShouldBe(12);
+        WorkOrderRules.IsDone(bed.World.Get<WorkOrder>(forever)).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_paused_order_is_not_made_until_it_is_resumed()
+    {
+        var bed = Village();
+        Build(bed, "carpenter_bench", BenchCell);
+        bed.AddItems("log", 2, 2, 2, 1);
+        Worker(bed, 6, 6, "Carpenter");
+        var order = Order(bed, "plank", 2);
+        bed.Simulation.Commands.Enqueue(new SetWorkOrderCommand(order, WorkOrderMode.Count, 2, true));
+        bed.Simulation.ApplyCommandsNow();
+
+        bed.Simulation.Run(600);
+
+        bed.CountItems("plank").ShouldBe(0);
+        WorkOrderRules.Status(bed.Simulation, order).ShouldBe(WorkOrderStatus.Paused);
+        bed.Simulation.Commands.Enqueue(new SetWorkOrderCommand(order, WorkOrderMode.Count, 2, false));
+        bed.Simulation.ApplyCommandsNow();
+        bed.Simulation.Run(600);
+        bed.CountItems("plank").ShouldBe(2);
+        WorkOrderRules.Status(bed.Simulation, order).ShouldBe(WorkOrderStatus.Done);
+    }
+
+    [Fact]
+    public void Moving_an_order_changes_what_is_made_first_and_orders_that_make_no_sense_change_nothing()
+    {
+        var bed = Village();
+        Build(bed, "carpenter_bench", BenchCell);
+        bed.AddItems("log", 1, 2, 2, 1);
+        Worker(bed, 6, 6, "Carpenter");
+        var planks = Order(bed, "plank", 2);
+        var handles = Order(bed, "handle", 2);
+        WorkOrderRules.InOrder(bed.Simulation).ShouldBe([planks, handles]);
+
+        bed.Simulation.Commands.Enqueue(new MoveWorkOrderCommand(handles, 0));
+        bed.Simulation.ApplyCommandsNow();
+        WorkOrderRules.InOrder(bed.Simulation).ShouldBe([handles, planks]);
+        bed.Simulation.Commands.Enqueue(new MoveWorkOrderCommand(handles, 99));
+        bed.Simulation.ApplyCommandsNow();
+        WorkOrderRules.InOrder(bed.Simulation).ShouldBe([planks, handles]);
+        bed.Simulation.Commands.Enqueue(new MoveWorkOrderCommand(handles, 0));
+        bed.Simulation.ApplyCommandsNow();
+
+        // The handles go first: they need a plank, so with one log only the planks of the second order wait.
+        bed.AddItems("plank", 1, 3, 3, 1);
+        bed.Simulation.Run(900);
+        bed.World.Get<WorkOrder>(handles).Done.ShouldBe(2);
+
+        bed.Simulation.Commands.Enqueue(new SetWorkOrderCommand(planks, WorkOrderMode.Count, 0, false));
+        bed.Simulation.Commands.Enqueue(new SetWorkOrderCommand(planks, (WorkOrderMode)9, 2, false));
+        bed.Simulation.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Keep, 0));
+        bed.Simulation.Commands.Enqueue(new MoveWorkOrderCommand(default, 0));
+        bed.Simulation.ApplyCommandsNow();
+        bed.World.Get<WorkOrder>(planks).Quantity.ShouldBe(2);
+        bed.World.Store<WorkOrder>().Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public void With_free_will_off_or_on_nobody_makes_anything_without_an_order()
+    {
+        foreach (var freeWill in new[] { false, true })
+        {
+            var bed = Village();
+            Build(bed, "carpenter_bench", BenchCell);
+            bed.AddItems("log", 4, 2, 2, 1);
+            Worker(bed, 6, 6, "Carpenter");
+            bed.Simulation.Commands.Enqueue(new SetFreeWillCommand(freeWill));
+            bed.Simulation.ApplyCommandsNow();
+
+            bed.Simulation.Run(1_500);
+
+            bed.CountItems("plank").ShouldBe(0);
+        }
     }
 
     [Fact]

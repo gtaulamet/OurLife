@@ -222,5 +222,27 @@
   "ui.workshop.status.no_workshop": "falta el taller",
   "ui.workshop.status.locked": "falta un conocimiento",
   "ui.workshop.status.no_worker": "nadie puede trabajar aquí",
-  "ui.workshop.status.done": "terminada"
+  "ui.workshop.status.done": "terminada",
+  "ui.workshop.status.paused": "en pausa",
+  "ui.workshop.status.satisfied": "ya hay suficientes",
+
+  "ui.production.button": "Producción (O)",
+  "ui.production.title": "Producción",
+  "ui.production.empty": "Sin órdenes. Agrega una abajo o desde el inspector de un taller.",
+  "ui.production.new": "Nueva orden",
+  "ui.production.add": "Agregar",
+  "ui.production.order": "{recipe}: {mode}, hechas {done}, {status}",
+  "ui.production.mode.count": "hacer {quantity}",
+  "ui.production.mode.keep": "mantener {quantity}",
+  "ui.production.mode.forever": "repetir",
+  "ui.production.kind.count": "Hacer",
+  "ui.production.kind.keep": "Mantener",
+  "ui.production.kind.forever": "Repetir",
+  "ui.production.less": "−",
+  "ui.production.more": "+",
+  "ui.production.up": "Subir",
+  "ui.production.down": "Bajar",
+  "ui.production.mode": "Modo",
+  "ui.production.pause": "Pausar",
+  "ui.production.resume": "Reanudar"
 }

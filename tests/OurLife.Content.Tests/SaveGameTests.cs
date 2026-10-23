@@ -89,6 +89,8 @@ public class SaveGameTests
         uninterrupted.Commands.Enqueue(new PlaceBlueprintCommand("bed", "planks", cells[^1], cells[^1]));
         uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Count, 20));
         uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("handle", WorkOrderMode.Count, 4));
+        uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Keep, 30));
+        uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("handle", WorkOrderMode.Forever, 0));
 
         // Until the workshop holds delivered ingredients: the save catches a craft under way.
         var world = uninterrupted.World;
@@ -101,7 +103,7 @@ public class SaveGameTests
 
         shops.Count.ShouldBe(1);
         world.Get<Workshop>(shops[0]).Inputs.ShouldNotBeEmpty();
-        world.Store<WorkOrder>().Count.ShouldBe(2);
+        world.Store<WorkOrder>().Count.ShouldBe(4);
         var output = new MemoryStream();
         SaveGame.Write(output, uninterrupted, Info);
         var loaded = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs);

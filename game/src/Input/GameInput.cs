@@ -101,6 +101,9 @@ public partial class GameInput : Node3D
     /// <summary>Raised by the colony panel's key. Like every game key, not while a menu covers the game.</summary>
     public event Action? ColonyPanelRequested;
 
+    /// <summary>Raised by the key of the production panel, under the same rules.</summary>
+    public event Action? ProductionPanelRequested;
+
     public Selection? Selected => _selection;
 
     /// <summary>The order the next drag gives, or null to select.</summary>
@@ -301,6 +304,11 @@ public partial class GameInput : Node3D
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleColony))
         {
             ColonyPanelRequested?.Invoke();
+        }
+
+        if (Godot.Input.IsActionJustPressed(InputActions.ToggleProduction))
+        {
+            ProductionPanelRequested?.Invoke();
         }
 
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleSheet))

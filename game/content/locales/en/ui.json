@@ -222,5 +222,27 @@
   "ui.workshop.status.no_workshop": "no workshop",
   "ui.workshop.status.locked": "needs knowledge",
   "ui.workshop.status.no_worker": "nobody can work here",
-  "ui.workshop.status.done": "done"
+  "ui.workshop.status.done": "done",
+  "ui.workshop.status.paused": "paused",
+  "ui.workshop.status.satisfied": "enough in stock",
+
+  "ui.production.button": "Production (O)",
+  "ui.production.title": "Production",
+  "ui.production.empty": "No orders. Add one below or from the inspector of a workshop.",
+  "ui.production.new": "New order",
+  "ui.production.add": "Add",
+  "ui.production.order": "{recipe}: {mode}, made {done}, {status}",
+  "ui.production.mode.count": "make {quantity}",
+  "ui.production.mode.keep": "keep {quantity}",
+  "ui.production.mode.forever": "repeat",
+  "ui.production.kind.count": "Make",
+  "ui.production.kind.keep": "Keep",
+  "ui.production.kind.forever": "Repeat",
+  "ui.production.less": "−",
+  "ui.production.more": "+",
+  "ui.production.up": "Up",
+  "ui.production.down": "Down",
+  "ui.production.mode": "Mode",
+  "ui.production.pause": "Pause",
+  "ui.production.resume": "Resume"
 }

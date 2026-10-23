@@ -26,21 +26,22 @@ public sealed partial class DecisionSystem
     private bool TryCraft(Simulation simulation, EntityId colonist, WorkTypeDef workType)
     {
         var world = simulation.World;
-        world.Query<WorkOrder>(_craftOrders);
-        if (_craftOrders.Count == 0)
+        if (world.Store<WorkOrder>().Count == 0)
         {
             return false;
         }
 
         var content = simulation.Content;
         var person = world.Get<Colonist>(colonist);
+        _craftOrders.Clear();
+        _craftOrders.AddRange(WorkOrderRules.InOrder(simulation));
         foreach (var orderEntity in _craftOrders)
         {
             var order = world.Get<WorkOrder>(orderEntity);
-            if (WorkOrderRules.IsDone(order) || !content.TryGet<RecipeDef>(order.Recipe, out var recipe)
+            if (!content.TryGet<RecipeDef>(order.Recipe, out var recipe)
                 || content.Get<BuildableDef>(recipe.Workshop).Workstation?.WorkType != workType.Id
                 || !simulation.Unlocks.IsUnlocked(recipe, simulation.Progress)
-                || order.Done + WorkOrderRules.InProgress(simulation, orderEntity, _craftJobs) >= order.Quantity)
+                || !WorkOrderRules.Wants(simulation, orderEntity, _craftJobs))
             {
                 continue;
             }

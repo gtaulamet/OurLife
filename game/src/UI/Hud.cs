@@ -70,6 +70,9 @@ public partial class Hud : CanvasLayer
 
     public ColonyPanel Colony { get; private set; } = null!;
 
+    /// <summary>The production orders, opened with the key or its button.</summary>
+    public ProductionPanel Production { get; private set; } = null!;
+
     /// <summary>The sheet of a colonist, over the game (see <c>docs/gdd/vida-y-generaciones.md</c>).</summary>
     public ColonistSheet Sheet { get; private set; } = null!;
 
@@ -112,6 +115,8 @@ public partial class Hud : CanvasLayer
         hud.Colony = ColonyPanel.Create(services, session, input);
         left.AddChild(hud.Colony);
         hud.Colony.VisibilityChanged += hud.ShowAlertsUnlessColony;
+        hud.Production = ProductionPanel.Create(services, session);
+        left.AddChild(hud.Production);
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
@@ -139,6 +144,7 @@ public partial class Hud : CanvasLayer
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
         input.ColonyPanelRequested += hud.Colony.Toggle;
+        input.ProductionPanelRequested += hud.Production.Toggle;
         session.ClockChanged += hud.RefreshTimeButtons;
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
@@ -325,6 +331,9 @@ public partial class Hud : CanvasLayer
         var colony = new Button { Text = "ui.colony.button", FocusMode = Control.FocusModeEnum.None };
         colony.Pressed += () => Colony.Toggle();
         row.AddChild(colony);
+        var production = new Button { Text = "ui.production.button", FocusMode = Control.FocusModeEnum.None };
+        production.Pressed += () => Production.Toggle();
+        row.AddChild(production);
 
         _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(90, 0), HorizontalAlignment = HorizontalAlignment.Right };
         row.AddChild(_level);
