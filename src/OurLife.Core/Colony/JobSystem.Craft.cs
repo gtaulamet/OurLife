@@ -16,18 +16,6 @@ public sealed partial class JobSystem
     /// </summary>
     private static JobKind SiteKind(Job job) => job.Kind == JobKind.Craft && !job.Target.IsNone ? JobKind.Haul : job.Kind;
 
-    /// <summary>The work type of the workshop a craft is made at; null if the recipe or the workshop is gone.</summary>
-    private static WorkTypeDef? CraftWorkType(Simulation simulation, Job job)
-    {
-        if (job.Recipe is null || !simulation.Content.TryGet<RecipeDef>(job.Recipe, out var recipe)
-            || simulation.Content.Get<BuildableDef>(recipe.Workshop).Workstation is not { } station)
-        {
-            return null;
-        }
-
-        return simulation.Content.Get<WorkTypeDef>(station.WorkType);
-    }
-
     /// <summary>
     /// A craft goes on while its workshop stands and its recipe exists; fetching, while the pile is
     /// there; and working, while every ingredient is at the workshop.

@@ -90,7 +90,7 @@ public sealed partial class JobSystem : ISimSystem
             }
 
             // Carrying for the player is the work of hauling, of supplying a building and of feeding a baby.
-            var workType = job.Kind == JobKind.Craft ? CraftWorkType(simulation, job) : _rules.WorkTypeOf(job);
+            var workType = _rules.WorkTypeOf(job);
             if (workType is not null && job.Stage == JobStage.Carrying && job.Kind != JobKind.Craft)
             {
                 _rules.Skills.Gain(simulation, colonist, workType, 1);

@@ -165,6 +165,11 @@ public static class SaveGame
                 ColonyStart.MigrateVillageCenter(simulation);
             }
 
+            if (header.FormatVersion <= 12)
+            {
+                ColonyStart.MigrateKnowledge(simulation);
+            }
+
             return (simulation, header);
         });
         return simulation;

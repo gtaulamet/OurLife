@@ -48,7 +48,8 @@ En orden:
 - `--inspect-furniture` elige primero un taller.
 - Validación: build sin advertencias, 949 tests en verde, smoke con código 0 (sin cambios en la huella).
 - Partida preparada `docs/ip/playtest-o3/taller.olsave` (semilla 1, banco de carpintero de tablones ya construido y una orden de aserrar 5 tablones, que espera troncos). Capturas es/en con `--saves docs/ip/playtest-o3 --load taller --play --inspect-furniture --zoom 22`, revisadas: recetas, órdenes con su estado y "Quitar".
-- Pendiente: jugar tronco → tablón → mesa y la pasada de `/code-review`.
+- `/code-review` de `main...HEAD`: 8 hallazgos. Corregidos: `ColonyRules.WorkTypeOf` resuelve el trabajo `Craft` por la receta (una crisis lo corta, la habilidad acelera el acarreo del ingrediente, la etapa de vida lo respeta); el inspector rearma las filas al cambiar de idioma; el estado "en marcha" sólo cuenta ingredientes dentro del radio de traída de algún taller; una orden de un taller concreto se quita al desmontarlo; las partidas de formato 12 o anterior reciben el conocimiento inicial del escenario al migrar (`ColonyStart.MigrateKnowledge`). Descartados: el costo de `PileInUse` y de `TryCraft` (escaneos por decisión, sin medir problema; se ve en O4/O11) y los ingredientes que coinciden con dos entradas (ninguna receta real se superpone; se valida en O6 si aparece).
+- El usuario revisó las capturas y las dio por buenas. Los modelos propios de los bancos quedan para después (hoy usan la mesa pequeña de KayKit).
 
 ### 2026-10-22: O3, Core de talleres y recetas
 

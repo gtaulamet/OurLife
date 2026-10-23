@@ -101,6 +101,7 @@ public partial class InspectorPanel : PanelContainer
     {
         // The category names are in the buttons' rows: build them again in the new language.
         _filterZone = EntityId.None;
+        _workshopSignature = string.Empty;
         Refresh();
     }
 

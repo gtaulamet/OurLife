@@ -343,6 +343,49 @@ public class CraftTests
     }
 
     [Fact]
+    public void Logs_beyond_the_fetch_radius_of_every_workshop_do_not_make_an_order_run()
+    {
+        var bed = ColonyTestBed.Flat(80, 1, Content);
+        bed.Simulation.Progress.Learn("carpentry");
+        Build(bed, "carpenter_bench", BenchCell);
+        Worker(bed, 6, 6, "Carpenter");
+        bed.AddItems("log", 2, 70, 70, 1);
+        var order = Order(bed, "plank", 2);
+
+        WorkOrderRules.Status(bed.Simulation, order).ShouldBe(WorkOrderStatus.WaitingInputs);
+
+        bed.AddItems("log", 2, 12, 12, 1);
+        WorkOrderRules.Status(bed.Simulation, order).ShouldBe(WorkOrderStatus.Running);
+    }
+
+    [Fact]
+    public void An_order_for_one_workshop_goes_away_with_it()
+    {
+        var bed = Village();
+        var shop = Build(bed, "carpenter_bench", BenchCell);
+        bed.Simulation.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Count, 2, shop));
+        bed.Simulation.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Count, 3));
+        bed.Simulation.ApplyCommandsNow();
+        bed.World.Store<WorkOrder>().Count.ShouldBe(2);
+        Worker(bed, 6, 6, "Carpenter");
+        bed.Designate(DesignationKind.Deconstruct, BenchCell, BenchCell);
+
+        bed.Simulation.Run(400);
+
+        bed.World.Store<Workshop>().Count.ShouldBe(0);
+        bed.World.Store<WorkOrder>().Count.ShouldBe(1);
+    }
+
+    [Fact]
+    public void A_craft_is_work_of_the_workshop_for_the_rules_of_the_colony()
+    {
+        var rules = ColonyRules.From(Content);
+
+        rules.WorkTypeOf(new Job { Kind = JobKind.Craft, Recipe = "plank" })!.Id.ShouldBe("carpentry");
+        rules.WorkTypeOf(new Job { Kind = JobKind.Craft }).ShouldBeNull();
+    }
+
+    [Fact]
     public void Taking_down_a_workshop_leaves_its_ingredients_on_the_ground()
     {
         var bed = Village();

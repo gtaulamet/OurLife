@@ -204,6 +204,18 @@ public static class ColonyStart
     }
 
     /// <summary>
+    /// Formats 12 and before: the village knows what a new one starts with (O3), so its furniture
+    /// and workshops can still be built.
+    /// </summary>
+    internal static void MigrateKnowledge(Simulation simulation)
+    {
+        foreach (var knowledge in TheOnlyScenario(simulation.Content).StartingKnowledge)
+        {
+            simulation.Progress.Learn(knowledge);
+        }
+    }
+
+    /// <summary>
     /// Gives a game saved before IP3.5 (format 7) the centre of its village, as the arrival is not
     /// kept: the cell of the colonist nearest the middle of them all (the median on each axis), so
     /// one far away at work does not move it; the lowest id among equals. None in a game without

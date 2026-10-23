@@ -561,6 +561,7 @@ public static class Construction
         if (world.Has<Workshop>(piece))
         {
             Crafting.ReleaseInputs(simulation, piece);
+            WorkOrderRules.RemoveOrdersOf(simulation, piece);
         }
 
         simulation.Events.Emit(new EntityRemovedEvent(piece));

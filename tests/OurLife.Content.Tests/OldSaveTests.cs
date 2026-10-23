@@ -141,10 +141,10 @@ public class OldSaveTests
         var furniture = world.Get<Furniture>(beds[0]);
         (furniture.Buildable, furniture.Material, furniture.Quality).ShouldBe(("bed", "timber", null));
 
-        // There was nothing of workshops: no workshops, no production orders, no knowledge from the migration.
+        // There was nothing of workshops: no workshops, no production orders, and the knowledge of a new game from the migration.
         world.Store<Workshop>().Count.ShouldBe(0);
         world.Store<WorkOrder>().Count.ShouldBe(0);
-        simulation.Progress.Knowledge.ShouldBeEmpty();
+        simulation.Progress.Knowledge.OrderBy(id => id, StringComparer.Ordinal).ShouldBe(["carpentry", "cooking"]);
         simulation.Run(3_000);
         Colonists(simulation).Count.ShouldBe(7);
     }

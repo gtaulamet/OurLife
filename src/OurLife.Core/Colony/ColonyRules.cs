@@ -6,14 +6,17 @@ namespace OurLife.Core.Colony;
 /// <summary>The content the colony systems work with, checked once when they are added.</summary>
 public sealed class ColonyRules
 {
-    private ColonyRules(AiConfigDef ai, IReadOnlyList<WorkTypeDef> workTypes, IReadOnlySet<string> foodPlants, SkillRules skills)
+    private ColonyRules(AiConfigDef ai, IReadOnlyList<WorkTypeDef> workTypes, IReadOnlySet<string> foodPlants, SkillRules skills, IReadOnlyDictionary<string, WorkTypeDef> recipeWorkTypes)
     {
+        _recipeWorkTypes = recipeWorkTypes;
         Ai = ai;
         Skills = skills;
         WorkTypes = workTypes;
         FoodPlants = foodPlants;
         WorkJobs = workTypes.Select(type => (IReadOnlyList<JobKind>)type.JobKindsOf().ToArray()).ToArray();
     }
+
+    private readonly IReadOnlyDictionary<string, WorkTypeDef> _recipeWorkTypes;
 
     public AiConfigDef Ai { get; }
 
@@ -36,6 +39,12 @@ public sealed class ColonyRules
         if (job.ForFood)
         {
             return null;
+        }
+
+        // A craft is the work of the workshop of its recipe.
+        if (job.Kind == JobKind.Craft)
+        {
+            return job.Recipe is not null && _recipeWorkTypes.TryGetValue(job.Recipe, out var crafted) ? crafted : null;
         }
 
         for (var type = 0; type < WorkTypes.Count; type++)
@@ -81,6 +90,15 @@ public sealed class ColonyRules
             .Select(plant => plant.Id)
             .ToHashSet(StringComparer.Ordinal);
 
-        return new ColonyRules(configs[0], workTypes, foodPlants, SkillRules.From(content));
+        var recipeWorkTypes = new Dictionary<string, WorkTypeDef>(StringComparer.Ordinal);
+        foreach (var recipe in content.All<RecipeDef>())
+        {
+            if (content.Get<BuildableDef>(recipe.Workshop).Workstation is { } station)
+            {
+                recipeWorkTypes[recipe.Id] = content.Get<WorkTypeDef>(station.WorkType);
+            }
+        }
+
+        return new ColonyRules(configs[0], workTypes, foodPlants, SkillRules.From(content), recipeWorkTypes);
     }
 }

@@ -1,6 +1,7 @@
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
+using OurLife.Core.Pathfinding;
 using OurLife.Core.Sim;
 
 namespace OurLife.Core.Colony;
@@ -180,6 +181,29 @@ public static class WorkOrderRules
         return units;
     }
 
+    /// <summary>Removes the orders that name a workshop which is no longer there, so they do not wait for one forever.</summary>
+    internal static void RemoveOrdersOf(Simulation simulation, EntityId workshop)
+    {
+        var world = simulation.World;
+        var orders = new List<EntityId>();
+        world.Query<WorkOrder>(orders);
+        var removed = false;
+        foreach (var order in orders)
+        {
+            if (world.Get<WorkOrder>(order).Workshop == workshop)
+            {
+                simulation.Events.Emit(new EntityRemovedEvent(order));
+                world.DestroyEntity(order);
+                removed = true;
+            }
+        }
+
+        if (removed)
+        {
+            simulation.Events.Emit(new WorkOrdersChangedEvent());
+        }
+    }
+
     /// <summary>
     /// Makes the ingredients of the workshops of a kind fall to the ground when no order is left for
     /// their recipes and nobody works at them.
@@ -225,15 +249,33 @@ public static class WorkOrderRules
                                          && WorkPriorityRules.Of(world, colonist, workTypeId, defaultPriority) != WorkPriorityLevels.Never);
     }
 
-    /// <summary>Units of what an input takes anywhere in the village: piles, loads and the ingredients of the workshops.</summary>
+    /// <summary>Units of what an input takes within the fetch radius of a workshop: piles, loads and the ingredients of the workshops.</summary>
     private static int Held(Simulation simulation, List<EntityId> shops, RecipeInput input)
     {
+        var world = simulation.World;
         var total = 0;
-        foreach (var (item, quality, count, _) in Stocks.Everything(simulation))
+        var reach = (simulation.Content.All<AiConfigDef>() is [{ } ai] ? ai.CraftFetchRadius : 0) * PathFinder.StraightCost;
+        var piles = new List<EntityId>();
+        world.Query<ItemStack, Position>(piles);
+        foreach (var pile in piles)
         {
-            if (Crafting.Accepts(simulation, input, item.Id, quality))
+            var stack = world.Get<ItemStack>(pile);
+            var cell = world.Get<Position>(pile).Cell;
+            if (stack.Count > 0 && Crafting.Accepts(simulation, input, stack.Def, stack.Quality)
+                && shops.Any(shop => PathFinder.Estimate(cell, world.Get<Position>(shop).Cell) <= reach))
             {
-                total += count;
+                total += stack.Count;
+            }
+        }
+
+        var carriers = new List<EntityId>();
+        world.Query<Carried>(carriers);
+        foreach (var carrier in carriers)
+        {
+            var carried = world.Get<Carried>(carrier);
+            if (Crafting.Accepts(simulation, input, carried.Def, carried.Quality))
+            {
+                total += carried.Count;
             }
         }
 
