@@ -42,7 +42,7 @@ public partial class ProductionPanel : PanelContainer
     }
 
     /// <summary>The rows of the orders as the player reads them, for the smoke.</summary>
-    public IEnumerable<string> OrderTexts => _list.GetChildren().OfType<HBoxContainer>().Select(row => row.GetChildren().OfType<Label>().First().Text);
+    public IEnumerable<string> OrderTexts => _list is null ? [] : _list.GetChildren().OfType<HBoxContainer>().Select(row => row.GetChildren().OfType<Label>().First().Text);
 
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
 
@@ -162,7 +162,13 @@ public partial class ProductionPanel : PanelContainer
     }
 
     /// <summary>Reads the orders now, without waiting for the next refresh. For the smoke.</summary>
-    public void Refresh() => RefreshList();
+    public void Refresh()
+    {
+        if (_list is not null)
+        {
+            RefreshList();
+        }
+    }
 
     private void RefreshList()
     {

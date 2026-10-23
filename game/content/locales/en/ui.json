@@ -215,7 +215,6 @@
   "ui.workshop.make": "Make {count}: {recipe}",
   "ui.workshop.make_locked": "Make {count}: {recipe} (locked)",
   "ui.workshop.orders": "Orders",
-  "ui.workshop.order": "{recipe}: {done} of {quantity}, {status}",
   "ui.workshop.remove": "Remove",
   "ui.workshop.status.running": "under way",
   "ui.workshop.status.waiting_inputs": "missing ingredients",

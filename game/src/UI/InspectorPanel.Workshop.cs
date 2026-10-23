@@ -48,7 +48,7 @@ public partial class InspectorPanel
             ';',
             new[] { kind }
                 .Concat(recipes.Select(recipe => $"{recipe.Id}:{_simulation.Unlocks.IsUnlocked(recipe, _simulation.Progress)}"))
-                .Concat(orders.Select(item => $"{item.Entity.Index}:{item.Order.Done}:{item.Status}")));
+                .Concat(orders.Select(item => $"{item.Entity.Index}:{item.Order.Mode}:{item.Order.Quantity}:{item.Order.Done}:{item.Order.Paused}:{item.Status}")));
         if (signature == _workshopSignature)
         {
             return;
@@ -84,10 +84,10 @@ public partial class InspectorPanel
             row.AddChild(new Label
             {
                 Text = text.Format(
-                    "ui.workshop.order",
-                    ("recipe", text.Format(content.Get<RecipeDef>(order.Recipe).NameKey!)),
+                    "ui.production.order",
+                    ("recipe", text.Capitalized(text.Format(content.Get<RecipeDef>(order.Recipe).NameKey!))),
+                    ("mode", text.Format($"ui.production.mode.{order.Mode.ToString().ToLowerInvariant()}", ("quantity", order.Quantity))),
                     ("done", order.Done),
-                    ("quantity", order.Quantity),
                     ("status", text.Format($"ui.workshop.status.{StatusId(status)}"))),
                 AutoTranslateMode = AutoTranslateModeEnum.Disabled,
                 AutowrapMode = TextServer.AutowrapMode.WordSmart,

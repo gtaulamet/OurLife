@@ -12,8 +12,8 @@ public sealed record WorkOrdersChangedEvent : ISimEvent;
 /// <summary>
 /// Creates a production order (see "Órdenes de producción" in <c>docs/gdd/oficios.md</c>): make
 /// <c>Quantity</c> units of the main output of a recipe, at any workshop of its kind or at
-/// <c>Workshop</c>. It is ignored if the recipe does not exist, the mode is not
-/// not a mode, the quantity is not positive (except in mode <see cref="WorkOrderMode.Forever"/>) or
+/// <c>Workshop</c>. It is ignored if the recipe does not exist, the mode is
+/// not one of <see cref="WorkOrderMode"/>, the quantity is not positive (except in mode <see cref="WorkOrderMode.Forever"/>) or
 /// the workshop is not a standing workshop of the recipe. A recipe that is still locked is accepted:
 /// the order waits, and says so (<see cref="WorkOrderStatus.Locked"/>).
 /// </summary>
@@ -170,9 +170,19 @@ public static class WorkOrderRules
             return WorkOrderStatus.Done;
         }
 
-        if (order.Paused)
+        var crafters = new List<EntityId>();
+        world.Query<Colonist, Job>(crafters);
+        var crafting = crafters.Any(colonist => world.Get<Job>(colonist).Kind == JobKind.Craft && world.Get<Job>(colonist).Order == orderEntity);
+
+        // A craft under way goes on to its end, so a paused order that has one still shows it.
+        if (order.Paused && !crafting)
         {
             return WorkOrderStatus.Paused;
+        }
+
+        if (order.Mode == WorkOrderMode.Keep && !crafting && !Wants(simulation, orderEntity, []))
+        {
+            return WorkOrderStatus.Satisfied;
         }
 
         var recipe = simulation.Content.Get<RecipeDef>(order.Recipe);
@@ -193,16 +203,9 @@ public static class WorkOrderRules
             return WorkOrderStatus.NoWorkshop;
         }
 
-        var crafters = new List<EntityId>();
-        world.Query<Colonist, Job>(crafters);
-        if (crafters.Any(colonist => world.Get<Job>(colonist).Kind == JobKind.Craft && world.Get<Job>(colonist).Order == orderEntity))
+        if (crafting)
         {
             return WorkOrderStatus.Running;
-        }
-
-        if (order.Mode == WorkOrderMode.Keep && !Wants(simulation, orderEntity, []))
-        {
-            return WorkOrderStatus.Satisfied;
         }
 
         if (!AnyWorker(simulation, recipe))
