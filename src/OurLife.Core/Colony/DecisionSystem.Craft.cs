@@ -26,6 +26,11 @@ public sealed partial class DecisionSystem
     private bool TryCraft(Simulation simulation, EntityId colonist, WorkTypeDef workType)
     {
         var world = simulation.World;
+        if (_rules.ResearchWorkType == workType)
+        {
+            return TryResearch(simulation, colonist);
+        }
+
         if (world.Store<WorkOrder>().Count == 0)
         {
             return false;
@@ -127,4 +132,54 @@ public sealed partial class DecisionSystem
         Assign(simulation, colonist, job, _path);
         return true;
     }
+
+    /// <summary>
+    /// Takes research: goes to a free workshop of the work type of research, if there is a
+    /// knowledge in the queue, and reserves it. One colonist at a time works at each.
+    /// </summary>
+    private bool TryResearch(Simulation simulation, EntityId colonist)
+    {
+        if (ResearchRules.Current(simulation) is null)
+        {
+            return false;
+        }
+
+        var world = simulation.World;
+        var map = simulation.Map;
+        var person = world.Get<Colonist>(colonist);
+        var from = world.Get<Position>(colonist).Cell;
+        var region = simulation.Connectivity.RegionAt(from);
+        _craftShops.Clear();
+        world.Query<Workshop, Furniture>(_craftShops);
+        foreach (var shop in _craftShops)
+        {
+            if (simulation.Content.Get<BuildableDef>(world.Get<Furniture>(shop).Buildable).Workstation?.WorkType != _rules.ResearchWorkType!.Id
+                || _entityUses.GetValueOrDefault(shop) != 0 || IsIgnored(person, shop, default))
+            {
+                continue;
+            }
+
+            var shopCell = world.Get<Position>(shop).Cell;
+            WorkSites.Find(map, JobKind.Research, shopCell, _sites);
+            KeepInRegion(_sites, simulation.Connectivity, region);
+            _goal.Clear();
+            _goal.AddRange(_sites);
+            if (_goal.Count == 0 || !_paths.TryFind(map, from, _goal, _path))
+            {
+                person.Unreachable.Add(new IgnoredTarget
+                {
+                    Entity = shop,
+                    Cell = shopCell,
+                    UntilTick = simulation.CurrentTick + _rules.Ai.UnreachableCooldownTicks,
+                });
+                continue;
+            }
+
+            Assign(simulation, colonist, new Job { Kind = JobKind.Research, Recipient = shop, Destination = shopCell, Cell = shopCell }, _path);
+            return true;
+        }
+
+        return false;
+    }
+
 }

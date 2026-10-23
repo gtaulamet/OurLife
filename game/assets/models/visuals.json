@@ -157,6 +157,7 @@
     "furniture.chest": { "model": "res://assets/models/kaykit_dungeon-remastered/trunk_medium_A.glb", "scale": 0.8, "turn": 3 },
     "furniture.carpenter_bench": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },
     "furniture.mason_bench": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },
-    "furniture.kitchen": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 }
+    "furniture.kitchen": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },
+    "furniture.scriptorium": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 }
   }
 }

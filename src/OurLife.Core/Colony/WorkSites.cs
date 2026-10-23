@@ -33,6 +33,7 @@ public static class WorkSites
             case JobKind.Build:
             case JobKind.Deconstruct:
             case JobKind.Craft:
+            case JobKind.Research:
                 // The cell changes shape under the work, or nobody can stand on it yet.
                 AddAround(map, target, sites);
                 return;

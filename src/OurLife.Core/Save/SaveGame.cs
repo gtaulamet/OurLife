@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 14;
+    public const int FormatVersion = 15;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -44,6 +44,8 @@ public static class SaveGame
     /// when it is not the default one) and the job <c>Craft</c>: a game of format 12 needs nothing.
     /// Format 14 (O4, production orders) adds the modes <c>Keep</c> and <c>Forever</c>, <c>WorkOrder.Paused</c> and
     /// <c>WorkOrder.Sequence</c> (both written only when not the default): a game of format 13 needs nothing.
+    /// Format 15 (O5, knowledge) adds the research queue, the points of each knowledge being learned and the job <c>Research</c>:
+    /// a game of format 14 starts with an empty queue and no points.
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -203,6 +205,8 @@ public static class SaveGame
             StockTargets = [.. simulation.StockTargets],
             Era = simulation.Progress.CurrentEra,
             Knowledge = [.. simulation.Progress.Knowledge.Order(StringComparer.Ordinal)],
+            ResearchQueue = [.. simulation.Progress.ResearchQueue],
+            KnowledgePoints = [.. simulation.Progress.Points.Select(entry => new SavedKnowledgePoints(entry.Key, entry.Value.Research, entry.Value.Practice))],
             Random = [.. simulation.Random.Streams.Select(entry => new SavedStream(entry.Key, entry.Value.State, entry.Value.Increment))],
             Generations = [.. simulation.World.Entities.Generations],
             FreeSlots = [.. simulation.World.Entities.FreeSlots],
@@ -300,6 +304,19 @@ public static class SaveGame
         {
             RequireDef<KnowledgeDef>(content, knowledge);
             simulation.Progress.Learn(knowledge);
+        }
+
+        foreach (var queued in state.ResearchQueue)
+        {
+            RequireDef<KnowledgeDef>(content, queued);
+        }
+
+        simulation.Progress.SetQueue(state.ResearchQueue);
+        foreach (var points in state.KnowledgePoints)
+        {
+            RequireDef<KnowledgeDef>(content, points.Knowledge);
+            var restored = simulation.Progress.PointsOf(points.Knowledge);
+            (restored.Research, restored.Practice) = (points.Research, points.Practice);
         }
 
         foreach (var stream in state.Random)
@@ -631,6 +648,10 @@ public static class SaveGame
 
         public List<string> Knowledge { get; set; } = [];
 
+        public List<string> ResearchQueue { get; set; } = [];
+
+        public List<SavedKnowledgePoints> KnowledgePoints { get; set; } = [];
+
         public List<SavedStream> Random { get; set; } = [];
 
         public SavedMap? Map { get; set; }
@@ -645,6 +666,8 @@ public static class SaveGame
     }
 
     private sealed record SavedStream(string Name, ulong State, ulong Increment);
+
+    private sealed record SavedKnowledgePoints(string Knowledge, int Research, int Practice);
 
     private sealed class SavedMap
     {

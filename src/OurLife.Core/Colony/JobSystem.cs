@@ -127,6 +127,10 @@ public sealed partial class JobSystem : ISimSystem
             if (workType is not null && job.Progress > progress && job.Stage != JobStage.Carrying)
             {
                 _rules.Skills.Gain(simulation, colonist, workType, 1);
+                if (_rules.Knowledge is { } knowledge && job.Kind != JobKind.Research && _rules.PracticedBy(workType.Id) is { Count: > 0 } practiced)
+                {
+                    ResearchRules.AddPractice(simulation, practiced, knowledge);
+                }
             }
 
             if (finished)
@@ -260,6 +264,8 @@ public sealed partial class JobSystem : ISimSystem
                 return job.Stage != JobStage.Working || FreeWillRules.WillBeNear(simulation, colonist, job.Target);
             case JobKind.Craft:
                 return IsCraftValid(simulation, job);
+            case JobKind.Research:
+                return world.IsAlive(job.Recipient) && world.Has<Workshop>(job.Recipient) && ResearchRules.Current(simulation) is not null;
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -374,6 +380,8 @@ public sealed partial class JobSystem : ISimSystem
                 return Build(simulation, colonist, job, speed);
             case JobKind.Craft:
                 return Craft(simulation, colonist, job, workType, speed);
+            case JobKind.Research:
+                return Research(simulation, job, speed);
             case JobKind.Deconstruct:
                 return Deconstruct(simulation, colonist, job, speed);
             case JobKind.Channel:
@@ -496,7 +504,7 @@ public sealed partial class JobSystem : ISimSystem
     private static bool IsWork(Job job) => job.Kind switch
     {
         JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct or JobKind.FeedBaby
-            or JobKind.Craft => true,
+            or JobKind.Craft or JobKind.Research => true,
         JobKind.Harvest => !job.ForFood,
         _ => false,
     };

@@ -91,6 +91,7 @@ public class SaveGameTests
         uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("handle", WorkOrderMode.Count, 4));
         uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Keep, 30));
         uninterrupted.Commands.Enqueue(new CreateWorkOrderCommand("handle", WorkOrderMode.Forever, 0));
+        uninterrupted.Commands.Enqueue(new SetResearchQueueCommand(["stonecutting", "agriculture"]));
 
         // Until the workshop holds delivered ingredients: the save catches a craft under way.
         var world = uninterrupted.World;
@@ -116,6 +117,8 @@ public class SaveGameTests
         var orders = new List<Core.Ecs.EntityId>();
         loaded.World.Query<WorkOrder>(orders);
         orders.Select(order => loaded.World.Get<WorkOrder>(order).Done).Sum().ShouldBeGreaterThan(0);
+        loaded.Progress.ResearchQueue.ShouldBe(uninterrupted.Progress.ResearchQueue);
+        loaded.Progress.Points.Keys.ShouldBe(uninterrupted.Progress.Points.Keys);
     }
 
     [Fact]

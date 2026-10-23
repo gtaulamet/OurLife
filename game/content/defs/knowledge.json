@@ -1,8 +1,26 @@
 [
-  { "type": "Knowledge", "id": "carpentry", "era": "medieval" },
-  { "type": "Knowledge", "id": "cooking", "era": "medieval" },
-  { "type": "Knowledge", "id": "stonecutting", "era": "medieval" },
-  { "type": "Knowledge", "id": "joinery", "era": "medieval", "requires": ["carpentry"] },
-  { "type": "Knowledge", "id": "milling", "era": "medieval", "requires": ["cooking"] },
-  { "type": "Knowledge", "id": "food_preservation", "era": "medieval", "requires": ["cooking"] }
+  { "type": "KnowledgeConfig", "id": "knowledge_config", "practiceCapPercent": 60, "researchChunkTicks": 60, "queueMax": 5, "workType": "research" },
+
+  { "type": "Knowledge", "id": "carpentry", "era": "medieval", "branch": "crafts", "tier": 1, "cost": 0, "order": 0 },
+  { "type": "Knowledge", "id": "cooking", "era": "medieval", "branch": "crafts", "tier": 1, "cost": 0, "order": 1 },
+  { "type": "Knowledge", "id": "stonecutting", "era": "medieval", "branch": "crafts", "tier": 1, "cost": 1500, "order": 2,
+    "practice": { "workType": "mining", "centipointsPerTick": 50 } },
+  { "type": "Knowledge", "id": "joinery", "era": "medieval", "requires": ["carpentry"], "branch": "crafts", "tier": 2, "cost": 2500, "order": 3,
+    "practice": { "workType": "carpentry", "centipointsPerTick": 40 } },
+
+  { "type": "Knowledge", "id": "agriculture", "era": "medieval", "branch": "field", "tier": 1, "cost": 2000, "order": 4,
+    "practice": { "workType": "gathering", "centipointsPerTick": 80 } },
+  { "type": "Knowledge", "id": "cereals", "era": "medieval", "requires": ["agriculture"], "branch": "field", "tier": 2, "cost": 2500, "order": 5,
+    "practice": { "workType": "farming", "centipointsPerTick": 50 } },
+  { "type": "Knowledge", "id": "milling", "era": "medieval", "requires": ["cereals", "cooking"], "branch": "field", "tier": 3, "cost": 3000, "order": 6,
+    "practice": { "workType": "cooking", "centipointsPerTick": 40 } },
+  { "type": "Knowledge", "id": "food_preservation", "era": "medieval", "requires": ["cooking"], "branch": "field", "tier": 2, "cost": 3000, "order": 7,
+    "practice": { "workType": "cooking", "centipointsPerTick": 40 } },
+  { "type": "Knowledge", "id": "silviculture", "era": "medieval", "requires": ["agriculture"], "branch": "field", "tier": 2, "cost": 2000, "order": 8,
+    "practice": { "workType": "woodcutting", "centipointsPerTick": 30 } },
+
+  { "type": "Knowledge", "id": "charcoal_burning", "era": "medieval", "requires": ["stonecutting"], "branch": "fire_metal", "tier": 2, "cost": 2500, "order": 9,
+    "practice": { "workType": "woodcutting", "centipointsPerTick": 30 } },
+  { "type": "Knowledge", "id": "metallurgy", "era": "medieval", "requires": ["charcoal_burning"], "branch": "fire_metal", "tier": 3, "cost": 4000, "order": 10 },
+  { "type": "Knowledge", "id": "ironwork", "era": "medieval", "requires": ["metallurgy"], "branch": "fire_metal", "tier": 4, "cost": 5000, "order": 11 }
 ]

@@ -46,7 +46,7 @@ public class WorkshopContentTests
     }
 
     [Fact]
-    public void The_workshops_are_the_bench_of_the_carpenter_the_bench_of_the_mason_and_the_kitchen()
+    public void The_workshops_are_the_benches_of_the_carpenter_and_the_mason_the_kitchen_and_the_scriptorium()
     {
         var workshops = GameContent.Defs.All<BuildableDef>().Where(buildable => buildable.Workstation is not null)
             .Select(buildable => (buildable.Id, buildable.Workstation!.WorkType, buildable.Cost, buildable.WorkTicks, buildable.Beauty, string.Join(",", buildable.Requires)));
@@ -56,6 +56,7 @@ public class WorkshopContentTests
             ("carpenter_bench", "carpentry", 6, 240, -1, "carpentry"),
             ("kitchen", "cooking", 8, 300, 0, "cooking"),
             ("mason_bench", "stonecutting", 6, 240, -1, "stonecutting"),
+            ("scriptorium", "research", 6, 240, 1, ""),
         ]);
         foreach (var workshop in GameContent.Defs.All<BuildableDef>().Where(buildable => buildable.Workstation is not null))
         {

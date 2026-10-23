@@ -42,6 +42,15 @@ En orden:
 
 ## Historial
 
+### 2026-10-23: O5, Core de conocimientos y scriptorium
+
+- Rama `ip4/o5-conocimientos`, sobre `main` con O4 cerrado. Sólo el Core, el contenido y los tests; falta la presentación (panel K, atenuar lo bloqueado en la barra de construcción, ícono del HUD, capturas).
+- Defs: `KnowledgeDef` con `branch`, `tier`, `cost`, `practice` y `order`; `KnowledgeConfigDef` (`knowledge.json`: práctica 60 %, tanda de 60 ticks, cola de 5 y el tipo de trabajo `research`). Los 12 conocimientos del árbol medieval (28 000 puntos en diez). Buildable `scriptorium` (6 tablones, 240 ticks, `beauty` 1, taller de `research`), con el modelo de la mesa pequeña de KayKit por ahora.
+- Core: `ProgressState` suma `ResearchQueue` y `Points` (investigación y práctica por conocimiento, en centésimas); `ResearchRules` (estado, avance, desbloqueos, `AddResearch`, `AddPractice`), `SetResearchQueueCommand` (rechaza todo si hay uno bloqueado, aprendido, repetido, desconocido o de más), `KnowledgeLearnedEvent`, `ResearchChangedEvent` y el aviso `event.knowledge.learned`. Trabajo `Research`: `DecisionSystem.TryResearch` va al escritorio libre (uno por escritorio) y trabaja una tanda; cada tick suma tantas centésimas como la velocidad del colono, así una interrupción no pierde nada. La práctica se suma en el mismo lugar donde se gana la habilidad. `ColonyRules.WorkTypeOf` resuelve `Research` y `ColonyRules.PracticedBy`.
+- Formato 15, sin migración (una partida de formato 14 empieza sin cola ni puntos). Fixture `o5.olsave` (formato 14, escrito con el código de `main` en un worktree: banco, una orden de Mantener y una de Repetir). La huella incluye la cola y los puntos.
+- Tests: `ResearchTests` (9), `KnowledgeContentTests` (4), continuidad con cola y `o5.olsave`. 724 tests del Core, 203 de contenido, smoke con código 0. Huellas nuevas con `--ticks 5000`: `92D81D2C63BAB178` (semilla 1) y `9130C54E3B654499` (semilla 42): cambian porque la práctica ya suma puntos.
+- Criterio 9 (época posterior bloquea) sigue cubierto por los tests de `UnlockService` de ADR-008.
+
 ### 2026-10-23: O4, órdenes de producción
 
 - Rama `ip4/o4-ordenes`, sobre `main` con O3 cerrado (corregido tras `/code-review`: ver la entrada de O3).

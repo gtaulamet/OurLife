@@ -6,8 +6,12 @@ namespace OurLife.Core.Colony;
 /// <summary>The content the colony systems work with, checked once when they are added.</summary>
 public sealed class ColonyRules
 {
-    private ColonyRules(AiConfigDef ai, IReadOnlyList<WorkTypeDef> workTypes, IReadOnlySet<string> foodPlants, SkillRules skills, IReadOnlyDictionary<string, WorkTypeDef> recipeWorkTypes)
+    private ColonyRules(AiConfigDef ai, IReadOnlyList<WorkTypeDef> workTypes, IReadOnlySet<string> foodPlants, SkillRules skills, IReadOnlyDictionary<string, WorkTypeDef> recipeWorkTypes, KnowledgeConfigDef? knowledge, IReadOnlyList<KnowledgeDef> practiced)
     {
+        Knowledge = knowledge;
+        _practiced = practiced.GroupBy(def => def.Practice!.WorkType, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<KnowledgeDef>)[.. group], StringComparer.Ordinal);
+        ResearchWorkType = knowledge is null ? null : workTypes.First(type => type.Id == knowledge.WorkType);
         _recipeWorkTypes = recipeWorkTypes;
         Ai = ai;
         Skills = skills;
@@ -17,6 +21,16 @@ public sealed class ColonyRules
     }
 
     private readonly IReadOnlyDictionary<string, WorkTypeDef> _recipeWorkTypes;
+    private readonly Dictionary<string, IReadOnlyList<KnowledgeDef>> _practiced;
+
+    /// <summary>The numbers of research, or null without them.</summary>
+    public KnowledgeConfigDef? Knowledge { get; }
+
+    /// <summary>The work type of research, or null without a config of knowledge.</summary>
+    public WorkTypeDef? ResearchWorkType { get; }
+
+    /// <summary>The knowledge that practicing a work type teaches, by the id of the work type; empty for others.</summary>
+    public IReadOnlyList<KnowledgeDef> PracticedBy(string workType) => _practiced.TryGetValue(workType, out var list) ? list : [];
 
     public AiConfigDef Ai { get; }
 
@@ -42,6 +56,11 @@ public sealed class ColonyRules
         }
 
         // A craft is the work of the workshop of its recipe.
+        if (job.Kind == JobKind.Research)
+        {
+            return ResearchWorkType;
+        }
+
         if (job.Kind == JobKind.Craft)
         {
             return job.Recipe is not null && _recipeWorkTypes.TryGetValue(job.Recipe, out var crafted) ? crafted : null;
@@ -99,6 +118,13 @@ public sealed class ColonyRules
             }
         }
 
-        return new ColonyRules(configs[0], workTypes, foodPlants, SkillRules.From(content), recipeWorkTypes);
+        var knowledgeConfigs = content.All<KnowledgeConfigDef>();
+        if (knowledgeConfigs.Count > 1)
+        {
+            throw new InvalidOperationException($"The colony needs at most one KnowledgeConfig def, found {knowledgeConfigs.Count}.");
+        }
+
+        var practiced = content.All<KnowledgeDef>().Where(def => def.Practice is not null).OrderBy(def => def.Id, StringComparer.Ordinal).ToList();
+        return new ColonyRules(configs[0], workTypes, foodPlants, SkillRules.From(content), recipeWorkTypes, knowledgeConfigs.Count == 1 ? knowledgeConfigs[0] : null, practiced);
     }
 }

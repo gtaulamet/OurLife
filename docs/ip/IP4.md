@@ -16,7 +16,7 @@
 | O2 Calidad y habilidades de oficio | Hecho | `ip4/o2-calidad` | Calidad y frescura en las pilas, 17 objetos, `planks` y `ashlar`, 13 habilidades, 16 tablones iniciales, formato 12, HUD por categorías y panel Colonia de 13 columnas. Un hallazgo de diseño queda a la vista: una celda de almacén guarda una sola calidad |
 | O3 Talleres y recetas | Hecho | `ip4/o3-talleres` | Core, defs y tests hechos (recetas, banco de carpintero, banco de cantero y cocina, trabajo `Craft`, `WorkOrder` mínimo con el modo Hacer N, muebles de tablones con calidad, formato 13). El inspector del taller crea y quita órdenes. Faltan capturas es/en y la revisión |
 | O4 Órdenes de producción | Hecho | `ip4/o4-ordenes` | Modos Hacer N, Mantener N y Repetir, pausa, reordenar y quitar, estados `paused` y `satisfied`, formato 14, panel de producción (tecla O) y capturas es/en. Revisado |
-| O5 Conocimientos y scriptorium | Pendiente | `ip4/o5-conocimientos` | |
+| O5 Conocimientos y scriptorium | En curso: Core hecho | `ip4/o5-conocimientos` | Árbol de 12 conocimientos, investigación, práctica, cola, scriptorium y trabajo `Research`, formato 15. Falta la presentación |
 | O6 Agricultura y deterioro | Pendiente | `ip4/o6-agricultura` | |
 | O7 Vetas y niebla subterránea | Pendiente | `ip4/o7-subsuelo` | |
 | O8 Fundición, herrería y herramientas | Pendiente | `ip4/o8-metales` | |

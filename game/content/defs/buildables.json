@@ -19,5 +19,7 @@
   { "type": "Buildable", "id": "mason_bench", "era": "medieval", "requires": ["stonecutting"], "shape": "furniture", "materials": ["masonry"],
     "cost": 6, "workTicks": 240, "order": 21, "visual": "furniture.mason_bench", "beauty": -1, "workstation": { "workType": "stonecutting" } },
   { "type": "Buildable", "id": "kitchen", "era": "medieval", "requires": ["cooking"], "shape": "furniture", "materials": ["masonry"],
-    "cost": 8, "workTicks": 300, "order": 22, "visual": "furniture.kitchen", "workstation": { "workType": "cooking" } }
+    "cost": 8, "workTicks": 300, "order": 22, "visual": "furniture.kitchen", "workstation": { "workType": "cooking" } },
+  { "type": "Buildable", "id": "scriptorium", "era": "medieval", "shape": "furniture", "materials": ["planks"],
+    "cost": 6, "workTicks": 240, "order": 23, "visual": "furniture.scriptorium", "beauty": 1, "workstation": { "workType": "research" } }
 ]

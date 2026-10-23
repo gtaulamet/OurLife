@@ -48,6 +48,12 @@ public enum JobKind
     /// trabajo craft" in <c>docs/gdd/oficios.md</c>). Its work type is the one of the workshop.
     /// </summary>
     Craft,
+
+    /// <summary>
+    /// Researching at a scriptorium, a stretch at a time (see <c>docs/gdd/conocimientos.md</c>).
+    /// Its work type is the one of research in the knowledge config.
+    /// </summary>
+    Research,
 }
 
 public enum JobStage
@@ -139,6 +145,7 @@ public static class JobKinds
         JobKind.Play => "play",
         JobKind.Visit => "visit",
         JobKind.Craft => "craft",
+        JobKind.Research => "research",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

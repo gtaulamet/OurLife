@@ -210,6 +210,7 @@
 
   "ui.quality.label": "{item} ({quality} quality)",
   "job.craft.report": "Working at a workshop",
+  "job.research.report": "Researching",
 
   "ui.workshop.recipes": "Recipes",
   "ui.workshop.make": "Make {count}: {recipe}",

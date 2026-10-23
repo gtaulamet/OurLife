@@ -65,6 +65,20 @@ public static class StateHasher
             AppendString(hash, knowledge);
         }
 
+        AppendInt32(hash, simulation.Progress.ResearchQueue.Count);
+        foreach (var queued in simulation.Progress.ResearchQueue)
+        {
+            AppendString(hash, queued);
+        }
+
+        AppendInt32(hash, simulation.Progress.Points.Count);
+        foreach (var (knowledge, points) in simulation.Progress.Points)
+        {
+            AppendString(hash, knowledge);
+            AppendInt32(hash, points.Research);
+            AppendInt32(hash, points.Practice);
+        }
+
         if (simulation.HasMap)
         {
             var map = simulation.Map;

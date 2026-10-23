@@ -201,7 +201,7 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             ReserveCell(map, job.Destination);
         }
-        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft or JobKind.Research)
         {
             // A crafter holds its workshop: one colonist at a time works at it.
             _entityUses[job.Recipient] = _entityUses.GetValueOrDefault(job.Recipient) + 1;
@@ -236,7 +236,7 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             UnreserveCell(map, job.Destination);
         }
-        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft or JobKind.Research)
         {
             ReleaseEntity(job.Recipient);
         }

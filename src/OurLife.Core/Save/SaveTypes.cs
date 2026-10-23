@@ -57,6 +57,7 @@ public static class SaveTypes
         Command<CreateWorkOrderCommand>("create_work_order");
         Command<RemoveWorkOrderCommand>("remove_work_order");
         Command<SetWorkOrderCommand>("set_work_order");
+        Command<SetResearchQueueCommand>("set_research_queue");
         Command<MoveWorkOrderCommand>("move_work_order");
     }
 
