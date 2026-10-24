@@ -68,7 +68,7 @@ internal sealed class ColonyTestBed
           { "type": "Quality", "id": "masterwork", "order": 4, "below": 9999, "valuePercent": 200, "comfortPercent": 130 },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
-            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2, "craftFetchRadius": 30 },
+            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2, "craftFetchRadius": 30, "eatChoiceRadius": 15 },
           { "type": "LifePace", "id": "normal", "lifeDaysPerDay": 1 },
           { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
           { "type": "LifePace", "id": "very_fast", "lifeDaysPerDay": 8 },

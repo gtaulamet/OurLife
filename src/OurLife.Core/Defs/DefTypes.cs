@@ -38,6 +38,8 @@ internal static class DefTypes
         ("QualityConfig", typeof(QualityConfigDef), null),
         ("Recipe", typeof(RecipeDef), "recipe"),
         ("KnowledgeConfig", typeof(KnowledgeConfigDef), null),
+        ("Crop", typeof(CropDef), "crop"),
+        ("SpoilageConfig", typeof(SpoilageConfigDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

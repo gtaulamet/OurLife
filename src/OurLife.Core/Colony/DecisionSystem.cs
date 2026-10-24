@@ -35,7 +35,7 @@ public sealed partial class DecisionSystem : ISimSystem
     private readonly List<EntityId> _colonists = [];
     private readonly List<EntityId> _entities = [];
     private readonly List<Candidate> _candidates = [];
-    private readonly List<(Candidate Candidate, int Distance, int CellIndex)> _reachable = [];
+    private readonly List<Reach> _reachable = [];
     private readonly List<TileCoord> _sites = [];
     private readonly List<TileCoord> _path = [];
     private readonly List<TileCoord> _goal = [];
@@ -215,7 +215,7 @@ public sealed partial class DecisionSystem : ISimSystem
                 _hauledPiles.Add(held);
             }
         }
-        else if (IsCellOrder(job.Kind))
+        else if (IsCellOrder(job.Kind) || job.Kind == JobKind.Sow)
         {
             ReserveCell(map, job.Cell);
 
@@ -250,7 +250,7 @@ public sealed partial class DecisionSystem : ISimSystem
 
             ReleaseEntity(held, UsesOf(job));
         }
-        else if (IsCellOrder(job.Kind))
+        else if (IsCellOrder(job.Kind) || job.Kind == JobKind.Sow)
         {
             UnreserveCell(map, job.Cell);
             if (OtherCellOf(map, job.Kind, job.Cell) is { } other)
@@ -518,7 +518,9 @@ public sealed partial class DecisionSystem : ISimSystem
             case NeedSatisfaction.Eating:
                 _candidates.Clear();
                 AddFoodPiles(simulation);
-                if (TryCandidates(simulation, colonist))
+
+                // Hunger that is low, not critical, can wait to choose what to eat.
+                if (TryCandidates(simulation, colonist, eatChoice: !IsCritical(simulation, colonist, need)))
                 {
                     return true;
                 }
@@ -645,8 +647,26 @@ public sealed partial class DecisionSystem : ISimSystem
     {
         _candidates.Clear();
         _cellJobs.Clear();
+
+        // The harvest comes before sowing: what is ripe is reaped first (see "Cosechar" in docs/gdd/agricultura.md).
+        if (jobs.Contains(JobKind.Reap))
+        {
+            AddWork(simulation, JobKind.Reap);
+            if (TryCandidates(simulation, colonist))
+            {
+                return true;
+            }
+
+            _candidates.Clear();
+        }
+
         foreach (var kind in jobs)
         {
+            if (kind == JobKind.Reap)
+            {
+                continue;
+            }
+
             if (IsCellOrder(kind))
             {
                 _cellJobs.Add(kind);
@@ -725,6 +745,12 @@ public sealed partial class DecisionSystem : ISimSystem
                 break;
             case JobKind.FeedBaby:
                 AddHungryBabies(simulation);
+                break;
+            case JobKind.Sow:
+                AddSowableCells(simulation);
+                break;
+            case JobKind.Reap:
+                AddRipeCrops(simulation);
                 break;
             case JobKind.Build:
                 world.Query<Blueprint, Position>(_entities);
@@ -864,7 +890,7 @@ public sealed partial class DecisionSystem : ISimSystem
     /// Takes the nearest candidate the colonist can reach and finds a path to it. A candidate
     /// without a path is ignored for a while and the next one is tried.
     /// </summary>
-    private bool TryCandidates(Simulation simulation, EntityId colonist, bool forFood = false, bool initiative = false)
+    private bool TryCandidates(Simulation simulation, EntityId colonist, bool forFood = false, bool initiative = false, bool eatChoice = false)
     {
         if (_candidates.Count == 0)
         {
@@ -889,17 +915,18 @@ public sealed partial class DecisionSystem : ISimSystem
             FindSites(map, candidate.Kind, candidate.Cell);
             if (AnyInRegion(_sites, connectivity, region))
             {
-                reachable.Add((candidate, PathFinder.Estimate(from, candidate.Cell), map.Size.IndexOf(candidate.Cell.X, candidate.Cell.Y, candidate.Cell.Z)));
+                reachable.Add(new Reach(candidate, PathFinder.Estimate(from, candidate.Cell), map.Size.IndexOf(candidate.Cell.X, candidate.Cell.Y, candidate.Cell.Z)));
             }
         }
 
-        // Nearest first; ties by cell, then by entity, so the choice never depends on chance.
-        reachable.Sort((a, b) =>
+        if (eatChoice)
         {
-            var order = a.Distance.CompareTo(b.Distance);
-            order = order != 0 ? order : a.CellIndex.CompareTo(b.CellIndex);
-            return order != 0 ? order : a.Candidate.Target.CompareTo(b.Candidate.Target);
-        });
+            RankFoodChoice(simulation, reachable);
+        }
+
+        // Nearest first; ties by cell, then by entity, so the choice never depends on chance. A
+        // colonist who chooses what to eat ranks first (see RankFoodChoice).
+        reachable.Sort(CompareReach);
 
         // Only searches for a path count as attempts: a pile with nowhere to go is skipped for free.
         _noDestination.Clear();
@@ -932,6 +959,22 @@ public sealed partial class DecisionSystem : ISimSystem
                 count = Math.Clamp(Hunger.UnitsToFeed(simulation, recipient, nutrition), 1, free);
             }
 
+            // A sower takes the crop of the zone as it is now, a reaper the crop it reaps: the job tells them.
+            string? crop = null;
+            if (candidate.Kind == JobKind.Sow)
+            {
+                if (!_sowByCell.TryGetValue(reachable[i].CellIndex, out var sowing))
+                {
+                    continue;
+                }
+
+                (recipient, crop) = sowing;
+            }
+            else if (candidate.Kind == JobKind.Reap)
+            {
+                crop = simulation.World.Get<Crop>(candidate.Target).Def;
+            }
+
             attempts++;
 
             FindSites(map, candidate.Kind, cell);
@@ -948,6 +991,7 @@ public sealed partial class DecisionSystem : ISimSystem
                     Destination = destination,
                     Recipient = recipient,
                     Count = count,
+                    Crop = crop,
                 };
                 Assign(simulation, colonist, job, _path);
                 if (job.Kind == JobKind.FeedBaby)
@@ -1211,4 +1255,7 @@ public sealed partial class DecisionSystem : ISimSystem
     }
 
     private readonly record struct Candidate(JobKind Kind, EntityId Target, TileCoord Cell);
+
+    /// <summary>A candidate the colonist can reach, with its distance and how it ranks when it chooses what to eat.</summary>
+    private readonly record struct Reach(Candidate Candidate, int Distance, int CellIndex, int Group = 0, int NotMeal = 0, int Freshness = 0);
 }

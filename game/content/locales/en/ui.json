@@ -211,6 +211,8 @@
   "ui.quality.label": "{item} ({quality} quality)",
   "job.craft.report": "Working at a workshop",
   "job.research.report": "Researching",
+  "job.sow.report": "Sowing {crop}",
+  "job.reap.report": "Harvesting {crop}",
 
   "ui.workshop.recipes": "Recipes",
   "ui.workshop.make": "Make {count}: {recipe}",
@@ -266,5 +268,12 @@
   "ui.knowledge.queue_empty": "Nothing in the queue. Choose an available knowledge.",
   "ui.knowledge.no_scriptorium": "A scriptorium is needed to research.",
   "ui.hud.research": "Researching: {knowledge} ({percent} %)",
-  "ui.orders.locked_hint": "Requires: {knowledge}"
+  "ui.orders.locked_hint": "Requires: {knowledge}",
+  "ui.orders.farm": "Farm zone (J)",
+  "ui.orders.name.farm": "Farm zone",
+  "ui.farm.choose_crop": "Choose crop",
+  "ui.inspector.crop": "{crop} crop: {percent} %",
+  "ui.inspector.crop_ripe": "{crop} crop: ready to harvest",
+  "ui.inspector.farm_zone": "{crop} farm zone",
+  "ui.inspector.freshness": "Freshness: {percent} %"
 }

@@ -13,7 +13,11 @@ public sealed class WorkTypeDef : Def
     [
         JobKind.Mine, JobKind.DigStairs, JobKind.Channel, JobKind.Chop, JobKind.Harvest,
         JobKind.Deliver, JobKind.Build, JobKind.Deconstruct, JobKind.Haul, JobKind.FeedBaby,
+        JobKind.Sow, JobKind.Reap,
     ];
+
+    /// <summary>The jobs of <see cref="OrderJobs"/> that every colony needs: each belongs to exactly one work type. The others (the farm jobs) may belong to none.</summary>
+    public static readonly IReadOnlyList<JobKind> RequiredJobs = [.. OrderJobs.Where(job => job is not (JobKind.Sow or JobKind.Reap))];
 
     public required int Order { get; init; }
 

@@ -1,0 +1,3 @@
+[
+  { "type": "SpoilageConfig", "id": "default", "coveredPercent": 50, "rotNoticeMinUnits": 5 }
+]

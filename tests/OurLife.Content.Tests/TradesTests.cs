@@ -58,14 +58,16 @@ public class TradesTests
     }
 
     [Fact]
-    public void The_seven_trades_are_work_types_with_a_skill_and_no_jobs_of_their_own()
+    public void The_seven_trades_are_work_types_with_a_skill_and_only_farming_has_jobs_of_its_own()
     {
         var types = GameContent.Defs.All<WorkTypeDef>().ToDictionary(type => type.Id);
 
         foreach (var trade in Trades)
         {
             types[trade].Skill.ShouldBeTrue(trade);
-            types[trade].Jobs.ShouldBeEmpty(trade);
+            // The workshop trades craft, and research is done at the scriptorium; farming sows and reaps the zones.
+            types[trade].Jobs.ShouldBe(trade == "farming" ? ["sow", "reap"] : [], trade);
+            types[trade].Workshop.ShouldBe(trade != "farming", trade);
         }
 
         Trades.Where(trade => types[trade].Light).ShouldBe(["cooking", "farming", "research"]);
@@ -90,7 +92,7 @@ public class TradesTests
         var items = GameContent.Defs.All<ItemDef>().ToDictionary(item => item.Id);
         items["plank"].Category.ShouldBe("refined");
         items["plank"].StackLimit.ShouldBe(25);
-        items["wheat"].ReserveValue.ShouldBe(800);
+        items["wheat"].ReserveValue.ShouldBe(300); // lowered from 800 by the balance of O6
         items["wheat"].SpoilDays.ShouldBe(200);
         items["bread"].Meal.ShouldBeTrue();
         items["bread"].Nutrition.ShouldBe(800);

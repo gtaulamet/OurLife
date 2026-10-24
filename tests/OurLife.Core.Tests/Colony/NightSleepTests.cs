@@ -130,6 +130,7 @@ public class NightSleepTests
             DefaultWorkPriority = ai.DefaultWorkPriority,
             IdleAlertHours = ai.IdleAlertHours,
             CraftFetchRadius = ai.CraftFetchRadius,
+            EatChoiceRadius = ai.EatChoiceRadius,
         };
 
         config.IsNight(hour).ShouldBe(night);

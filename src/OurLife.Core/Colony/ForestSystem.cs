@@ -205,6 +205,12 @@ public sealed class ForestSystem : ISimSystem
         var world = simulation.World;
         var size = simulation.Map.Size;
         var taken = Stockpiles.TakenCells(simulation);
+
+        // Nature leaves the farm zones alone; the trees the player plants there do grow (they are plants).
+        if (!skipPlants)
+        {
+            taken.UnionWith(FarmZones.TakenCells(simulation));
+        }
         foreach (var cell in Construction.OccupiedCells(simulation))
         {
             taken.Add(size.IndexOf(cell.X, cell.Y, cell.Z));

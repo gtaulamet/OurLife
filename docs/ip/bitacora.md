@@ -4,16 +4,16 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-21.*
+*Actualizado el 2026-10-24.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o3-talleres`: O2 hecho, O3 con el Core hecho (falta la presentación) |
+| Rama de trabajo | `ip4/o5-conocimientos`: O2 a O5 hechos y el Core de O6 (falta su presentación) |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 800 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
-| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42) |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
@@ -21,6 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
+O6 presentación: ver la entrada del 2026-10-24 (herramienta Cultivo, inspector, modelos, capturas).
 1. **IP4 "Oficios" (O3):** talleres y recetas (`docs/gdd/oficios.md`, `docs/ip/IP4.md`).
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -41,6 +42,16 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-24: O6, Core de agricultura y deterioro
+
+- Rama `ip4/o5-conocimientos` (sin cambiar de rama). Sólo Core, contenido y tests; falta la presentación (herramienta Cultivo J, vista previa de la caja con `FarmRules.CellsToZone`, modelos y etapas de los cultivos, inspector de zona/cultivo/frescura, aviso en el registro, capturas es/en).
+- Defs: `Crop` (`crops.json`: trigo, guisantes, repollo y los bosquecillos de roble y pino; rendimiento `yieldBasePercent` 70 + `yieldPercentPerLevel` 3 en el def), `SpoilageConfig` (`spoilage.json`), `AiConfig.eatChoiceRadius` (15), `MoodConfig.mealThought` (`ate_meal`, +3, 8 h) y `birth.cropTilePlantEquivalent`. `farming` pasa a ser un tipo con los trabajos `sow` y `reap` (ya no es de taller). Visuales provisorios `crop.*` (modelos del Nature Kit).
+- Core: componentes `FarmZone` y `Crop`, comandos `PlaceFarmZoneCommand` y `SetFarmZoneCropCommand`, `FarmZonesChangedEvent`, consultas `FarmRules` (`Zones`, `State`, `ZoneAt`, `CellsToZone`, `HasTimeToMature`, `Yield`). Trabajos `Sow` (reserva la celda) y `Reap` (la cosecha va antes que sembrar), flujo `farm.yield`. `FarmSystem` (medianoche: crecimiento por estación y poda de celdas que dejaron de ser suelo) y `SpoilageSystem` (medianoche: frescura que baja `10 000 × velocidad / (spoilDays × 100)` redondeada hacia arriba, mitad bajo techo o roca, también en las manos; desaparece al llegar a 0 y avisa con `event.food.spoiled` desde 5 unidades). Elección de qué comer (plato, menor frescura, más cercana; hambre crítica come lo más cercano), pensamiento por plato, reserva de concepción con `reserveValue` (`ColonyStock.FoodReserve`). Almacenes, planos, órdenes de escalera/canal y retoños naturales saltean las zonas; Cancelar quita celdas y cultivos.
+- Formato 16 sin migración; fixture `o6.olsave` (formato 15, semilla 7, 4 320 ticks, escrito con el código de la rama antes de O6). Huellas del smoke con `--ticks 5000`: `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42).
+- Balance (criterio 12, `FarmBalanceTests`, semillas 1, 7 y 42, jugador con scriptorium, campo de 8 × 8, cocina y Mantener 20 panes): con los números de la spec la aldea se sobrepoblaba (la reserva de trigo a 800 y las celdas de cultivo permitían 17 bocas) y moría de hambre, porque una cocina sólo hornea para unas 2 personas y las bayas se agotaban. Ajustes en los defs: `reserveValue` del trigo y la harina 800 → 300, tandas de harina 90 → 45 ticks y de pan 150 → 75, y `cropTilePlantEquivalent` 1 → 0 (el mecanismo existe y está cubierto por un test con contenido propio; queda apagado en el juego hasta que haya más cocinas, O11). Resultado: nadie muere de hambre, nacen al menos tantos hijos como sin campo y la población pasa de 8 en las tres semillas.
+- Tests: `FarmTests` (31, criterios 1 a 11), `FarmContentTests` (contenido real, continuidad con un campo a medio crecer y presupuesto de 300 celdas y 200 pilas: menos de 0,1 ms por tick), `FarmBalanceTests`, `OldSaveTests` con `o6.olsave`. Build sin advertencias y smoke con código 0.
+- Falta para la presentación: herramienta Cultivo (J) con selector de cultivo (`ui.orders.farm`, `ui.farm.choose_crop`), dibujo de las zonas y de los tres estados del cultivo, inspector (`ui.inspector.crop`, `crop_ripe`, `farm_zone`, `freshness`), actividad `job.sow.report` y `job.reap.report` (ya resuelta en `TextResolver.Activity`), modelos propios, capturas es/en y criterio 14.
 
 ### 2026-10-23: O5, Core de conocimientos y scriptorium
 

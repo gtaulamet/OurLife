@@ -98,7 +98,7 @@ public sealed class ColonyRules
         foreach (var job in WorkTypeDef.OrderJobs)
         {
             var owners = workTypes.Count(type => type.JobKindsOf().Contains(job));
-            if (owners != 1)
+            if (owners != 1 && (owners > 1 || WorkTypeDef.RequiredJobs.Contains(job)))
             {
                 throw new InvalidOperationException(
                     $"The job '{JobKinds.Id(job)}' must belong to exactly one WorkType def, found {owners}.");

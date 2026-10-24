@@ -45,6 +45,12 @@ public sealed class AiConfigDef : Def
     /// </summary>
     public required int CraftFetchRadius { get; init; }
 
+    /// <summary>
+    /// A colonist who is hungry, but not starving, chooses among the piles of food within this many
+    /// cells of the nearest one (see "Qué comer" in <c>docs/gdd/agricultura.md</c>).
+    /// </summary>
+    public required int EatChoiceRadius { get; init; }
+
     /// <summary>True from <see cref="NightStartHour"/> until just before <see cref="NightEndHour"/>.</summary>
     public bool IsNight(int hour) =>
         NightStartHour < NightEndHour
@@ -105,6 +111,11 @@ public sealed class AiConfigDef : Def
         if (CraftFetchRadius <= 0)
         {
             yield return "craftFetchRadius must be positive.";
+        }
+
+        if (EatChoiceRadius < 0)
+        {
+            yield return "eatChoiceRadius must be zero or positive.";
         }
     }
 }

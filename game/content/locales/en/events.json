@@ -1,4 +1,5 @@
 {
+  "event.food.spoiled": "{count, plural, one {# unit} other {# units}} of {item} spoiled.",
   "event.knowledge.learned": "The village learned {knowledge}.",
   "event.colony.arrived": "{count, plural, one {# settler arrives} other {# settlers arrive}} in the valley.",
   "event.need.hunger.death": "{colonist} starved to death.",

@@ -86,6 +86,9 @@
       ]
     },
     "plant.berry_bush.harvested": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 1.4, "foliage": "deciduous" },
+    "crop.wheat": { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "scale": 0.9 },
+    "crop.peas": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 0.5 },
+    "crop.cabbage": { "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb", "scale": 0.45 },
     "item.log": { "model": "res://assets/models/kenney_nature-kit/log.glb", "scale": 1.0 },
     "item.stone": { "model": "res://assets/models/kenney_nature-kit/rock_smallA.glb", "scale": 1.0 },
     "item.berries": { "model": "res://assets/models/kenney_food-kit/cherries.glb", "scale": 2.4 },

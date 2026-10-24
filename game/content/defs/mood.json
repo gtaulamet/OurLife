@@ -22,6 +22,7 @@
   {"type": "Thought", "id": "desire_fulfilled", "mood": 8, "durationHours": 72, "stackLimit": 2},
   {"type": "Thought", "id": "desire_frustrated", "mood": -6, "durationHours": 72, "stackLimit": 2},
   {"type": "Thought", "id": "child_born", "mood": 12, "durationHours": 72, "stackLimit": 2},
+  {"type": "Thought", "id": "ate_meal", "mood": 3, "durationHours": 8},
   {"type": "Crisis", "id": "refuse_work", "weight": 10, "traits": {"diligence": -2}, "durationHours": 6, "behavior": "refuseWork", "drift": [{"trait": "patience", "points": -2}]},
   {"type": "Crisis", "id": "isolate", "weight": 10, "traits": {"sociability": -2}, "durationHours": 6, "behavior": "isolate", "drift": [{"trait": "patience", "points": -2}]},
   {"type": "Desire", "id": "learn_from", "kind": "learnFrom", "chancePercent": 30, "scaledBy": "curiosity", "minLevels": 5},
@@ -30,5 +31,5 @@
   {"type": "Desire", "id": "own_bed", "kind": "ownBed", "chancePercent": 50, "nights": 2},
   {"type": "Desire", "id": "reconcile", "kind": "reconcile", "chancePercent": 40, "scaledBy": "kindness", "minOpinion": 10},
   {"type": "Desire", "id": "have_child", "kind": "haveChild", "chancePercent": 30, "stages": ["adult"], "expireYears": 1},
-  {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "parenthood": {"trait": "kindness", "points": 2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathSibling": "death_sibling", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated", "childBorn": "child_born"}
+  {"type": "MoodConfig", "id": "default", "base": 50, "workSpeed": [{"upTo": 14, "percent": 80}, {"upTo": 29, "percent": 90}, {"upTo": 70, "percent": 100}, {"upTo": 85, "percent": 105}, {"upTo": 100, "percent": 110}], "crisisBelow": 15, "crisisChancePercent": 10, "maxDesires": 2, "daysBetweenDesires": 1, "desireExpireDays": 10, "grief": {"trait": "sociability", "points": -2}, "parenthood": {"trait": "kindness", "points": 2}, "sleptInBed": "slept_in_bed", "sleptOnFloor": "slept_on_floor", "learned": "learned", "newPartner": "new_partner", "breakup": "breakup", "deathPartner": "death_partner", "deathChild": "death_child", "deathParent": "death_parent", "deathSibling": "death_sibling", "deathFriend": "death_friend", "deathColonist": "death_colonist", "desireFulfilled": "desire_fulfilled", "desireFrustrated": "desire_frustrated", "childBorn": "child_born", "mealThought": "ate_meal"}
 ]

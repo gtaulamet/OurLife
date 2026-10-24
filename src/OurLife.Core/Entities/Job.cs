@@ -54,6 +54,15 @@ public enum JobKind
     /// Its work type is the one of research in the knowledge config.
     /// </summary>
     Research,
+
+    /// <summary>
+    /// Sowing a cell of a farm zone with the crop of the zone (see <c>docs/gdd/agricultura.md</c>). Its
+    /// work type is the one that lists it in its jobs, farming.
+    /// </summary>
+    Sow,
+
+    /// <summary>Reaping a ripe crop of a farm zone.</summary>
+    Reap,
 }
 
 public enum JobStage
@@ -122,6 +131,11 @@ public sealed class Job
     /// <summary>For crafting, the production order that asked for it, which gets what is made; none if it is gone.</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public EntityId Order { get; set; }
+
+    /// <summary>For sowing and reaping, the id of the crop, which the report of the job names.</summary>
+    [DefRef(typeof(CropDef))]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Crop { get; set; }
 }
 
 public static class JobKinds
@@ -146,6 +160,8 @@ public static class JobKinds
         JobKind.Visit => "visit",
         JobKind.Craft => "craft",
         JobKind.Research => "research",
+        JobKind.Sow => "sow",
+        JobKind.Reap => "reap",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

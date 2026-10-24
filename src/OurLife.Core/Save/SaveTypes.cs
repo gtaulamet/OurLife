@@ -46,6 +46,8 @@ public static class SaveTypes
         Component<Pregnancy>("pregnancy");
         Component<Workshop>("workshop");
         Component<WorkOrder>("work_order");
+        Component<FarmZone>("farm_zone");
+        Component<Crop>("crop");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");
@@ -59,6 +61,8 @@ public static class SaveTypes
         Command<SetWorkOrderCommand>("set_work_order");
         Command<SetResearchQueueCommand>("set_research_queue");
         Command<MoveWorkOrderCommand>("move_work_order");
+        Command<PlaceFarmZoneCommand>("place_farm_zone");
+        Command<SetFarmZoneCropCommand>("set_farm_zone_crop");
     }
 
     /// <summary>The registered component types, in registration order.</summary>

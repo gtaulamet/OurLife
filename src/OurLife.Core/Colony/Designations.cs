@@ -81,6 +81,7 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
             case DesignationKind.Cancel:
                 Cancel(simulation, plants, min, max);
                 Stockpiles.Unmark(simulation, min, max);
+                FarmZones.Unmark(simulation, min, max);
                 Construction.Cancel(simulation, min, max);
                 break;
             default:
@@ -112,6 +113,9 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
         var map = simulation.Map;
         var plantCells = plants.Select(plant => plant.Cell).ToHashSet();
         var planned = Construction.OccupiedCells(simulation);
+
+        // A farm zone keeps its cells: stairs and channels would take the floor from under the crops.
+        planned.UnionWith(FarmZones.Cells(simulation));
         for (var z = min.Z; z <= max.Z; z++)
         {
             for (var y = min.Y; y <= max.Y; y++)

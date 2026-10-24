@@ -56,6 +56,7 @@
       "siblingOpinion": 30,
       "foodReserveDays": 30,
       "foodPlantsPerColonist": 9,
+      "cropTilePlantEquivalent": 0,
       "hungryBelowPercent": 20
     }
   }

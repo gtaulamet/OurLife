@@ -29,6 +29,8 @@ public static class ColonySystems
         simulation.AddSystem(new MoodSystem(rules, personalities, life, mood), hour, offset);
         simulation.AddSystem(new PlantGrowthSystem());
         simulation.AddSystem(new ForestSystem(), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
+        simulation.AddSystem(new FarmSystem(), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
+        simulation.AddSystem(new SpoilageSystem(), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
         simulation.AddSystem(new AlertSystem(rules));
     }
 }

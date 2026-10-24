@@ -39,4 +39,21 @@ public static class ColonyStock
 
         return total;
     }
+
+    /// <summary>
+    /// What the colony has to eat in the winter, for the food reserve a couple needs to conceive: the
+    /// nutrition of its food plus the <see cref="ItemDef.ReserveValue"/> of grain and flour (see
+    /// "Comida y concepción" in <c>docs/gdd/agricultura.md</c>).
+    /// </summary>
+    public static long FoodReserve(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        long total = 0;
+        foreach (var (item, _, count, _) in Stocks.Everything(simulation))
+        {
+            total += item.Kind == ItemKind.Food ? (long)item.Nutrition * count : (long)item.ReserveValue * count;
+        }
+
+        return total;
+    }
 }

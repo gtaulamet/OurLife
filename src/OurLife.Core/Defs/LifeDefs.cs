@@ -209,6 +209,12 @@ public sealed class BirthConfig
     public int FoodPlantsPerColonist { get; init; }
 
     /// <summary>
+    /// Plants that give food that each farm cell with a crop of food counts as in <see cref="FoodPlantsPerColonist"/>,
+    /// sown or not (see "Comida y concepción" in <c>docs/gdd/agricultura.md</c>); 0 leaves the fields out.
+    /// </summary>
+    public int CropTilePlantEquivalent { get; init; }
+
+    /// <summary>
     /// A couple does not conceive while a need met by eating of one of them is under this percent
     /// of its maximum; without it, under the need's low threshold.
     /// </summary>
@@ -227,9 +233,9 @@ public sealed class BirthConfig
             yield return "birth.conceptionChancePerYear and hungryBelowPercent must be between 0 and 100, and lateWorkSpeedPercent positive.";
         }
 
-        if (PregnancyLifeDays <= 0 || LateFromLifeDays < 0 || YearsBetweenChildren < 0 || FoodReserveDays < 0 || FoodPlantsPerColonist < 0)
+        if (PregnancyLifeDays <= 0 || LateFromLifeDays < 0 || YearsBetweenChildren < 0 || FoodReserveDays < 0 || FoodPlantsPerColonist < 0 || CropTilePlantEquivalent < 0)
         {
-            yield return "birth.pregnancyLifeDays must be positive, and lateFromLifeDays, yearsBetweenChildren, foodReserveDays and foodPlantsPerColonist zero or more.";
+            yield return "birth.pregnancyLifeDays must be positive, and lateFromLifeDays, yearsBetweenChildren, foodReserveDays and foodPlantsPerColonist zero or more, as must cropTilePlantEquivalent be.";
         }
 
         if (ParentOpinion is < -100 or > 100 || SiblingOpinion is < -100 or > 100)

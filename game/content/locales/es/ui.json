@@ -211,6 +211,8 @@
   "ui.quality.label": "{item} (calidad {quality})",
   "job.craft.report": "Trabajando en un taller",
   "job.research.report": "Investigando",
+  "job.sow.report": "Sembrando {crop}",
+  "job.reap.report": "Cosechando {crop}",
 
   "ui.workshop.recipes": "Recetas",
   "ui.workshop.make": "Hacer {count}: {recipe}",
@@ -266,5 +268,12 @@
   "ui.knowledge.queue_empty": "Sin nada en cola. Elige un conocimiento disponible.",
   "ui.knowledge.no_scriptorium": "Hace falta un scriptorium para investigar.",
   "ui.hud.research": "Investigando: {knowledge} ({percent} %)",
-  "ui.orders.locked_hint": "Requiere: {knowledge}"
+  "ui.orders.locked_hint": "Requiere: {knowledge}",
+  "ui.orders.farm": "Cultivo (J)",
+  "ui.orders.name.farm": "Cultivo",
+  "ui.farm.choose_crop": "Elegir cultivo",
+  "ui.inspector.crop": "Cultivo de {crop}: {percent} %",
+  "ui.inspector.crop_ripe": "Cultivo de {crop}: listo para cosechar",
+  "ui.inspector.farm_zone": "Zona de cultivo de {crop}",
+  "ui.inspector.freshness": "Frescura: {percent} %"
 }

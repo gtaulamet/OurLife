@@ -83,6 +83,9 @@ public static class Stockpiles
     {
         var map = simulation.Map;
         var taken = TakenCells(simulation);
+
+        // A farm zone keeps its cells: piles would lie on the crops.
+        taken.UnionWith(FarmZones.TakenCells(simulation));
         foreach (var cell in Construction.FurnitureCells(simulation))
         {
             taken.Add(map.Size.IndexOf(cell.X, cell.Y, cell.Z));

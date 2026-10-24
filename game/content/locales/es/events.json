@@ -1,4 +1,5 @@
 {
+  "event.food.spoiled": "Se pudrieron {count, plural, one {# unidad} other {# unidades}} de {item}.",
   "event.knowledge.learned": "La aldea aprendió {knowledge}.",
   "event.colony.arrived": "{count, plural, one {Llega # colono} other {Llegan # colonos}} al valle.",
   "event.need.hunger.death": "{colonist} murió de hambre.",

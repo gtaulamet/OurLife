@@ -67,9 +67,15 @@ public sealed class TextResolver
     public string Activity(World world, EntityId colonist)
     {
         ArgumentNullException.ThrowIfNull(world);
-        return world.TryGet<OurLife.Core.Entities.Job>(colonist, out var job)
-            ? Format(OurLife.Core.Entities.JobKinds.ReportKey(job))
-            : Format("ui.inspector.idle");
+        if (!world.TryGet<OurLife.Core.Entities.Job>(colonist, out var job))
+        {
+            return Format("ui.inspector.idle");
+        }
+
+        // Sowing and reaping say which crop: the name is def.crop.<id>.name.
+        return job.Crop is { } crop
+            ? Format(OurLife.Core.Entities.JobKinds.ReportKey(job), ("crop", Format($"def.crop.{crop}.name")))
+            : Format(OurLife.Core.Entities.JobKinds.ReportKey(job));
     }
 
     /// <summary>Calendar date, like "Día 3 de primavera de 1200".</summary>

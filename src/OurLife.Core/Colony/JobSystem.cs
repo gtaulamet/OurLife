@@ -266,6 +266,9 @@ public sealed partial class JobSystem : ISimSystem
                 return IsCraftValid(simulation, job);
             case JobKind.Research:
                 return world.IsAlive(job.Recipient) && world.Has<Workshop>(job.Recipient) && ResearchRules.Current(simulation) is not null;
+            case JobKind.Sow:
+            case JobKind.Reap:
+                return IsFarmValid(simulation, job);
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -382,6 +385,10 @@ public sealed partial class JobSystem : ISimSystem
                 return Craft(simulation, colonist, job, workType, speed);
             case JobKind.Research:
                 return Research(simulation, job, speed);
+            case JobKind.Sow:
+                return Sow(simulation, job, speed);
+            case JobKind.Reap:
+                return Reap(simulation, colonist, job, workType, speed);
             case JobKind.Deconstruct:
                 return Deconstruct(simulation, colonist, job, speed);
             case JobKind.Channel:
@@ -504,7 +511,7 @@ public sealed partial class JobSystem : ISimSystem
     private static bool IsWork(Job job) => job.Kind switch
     {
         JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct or JobKind.FeedBaby
-            or JobKind.Craft or JobKind.Research => true,
+            or JobKind.Craft or JobKind.Research or JobKind.Sow or JobKind.Reap => true,
         JobKind.Harvest => !job.ForFood,
         _ => false,
     };
@@ -850,7 +857,8 @@ public sealed partial class JobSystem : ISimSystem
     /// </summary>
     private bool Eat(Simulation simulation, EntityId colonist, Job job)
     {
-        var nutrition = simulation.Content.Get<ItemDef>(simulation.World.Get<ItemStack>(job.Target).Def).Nutrition;
+        var item = simulation.Content.Get<ItemDef>(simulation.World.Get<ItemStack>(job.Target).Def);
+        var nutrition = item.Nutrition;
         if (IsFed(simulation, colonist, nutrition))
         {
             return true;
@@ -863,6 +871,12 @@ public sealed partial class JobSystem : ISimSystem
 
         job.Progress = 0;
         Nourish(simulation, colonist, nutrition);
+        if (item.Meal)
+        {
+            // A prepared dish is a thought of its own, which does not add up (see "Comidas" in docs/gdd/agricultura.md).
+            MoodRules.Feel(simulation, colonist, config => config.MealThought);
+        }
+
         ItemPiles.TakeOne(simulation, job.Target);
         return !simulation.World.IsAlive(job.Target) || IsFed(simulation, colonist, nutrition);
     }

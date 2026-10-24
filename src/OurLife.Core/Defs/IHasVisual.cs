@@ -18,6 +18,7 @@ public static class DefVisuals
     {
         IHasVisual drawn => drawn.Visual,
         BuildableDef buildable => buildable.Visual,
+        CropDef crop => crop.Visual,
         _ => null,
     };
 }

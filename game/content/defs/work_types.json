@@ -8,7 +8,7 @@
   { "type": "WorkType", "id": "carpentry", "order": 6, "jobs": [], "workshop": true, "skill": true },
   { "type": "WorkType", "id": "stonecutting", "order": 7, "jobs": [], "workshop": true, "skill": true },
   { "type": "WorkType", "id": "cooking", "order": 8, "jobs": [], "workshop": true, "light": true, "skill": true },
-  { "type": "WorkType", "id": "farming", "order": 9, "jobs": [], "workshop": true, "light": true, "skill": true },
+  { "type": "WorkType", "id": "farming", "order": 9, "jobs": ["sow", "reap"], "light": true, "skill": true },
   { "type": "WorkType", "id": "research", "order": 10, "jobs": [], "workshop": true, "light": true, "skill": true },
   { "type": "WorkType", "id": "smelting", "order": 11, "jobs": [], "workshop": true, "skill": true },
   { "type": "WorkType", "id": "smithing", "order": 12, "jobs": [], "workshop": true, "skill": true }

@@ -220,13 +220,14 @@ public sealed class BirthSystem : ISimSystem
             perDay = need.SatisfiedBy == NeedSatisfaction.Eating ? Math.Max(perDay, (long)need.DecayPerHour * 24) : perDay;
         }
 
-        _foodNutrition ??= ColonyStock.FoodNutrition(simulation);
+        _foodNutrition ??= ColonyStock.FoodReserve(simulation);
         return _foodNutrition >= perDay * birth.FoodReserveDays * MouthsWithOneMore(simulation.World);
     }
 
     /// <summary>
     /// Whether the map has <see cref="BirthConfig.FoodPlantsPerColonist"/> plants that give food
-    /// for each mouth (see <see cref="MouthsWithOneMore"/>).
+    /// for each mouth (see <see cref="MouthsWithOneMore"/>); each cell of a farm zone with a crop of
+    /// food counts as <see cref="BirthConfig.CropTilePlantEquivalent"/> of them.
     /// </summary>
     private bool LandFeedsOneMore(Simulation simulation, BirthConfig birth)
     {
@@ -245,6 +246,7 @@ public sealed class BirthSystem : ISimSystem
                 count += _foodPlantDefs.Contains(world.Get<Plant>(plant).Def) ? 1 : 0;
             }
 
+            count += FarmRules.FoodCropCells(simulation) * birth.CropTilePlantEquivalent;
             _foodPlants = count;
         }
 

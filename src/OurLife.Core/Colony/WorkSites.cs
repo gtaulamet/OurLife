@@ -40,6 +40,8 @@ public static class WorkSites
             case JobKind.DigStairs:
             case JobKind.Chop:
             case JobKind.Harvest:
+            case JobKind.Sow:
+            case JobKind.Reap:
             case JobKind.FeedBaby:
             case JobKind.Play:
             case JobKind.Visit:

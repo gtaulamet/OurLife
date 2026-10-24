@@ -24,7 +24,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 15;
+    public const int FormatVersion = 16;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -46,6 +46,8 @@ public static class SaveGame
     /// <c>WorkOrder.Sequence</c> (both written only when not the default): a game of format 13 needs nothing.
     /// Format 15 (O5, knowledge) adds the research queue, the points of each knowledge being learned and the job <c>Research</c>:
     /// a game of format 14 starts with an empty queue and no points.
+    /// Format 16 (O6, farming and spoilage) adds the components <c>FarmZone</c> and <c>Crop</c> and the jobs <c>Sow</c> and
+    /// <c>Reap</c> (<c>Job.Crop</c>, written only when set): a game of format 15 needs nothing.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

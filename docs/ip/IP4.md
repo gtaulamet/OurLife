@@ -17,7 +17,7 @@
 | O3 Talleres y recetas | Hecho | `ip4/o3-talleres` | Core, defs y tests hechos (recetas, banco de carpintero, banco de cantero y cocina, trabajo `Craft`, `WorkOrder` mínimo con el modo Hacer N, muebles de tablones con calidad, formato 13). El inspector del taller crea y quita órdenes. Faltan capturas es/en y la revisión |
 | O4 Órdenes de producción | Hecho | `ip4/o4-ordenes` | Modos Hacer N, Mantener N y Repetir, pausa, reordenar y quitar, estados `paused` y `satisfied`, formato 14, panel de producción (tecla O) y capturas es/en. Revisado |
 | O5 Conocimientos y scriptorium | Hecho (sin íconos pixel) | `ip4/o5-conocimientos` | Árbol de 12 conocimientos, investigación, práctica, cola, scriptorium y trabajo `Research`, formato 15, panel K, línea del HUD y barra de construcción atenuada. Revisado; los íconos pixel van a una pasada de arte |
-| O6 Agricultura y deterioro | Pendiente | `ip4/o6-agricultura` | |
+| O6 Agricultura y deterioro | Core hecho (falta la presentación) | `ip4/o5-conocimientos` | Formato 16; ver la bitácora del 24 de octubre |
 | O7 Vetas y niebla subterránea | Pendiente | `ip4/o7-subsuelo` | |
 | O8 Fundición, herrería y herramientas | Pendiente | `ip4/o8-metales` | |
 | O9 Habitaciones, dormitorios y comedor | Pendiente | `ip4/o9-habitaciones` | |

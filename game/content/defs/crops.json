@@ -1,0 +1,19 @@
+[
+  {
+    "type": "Crop", "id": "wheat", "era": "medieval", "requires": ["cereals"],
+    "item": "wheat", "count": 8, "growDays": 10, "growSeasons": ["spring", "summer", "autumn"],
+    "sowTicks": 40, "reapTicks": 60, "yieldBasePercent": 70, "yieldPercentPerLevel": 3, "visual": "crop.wheat"
+  },
+  {
+    "type": "Crop", "id": "peas", "era": "medieval", "requires": ["agriculture"],
+    "item": "peas", "count": 6, "growDays": 8, "growSeasons": ["spring", "summer", "autumn"],
+    "sowTicks": 40, "reapTicks": 50, "yieldBasePercent": 70, "yieldPercentPerLevel": 3, "visual": "crop.peas"
+  },
+  {
+    "type": "Crop", "id": "cabbage", "era": "medieval", "requires": ["agriculture"],
+    "item": "cabbage", "count": 5, "growDays": 8, "growSeasons": ["spring", "summer", "autumn"],
+    "sowTicks": 40, "reapTicks": 50, "yieldBasePercent": 70, "yieldPercentPerLevel": 3, "visual": "crop.cabbage"
+  },
+  { "type": "Crop", "id": "oak_grove", "era": "medieval", "requires": ["silviculture"], "tree": "oak", "sowTicks": 60, "spacing": 2 },
+  { "type": "Crop", "id": "pine_grove", "era": "medieval", "requires": ["silviculture"], "tree": "pine", "sowTicks": 60, "spacing": 2 }
+]

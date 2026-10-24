@@ -107,6 +107,9 @@ public static class Construction
         var plantCells = Designations.PlantCells(simulation);
         var occupied = OccupiedCells(simulation);
 
+        // Nothing is built on the cells of a farm zone: the crops would be lost under it.
+        occupied.UnionWith(FarmZones.Cells(simulation));
+
         // Furniture stays off the stockpiles: piles and furniture would share the cell.
         var zoneCells = buildable.IsFurniture ? Stockpiles.TakenCells(simulation) : [];
         for (var z = min.Z; z <= max.Z; z++)

@@ -143,3 +143,7 @@ Van a `docs/ip/backlog.md`: más cultivos (cebada, avena, centeno, lino), rotaci
 
 - Rotación de tres campos: cereal de otoño (trigo, cebada o centeno), cereal o legumbre de primavera (avena, cebada, guisantes) y un tercio en barbecho; las legumbres fijan nitrógeno. [Britannica, Three-field system](https://www.britannica.com/technology/three-field-system). Las fuentes consultadas no dan rendimientos por hectárea, así que los rendimientos, tiempos y nutrición del juego son de jugabilidad.
 - Plausibilidad: trigo y guisantes son cultivos de la Europa medieval; el repollo y su conservación en encurtido o fermentado también.
+
+## Ajustes de balance de O6
+
+El balance de diez años (criterio 12) no cerraba con los números iniciales: una sola cocina no hornea lo que un campo da, y la reserva de trigo permitía más bocas de las que las bayas sostenían. Cambios en los defs: `reserveValue` del trigo y la harina 800 a 300, tandas de harina 90 a 45 ticks y de pan 150 a 75, y `cropTilePlantEquivalent` 1 a 0 (el mecanismo sigue implementado y probado; se vuelve a encender en O11 con más cocinas). Detalle en `docs/ip/bitacora.md`.
