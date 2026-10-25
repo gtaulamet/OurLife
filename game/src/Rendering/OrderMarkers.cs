@@ -12,7 +12,8 @@ namespace OurLife.Game.Rendering;
 /// Marks the player's orders on the map with a translucent colour per kind: walls to dig and
 /// cells for stairs as boxes around the cell, plants to chop or gather as a floating marker
 /// (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>), and stockpile cells as a thin
-/// tinted floor (<c>docs/gdd/almacenes.md</c>). Blueprints are boxes of the rough shape of what
+/// tinted floor (<c>docs/gdd/almacenes.md</c>), and farm zone cells the same way in their own tint
+/// (<c>docs/gdd/agricultura.md</c>). Blueprints are boxes of the rough shape of what
 /// they build, in their material's colour, fainter until every unit is there
 /// (<c>docs/gdd/construccion.md</c>); blueprints of furniture are its model, translucent and
 /// turned (<c>docs/gdd/vista-previa-de-muebles.md</c>). Only the levels the view shows are marked. Rebuilt when
@@ -27,6 +28,7 @@ public partial class OrderMarkers : Node3D
     private static readonly Color ChopColor = new(0.95f, 0.2f, 0.15f, 0.8f);
     private static readonly Color HarvestColor = new(1f, 0.85f, 0.15f, 0.8f);
     private static readonly Color StockpileColor = new(0.15f, 0.65f, 0.95f, 0.5f);
+    private static readonly Color FarmColor = new(0.93f, 0.72f, 0.22f, 0.4f);
     private static readonly Color DeconstructColor = new(0.8f, 0.3f, 0.95f, 0.5f);
     private static readonly Color ChannelColor = new(0.1f, 0.85f, 0.6f, 0.55f);
     private const float BlueprintAlpha = 0.5f;
@@ -48,6 +50,7 @@ public partial class OrderMarkers : Node3D
     private FurnitureGhosts _ghosts = null!;
     private int _viewLevel;
     private bool _dirty = true;
+    private int _farmCells;
 
     // The era the models of the furniture blueprints were drawn for; no event says it changed.
     private string? _era;
@@ -81,12 +84,26 @@ public partial class OrderMarkers : Node3D
     public void Apply(ISimEvent simEvent) =>
         _dirty |= simEvent switch
         {
-            DesignationsChangedEvent or StockpilesChangedEvent => true,
+            DesignationsChangedEvent or StockpilesChangedEvent or FarmZonesChangedEvent => true,
             EntitySpawnedEvent spawned => _simulation.World.IsAlive(spawned.Entity) && _simulation.World.Has<Blueprint>(spawned.Entity),
             EntityChangedEvent changed => _markedPlants.Contains(changed.Entity) || _blueprints.Contains(changed.Entity),
             EntityRemovedEvent removed => _markedPlants.Contains(removed.Entity) || _blueprints.Contains(removed.Entity),
             _ => false,
         };
+
+    /// <summary>How many farm zone cells are marked now, after drawing again what changed; for the smoke.</summary>
+    internal int FarmCellsMarked
+    {
+        get
+        {
+            if (_dirty)
+            {
+                Rebuild();
+            }
+
+            return _farmCells;
+        }
+    }
 
     public void SetViewLevel(int viewLevel)
     {
@@ -160,6 +177,21 @@ public partial class OrderMarkers : Node3D
                     // Thin and pale, just over the floor, so the piles on it show through.
                     var floor = new Vector3(cell.X + 0.5f, cell.Z + TerrainMeshes.FloorThickness + 0.02f, cell.Y + 0.5f);
                     _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.96f, 0.02f, 0.96f)), floor), StockpileColor));
+                }
+            }
+        }
+
+        _farmCells = 0;
+        _simulation.World.Query<FarmZone>(_zones);
+        foreach (var zone in _zones)
+        {
+            foreach (var cell in _simulation.World.Get<FarmZone>(zone).Cells)
+            {
+                if (LevelShading.IsVisible(cell.Z, _viewLevel))
+                {
+                    var floor = new Vector3(cell.X + 0.5f, cell.Z + TerrainMeshes.FloorThickness + 0.02f, cell.Y + 0.5f);
+                    _marks.Add((new Transform3D(Basis.Identity.Scaled(new Vector3(0.96f, 0.02f, 0.96f)), floor), FarmColor));
+                    _farmCells++;
                 }
             }
         }

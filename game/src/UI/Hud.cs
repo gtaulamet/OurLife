@@ -55,6 +55,8 @@ public partial class Hud : CanvasLayer
     private bool _stockWidthsChanged = true;
     private Label _hint = null!;
     private HBoxContainer _buildRow = null!;
+    private HBoxContainer _farmRow = null!;
+    private Button _farmButton = null!;
     private VBoxContainer _alerts = null!;
     private readonly List<(Button Line, bool Danger)> _alertLines = [];
     private Control _ordersBar = null!;
@@ -88,6 +90,16 @@ public partial class Hud : CanvasLayer
 
     /// <summary>Whether the frames per second show, for the smoke.</summary>
     public bool ShowsFps => _fpsPanel.Visible && _fps.Text.Length > 0;
+
+    /// <summary>The texts of the buttons of the farm tool's bar of crops (empty with the tool off), for the smoke.</summary>
+    public IEnumerable<string> FarmBarTexts => _farmRow.GetChildren().OfType<Button>().Select(button => button.Text);
+
+    /// <summary>Whether the button of the farm tool can be pressed, for the smoke.</summary>
+    public bool FarmButtonEnabled => !_farmButton.Disabled;
+
+    /// <summary>Presses the button of the crop at a position of the bar, as a click would, for the smoke.</summary>
+    public void PressFarmBarButton(int index) =>
+        _farmRow.GetChildren().OfType<Button>().ElementAt(index).EmitSignal(BaseButton.SignalName.Pressed);
 
     /// <summary>The lines of the stock that are on the bar now, for the smoke.</summary>
     public IEnumerable<string> ShownStockTexts => _stock.Where(entry => entry.Label.Visible).Select(entry => entry.Label.Text);
@@ -154,6 +166,7 @@ public partial class Hud : CanvasLayer
         hud.Inspector.SheetRequested += hud.ToggleSheet;
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
+        input.FarmChanged += hud.OnFarmChanged;
         input.ColonyPanelRequested += hud.Colony.Toggle;
         input.ProductionPanelRequested += hud.Production.Toggle;
         input.KnowledgePanelRequested += hud.Knowledge.Toggle;
@@ -253,6 +266,7 @@ public partial class Hud : CanvasLayer
             {
                 _buildBarStale = false;
                 RefreshBuildBar();
+                RefreshFarmBar();
             }
         }
 
@@ -312,7 +326,7 @@ public partial class Hud : CanvasLayer
     /// log itself sits on the left.
     /// </summary>
     private float BottomBarsTop() =>
-        new Control[] { _hint, _buildRow, _ordersBar, _fpsPanel }.Where(row => row.Visible).Min(row => row.GetGlobalRect().Position.Y);
+        new Control[] { _hint, _buildRow, _farmRow, _ordersBar, _fpsPanel }.Where(row => row.Visible).Min(row => row.GetGlobalRect().Position.Y);
 
     private Control BuildTopBar(string colonyName)
     {
@@ -401,6 +415,11 @@ public partial class Hud : CanvasLayer
         _buildRow.AddThemeConstantOverride("separation", Gap / 2);
         column.AddChild(_buildRow);
 
+        // Which crop the farm tool sows, shown while the tool is on.
+        _farmRow = new HBoxContainer { Name = "FarmBar", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        _farmRow.AddThemeConstantOverride("separation", Gap / 2);
+        column.AddChild(_farmRow);
+
         var orders = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         orders.AddThemeConstantOverride("separation", Gap / 2);
         column.AddChild(orders);
@@ -413,6 +432,14 @@ public partial class Hud : CanvasLayer
                 _buildButton = new Button { Text = "ui.orders.build", ToggleMode = true, FocusMode = Control.FocusModeEnum.None };
                 _buildButton.Pressed += _input.ToggleBuild;
                 orders.AddChild(_buildButton);
+            }
+
+            // The farm tool sits beside building, before Cancel.
+            if (kind == DesignationKind.Cancel)
+            {
+                _farmButton = new Button { Text = "ui.orders.farm", ToggleMode = true, FocusMode = Control.FocusModeEnum.None };
+                _farmButton.Pressed += _input.ToggleFarm;
+                orders.AddChild(_farmButton);
             }
 
             // The key is translated by Godot, live; UiTextTests checks it exists for every order.
@@ -531,6 +558,78 @@ public partial class Hud : CanvasLayer
         }
     }
 
+    /// <summary>Draws the farm tool's button and bar again, after the knowledge changed without an event; for the smoke.</summary>
+    public void RefreshFarmTool() => RefreshFarmBar();
+
+    private void OnFarmChanged(string? crop)
+    {
+        RefreshFarmBar();
+        RefreshHint();
+    }
+
+    /// <summary>
+    /// The farm tool's button and its bar of crops: a button per crop the colony knows, the chosen
+    /// one pressed. Without a known crop the tool cannot be turned on, and the button says which
+    /// knowledge would give the nearest one.
+    /// </summary>
+    private void RefreshFarmBar()
+    {
+        var text = _services.Text;
+        var simulation = _session.Simulation;
+        var crops = _input.UnlockedCrops();
+        var chosen = _input.FarmCrop;
+        _farmButton.SetPressedNoSignal(chosen is not null);
+        _farmButton.Disabled = crops.Count == 0 && chosen is null;
+        _farmButton.TooltipAutoTranslateMode = Node.AutoTranslateModeEnum.Disabled;
+        _farmButton.TooltipText = string.Empty;
+        if (_farmButton.Disabled)
+        {
+            var nearest = simulation.Content.All<CropDef>()
+                .Select(crop => simulation.Unlocks.Missing(crop, simulation.Progress))
+                .Where(missing => missing.Count > 0)
+                .OrderBy(missing => missing.Count)
+                .FirstOrDefault();
+            if (nearest is not null)
+            {
+                _farmButton.TooltipText = text.Format("ui.orders.locked_hint", ("knowledge", string.Join(", ", nearest.Select(id => text.Format(simulation.Content.Get<KnowledgeDef>(id).NameKey!)))));
+            }
+        }
+
+        _farmRow.Visible = chosen is not null;
+        foreach (var child in _farmRow.GetChildren())
+        {
+            _farmRow.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        if (chosen is null)
+        {
+            return;
+        }
+
+        _farmRow.AddChild(new Label { Text = "ui.farm.choose_crop", VerticalAlignment = VerticalAlignment.Center });
+        foreach (var crop in crops)
+        {
+            var id = crop.Id;
+            var button = new Button
+            {
+                Text = text.Capitalized(text.Format(crop.NameKey!, ("count", 1))),
+                AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled,
+                ToggleMode = true,
+                ButtonPressed = id == chosen,
+                FocusMode = Control.FocusModeEnum.None,
+            };
+
+            // Pressing the chosen one again keeps it chosen.
+            button.Pressed += () =>
+            {
+                _input.FarmCrop = id;
+                RefreshFarmBar();
+            };
+            _farmRow.AddChild(button);
+        }
+    }
+
     /// <summary>The line of what is being researched, only with something in the queue.</summary>
     private void RefreshResearch()
     {
@@ -602,6 +701,7 @@ public partial class Hud : CanvasLayer
         RefreshLevel();
         RefreshTimeButtons();
         RefreshHint();
+        RefreshFarmBar();
     }
 
     private void RefreshDate()
@@ -685,8 +785,12 @@ public partial class Hud : CanvasLayer
     private void RefreshHint()
     {
         var text = _services.Text;
-        _hint.Visible = _input.Order is not null || _input.Build is not null;
-        if (_input.Order is { } order)
+        _hint.Visible = _input.Order is not null || _input.Build is not null || _input.FarmCrop is not null;
+        if (_input.FarmCrop is not null)
+        {
+            _hint.Text = text.Format("ui.orders.hint", ("order", text.Format("ui.orders.name.farm")));
+        }
+        else if (_input.Order is { } order)
         {
             _hint.Text = text.Format("ui.orders.hint", ("order", text.Format($"ui.orders.name.{DesignationKinds.Id(order)}")));
         }

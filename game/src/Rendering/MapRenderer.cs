@@ -159,6 +159,32 @@ public partial class MapRenderer : Node3D
     }
 
     /// <summary>
+    /// Dresses again the chunks that hold the given cells, after the cells that stop the decoration
+    /// changed (a farm zone drawn or removed): only those chunks are built again, and nothing else.
+    /// </summary>
+    public void Redress(IEnumerable<TileCoord> cells)
+    {
+        ArgumentNullException.ThrowIfNull(cells);
+        _plants = _plantCells();
+        var chunks = new HashSet<ChunkKey>();
+        foreach (var cell in cells)
+        {
+            var chunk = new ChunkKey(cell.X / GameMap.ChunkSize, cell.Y / GameMap.ChunkSize, cell.Z);
+            if (_chunks.ContainsKey(chunk))
+            {
+                chunks.Add(chunk);
+            }
+        }
+
+        foreach (var chunk in chunks)
+        {
+            var instances = _chunks[chunk];
+            BuildDecoration(chunk, ref instances);
+            Keep(chunk, instances);
+        }
+    }
+
+    /// <summary>
     /// Paints the grass, the decoration and the high rock for a moment of the year. The colours are
     /// shader parameters, so it costs the same whatever the map; the decoration is built again only
     /// when the season changes, because its flowers do.

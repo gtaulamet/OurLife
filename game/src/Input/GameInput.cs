@@ -67,6 +67,11 @@ public partial class GameInput : Node3D
     private DesignationKind? _order;
     private BuildChoice? _build;
 
+    // The crop the farm tool sows, or null with the tool off; and the last one chosen, which the key brings back.
+    private string? _farmCrop;
+    private string? _lastFarmCrop;
+    private ((TileCoord From, TileCoord To)? Box, long Tick, bool On)? _farmKey;
+
     // The last thing chosen to build, which the build key brings back.
     private BuildChoice? _lastBuild;
 
@@ -85,6 +90,9 @@ public partial class GameInput : Node3D
 
     /// <summary>Raised when what to build changes; null means the build tool is off.</summary>
     public event Action<BuildChoice?>? BuildChanged;
+
+    /// <summary>Raised when the crop of the farm tool changes; null means the tool is off.</summary>
+    public event Action<string?>? FarmChanged;
 
     /// <summary>Raised when the player asks for the sheet of the selected colonist.</summary>
     public event Action? SheetRequested;
@@ -127,6 +135,7 @@ public partial class GameInput : Node3D
             if (value is not null)
             {
                 Build = null;
+                FarmCrop = null;
             }
         }
     }
@@ -149,12 +158,37 @@ public partial class GameInput : Node3D
             if (value is not null)
             {
                 Order = null;
+                FarmCrop = null;
             }
         }
     }
 
-    /// <summary>The order or the build tool is on: a drag marks a box.</summary>
-    private bool Marking => _order is not null || _build is not null;
+    /// <summary>The crop the next drag sows in a new farm zone, or null with the farm tool off; turning it on clears the order and the build tool.</summary>
+    public string? FarmCrop
+    {
+        get => _farmCrop;
+        set
+        {
+            if (_farmCrop == value)
+            {
+                return;
+            }
+
+            _farmCrop = value;
+            _lastFarmCrop = value ?? _lastFarmCrop;
+            DropDrag();
+            _farmKey = null;
+            FarmChanged?.Invoke(value);
+            if (value is not null)
+            {
+                Order = null;
+                Build = null;
+            }
+        }
+    }
+
+    /// <summary>The order, the build tool or the farm tool is on: a drag marks a box.</summary>
+    private bool Marking => _order is not null || _build is not null || _farmCrop is not null;
 
     public static GameInput Create(GameSession session, WorldView view)
     {
@@ -177,6 +211,33 @@ public partial class GameInput : Node3D
     {
         var first = Construction.BuildablesInOrder(_session.Simulation.Content).FirstOrDefault();
         return first is null ? null : new BuildChoice(first.Id, first.Materials[0]);
+    }
+
+    /// <summary>The crops the colony may sow now, in the order of the content.</summary>
+    public IReadOnlyList<CropDef> UnlockedCrops()
+    {
+        var simulation = _session.Simulation;
+        // What is harvested first, then the groves; each by id.
+        return [.. simulation.Content.All<CropDef>()
+            .Where(crop => simulation.Unlocks.IsUnlocked(crop, simulation.Progress))
+            .OrderBy(crop => crop.IsTree)
+            .ThenBy(crop => crop.Id, StringComparer.Ordinal)];
+    }
+
+    /// <summary>Turns the farm tool on, with the last crop chosen or else the first the colony knows, or off. Does nothing if no crop is known.</summary>
+    public void ToggleFarm()
+    {
+        if (_farmCrop is not null)
+        {
+            FarmCrop = null;
+            return;
+        }
+
+        var crops = UnlockedCrops();
+        if (crops.Count > 0)
+        {
+            FarmCrop = _lastFarmCrop is { } last && crops.Any(crop => crop.Id == last) ? last : crops[0].Id;
+        }
     }
 
     private void DropDrag()
@@ -208,6 +269,7 @@ public partial class GameInput : Node3D
         var overHud = GetViewport().GuiGetHoveredControl() is not null;
         Hover(overHud ? null : _mouse);
         UpdatePreviews();
+        UpdateFarmPreview();
 
         // A button released over the HUD never reaches _UnhandledInput: the drag ends here.
         if (_pressed && !Godot.Input.IsMouseButtonPressed(MouseButton.Left))
@@ -302,6 +364,11 @@ public partial class GameInput : Node3D
         if (Godot.Input.IsActionJustPressed(InputActions.Build))
         {
             ToggleBuild();
+        }
+
+        if (Godot.Input.IsActionJustPressed(InputActions.Farm))
+        {
+            ToggleFarm();
         }
 
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleColony))
@@ -421,6 +488,33 @@ public partial class GameInput : Node3D
         _view.Previews.Show(previews, simulation.Progress.CurrentEra);
     }
 
+    /// <summary>
+    /// With the farm tool on, the cells the drag (or the cell under the mouse) would turn into a
+    /// zone, from the same query the command uses. Worked out again only when the box, the tick or
+    /// the tool change: the query walks every plant, blueprint and zone. Also asked by the smoke.
+    /// </summary>
+    internal void UpdateFarmPreview()
+    {
+        var simulation = _session.Simulation;
+        var on = _farmCrop is not null;
+        var box = on ? PreviewBox() : null;
+        var key = (box, simulation.CurrentTick, on);
+        if (_farmKey == key)
+        {
+            return;
+        }
+
+        _farmKey = key;
+        if (box is { } corners)
+        {
+            _view.FarmCells.Show(FarmRules.CellsToZone(simulation, corners.From, corners.To), _view.ViewLevel);
+        }
+        else
+        {
+            _view.FarmCells.Show([], _view.ViewLevel);
+        }
+    }
+
     /// <summary>The box a preview covers: the drag under way, or the cell pointed at, or nothing.</summary>
     private (TileCoord From, TileCoord To)? PreviewBox()
     {
@@ -514,8 +608,9 @@ public partial class GameInput : Node3D
                 var (from, to) = Box(_order, first, last);
                 // The blueprints change what the preview shows, even with the time stopped.
                 _previewKey = null;
-                _session.Enqueue(_build is { } build
-                    ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to, build.Rotation)
+                _farmKey = null;
+                _session.Enqueue(_build is { } build ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to, build.Rotation)
+                    : _farmCrop is { } crop ? new PlaceFarmZoneCommand(from, to, crop)
                     : new DesignateCommand(_order!.Value, from, to));
             }
         }
@@ -613,6 +708,12 @@ public partial class GameInput : Node3D
         if (_build is not null)
         {
             Build = null;
+            return true;
+        }
+
+        if (_farmCrop is not null)
+        {
+            FarmCrop = null;
             return true;
         }
 

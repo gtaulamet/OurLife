@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
 using Godot;
 using OurLife.Core.Colony;
 using OurLife.Core.Defs;
@@ -8,6 +9,7 @@ using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Save;
 using OurLife.Core.Sim;
+using OurLife.Core.Text;
 using OurLife.Game.Content;
 using OurLife.Game.Input;
 using OurLife.Game.Localization;
@@ -491,6 +493,35 @@ public partial class GameRoot : Node
             var cell = simulation.World.Get<Position>(chosen).Cell;
             screen.Input.SelectCell(cell);
             screen.View.Camera.Focus(new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
+        }
+
+        // A ripe crop of the first farm zone, to see the zone, the crop and the pile on it (milestone O6).
+        if (options.InspectFarm)
+        {
+            var farmZones = FarmRules.Zones(simulation);
+            TileCoord? ripe = null;
+            if (farmZones.Count > 0)
+            {
+                foreach (var cell in simulation.World.Get<FarmZone>(farmZones[0].Zone).Cells)
+                {
+                    if (FarmRules.State(simulation, cell) is { State: FarmCellState.Ripe })
+                    {
+                        ripe = cell;
+                        break;
+                    }
+                }
+            }
+
+            if (ripe is { } ripeCell)
+            {
+                screen.Input.SelectCell(ripeCell);
+                screen.View.Camera.Focus(new Vector2(ripeCell.X + 0.5f, ripeCell.Y + 0.5f));
+            }
+        }
+
+        if (options.Farm)
+        {
+            screen.Input.ToggleFarm();
         }
 
         if (options.Knowledge)
@@ -1076,6 +1107,7 @@ public partial class GameRoot : Node
         CheckFreeWill(screen);
         CheckProduction(screen);
         CheckKnowledge(screen);
+        CheckFarm(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
         screen.OpenSaveScreen();
@@ -1351,6 +1383,148 @@ public partial class GameRoot : Node
         knowledge.Refresh();
         knowledge.Toggle();
         GD.Print($"[smoke] the knowledge panel shows {cards.Count} cards and follows the queue");
+    }
+
+    /// <summary>
+    /// The farm tool: without a known crop it stays off; once the colony knows agriculture and
+    /// cereals its bar offers exactly their crops; a drag previews the cells the command takes; a
+    /// zone made by command is marked on the map, shown by the inspector with its crop and a
+    /// button per crop, changes its crop by command and goes with Cancel. Also the notice of food
+    /// that spoiled reads as text, with its plural and the name of the item.
+    /// </summary>
+    private void CheckFarm(GameScreen screen)
+    {
+        var simulation = screen.Session.Simulation;
+        var input = screen.Input;
+        var text = _services!.Text;
+        input.ToggleFarm();
+        if (input.FarmCrop is not null || screen.Hud.FarmButtonEnabled)
+        {
+            throw new InvalidOperationException("the farm tool can be turned on without a crop the colony knows");
+        }
+
+        // The smoke has no scriptorium: it learns as a test would, by the method only Core may call.
+        var learn = typeof(ProgressState).GetMethod("Learn", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?? throw new InvalidOperationException("ProgressState.Learn is gone: the smoke of the farm tool needs another way to teach.");
+        foreach (var knowledge in new[] { "agriculture", "cereals" })
+        {
+            learn.Invoke(simulation.Progress, [knowledge]);
+        }
+
+        screen.Hud.RefreshFarmTool();
+        input.ToggleFarm();
+        var bar = screen.Hud.FarmBarTexts.ToList();
+        var known = input.UnlockedCrops().Select(crop => crop.Id).ToList();
+        if (input.FarmCrop is null || !screen.Hud.FarmButtonEnabled || bar.Count != 3 || known.Count != 3 || known.Contains("oak_grove", StringComparer.Ordinal)
+            || bar.Any(button => button.StartsWith("ui.", StringComparison.Ordinal) || button.StartsWith("Bosquecillo", StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"the farm bar offers [{string.Join(" | ", bar)}] for the crops [{string.Join(", ", known)}] and chose '{input.FarmCrop}'");
+        }
+
+        // The crop is chosen with a click on its button.
+        screen.Hud.PressFarmBarButton(known.IndexOf("wheat"));
+        if (input.FarmCrop != "wheat")
+        {
+            throw new InvalidOperationException($"a click on the wheat button chose '{input.FarmCrop}'");
+        }
+
+        // A box of flat soil near the colonists, found by the same query the command uses.
+        var colonists = new List<EntityId>();
+        simulation.World.Query<Colonist, Position>(colonists);
+        var arrival = simulation.World.Get<Position>(colonists[0]).Cell;
+        (TileCoord From, TileCoord To)? box = null;
+        var most = 0;
+        for (var dy = -24; dy <= 24; dy += 2)
+        {
+            for (var dx = -24; dx <= 24; dx += 2)
+            {
+                var near = new TileCoord(arrival.X + dx, arrival.Y + dy, arrival.Z);
+                var far = near with { X = near.X + 3, Y = near.Y + 3 };
+                var cells = FarmRules.CellsToZone(simulation, near, far).Count(cell => LevelShading.IsVisible(cell.Z, screen.View.ViewLevel));
+                if (cells > most)
+                {
+                    box = (near, far);
+                    most = cells;
+                }
+            }
+        }
+
+        if (box is not { } found)
+        {
+            GD.PushWarning("[smoke] No flat soil to draw a farm zone on; the smoke skips the zone checks.");
+            input.FarmCrop = null;
+            return;
+        }
+
+        var expected = FarmRules.CellsToZone(simulation, found.From, found.To);
+        input.PointAtDrag(found.From, found.To);
+        input.UpdateFarmPreview();
+        var previewed = screen.View.FarmCells.ShownCells;
+        input.StopPointing();
+        input.FarmCrop = null;
+        if (previewed != expected.Count(cell => LevelShading.IsVisible(cell.Z, screen.View.ViewLevel)) || previewed == 0)
+        {
+            throw new InvalidOperationException($"the drag previews {previewed} cells and the command would take {expected.Count}");
+        }
+
+        screen.Session.Enqueue(new PlaceFarmZoneCommand(found.From, found.To, "wheat"));
+        screen.Advance(2);
+        var zones = FarmRules.Zones(simulation);
+        var marked = screen.View.FarmCellsMarked;
+        if (zones.Count != 1 || zones[0].Cells != expected.Count || zones[0].Crop != "wheat" || marked != previewed)
+        {
+            throw new InvalidOperationException($"the field has {zones.Count} zones, {zones.FirstOrDefault()?.Cells} cells and {marked} marked, against {expected.Count} previewed");
+        }
+
+        // The inspector: the zone, its crop and a button per known crop; the crop changes by command.
+        screen.Input.SelectCell(expected[0]);
+        var shown = screen.Hud.Inspector.ShownText;
+        var wheatName = text.Format("def.crop.wheat.name");
+        if (!shown.Contains(wheatName, StringComparison.Ordinal) || shown.Contains("ui.", StringComparison.Ordinal) || screen.Hud.Inspector.FarmButtonCount != 3)
+        {
+            throw new InvalidOperationException($"the inspector of a farm cell says '{shown}' with {screen.Hud.Inspector.FarmButtonCount} crop buttons");
+        }
+
+        screen.Session.Enqueue(new SetFarmZoneCropCommand(zones[0].Zone, "peas"));
+        screen.Advance(1);
+        screen.Input.SelectCell(expected[0]);
+        if (!screen.Hud.Inspector.ShownText.Contains(text.Format("def.crop.peas.name"), StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"the inspector does not follow the new crop: '{screen.Hud.Inspector.ShownText}'");
+        }
+
+        // A crop sown on the cell shows its percent, and a pile of food its freshness.
+        var crop = simulation.World.CreateEntity();
+        simulation.World.Add(crop, new Position { X = expected[0].X, Y = expected[0].Y, Z = expected[0].Z });
+        simulation.World.Add(crop, new Crop { Def = "peas", Days = 4 });
+        ItemPiles.Drop(simulation, "berries", 12, expected[0], freshness: 4_000);
+        screen.Input.SelectCell(expected[0]);
+        var sown = screen.Hud.Inspector.ShownText;
+        if (!sown.Contains("50", StringComparison.Ordinal) || !sown.Contains("40", StringComparison.Ordinal) || sown.Contains("ui.", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"the inspector of a sown cell with a pile of berries says '{sown}'");
+        }
+
+        screen.Input.ClearSelection();
+
+        // Cancel takes the zone out of the map.
+        screen.Session.Enqueue(new DesignateCommand(DesignationKind.Cancel, found.From, found.To));
+        screen.Advance(2);
+        if (FarmRules.Zones(simulation).Count != 0 || screen.View.FarmCellsMarked != 0)
+        {
+            throw new InvalidOperationException("Cancel left the farm zone drawn");
+        }
+
+        // The notice of food that spoiled.
+        var notice = text.Resolve(
+            LocalizedText.Of(SpoilageSystem.SpoiledKey).With("count", 20).With("item", LocalizedText.Of("def.item.berries.name").With("count", 20)),
+            simulation.World);
+        if (!notice.Contains("20", StringComparison.Ordinal) || notice.Contains('{', StringComparison.Ordinal) || notice.StartsWith("event.", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"the notice of spoiled food reads '{notice}'");
+        }
+
+        GD.Print($"[smoke] the farm tool offers {bar.Count} crops, previews {previewed} cells, draws, shows and cancels a field: '{notice}'");
     }
 
     /// <summary>The production panel lists an order made by command, with its mode and state, and forgets it when it is removed.</summary>

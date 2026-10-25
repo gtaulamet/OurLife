@@ -2,7 +2,7 @@
 
 Parte de la spec de IP4 (`docs/gdd/oficios.md`): zonas de cultivo, siembra, crecimiento y cosecha; comidas cocinadas más nutritivas; deterioro simple de los alimentos; y la silvicultura (sembrar árboles) que `libre-albedrio.md` dejó para IP4. Resuelve el límite que `vida-y-generaciones.md` anotó: sin agricultura el valle sostiene unas 7 personas.
 
-**Estado:** propuesta de O1, pendiente de aprobación. Números iniciales, a ajustar en O11.
+**Estado:** propuesta de O1, pendiente de aprobación; implementada en O6 (Core y presentación). Números iniciales, a ajustar en O11.
 
 ## Qué hay hoy
 

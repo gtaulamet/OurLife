@@ -12,7 +12,8 @@ namespace OurLife.Game.Rendering;
 /// items and colonists (see "Dibujo del mundo" in <c>docs/gdd/interfaz-ip1.md</c>). It follows
 /// the entity events: what appears, changes or disappears. Entities above the current level or
 /// too deep are hidden, the rest darken with depth like the terrain. A gathered plant uses the
-/// visual <c>&lt;visual&gt;.harvested</c> when the catalog has one. Colonists glide between cells
+/// visual <c>&lt;visual&gt;.harvested</c> when the catalog has one. A crop grows through the visuals
+/// <c>&lt;visual&gt;.sprout</c>, <c>&lt;visual&gt;.growing</c> and, ripe, <c>&lt;visual&gt;</c> (<c>docs/gdd/agricultura.md</c>). Colonists glide between cells
 /// with the progress of their <see cref="Movement"/> and face where they walk, and hold the model
 /// of what they carry in front of them (see <c>docs/gdd/almacenes.md</c>). A sleeper lies on its
 /// back over its cell, along its bed if it sleeps in one (<c>docs/gdd/muebles-y-camas.md</c>).
@@ -445,6 +446,16 @@ public partial class EntityRenderer : Node3D
             else if (world.Has<Sapling>(entity))
             {
                 harvestedVisual = $"{visual}.sapling";
+            }
+        }
+        else if (world.TryGet<Crop>(entity, out var crop))
+        {
+            // Three stages by the days grown: "<visual>.sprout", "<visual>.growing" and, ripe, the plain visual.
+            var cropDef = content.Get<CropDef>(crop.Def);
+            visual = cropDef.Visual!;
+            if (crop.Days < cropDef.GrowDays)
+            {
+                harvestedVisual = crop.Days * 3 < cropDef.GrowDays ? $"{visual}.sprout" : $"{visual}.growing";
             }
         }
         else if (world.TryGet<ItemStack>(entity, out var stack))

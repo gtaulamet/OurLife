@@ -16,7 +16,8 @@ namespace OurLife.Game.UI;
 /// and needs, or a cell's shape, material, orders, plant, items and
 /// blueprint (<c>docs/gdd/construccion.md</c>).
 /// On a stockpile cell it also lists the zone's categories, each with a Yes/No button that changes
-/// its filter (<c>docs/gdd/almacenes.md</c>). It refreshes a few times per second while time runs
+/// its filter (<c>docs/gdd/almacenes.md</c>). On a farm zone cell it shows the zone's crop and what grows
+/// there, with a button per known crop to change the zone's (<c>docs/gdd/agricultura.md</c>). It refreshes a few times per second while time runs
 /// or the simulation changes, and when the language changes.
 /// </summary>
 public partial class InspectorPanel : PanelContainer
@@ -31,6 +32,7 @@ public partial class InspectorPanel : PanelContainer
     private Label _text = null!;
     private VBoxContainer _filters = null!;
     private VBoxContainer _workshop = null!;
+    private VBoxContainer _farm = null!;
     private EntityId _shown;
     private Button _sheet = null!;
     private Action<ISimCommand> _enqueue = null!;
@@ -59,6 +61,8 @@ public partial class InspectorPanel : PanelContainer
         column.AddChild(panel._filters);
         panel._workshop = new VBoxContainer();
         column.AddChild(panel._workshop);
+        panel._farm = new VBoxContainer();
+        column.AddChild(panel._farm);
         panel._sheet = new Button { Text = "ui.inspector.sheet", FocusMode = FocusModeEnum.None, Visible = false };
         panel._sheet.Pressed += () =>
         {
@@ -74,6 +78,12 @@ public partial class InspectorPanel : PanelContainer
     public override void _EnterTree() => _services.Localizer.LocaleChanged += OnLocaleChanged;
 
     public override void _ExitTree() => _services.Localizer.LocaleChanged -= OnLocaleChanged;
+
+    /// <summary>What the inspector says now, for the smoke.</summary>
+    public string ShownText => _text.Text;
+
+    /// <summary>How many crop buttons the farm zone under the selection offers, for the smoke.</summary>
+    public int FarmButtonCount => _farmButtons.Count;
 
     public void Inspect(Selection? selection)
     {
@@ -102,6 +112,7 @@ public partial class InspectorPanel : PanelContainer
         // The category names are in the buttons' rows: build them again in the new language.
         _filterZone = EntityId.None;
         _workshopSignature = string.Empty;
+        _farmSignature = string.Empty;
         Refresh();
     }
 
@@ -118,6 +129,7 @@ public partial class InspectorPanel : PanelContainer
         _lines.Clear();
         _shown = EntityId.None;
         var zone = EntityId.None;
+        var farmZone = EntityId.None;
         if (selection.IsColonist && _simulation.World.IsAlive(selection.Colonist))
         {
             DescribeColonist(selection.Colonist);
@@ -126,12 +138,14 @@ public partial class InspectorPanel : PanelContainer
         {
             DescribeCell(selection.Cell);
             zone = Stockpiles.ZoneAt(_simulation, selection.Cell, _entities);
+            farmZone = FarmRules.ZoneAt(_simulation, selection.Cell, _entities);
         }
 
         _text.Text = string.Join("\n", _lines);
         _sheet.Visible = selection.IsColonist && _simulation.World.IsAlive(selection.Colonist);
         ShowFilters(zone);
         ShowWorkshop(_shown);
+        ShowFarm(farmZone);
     }
 
     private void DescribeColonist(EntityId colonist)
@@ -200,6 +214,8 @@ public partial class InspectorPanel : PanelContainer
             _lines.Add(text.Format("ui.inspector.order.channel"));
         }
 
+        DescribeFarm(cell);
+
         // What stands on the cell, or on the floor above a wall's top.
         var above = map.ShapeAt(cell) == TileShape.Wall ? new TileCoord(cell.X, cell.Y, cell.Z + 1) : cell;
         DescribeEntitiesAt(cell, above);
@@ -245,6 +261,12 @@ public partial class InspectorPanel : PanelContainer
                 }
 
                 _lines.Add(text.Format("ui.inspector.items", ("count", stack.Count), ("item", item)));
+
+                // Food that goes bad says how fresh it is (docs/gdd/agricultura.md).
+                if (_simulation.Content.Get<ItemDef>(stack.Def).SpoilDays > 0)
+                {
+                    _lines.Add(text.Format("ui.inspector.freshness", ("percent", stack.FreshnessValue * 100 / ItemStack.FullFreshness)));
+                }
             }
             else if (world.TryGet<Furniture>(entity, out var furniture))
             {

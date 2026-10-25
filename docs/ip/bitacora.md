@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o5-conocimientos`: O2 a O5 hechos y el Core de O6 (falta su presentación) |
+| Rama de trabajo | `ip4/o5-conocimientos`: O2 a O5 hechos y O6 (Core y presentación; falta su `/code-review`) |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -21,7 +21,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 En orden:
 
 
-O6 presentación: ver la entrada del 2026-10-24 (herramienta Cultivo, inspector, modelos, capturas).
+O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está hecha: ver la segunda entrada del 2026-10-24). Modelos propios de los cultivos (hoy provisorios del Nature Kit) a la pasada de arte.
 1. **IP4 "Oficios" (O3):** talleres y recetas (`docs/gdd/oficios.md`, `docs/ip/IP4.md`).
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
@@ -42,6 +42,15 @@ O6 presentación: ver la entrada del 2026-10-24 (herramienta Cultivo, inspector,
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-24: O6, presentación de la agricultura
+
+- Rama `ip4/o5-conocimientos`. Herramienta Cultivo (tecla J y botón antes de Cancelar, `ui.orders.farm`): `GameInput.FarmCrop` (excluyente con las órdenes y con construir), barra de cultivos en el HUD (`FarmBar`, sólo los desbloqueados, los de cosecha antes que los bosquecillos; el botón se desactiva sin ningún cultivo y su tooltip dice qué conocimiento falta), vista previa de la caja con `FarmRules.CellsToZone` (`FarmPreview`, losas verdes, se recalcula sólo al cambiar la caja o el tick) y `PlaceFarmZoneCommand` al soltar. Esc y clic derecho salen de la herramienta.
+- Dibujo: `OrderMarkers` marca las celdas de las zonas con un tinte dorado propio (rebuild con `FarmZonesChangedEvent`). El pasto decorativo ya no crece en las zonas (`WorldView` suma sus celdas a las de plantas y `MapRenderer.Redress` rehace sólo los chunks afectados al dibujar o quitar una zona). Los cultivos son entidades `Crop` dibujadas con tres etapas: `crop.<id>.sprout`, `crop.<id>.growing` y el visual plano al madurar (`EntityRenderer`; cambian con `EntityChangedEvent`). Modelos provisorios del Nature Kit en matas (varias copias como partes y flores como espigas); `VisualCatalogTests` exige las dos etapas.
+- Inspector: en una celda de zona dice la zona y el cultivo, el cultivo sembrado (porcentaje o listo para cosechar) y un botón por cultivo conocido que manda `SetFarmZoneCropCommand` (`InspectorPanel.Farm.cs`); las pilas perecederas muestran `Frescura`. El aviso `event.food.spoiled` ya sale en el registro y la actividad "Sembrando/Cosechando" estaba resuelta.
+- Smoke: `CheckFarm` comprueba que la herramienta no se prende sin cultivos, enseña agricultura y cereales (por reflexión, sin scriptorium), que la barra ofrece trigo, guisantes y repollo, que el clic elige el cultivo, que la vista previa coincide con el comando, que la zona hecha por comando se marca, se inspecciona y cambia de cultivo, que Cancelar la quita y que el aviso de comida podrida se lee. Opciones de captura `--farm` (herramienta prendida) y `--inspect-farm` (selecciona una celda con cultivo maduro).
+- Capturas es y en revisadas, con la partida `docs/ip/playtest-o6/campo.olsave` (semilla 1, agricultura y cereales aprendidos, un campo de trigo con cultivos en distintas etapas y una pila de bayas al 35 % de frescura): `--saves <ruta absoluta de docs/ip/playtest-o6> --load campo --play --farm --level 13 --zoom 14 --point "42,54" --drag-to "46,58"` (dibujar un campo), `--play --level 13 --zoom 8 --point "38,56"` (etapas) y `--play --inspect-farm --level 13 --zoom 10` (inspector con cultivo y frescura). `--saves` con ruta relativa se resuelve dentro de `game/`.
+- Sin hacer: modelos propios de los cultivos y de los alimentos (arte) y capturas de la actividad Sembrando y Cosechando con colonos trabajando.
 
 ### 2026-10-24: O6, Core de agricultura y deterioro
 

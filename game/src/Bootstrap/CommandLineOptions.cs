@@ -67,6 +67,12 @@ public sealed record CommandLineOptions
     /// <summary>Open the knowledge panel, with something in its queue, to see it in screenshots (milestone O5).</summary>
     public bool Knowledge { get; init; }
 
+    /// <summary>Turn the farm tool on, with the first crop the colony knows, to see its bar and its preview in screenshots (milestone O6).</summary>
+    public bool Farm { get; init; }
+
+    /// <summary>Select the cell of a ripe crop of the first farm zone, to see the zone and the crop in the inspector in screenshots (milestone O6).</summary>
+    public bool InspectFarm { get; init; }
+
     /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
     public bool Build { get; init; }
 
@@ -225,6 +231,12 @@ public sealed record CommandLineOptions
                 case "--build":
                     options = options with { Build = true };
                     break;
+                case "--farm":
+                    options = options with { Farm = true };
+                    break;
+                case "--inspect-farm":
+                    options = options with { InspectFarm = true };
+                    break;
                 case "--orders":
                     options = options with { Orders = true };
                     break;
@@ -365,7 +377,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, season={Season ?? "-"}, " +

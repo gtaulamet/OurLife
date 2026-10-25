@@ -46,6 +46,13 @@ public class VisualCatalogTests
             used.Add($"{plant.Visual}.sapling");
         }
 
+        // A crop has a model for each stage of its growth: "<visual>.sprout" and "<visual>.growing"; ripe, the plain one.
+        foreach (var crop in GameContent.Defs.All<CropDef>().Where(crop => crop.Visual is not null))
+        {
+            used.Add($"{crop.Visual}.sprout");
+            used.Add($"{crop.Visual}.growing");
+        }
+
         // A creature may have a "<visual>.<stage>" model for each stage of life.
         foreach (var creature in GameContent.Defs.All<CreatureDef>())
         {
@@ -73,6 +80,18 @@ public class VisualCatalogTests
         missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
         var adultModels = GameContent.Defs.All<CreatureDef>().Where(creature => Catalog.TryResolve($"{creature.Visual}.{adult.Id}", null, out _));
         adultModels.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Every_crop_has_a_model_for_each_stage_of_its_growth()
+    {
+        var missing = GameContent.Defs.All<CropDef>()
+            .Where(crop => crop.Visual is not null)
+            .SelectMany(crop => new[] { $"{crop.Visual}.sprout", $"{crop.Visual}.growing" })
+            .Where(visual => !Catalog.TryResolve(visual, era: null, out _))
+            .ToList();
+
+        missing.ShouldBeEmpty(string.Join(Environment.NewLine, missing));
     }
 
     [Fact]

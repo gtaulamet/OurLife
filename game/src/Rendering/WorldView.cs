@@ -1,6 +1,7 @@
 using Godot;
 using OurLife.Core.Colony;
 using OurLife.Core.Ecs;
+using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
 using OurLife.Game.Input;
@@ -20,8 +21,9 @@ public partial class WorldView : Node3D
     private MapRenderer _map = null!;
     private Simulation _simulation = null!;
 
-    // The cells with a plant, for the decoration; worked out again after entities come or go.
+    // The cells with a plant or a farm zone, for the decoration; worked out again after entities come or go.
     private IReadOnlySet<TileCoord> _plantCells = new HashSet<TileCoord>();
+    private HashSet<TileCoord> _farmCells = [];
     private bool _plantsChanged = true;
     private EntityRenderer _entities = null!;
     private OrderMarkers _orders = null!;
@@ -33,6 +35,12 @@ public partial class WorldView : Node3D
 
     /// <summary>Where the furniture being placed would go (<c>docs/gdd/vista-previa-de-muebles.md</c>).</summary>
     public FurnitureGhosts Previews { get; private set; } = null!;
+
+    /// <summary>The cells a farm zone would take, while the farm tool is on (<c>docs/gdd/agricultura.md</c>).</summary>
+    public FarmPreview FarmCells { get; private set; } = null!;
+
+    /// <summary>How many farm zone cells the view marks now, for the smoke.</summary>
+    internal int FarmCellsMarked => _orders.FarmCellsMarked;
 
     /// <summary>Raised when the player moves the view to another level.</summary>
     public event Action<int>? ViewLevelChanged;
@@ -71,6 +79,7 @@ public partial class WorldView : Node3D
 
             var painted = SeasonCycle.CanPaint(simulation, catalog);
             var season = painted ? SeasonCycle.LookAt(simulation, catalog.Seasons!, SeasonCycle.Forced) : null;
+            view._farmCells = view.FarmCellSet();
             view._map = MapRenderer.Create(map, catalog, viewLevel, view.PlantCells, DecorationLevels.Multiplier(decoration), season);
             view.AddChild(view._map);
 
@@ -91,6 +100,8 @@ public partial class WorldView : Node3D
             view.AddChild(view._orders);
             view.Previews = FurnitureGhosts.Create(catalog, "Previews");
             view.AddChild(view.Previews);
+            view.FarmCells = FarmPreview.Create();
+            view.AddChild(view.FarmCells);
             view.Camera = CameraRig.Create(new Vector2(map.Size.Width, map.Size.Height), viewLevel, map.Size.Depth - 1, distance ?? StartDistance);
             view.Camera.LevelChanged += view.OnLevelChanged;
             view.AddChild(view.Camera);
@@ -117,6 +128,10 @@ public partial class WorldView : Node3D
             _entities.Apply(simEvent);
             _orders.Apply(simEvent);
             _plantsChanged |= simEvent is EntitySpawnedEvent or EntityRemovedEvent;
+            if (simEvent is FarmZonesChangedEvent)
+            {
+                RedressFarmCells();
+            }
         }
     }
 
@@ -133,11 +148,41 @@ public partial class WorldView : Node3D
     {
         if (_plantsChanged)
         {
-            _plantCells = Designations.PlantCells(_simulation);
+            // No decoration grows in a farm zone, where the crops are what grows.
+            var cells = new HashSet<TileCoord>(Designations.PlantCells(_simulation));
+            cells.UnionWith(_farmCells);
+            _plantCells = cells;
             _plantsChanged = false;
         }
 
         return _plantCells;
+    }
+
+    private HashSet<TileCoord> FarmCellSet()
+    {
+        var cells = new HashSet<TileCoord>();
+        var zones = new List<EntityId>();
+        _simulation.World.Query<FarmZone>(zones);
+        foreach (var zone in zones)
+        {
+            cells.UnionWith(_simulation.World.Get<FarmZone>(zone).Cells);
+        }
+
+        return cells;
+    }
+
+    /// <summary>A farm zone was drawn, changed or removed: the chunks with the cells that came or went are dressed again.</summary>
+    private void RedressFarmCells()
+    {
+        var now = FarmCellSet();
+        var changed = new HashSet<TileCoord>(now);
+        changed.SymmetricExceptWith(_farmCells);
+        _farmCells = now;
+        _plantsChanged = true;
+        if (changed.Count > 0)
+        {
+            _map.Redress(changed);
+        }
     }
 
     private static int HighestSurface(Simulation simulation)
