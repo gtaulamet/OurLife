@@ -27,19 +27,6 @@ public static class ColonyStock
         return [.. categories.Select(category => new StockLine(category, counts.GetValueOrDefault(category.Id)))];
     }
 
-    /// <summary>The nutrition of all the food the colony has, lying anywhere or carried, as eating gives it.</summary>
-    public static long FoodNutrition(Simulation simulation)
-    {
-        ArgumentNullException.ThrowIfNull(simulation);
-        long total = 0;
-        foreach (var (item, _, count, _) in Stocks.Everything(simulation))
-        {
-            total += item.Kind == ItemKind.Food ? (long)item.Nutrition * count : 0;
-        }
-
-        return total;
-    }
-
     /// <summary>
     /// What the colony has to eat in the winter, for the food reserve a couple needs to conceive: the
     /// nutrition of its food plus the <see cref="ItemDef.ReserveValue"/> of grain and flour (see

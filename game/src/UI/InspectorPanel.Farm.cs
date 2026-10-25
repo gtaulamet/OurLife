@@ -53,7 +53,7 @@ public partial class InspectorPanel
             .OrderBy(crop => crop.IsTree)
             .ThenBy(crop => crop.Id, StringComparer.Ordinal)
             .ToList();
-        var signature = $"{zone.Index}:{string.Join(',', crops.Select(crop => crop.Id))}";
+        var signature = $"{zone.Index}#{zone.Generation}:{string.Join(',', crops.Select(crop => crop.Id))}";
         if (signature != _farmSignature)
         {
             ClearFarm();

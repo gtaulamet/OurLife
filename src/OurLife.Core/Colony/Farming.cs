@@ -477,13 +477,26 @@ internal static class FarmZones
     {
         var world = simulation.World;
         var crops = new List<EntityId>();
+        var gone = new HashSet<TileCoord>(cells);
         world.Query<Crop, Position>(crops);
         foreach (var crop in crops)
         {
-            if (cells.Contains(world.Get<Position>(crop).Cell))
+            if (gone.Contains(world.Get<Position>(crop).Cell))
             {
                 simulation.Events.Emit(new EntityRemovedEvent(crop));
                 world.DestroyEntity(crop);
+            }
+        }
+
+        // The saplings of a grove go with the zone; a tree that has grown already is the village's.
+        var saplings = new List<EntityId>();
+        world.Query<Sapling, Position>(saplings);
+        foreach (var sapling in saplings)
+        {
+            if (gone.Contains(world.Get<Position>(sapling).Cell))
+            {
+                simulation.Events.Emit(new EntityRemovedEvent(sapling));
+                world.DestroyEntity(sapling);
             }
         }
     }

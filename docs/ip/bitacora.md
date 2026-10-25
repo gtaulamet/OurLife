@@ -43,6 +43,11 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 
 ## Historial
 
+### 2026-10-25: O6, revisión
+
+- Revisión de la otra sesión y `/code-review` de `main...HEAD` (sólo O6). Corregidos: siete textos en español con la codificación doble (`otoÃ±o`...; los de los cultivos y `ate_meal`), con un test nuevo (`EncodingTests`) que lo vigila en todos los catálogos; una carga que se pudre en las manos a medianoche dejaba el trabajo de acarreo en la etapa de llevar sin nada (reventaba al llegar): ahora el trabajo termina; los retoños de un bosquecillo se quitan con la zona (cancelar o perder el suelo); `RemoveCrops` con un conjunto en lugar de buscar en una lista; `ColonyStock.FoodNutrition` sin uso, quitado; la firma del inspector de zonas incluye la generación de la entidad. Tests nuevos: carga podrida con acarreo y bosquecillo cancelado.
+- Sin cambiar: el índice de cultivos que se arma en cada tick con decisiones (`RefreshFarmIndex`, se mide en O11 con el presupuesto), `cropTilePlantEquivalent` en 0 (decisión de balance ya anotada, se retoma en O11), el smoke que enseña conocimientos por reflexión (sólo prueba) y que una celda de bosquecillo sembrada figure como vacía en `FarmRules.State` (el retoño ya cuenta como planta; el contador de la zona queda para el panel de O10).
+
 ### 2026-10-24: O6, presentación de la agricultura
 
 - Rama `ip4/o5-conocimientos`. Herramienta Cultivo (tecla J y botón antes de Cancelar, `ui.orders.farm`): `GameInput.FarmCrop` (excluyente con las órdenes y con construir), barra de cultivos en el HUD (`FarmBar`, sólo los desbloqueados, los de cosecha antes que los bosquecillos; el botón se desactiva sin ningún cultivo y su tooltip dice qué conocimiento falta), vista previa de la caja con `FarmRules.CellsToZone` (`FarmPreview`, losas verdes, se recalcula sólo al cambiar la caja o el tick) y `PlaceFarmZoneCommand` al soltar. Esc y clic derecho salen de la herramienta.

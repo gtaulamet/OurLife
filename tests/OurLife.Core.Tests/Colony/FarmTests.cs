@@ -550,6 +550,36 @@ public class FarmTests
         bed.World.Get<Carried>(other).Freshness.ShouldBe(10_000 - 334);
     }
 
+    [Fact]
+    public void Cancelling_a_grove_takes_its_saplings_with_it()
+    {
+        var bed = Field();
+        Zone(bed, "grove", new TileCoord(2, 2, 1), new TileCoord(7, 7, 1));
+        Farmer(bed, 10, 10);
+        bed.AddItems("provisions", 50, 15, 15, 1);
+        bed.Simulation.Run(1_000);
+        Saplings(bed).ShouldNotBeEmpty();
+
+        bed.Designate(DesignationKind.Cancel, new TileCoord(0, 0, 1), new TileCoord(15, 15, 1));
+        bed.Simulation.ApplyCommandsNow();
+
+        Saplings(bed).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_load_that_rots_on_the_way_ends_the_job_that_carried_it()
+    {
+        var bed = Field();
+        var colonist = bed.AddColonist(2, 2, 1);
+        bed.World.Add(colonist, new Carried { Def = "cabbage", Count = 10, Freshness = 200 });
+        bed.World.Add(colonist, new Job { Kind = JobKind.Haul, Stage = JobStage.Carrying, Destination = new TileCoord(5, 5, 1) });
+
+        new SpoilageSystem().Tick(bed.Simulation);
+
+        bed.World.Has<Carried>(colonist).ShouldBeFalse();
+        bed.World.Has<Job>(colonist).ShouldBeFalse();
+    }
+
     // Criterion 6 (the choice of what to eat).
     [Fact]
     public void A_hungry_colonist_prefers_a_prepared_dish_to_nearer_food()

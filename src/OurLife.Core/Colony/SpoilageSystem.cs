@@ -81,6 +81,13 @@ public sealed class SpoilageSystem : ISimSystem
 
             _rotten[item.Id] = _rotten.GetValueOrDefault(item.Id) + carried.Count;
             world.Remove<Carried>(carrier);
+
+            // Hauling, delivering or feeding with nothing in the hands makes no sense: the job ends.
+            if (world.TryGet<Job>(carrier, out var job) && job.Stage == JobStage.Carrying)
+            {
+                JobSystem.Drop(world, carrier);
+            }
+
             simulation.Events.Emit(new EntityChangedEvent(carrier));
         }
 
