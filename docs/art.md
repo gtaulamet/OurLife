@@ -105,7 +105,7 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
 | Muebles | Resuelto: cama, mesa, silla y baúl de KayKit Dungeon Remastered, con la madera entonada por la paleta (`texture`) | — |
 | Cuna (H3.7) | Resuelto en H3.8: la cama de KayKit a escala 0,2 se lee como cuna en la vista de la aldea | Una cuna propia si algún kit CC0 la trae |
-| Etapas de la vida (H3.8) | Resuelto: 60 modelos propios (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), cada uno con su proporción; el catálogo los dibuja a escala 2,8 | — |
+| Etapas de la vida (H3.8) | Resuelto: 60 modelos propios (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), cada uno con su proporción; el catálogo los dibuja a escala 3,1 | — |
 | Globos de interacción (H3.8) | Resuelto: íconos pixel propios de 16 × 16 (`tools/make-interaction-icons.py`) | — |
 
 ## Fuente tipográfica
