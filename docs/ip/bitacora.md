@@ -910,3 +910,11 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
   - Un cast deliberado a `ProgressState.Knowledge` no se impide.
 - Se actualizaron `IP1.md` (H1.3 hecho), `backlog.md`, `i18n.md`, `art.md`, `overview.md`, ADR-005 y `plan-maestro.md`.
 - Commit `007a389` en `ip1/h1-3-contenido-i18n`.
+
+### 2026-10-27: colonos por etapa de vida
+
+- Reemplacé los 12 aldeanos de Kenney Mini Characters y sus 12 ancianos derivados por los 60 modelos propios de `MODELS/colonos-vida/glb` (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), copiados a `game/assets/models/settlers` con sus `.import`.
+- `visuals.json`: las cinco etapas de `creature.human*` usan los 6 tipos por género, a escala 1,3 igual que antes (cada modelo ya trae su altura y su proporción, así que se quitaron `boneScales`). El tipo se elige por el hash del id, igual en todas las etapas, así que un colono conserva su aspecto al crecer. El bebé sigue con `idle` → `sit`.
+- Se borraron `kenney_mini-characters` y `tools/make-elder-models.py`; se actualizaron `CREDITS.md`, `docs/art.md` y el GDD de vida.
+- `dotnet test` en verde y smoke con código 0. La captura no mostró bien a los colonos (la cámara no los encuadra), así que **falta revisar a ojo** el aspecto, la escala y el color de los modelos en el juego.
+- `MODELS/` (fuentes, imágenes, scripts de Blender) no se versiona.
