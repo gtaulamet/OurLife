@@ -914,7 +914,7 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 ### 2026-10-27: colonos por etapa de vida
 
 - Reemplacé los 12 aldeanos de Kenney Mini Characters y sus 12 ancianos derivados por los 60 modelos propios de `MODELS/colonos-vida/glb` (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), copiados a `game/assets/models/settlers` con sus `.import`.
-- `visuals.json`: las cinco etapas de `creature.human*` usan los 6 tipos por género, a escala 2,3 (corregida de 1,3, que los dejaba a menos de la mitad del tamaño de los Kenney) (cada modelo ya trae su altura y su proporción, así que se quitaron `boneScales`). El tipo se elige por el hash del id, igual en todas las etapas, así que un colono conserva su aspecto al crecer. El bebé sigue con `idle` → `sit`.
+- `visuals.json`: las cinco etapas de `creature.human*` usan los 6 tipos por género, a escala 2,8 (corregida de 1,3, que los dejaba a menos de la mitad del tamaño de los Kenney) (cada modelo ya trae su altura y su proporción, así que se quitaron `boneScales`). El tipo se elige por el hash del id, igual en todas las etapas, así que un colono conserva su aspecto al crecer. El bebé sigue con `idle` → `sit`.
 - Se borraron `kenney_mini-characters` y `tools/make-elder-models.py`; se actualizaron `CREDITS.md`, `docs/art.md` y el GDD de vida.
 - `dotnet test` en verde y smoke con código 0. La captura no mostró bien a los colonos (la cámara no los encuadra), así que **falta revisar a ojo** el aspecto, la escala y el color de los modelos en el juego.
 - `MODELS/` (fuentes, imágenes, scripts de Blender) no se versiona.
