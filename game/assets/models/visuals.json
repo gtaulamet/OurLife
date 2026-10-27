@@ -152,7 +152,7 @@
     "item.iron_hammer": { "model": "res://assets/models/kenney_nature-kit/log.glb", "scale": 0.35 },
     "creature.human": {
       "model": "res://assets/models/settlers/settler-male-a-adult.glb",
-      "scale": 1.3,
+      "scale": 2.3,
       "variants": {
         "female": ["res://assets/models/settlers/settler-female-a-adult.glb", "res://assets/models/settlers/settler-female-b-adult.glb", "res://assets/models/settlers/settler-female-c-adult.glb", "res://assets/models/settlers/settler-female-d-adult.glb", "res://assets/models/settlers/settler-female-e-adult.glb", "res://assets/models/settlers/settler-female-f-adult.glb"],
         "male": ["res://assets/models/settlers/settler-male-a-adult.glb", "res://assets/models/settlers/settler-male-b-adult.glb", "res://assets/models/settlers/settler-male-c-adult.glb", "res://assets/models/settlers/settler-male-d-adult.glb", "res://assets/models/settlers/settler-male-e-adult.glb", "res://assets/models/settlers/settler-male-f-adult.glb"]
@@ -160,7 +160,7 @@
     },
     "creature.human.baby": {
       "model": "res://assets/models/settlers/settler-male-a-baby.glb",
-      "scale": 1.3,
+      "scale": 2.3,
       "animations": { "idle": "sit" },
       "variants": {
         "female": ["res://assets/models/settlers/settler-female-a-baby.glb", "res://assets/models/settlers/settler-female-b-baby.glb", "res://assets/models/settlers/settler-female-c-baby.glb", "res://assets/models/settlers/settler-female-d-baby.glb", "res://assets/models/settlers/settler-female-e-baby.glb", "res://assets/models/settlers/settler-female-f-baby.glb"],
@@ -169,7 +169,7 @@
     },
     "creature.human.child": {
       "model": "res://assets/models/settlers/settler-male-a-child.glb",
-      "scale": 1.3,
+      "scale": 2.3,
       "variants": {
         "female": ["res://assets/models/settlers/settler-female-a-child.glb", "res://assets/models/settlers/settler-female-b-child.glb", "res://assets/models/settlers/settler-female-c-child.glb", "res://assets/models/settlers/settler-female-d-child.glb", "res://assets/models/settlers/settler-female-e-child.glb", "res://assets/models/settlers/settler-female-f-child.glb"],
         "male": ["res://assets/models/settlers/settler-male-a-child.glb", "res://assets/models/settlers/settler-male-b-child.glb", "res://assets/models/settlers/settler-male-c-child.glb", "res://assets/models/settlers/settler-male-d-child.glb", "res://assets/models/settlers/settler-male-e-child.glb", "res://assets/models/settlers/settler-male-f-child.glb"]
@@ -177,7 +177,7 @@
     },
     "creature.human.adolescent": {
       "model": "res://assets/models/settlers/settler-male-a-teen.glb",
-      "scale": 1.3,
+      "scale": 2.3,
       "variants": {
         "female": ["res://assets/models/settlers/settler-female-a-teen.glb", "res://assets/models/settlers/settler-female-b-teen.glb", "res://assets/models/settlers/settler-female-c-teen.glb", "res://assets/models/settlers/settler-female-d-teen.glb", "res://assets/models/settlers/settler-female-e-teen.glb", "res://assets/models/settlers/settler-female-f-teen.glb"],
         "male": ["res://assets/models/settlers/settler-male-a-teen.glb", "res://assets/models/settlers/settler-male-b-teen.glb", "res://assets/models/settlers/settler-male-c-teen.glb", "res://assets/models/settlers/settler-male-d-teen.glb", "res://assets/models/settlers/settler-male-e-teen.glb", "res://assets/models/settlers/settler-male-f-teen.glb"]
@@ -185,7 +185,7 @@
     },
     "creature.human.elder": {
       "model": "res://assets/models/settlers/settler-male-a-elder.glb",
-      "scale": 1.3,
+      "scale": 2.3,
       "variants": {
         "female": ["res://assets/models/settlers/settler-female-a-elder.glb", "res://assets/models/settlers/settler-female-b-elder.glb", "res://assets/models/settlers/settler-female-c-elder.glb", "res://assets/models/settlers/settler-female-d-elder.glb", "res://assets/models/settlers/settler-female-e-elder.glb", "res://assets/models/settlers/settler-female-f-elder.glb"],
         "male": ["res://assets/models/settlers/settler-male-a-elder.glb", "res://assets/models/settlers/settler-male-b-elder.glb", "res://assets/models/settlers/settler-male-c-elder.glb", "res://assets/models/settlers/settler-male-d-elder.glb", "res://assets/models/settlers/settler-male-e-elder.glb", "res://assets/models/settlers/settler-male-f-elder.glb"]
