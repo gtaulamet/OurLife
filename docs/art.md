@@ -99,7 +99,7 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Terreno | Resuelto con piezas generadas en código y pintadas por el shader (ADR-012) | — |
 | Arbusto de bayas con bayas y sin bayas | Resuelto: `plant_bushDetailed` con tres racimos de `cherries` del Food Kit como partes; `plant_bush` sin bayas | — |
 | Bayas | Resuelto: `cherries` del Food Kit | — |
-| Provisiones | Resuelto: `barrel_small` de KayKit | — |
+| Provisiones | Resuelto: cesta propia `item_provisions` (el barril de KayKit se quitó) | — |
 | Aldeanos | Resuelto: los 12 de Mini Characters (6 mujeres y 6 hombres), con la ropa recoloreada y animaciones de caminar, golpear, manipular, levantar, sostener y quieto | Animaciones de comer y de dormir, si las pide el juego |
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
@@ -141,7 +141,7 @@ Requisitos comunes:
 | `furniture.chair` | `furniture_chair.glb` | Banco o silla tosca (opcional: sirve la de KayKit) |
 | `furniture.chest` | `furniture_chest.glb` | Cofre de madera con herrajes (opcional: sirve el de KayKit) |
 
-**A2. Objetos** (0,2 a 0,5 celdas). Hoy se reutilizan `log`, `rock_smallA`, `cherries` y `barrel_small` para casi todos. `item.log` e `item.stone` ya se ven bien.
+**A2. Objetos** (0,2 a 0,5 celdas). Hoy se reutilizan `log`, `rock_smallA` y `cherries` para varios; los de comida y materiales ya tienen modelo propio. `item.log` e `item.stone` ya se ven bien.
 
 | Id visual | Archivo | Descripción |
 |---|---|---|

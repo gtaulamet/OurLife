@@ -934,3 +934,9 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Los 5 modelos de la fase 1 están en `game/assets/models/ourlife/` (con sus `.import`) y `visuals.json` los usa: banco de carpintero, banco de cantero, cocina y escritorio de copista a escala 0,8; cuna a 0,7 con `restHeight` 0,2. Antes usaban `table_small` y `bed_frame`.
 - `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0. Capturas de la vista previa de cada mueble con `--furniture` revisadas.
 - Pendiente: ver en el juego la cuna con el bebé dentro y los puestos con un colono trabajando, y retocar escala o color si hace falta. Sigue la fase 2 (objetos de comida y materiales).
+
+### 2026-10-28: fase 2 de modelos integrada
+
+- Los 10 objetos de comida y materiales (repollo, arvejas, pan, potaje, repollo en conserva, trigo, harina, provisiones, tablón y mango) están en `game/assets/models/ourlife/` y en `visuals.json`, a su tamaño final (escala 1,0). Se generaron con `MODELS/generador/fase2.py`; la paleta de `lib.py` ganó los colores de comida.
+- Se borró `barrel_small` de KayKit (y su textura), porque ningún id lo usa ya: el test `Only_the_models_of_the_catalog_are_in_the_repository` lo exigía.
+- Progreso: 15 de 41. Sigue la fase 3 (hierro, piedra y herramientas).

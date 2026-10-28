@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dsxd54g5rp8q4"
-path="res://.godot/imported/barrel_small.glb-9ef305e9f2942bebe49f42feeda9f397.scn"
+uid="uid://cakubhsxttlm2"
+path="res://.godot/imported/item_provisions.glb-4fb4bd9f1413649d89847902a155c993.scn"
 
 [deps]
 
-source_file="res://assets/models/kaykit_dungeon-remastered/barrel_small.glb"
-dest_files=["res://.godot/imported/barrel_small.glb-9ef305e9f2942bebe49f42feeda9f397.scn"]
+source_file="res://assets/models/ourlife/item_provisions.glb"
+dest_files=["res://.godot/imported/item_provisions.glb-4fb4bd9f1413649d89847902a155c993.scn"]
 
 [params]
 

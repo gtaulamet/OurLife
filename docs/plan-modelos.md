@@ -9,12 +9,12 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 | Fase | Contenido | Modelos | Hechos |
 |---|---|---|---|
 | 1 | Puestos de trabajo y cuna (imprescindibles) | 5 | 5 |
-| 2 | Objetos de comida y materiales | 10 | 0 |
+| 2 | Objetos de comida y materiales | 10 | 10 |
 | 3 | Objetos de hierro, piedra y herramientas | 8 | 0 |
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 0 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 0 |
 | 6 | Piezas opcionales (puerta, escalera, rampa, tocones) | 5 | 0 |
-| | **Total** | **41** (32 sin los opcionales) | **5** |
+| | **Total** | **41** (32 sin los opcionales) | **15** |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -49,18 +49,20 @@ Los cuatro puestos usan hoy la misma `table_small`.
 
 ## Fase 2: objetos de comida y materiales
 
-Objetos de 0,2 a 0,5 celdas. Hoy se reutilizan `log`, `rock_smallA`, `cherries` y `barrel_small`. `item.log` e `item.stone` ya se ven bien: no se tocan.
+Objetos de 0,2 a 0,5 celdas. Hoy se reutilizan `log`, `rock_smallA` y `cherries` (`barrel_small` ya se quitó). `item.log` e `item.stone` ya se ven bien: no se tocan.
 
-- [ ] `item.cabbage` → `item_cabbage.glb`. Cabeza redonda de hojas verdes.
-- [ ] `item.peas` → `item_peas.glb`. Vainas verdes o un puñado de granos.
-- [ ] `item.bread` → `item_bread.glb`. Hogaza redonda con cortes.
-- [ ] `item.pottage` → `item_pottage.glb`. Cuenco u olla de barro con guiso.
-- [ ] `item.pickled_cabbage` → `item_pickled_cabbage.glb`. Tarro o barrica pequeña, de color distinto a la de provisiones.
-- [ ] `item.wheat` → `item_wheat.glb`. Gavilla o haz de espigas.
-- [ ] `item.flour` → `item_flour.glb`. Saco de tela atado.
-- [ ] `item.provisions` → `item_provisions.glb`. Cesta o barrica con comida variada. Hoy: `barrel_small`.
-- [ ] `item.plank` → `item_plank.glb`. Tabla rectangular de madera, no un tronco.
-- [ ] `item.handle` → `item_handle.glb`. Palo corto y pulido.
+Estado (28 de octubre): integrada. Los 10 `.glb` están en `game/assets/models/ourlife/` a su tamaño final (escala 1,0 en `visuals.json`, entre 0,15 y 0,7 de largo) y se quitó `barrel_small` de KayKit, que quedó sin uso. Generados con `MODELS/generador/fase2.py`. La tabla y el mango tienen pocos triángulos (48 y 96) porque son formas simples. Falta ver cada objeto de cerca en el juego.
+
+- [x] `item.cabbage` → `item_cabbage.glb`. Cabeza redonda de hojas verdes.
+- [x] `item.peas` → `item_peas.glb`. Vainas verdes o un puñado de granos.
+- [x] `item.bread` → `item_bread.glb`. Hogaza redonda con cortes.
+- [x] `item.pottage` → `item_pottage.glb`. Cuenco u olla de barro con guiso.
+- [x] `item.pickled_cabbage` → `item_pickled_cabbage.glb`. Tarro o barrica pequeña, de color distinto a la de provisiones.
+- [x] `item.wheat` → `item_wheat.glb`. Gavilla o haz de espigas.
+- [x] `item.flour` → `item_flour.glb`. Saco de tela atado.
+- [x] `item.provisions` → `item_provisions.glb`. Cesta o barrica con comida variada. Hoy: `barrel_small`.
+- [x] `item.plank` → `item_plank.glb`. Tabla rectangular de madera, no un tronco.
+- [x] `item.handle` → `item_handle.glb`. Palo corto y pulido.
 
 ## Fase 3: objetos de hierro, piedra y herramientas
 
