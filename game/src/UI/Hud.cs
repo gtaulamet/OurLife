@@ -79,6 +79,7 @@ public partial class Hud : CanvasLayer
     public KnowledgePanel Knowledge { get; private set; } = null!;
 
     private Label _research = null!;
+    private HBoxContainer _researchRow = null!;
     private double _sinceResearch;
     private bool _buildBarStale;
 
@@ -130,8 +131,12 @@ public partial class Hud : CanvasLayer
         left.AddThemeConstantOverride("separation", Gap);
         root.AddChild(left);
         hud._alerts = new VBoxContainer { Name = "Alerts", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
-        hud._research = new Label { Name = "Research", AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, Visible = false };
-        left.AddChild(hud._research);
+        hud._research = new Label { Name = "Research", AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled };
+        hud._researchRow = new HBoxContainer { Name = "ResearchRow", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        hud._researchRow.AddThemeConstantOverride("separation", 4);
+        hud._researchRow.AddChild(KnowledgeIcons.Rect(KnowledgeIcons.Research()));
+        hud._researchRow.AddChild(hud._research);
+        left.AddChild(hud._researchRow);
         left.AddChild(hud._alerts);
         hud.Colony = ColonyPanel.Create(services, session, input);
         left.AddChild(hud.Colony);
@@ -631,11 +636,11 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>The line of what is being researched, only with something in the queue.</summary>
-    private void RefreshResearch()
+    public void RefreshResearch()
     {
         var simulation = _session.Simulation;
         var current = ResearchRules.Current(simulation);
-        _research.Visible = current is not null;
+        _researchRow.Visible = current is not null;
         if (current is null)
         {
             return;

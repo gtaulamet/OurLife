@@ -22,10 +22,9 @@ En orden:
 
 1. **IP4 "Oficios", O8** y siguientes (O9, O10, O11; `docs/ip/IP4.md`). O7 (vetas y niebla) está hecho.
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
-3. **Íconos pixel de O5** (rama, estado y HUD; hoy texto): a la pasada de arte junto con O10.
-4. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos, falta verlos de cerca en el juego.
-5. **Balance de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple. Decidido el 28 de octubre de 2026: se deja así y se revisa con las partidas de diez años de O11.
-6. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
+3. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos; los de cultivos ya se vieron en el juego.
+4. **Balance de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple. Decidido el 28 de octubre de 2026: se deja así y se revisa con las partidas de diez años de O11.
+5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
 
@@ -43,6 +42,12 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-28: revisión de cultivos e íconos pixel de O5
+
+- Cultivos: modo de captura nuevo `--crops` (con `--play`: un parche 3 x 3 junto al primer colono, trigo, guisantes y repollo en brote, crecimiento y maduro). Revisado en pantalla (`game/out/cultivos.png`, `cultivos2.png`, zoom 4): los tres cultivos y sus tres etapas se distinguen. Los brotes y el crecimiento se perdían contra el pasto, así que en `visuals.json` los `.sprout` pasan a escala 1,6 y los `.growing` a 1,3 (los maduros quedan en 1,0).
+- Íconos de O5: `tools/make-knowledge-icons.py` genera 8 PNG de 16 x 16 en `game/assets/icons/knowledge/` (ramas `branch_crafts`, `branch_field`, `branch_fire_metal`; estados `state_learned`, `state_available`, `state_queued`, `state_blocked`, los cuatro de `KnowledgeState`; y `research` para el HUD). Se cargan con `KnowledgeIcons` (filtro más cercano, sin textos nuevos): ícono de estado en cada tarjeta del panel K, ícono de rama (doble tamaño) en la cabecera de cada fila y la libreta junto a la línea "Investigando" del HUD. El texto se queda al lado como respaldo accesible. Los `.png` y `.import` se versionan.
+- Capturas es y en: `game/out/k-es.png`, `game/out/k-en.png` (`--play --knowledge --hour 12`; ahora también refresca la línea del HUD).
 
 ### 2026-10-28: O7, presentación de vetas y niebla
 

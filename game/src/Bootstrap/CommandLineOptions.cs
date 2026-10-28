@@ -73,6 +73,9 @@ public sealed record CommandLineOptions
     /// <summary>Select the cell of a ripe crop of the first farm zone, to see the zone and the crop in the inspector in screenshots (milestone O6).</summary>
     public bool InspectFarm { get; init; }
 
+    /// <summary>Plants a 3 x 3 patch (wheat, peas and cabbage in their three stages) next to the first colonist, to see the crop models in screenshots (milestone O6).</summary>
+    public bool Crops { get; init; }
+
     /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
     public bool Build { get; init; }
 
@@ -233,6 +236,9 @@ public sealed record CommandLineOptions
                     break;
                 case "--farm":
                     options = options with { Farm = true };
+                    break;
+                case "--crops":
+                    options = options with { Crops = true };
                     break;
                 case "--inspect-farm":
                     options = options with { InspectFarm = true };

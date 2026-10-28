@@ -111,7 +111,11 @@ public partial class KnowledgePanel : PanelContainer
         _column.AddChild(grid);
         foreach (var branch in branches)
         {
-            grid.AddChild(new Label { Text = BranchKey(branch), CustomMinimumSize = new Vector2(90, 0) });
+            var head = new HBoxContainer { CustomMinimumSize = new Vector2(120, 0) };
+            head.AddThemeConstantOverride("separation", 4);
+            head.AddChild(KnowledgeIcons.Rect(KnowledgeIcons.Branch(branch), 2));
+            head.AddChild(new Label { Text = BranchKey(branch), SizeFlagsVertical = Control.SizeFlags.ShrinkCenter });
+            grid.AddChild(head);
             for (var tier = 1; tier <= tiers; tier++)
             {
                 var here = defs.Where(def => def.Branch == branch && def.Tier == tier).ToList();
@@ -173,6 +177,8 @@ public partial class KnowledgePanel : PanelContainer
             FocusMode = FocusModeEnum.None,
             Disabled = state is KnowledgeState.Learned or KnowledgeState.Blocked,
             Alignment = HorizontalAlignment.Left,
+            Icon = KnowledgeIcons.State(state),
+            TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
             TooltipText = Tooltip(simulation, def),
             TooltipAutoTranslateMode = AutoTranslateModeEnum.Disabled,
         };

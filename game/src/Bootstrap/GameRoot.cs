@@ -519,6 +519,28 @@ public partial class GameRoot : Node
             }
         }
 
+        // A patch of every crop in its three stages in front of the first colonist, to look at the models (milestone O6).
+        if (options.Crops && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+        {
+            var origin = simulation.World.Get<Position>(colonists[0]).Cell;
+            var cropIds = new[] { "wheat", "peas", "cabbage" };
+            for (var lineIndex = 0; lineIndex < cropIds.Length; lineIndex++)
+            {
+                var cropDef = simulation.Content.Get<CropDef>(cropIds[lineIndex]);
+                for (var stageIndex = 0; stageIndex < 3; stageIndex++)
+                {
+                    var cell = new TileCoord(origin.X + 2 + (stageIndex * 2), origin.Y + 2 + (lineIndex * 2), 0);
+                    cell = cell with { Z = simulation.Map.SurfaceZ(cell.X, cell.Y) + 1 };
+                    var entity = simulation.World.CreateEntity();
+                    simulation.World.Add(entity, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
+                    simulation.World.Add(entity, new Crop { Def = cropDef.Id, Days = stageIndex switch { 0 => 0, 1 => cropDef.GrowDays / 2, _ => cropDef.GrowDays } });
+                    simulation.Events.Emit(new EntitySpawnedEvent(entity));
+                }
+            }
+
+            screen.View.Camera.Focus(new Vector2(origin.X + 4.5f, origin.Y + 4.5f));
+        }
+
         if (options.Farm)
         {
             screen.Input.ToggleFarm();
@@ -528,6 +550,7 @@ public partial class GameRoot : Node
         {
             screen.Session.Enqueue(new SetResearchQueueCommand(["stonecutting", "agriculture"]));
             screen.Advance(1);
+            screen.Hud.RefreshResearch();
             screen.Hud.Knowledge.Toggle();
         }
 

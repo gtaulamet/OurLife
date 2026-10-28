@@ -103,7 +103,7 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Provisiones | Resuelto: cesta propia `item_provisions` (el barril de KayKit se quitó) | — |
 | Aldeanos | Resuelto: los 12 de Mini Characters (6 mujeres y 6 hombres), con la ropa recoloreada y animaciones de caminar, golpear, manipular, levantar, sostener y quieto | Animaciones de comer y de dormir, si las pide el juego |
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
-| Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
+| Iconos de UI | Resueltos para conocimientos: 8 íconos pixel de 16 × 16 (`tools/make-knowledge-icons.py`: ramas, estados y la investigación del HUD); el resto de los botones sigue siendo de texto | Cuando la UI los pida |
 | Muebles | Resuelto: cama, mesa, silla y baúl propios (`furniture_*.glb`); el kit KayKit Dungeon Remastered se quitó | — |
 | Cuna (H3.7) | Resuelto: cuna propia `furniture_cradle` | — |
 | Etapas de la vida (H3.8) | Resuelto: 60 modelos propios (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), cada uno con su proporción; el catálogo los dibuja a escala 3,1 | — |
