@@ -51,3 +51,54 @@ public static class Beds
         return beds.Exists(bed => simulation.World.Get<Bed>(bed).Owner == colonist && Fits(simulation, bed, colonist));
     }
 }
+
+/// <summary>
+/// Reserves a bed for a colonist, or frees it when there is none (see "Dormitorios" in
+/// <c>docs/gdd/habitaciones.md</c>). Only the owner of a reserved bed uses it. The colonist's other beds
+/// are freed, and whoever had this one loses it. Ignored if the bed does not exist, the colonist is not
+/// alive, or the bed is not for the colonist's stage of life (a cradle for an adult).
+/// </summary>
+public sealed record AssignBedCommand(EntityId Bed, EntityId Colonist) : ISimCommand
+{
+    public void Apply(Simulation simulation)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var world = simulation.World;
+        if (!world.IsAlive(Bed) || !world.TryGet<Bed>(Bed, out var bed))
+        {
+            return;
+        }
+
+        if (Colonist.IsNone)
+        {
+            Free(simulation, Bed, bed);
+            return;
+        }
+
+        if (!Relationships.IsLivingColonist(world, Colonist) || !Beds.Fits(simulation, Bed, Colonist))
+        {
+            return;
+        }
+
+        var beds = new List<EntityId>();
+        world.Query<Bed>(beds);
+        foreach (var other in beds)
+        {
+            if (other != Bed && world.Get<Bed>(other).Owner == Colonist)
+            {
+                Free(simulation, other, world.Get<Bed>(other));
+            }
+        }
+
+        bed.Owner = Colonist;
+        bed.Reserved = true;
+        simulation.Events.Emit(new EntityChangedEvent(Bed));
+    }
+
+    private static void Free(Simulation simulation, EntityId id, Bed bed)
+    {
+        bed.Owner = EntityId.None;
+        bed.Reserved = false;
+        simulation.Events.Emit(new EntityChangedEvent(id));
+    }
+}

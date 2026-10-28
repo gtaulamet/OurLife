@@ -74,6 +74,12 @@ public sealed class BuildableDef : Def
     /// <summary>What the furniture adds to the beauty of its room, before the multiplier of its quality; negative for a workshop.</summary>
     public int Beauty { get; init; }
 
+    /// <summary>
+    /// What kind of furniture it is, for the functions of a room (see <c>docs/gdd/habitaciones.md</c>):
+    /// <c>bed</c>, <c>table</c>, <c>seat</c>, <c>chest</c>, <c>workshop</c>. Only furniture has them.
+    /// </summary>
+    public IReadOnlyList<string> Tags { get; init; } = [];
+
     public bool IsFurniture => Shape == BuildShape.Furniture;
 
     /// <summary>Whether the quality of the builder is rolled for what is built: furniture other than a workshop.</summary>
@@ -139,6 +145,16 @@ public sealed class BuildableDef : Def
         if (Beauty != 0 && !IsFurniture)
         {
             yield return "only furniture has beauty.";
+        }
+
+        if (Tags.Count > 0 && !IsFurniture)
+        {
+            yield return "only furniture has tags.";
+        }
+
+        if (Tags.Any(string.IsNullOrWhiteSpace) || Tags.Distinct(StringComparer.Ordinal).Count() != Tags.Count)
+        {
+            yield return "tags cannot be empty or repeat.";
         }
     }
 }

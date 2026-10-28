@@ -27,9 +27,9 @@
     "minedItem": "stone",
     "minedItemChance": 2500
   },
-  { "type": "Material", "id": "timber", "kind": "wood", "color": "#7E5531", "mineWorkTicks": 150, "builtFrom": "log" },
-  { "type": "Material", "id": "masonry", "kind": "stone", "color": "#9E9A92", "mineWorkTicks": 150, "builtFrom": "stone" },
-  { "type": "Material", "id": "planks", "kind": "wood", "color": "#A57A4B", "mineWorkTicks": 150, "builtFrom": "plank" },
-  { "type": "Material", "id": "ashlar", "kind": "stone", "color": "#B5B0A6", "mineWorkTicks": 150, "builtFrom": "stone_block" },
+  { "type": "Material", "id": "timber", "kind": "wood", "color": "#7E5531", "mineWorkTicks": 150, "builtFrom": "log", "beauty": { "wall": 0, "floor": 1 } },
+  { "type": "Material", "id": "masonry", "kind": "stone", "color": "#9E9A92", "mineWorkTicks": 150, "builtFrom": "stone", "beauty": { "wall": 1, "floor": 1 } },
+  { "type": "Material", "id": "planks", "kind": "wood", "color": "#A57A4B", "mineWorkTicks": 150, "builtFrom": "plank", "beauty": { "wall": 1, "floor": 2 } },
+  { "type": "Material", "id": "ashlar", "kind": "stone", "color": "#B5B0A6", "mineWorkTicks": 150, "builtFrom": "stone_block", "beauty": { "wall": 2, "floor": 3 } },
   { "type": "Material", "id": "iron_vein", "era": "medieval", "kind": "ore", "color": "#8A4B3A", "mineWorkTicks": 200, "minedItem": "iron_ore", "minedItemChance": 10000 }
 ]

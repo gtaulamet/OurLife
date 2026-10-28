@@ -155,6 +155,11 @@ public sealed partial class JobSystem : ISimSystem
         var inBed = !job.Target.IsNone && world.IsAlive(job.Target) && world.Has<Bed>(job.Target)
                     && world.Get<Position>(job.Target).Cell == world.Get<Position>(colonist).Cell;
         MoodRules.Feel(simulation, colonist, config => inBed ? config.SleptInBed : config.SleptOnFloor);
+        if (inBed && Rooms.At(simulation, world.Get<Position>(colonist).Cell) is { } room)
+        {
+            RoomRules.FeelWaking(simulation, colonist, room);
+        }
+
         if (MoodRules.ConfigOf(simulation.Content) is null)
         {
             return;
@@ -199,8 +204,9 @@ public sealed partial class JobSystem : ISimSystem
         world.Query<Carried, Position>(_carriers);
         foreach (var colonist in _carriers)
         {
-            if (world.TryGet<Job>(colonist, out var job) && job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft
-                && job.Stage == JobStage.Carrying)
+            if (world.TryGet<Job>(colonist, out var job)
+                && ((job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft && job.Stage == JobStage.Carrying)
+                    || (job.Kind == JobKind.EatAtTable && job.Stage != JobStage.Moving)))
             {
                 continue;
             }
@@ -262,6 +268,18 @@ public sealed partial class JobSystem : ISimSystem
                 }
 
                 return job.Stage != JobStage.Working || FreeWillRules.WillBeNear(simulation, colonist, job.Target);
+            case JobKind.EatAtTable:
+                // The chair must still be there; on the way to the food so must the food, and after lifting it the colonist must still hold it.
+                if (!world.IsAlive(job.Recipient) || !world.Has<Furniture>(job.Recipient))
+                {
+                    return false;
+                }
+
+                return world.Has<Carried>(colonist)
+                       || (job.Stage != JobStage.Carrying && world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var meal) && meal.Count > 0);
+            // Gathering is free will too: the colonist must still be up for company, and the chair must still be there.
+            case JobKind.Gather:
+                return world.IsAlive(job.Recipient) && world.Has<Furniture>(job.Recipient) && FreeWillRules.CanSeekCompany(simulation, colonist);
             case JobKind.Craft:
                 return IsCraftValid(simulation, job);
             case JobKind.Research:
@@ -320,7 +338,11 @@ public sealed partial class JobSystem : ISimSystem
     {
         job.Stage = JobStage.Working;
         job.Progress = 0;
-        if (JobKinds.IsLeisure(job.Kind))
+        if (job.Kind == JobKind.Gather)
+        {
+            job.UntilTick = simulation.CurrentTick + (RoomSetup.From(simulation.Content)?.Config.GatherTicks ?? 0);
+        }
+        else if (JobKinds.IsLeisure(job.Kind))
         {
             var random = simulation.Random.Get(RandomStream);
             job.UntilTick = simulation.CurrentTick + random.NextInt(_rules.Ai.WanderWaitMin, _rules.Ai.WanderWaitMax + 1);
@@ -378,7 +400,10 @@ public sealed partial class JobSystem : ISimSystem
             case JobKind.Wander:
             case JobKind.Play:
             case JobKind.Visit:
+            case JobKind.Gather:
                 return simulation.CurrentTick >= job.UntilTick;
+            case JobKind.EatAtTable:
+                return EatAtTable(simulation, colonist, job);
             case JobKind.FeedBaby:
                 return job.Stage == JobStage.Carrying ? Feed(simulation, colonist, job, speed) : PickUpFood(simulation, colonist, job);
             case JobKind.Haul:

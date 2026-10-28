@@ -65,12 +65,21 @@ public sealed class MoodConfigDef : Def
     /// <summary>The thought of eating a prepared dish, an item with <see cref="ItemDef.Meal"/>.</summary>
     public string? MealThought { get; init; }
 
+    /// <summary>The thought of a colonist who ate sitting at a table in a dining room (O9).</summary>
+    public string? AteAtTable { get; init; }
+
+    /// <summary>The thought of waking in a room whose beds belong to relatives (O9).</summary>
+    public string? FamilyHome { get; init; }
+
+    /// <summary>The thought of waking in a room with many beds, one of them of a stranger (O9).</summary>
+    public string? SleptCrowded { get; init; }
+
     internal override IEnumerable<DefReference> References()
     {
         var thoughts = new[]
         {
             SleptInBed, SleptOnFloor, Learned, NewPartner, Breakup, DeathPartner, DeathChild, DeathParent, DeathSibling, DeathFriend, DeathColonist,
-            DesireFulfilled, DesireFrustrated, ChildBorn, MealThought,
+            DesireFulfilled, DesireFrustrated, ChildBorn, MealThought, AteAtTable, FamilyHome, SleptCrowded,
         };
         foreach (var thought in thoughts)
         {

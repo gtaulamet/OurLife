@@ -217,6 +217,8 @@
   "job.sow.report": "Sembrando {crop}",
   "job.reap.report": "Cosechando {crop}",
   "job.equip.report": "Yendo a buscar una herramienta",
+  "job.eat_at_table.report": "Comiendo a la mesa",
+  "job.gather.report": "Reunido con los demás",
 
   "ui.workshop.recipes": "Recetas",
   "ui.workshop.make": "Hacer {count}: {recipe}",

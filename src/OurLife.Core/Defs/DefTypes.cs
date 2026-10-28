@@ -41,6 +41,9 @@ internal static class DefTypes
         ("Crop", typeof(CropDef), "crop"),
         ("SpoilageConfig", typeof(SpoilageConfigDef), null),
         ("OreVein", typeof(OreVeinDef), null),
+        ("RoomConfig", typeof(RoomConfigDef), null),
+        ("RoomLevel", typeof(RoomLevelDef), "room_level"),
+        ("RoomRole", typeof(RoomRoleDef), "room_role"),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

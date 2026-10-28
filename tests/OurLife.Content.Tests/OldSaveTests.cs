@@ -20,7 +20,7 @@ namespace OurLife.Content.Tests;
 /// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b, <c>o4.olsave</c> in format 13
 /// (a bench of planks and an order for five planks, seed 1, 8 640 ticks, by the code of <c>main</c> before O4), <c>o5.olsave</c>
 /// in format 14 (a bench, an order to keep six planks and one to repeat handles, seed 3, 4 320 ticks, before O5), <c>o6.olsave</c>
-/// in format 15 (a stockpile and berries of different freshness, seed 7, 4 320 ticks, by the code of <c>main</c> before O6), <c>o7.olsave</c> in format 16 (seed 7, 4 320 ticks, stairs and a gallery dug, by the code of the branch before O7), <c>o8.olsave</c> in format 17 (seed 7, 4 320 ticks, a new colony with the fog and the veins, by the code of the branch before O8), and <c>o3.olsave</c>
+/// in format 15 (a stockpile and berries of different freshness, seed 7, 4 320 ticks, by the code of <c>main</c> before O6), <c>o7.olsave</c> in format 16 (seed 7, 4 320 ticks, stairs and a gallery dug, by the code of the branch before O7), <c>o8.olsave</c> in format 17 (seed 7, 4 320 ticks, a new colony with the fog and the veins, by the code of the branch before O8), <c>o9.olsave</c> in format 18 (seed 7, 4 320 ticks, a bed, a table and a chair of planks built, by the code of the branch before O9), and <c>o3.olsave</c>
 /// in format 12, by the code of <c>main</c> before O3 of IP4 (workshops, recipes and furniture of
 /// planks): seed 7, 20 500 ticks, free will on, a stockpile, every tree near the arrival ordered
 /// down and a bed of timber built from the logs.
@@ -44,6 +44,7 @@ public class OldSaveTests
     [InlineData("o6.olsave", 15, "0.4.0-dev", 7, 4_320)]
     [InlineData("o7.olsave", 16, "0.4.0-dev", 7, 4_320)]
     [InlineData("o8.olsave", 17, "0.4.0-dev", 7, 4_320)]
+    [InlineData("o9.olsave", 18, "0.4.0-dev", 7, 4_320)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
@@ -238,6 +239,25 @@ public class OldSaveTests
     }
 
     [Fact]
+    public void A_game_of_format_18_has_no_reserved_beds_and_its_furniture_makes_no_rooms_until_walls_close_one()
+    {
+        var simulation = Load("o9.olsave", out _);
+        var world = simulation.World;
+
+        var beds = new List<EntityId>();
+        world.Query<Bed>(beds);
+        beds.Count.ShouldBe(1);
+        world.Get<Bed>(beds[0]).Reserved.ShouldBeFalse();
+        world.Store<Furniture>().Count.ShouldBe(3);
+
+        // The rooms are derived: the furniture of the valley stands in the open, so there is none, and the game goes on.
+        Rooms.IsEnabled(simulation).ShouldBeTrue();
+        Rooms.All(simulation).ShouldBeEmpty();
+        simulation.Run(3_000);
+        Colonists(simulation).Count.ShouldBe(7);
+    }
+
+    [Fact]
     public void A_migrated_game_is_saved_in_the_new_format_and_loads_again_with_the_same_state()
     {
         var simulation = Load("o3.olsave", out _);
@@ -247,7 +267,7 @@ public class OldSaveTests
         var again = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs, out var header);
 
         header.FormatVersion.ShouldBe(SaveGame.FormatVersion);
-        header.FormatVersion.ShouldBe(18);
+        header.FormatVersion.ShouldBe(19);
         again.ComputeStateHash().ShouldBe(simulation.ComputeStateHash());
     }
 
@@ -268,6 +288,7 @@ public class OldSaveTests
     [InlineData("o6.olsave")]
     [InlineData("o7.olsave")]
     [InlineData("o8.olsave")]
+    [InlineData("o9.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

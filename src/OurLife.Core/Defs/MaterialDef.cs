@@ -38,6 +38,9 @@ public sealed partial class MaterialDef : Def
     /// <summary>Tiles of this material were built, not found: they are taken down, not dug.</summary>
     public bool IsBuilt => BuiltFrom is not null;
 
+    /// <summary>What walls and floors of this material add to the score of their room (see <c>docs/gdd/habitaciones.md</c>).</summary>
+    public MaterialBeauty Beauty { get; init; } = new();
+
     internal override IEnumerable<DefReference> References()
     {
         yield return new DefReference(typeof(ItemDef), MinedItem, "minedItem");
@@ -83,4 +86,15 @@ public sealed partial class MaterialDef : Def
     // \z, not $: $ would also accept a line break at the end.
     [GeneratedRegex(@"^#[0-9a-fA-F]{6}\z")]
     private static partial Regex ColorPattern();
+}
+
+/// <summary>
+/// The beauty of a material in a room: <see cref="Wall"/> for each piece of the border (a wall or
+/// a door) built of it, <see cref="Floor"/> for each cell of the room with a floor of it.
+/// </summary>
+public sealed class MaterialBeauty
+{
+    public int Wall { get; init; }
+
+    public int Floor { get; init; }
 }

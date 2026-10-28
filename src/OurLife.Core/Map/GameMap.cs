@@ -67,6 +67,12 @@ public sealed class GameMap
     /// <summary>Grows when an order of the player is added to or removed from a cell.</summary>
     public int OrdersVersion { get; private set; }
 
+    /// <summary>
+    /// Grows when the shape or material of a cell changes, or a piece of furniture appears or goes
+    /// from a cell: what rooms are made of (see <c>docs/gdd/habitaciones.md</c>). Not part of the state.
+    /// </summary>
+    public int StructureVersion { get; private set; }
+
     /// <summary>Material defs by index, as stored in the cells.</summary>
     public IReadOnlyList<MaterialDef> Materials { get; }
 
@@ -194,6 +200,11 @@ public sealed class GameMap
 
         var oldFlags = _flags[index];
         _flags[index] = flags;
+        if (((oldFlags ^ flags) & TileFlags.Furniture) != 0)
+        {
+            StructureVersion++;
+        }
+
         TrackOrders(index, oldFlags, flags);
         RecordNavigationChange(index, _shapes[index], oldFlags, _shapes[index], flags);
         if (((oldFlags ^ flags) & ~OrderFlags) != 0)
@@ -343,6 +354,11 @@ public sealed class GameMap
 
         var index = Index(x, y, z);
         var oldFlags = _flags[index];
+        if (_shapes[index] != shape || _materials[index] != material || ((oldFlags ^ flags) & TileFlags.Furniture) != 0)
+        {
+            StructureVersion++;
+        }
+
         _shapes[index] = shape;
         _materials[index] = material;
         _flags[index] = flags;

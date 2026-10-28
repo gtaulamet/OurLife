@@ -69,6 +69,18 @@ public enum JobKind
     /// It belongs to no work type: it is the way to a tool for the work the colonist is about to do.
     /// </summary>
     Equip,
+
+    /// <summary>
+    /// Taking a unit of food from a pile to a chair of a dining room, and eating it sitting (see "Comedor" in
+    /// <c>docs/gdd/habitaciones.md</c>). Its target is the pile and its recipient the chair.
+    /// </summary>
+    EatAtTable,
+
+    /// <summary>
+    /// Sitting at a chair of a dining room with the others in the evening (see "Lugar de reunión" in
+    /// <c>docs/gdd/habitaciones.md</c>). Its recipient is the chair; it waits like wandering or visiting.
+    /// </summary>
+    Gather,
 }
 
 public enum JobStage
@@ -125,7 +137,8 @@ public sealed class Job
 
     /// <summary>
     /// For feeding, the units of the food pile held for the baby: no more are lifted. For keeping
-    /// company, the times the visitor followed the other to a new place.
+    /// company, the times the visitor followed the other to a new place. For eating at a table, the
+    /// units eaten so far.
     /// </summary>
     public int Count { get; set; }
 
@@ -169,11 +182,13 @@ public static class JobKinds
         JobKind.Sow => "sow",
         JobKind.Reap => "reap",
         JobKind.Equip => "equip",
+        JobKind.EatAtTable => "eat_at_table",
+        JobKind.Gather => "gather",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 
-    /// <summary>Whether a kind is free time: wandering, playing or keeping company, which walk somewhere and wait a while.</summary>
-    public static bool IsLeisure(JobKind kind) => kind is JobKind.Wander or JobKind.Play or JobKind.Visit;
+    /// <summary>Whether a kind is free time: wandering, playing, keeping company or gathering, which walk somewhere and wait a while.</summary>
+    public static bool IsLeisure(JobKind kind) => kind is JobKind.Wander or JobKind.Play or JobKind.Visit or JobKind.Gather;
 
     /// <summary>Key of the text that says what a colonist is doing, like <c>job.chop.report</c>.</summary>
     public static string ReportKey(JobKind kind) => $"job.{Id(kind)}.report";

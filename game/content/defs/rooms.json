@@ -1,0 +1,13 @@
+[
+  { "type": "RoomConfig", "id": "default", "minCells": 4, "maxCells": 150, "sizePointsPerCell": 1, "sizeCap": 36,
+    "diningRadius": 25, "gatherRadius": 30, "gatherChancePercent": 50, "gatherFromHour": 18, "gatherToHour": 22, "gatherTicks": 180, "crowdedBeds": 3 },
+  { "type": "RoomLevel", "id": "miserable", "order": 0, "from": 0, "bedroomThought": "bedroom_miserable", "diningThought": "dining_miserable" },
+  { "type": "RoomLevel", "id": "poor", "order": 1, "from": 8 },
+  { "type": "RoomLevel", "id": "decent", "order": 2, "from": 18, "bedroomThought": "bedroom_decent", "diningThought": "dining_decent" },
+  { "type": "RoomLevel", "id": "comfortable", "order": 3, "from": 36, "bedroomThought": "bedroom_comfortable", "diningThought": "dining_comfortable" },
+  { "type": "RoomLevel", "id": "luxurious", "order": 4, "from": 61, "bedroomThought": "bedroom_luxurious", "diningThought": "dining_luxurious" },
+  { "type": "RoomRole", "id": "bedroom", "order": 0, "needs": [{ "tag": "bed", "count": 1 }] },
+  { "type": "RoomRole", "id": "dining", "order": 1, "needs": [{ "tag": "table", "count": 1 }, { "tag": "seat", "count": 1 }] },
+  { "type": "RoomRole", "id": "workshop", "order": 2, "needs": [{ "tag": "workshop", "count": 1 }] },
+  { "type": "RoomRole", "id": "storage", "order": 3, "needs": [{ "tag": "chest", "count": 2 }], "storageCellsPercent": 50 }
+]

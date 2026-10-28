@@ -18,6 +18,8 @@ public static class WorkSites
         switch (kind)
         {
             case JobKind.Eat:
+            case JobKind.EatAtTable:
+            case JobKind.Gather:
             case JobKind.Haul:
             case JobKind.Deliver:
             case JobKind.Equip:
@@ -83,7 +85,7 @@ public static class WorkSites
 
         return kind switch
         {
-            JobKind.Eat or JobKind.Haul or JobKind.Deliver or JobKind.Equip => dx == 0 && dy == 0,
+            JobKind.Eat or JobKind.EatAtTable or JobKind.Gather or JobKind.Haul or JobKind.Deliver or JobKind.Equip => dx == 0 && dy == 0,
             JobKind.Mine or JobKind.Channel or JobKind.Build or JobKind.Deconstruct => Math.Max(dx, dy) == 1,
             _ => Math.Max(dx, dy) <= 1,
         };

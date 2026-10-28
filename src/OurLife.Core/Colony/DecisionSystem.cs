@@ -123,7 +123,7 @@ public sealed partial class DecisionSystem : ISimSystem
 
     private static bool Satisfies(Job job, NeedDef need) => need.SatisfiedBy switch
     {
-        NeedSatisfaction.Eating => job.Kind == JobKind.Eat || (job.Kind == JobKind.Harvest && job.ForFood),
+        NeedSatisfaction.Eating => job.Kind is JobKind.Eat or JobKind.EatAtTable || (job.Kind == JobKind.Harvest && job.ForFood),
         NeedSatisfaction.Sleeping => job.Kind == JobKind.Sleep,
         _ => false,
     };
@@ -201,9 +201,9 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             ReserveCell(map, job.Destination);
         }
-        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft or JobKind.Research)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft or JobKind.Research or JobKind.EatAtTable or JobKind.Gather)
         {
-            // A crafter holds its workshop: one colonist at a time works at it.
+            // A crafter holds its workshop: one colonist at a time works at it. A diner or a guest holds its chair.
             _entityUses[job.Recipient] = _entityUses.GetValueOrDefault(job.Recipient) + 1;
         }
 
@@ -236,7 +236,7 @@ public sealed partial class DecisionSystem : ISimSystem
         {
             UnreserveCell(map, job.Destination);
         }
-        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft or JobKind.Research)
+        else if (job.Kind is JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft or JobKind.Research or JobKind.EatAtTable or JobKind.Gather)
         {
             ReleaseEntity(job.Recipient);
         }
@@ -363,7 +363,9 @@ public sealed partial class DecisionSystem : ISimSystem
     /// load, which leaves the rest of the pile free; a crafter at work holds no pile either.
     /// </summary>
     private static EntityId HeldEntity(Job job) =>
-        job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft && job.Stage == JobStage.Carrying ? EntityId.None : job.Target;
+        job.Kind is JobKind.Haul or JobKind.Deliver or JobKind.FeedBaby or JobKind.Craft && job.Stage == JobStage.Carrying ? EntityId.None
+        : job.Kind == JobKind.EatAtTable && job.Stage != JobStage.Moving ? EntityId.None
+        : job.Target;
 
     /// <summary>
     /// A colonist with a job drops it only for something more urgent. It checks every
@@ -420,6 +422,7 @@ public sealed partial class DecisionSystem : ISimSystem
                               || TrySeek(simulation, colonist),
             JobKind.Play => TryWorkOrLowNeeds(simulation, colonist),
             JobKind.Visit => TryWorkOrLowNeeds(simulation, colonist) || TryFollow(simulation, colonist, job),
+            JobKind.Gather => TryWorkOrLowNeeds(simulation, colonist),
             _ => false,
         };
     }
@@ -549,10 +552,11 @@ public sealed partial class DecisionSystem : ISimSystem
             _goal.Add(cell);
             if (cell == from || _paths.TryFind(simulation.Map, from, _goal, _path))
             {
-                // A free bed becomes the colonist's only once it can get there.
+                // A free bed becomes the colonist's only once it can get there; one reserved for someone who is gone stops being reserved.
                 if (world.Get<Bed>(bed).Owner != colonist)
                 {
                     world.Get<Bed>(bed).Owner = colonist;
+                    world.Get<Bed>(bed).Reserved = false;
                     simulation.Events.Emit(new EntityChangedEvent(bed));
                 }
 
@@ -994,6 +998,13 @@ public sealed partial class DecisionSystem : ISimSystem
                     Count = count,
                     Crop = crop,
                 };
+
+                // A colonist who chooses what to eat sits down to it if a dining room has a free chair near.
+                if (candidate.Kind == JobKind.Eat && eatChoice && TrySeat(simulation, colonist, from, region, out var seat))
+                {
+                    (job.Kind, job.Recipient, job.Destination) = (JobKind.EatAtTable, seat.Chair, seat.Cell);
+                }
+
                 Assign(simulation, colonist, job, _path);
                 if (job.Kind == JobKind.FeedBaby)
                 {

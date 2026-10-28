@@ -28,6 +28,12 @@ public sealed partial class DecisionSystem
             return false;
         }
 
+        // In the evening the dining rooms draw those with nothing to do; else, or if it does not go, it seeks someone as always.
+        if (TryGather(simulation, colonist, config))
+        {
+            return true;
+        }
+
         // The roll comes first, so a colonist that will not seek anyone looks at nobody.
         var random = simulation.Random.Get(FreeWillStream);
         if (!random.Chance(FreeWillRules.SeekChance(simulation, colonist)))

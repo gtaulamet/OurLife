@@ -64,6 +64,7 @@ public static class SaveTypes
         Command<MoveWorkOrderCommand>("move_work_order");
         Command<PlaceFarmZoneCommand>("place_farm_zone");
         Command<SetFarmZoneCropCommand>("set_farm_zone_crop");
+        Command<AssignBedCommand>("assign_bed");
     }
 
     /// <summary>The registered component types, in registration order.</summary>
