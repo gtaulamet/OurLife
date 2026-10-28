@@ -34,6 +34,69 @@ public class SaveGameTests
     }
 
     [Fact]
+    public void Discovered_and_hidden_cells_are_saved_and_the_digging_goes_on_discovering_after_loading()
+    {
+        var uninterrupted = BusyColony();
+        var map = uninterrupted.Map;
+        map.IsDiscovered(4, 4, 1).ShouldBeFalse();
+        map.IsDiscovered(0, 0, 1).ShouldBeTrue();
+
+        // Some of the block is dug out and some is not: the saved game has cells of both kinds.
+        for (var tick = 0; tick < 3_000 && !map.IsDiscovered(4, 4, 1); tick++)
+        {
+            uninterrupted.Simulation.Tick();
+        }
+
+        map.IsDiscovered(4, 4, 1).ShouldBeTrue();
+        var hiddenLeft = Enumerable.Range(0, map.Size.CellCount).Count(index => !map.IsDiscovered(map.Size.CoordOf(index)));
+        hiddenLeft.ShouldBeGreaterThan(0);
+
+        var loaded = Load(Save(uninterrupted.Simulation));
+
+        for (var index = 0; index < map.Size.CellCount; index++)
+        {
+            loaded.Map.IsDiscovered(map.Size.CoordOf(index)).ShouldBe(map.IsDiscovered(map.Size.CoordOf(index)));
+        }
+
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.Simulation.ComputeStateHash());
+        uninterrupted.Simulation.Run(3_000);
+        loaded.Run(3_000);
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.Simulation.ComputeStateHash());
+    }
+
+    [Fact]
+    public void A_game_of_format_16_gets_the_fog_worked_out_from_its_map()
+    {
+        var bed = BusyColony();
+        bed.Simulation.Run(300);
+        var expected = bed.Map;
+
+        // A game of format 16 never wrote the flag: take it out of the flags of the saved map.
+        var file = Rewrite(AsFormat(16, Save(bed.Simulation)), "state.json", json =>
+        {
+            var state = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            var flags = Convert.FromBase64String((string)state["Map"]!["Flags"]!);
+            for (var i = 0; i < flags.Length; i++)
+            {
+                flags[i] &= 0x7F;
+            }
+
+            state["Map"]!["Flags"] = Convert.ToBase64String(flags);
+            return state.ToJsonString();
+        });
+
+        var loaded = Load(file);
+
+        // The map of a format 16 game has no flags of fog: loading works them out from the shapes.
+        for (var index = 0; index < expected.Size.CellCount; index++)
+        {
+            loaded.Map.IsDiscovered(expected.Size.CoordOf(index)).ShouldBe(expected.IsDiscovered(expected.Size.CoordOf(index)));
+        }
+
+        Load(file).ComputeStateHash().ShouldBe(loaded.ComputeStateHash());
+    }
+
+    [Fact]
     public void A_family_saved_halfway_goes_on_as_if_never_stopped()
     {
         var uninterrupted = BusyColony();
@@ -569,6 +632,9 @@ public class SaveGameTests
         }
 
         var bed = new ColonyTestBed(seed: 5, ColonyTestBed.Level(16, 16, '#'), new string(floor));
+
+        // The inside of the block of rock starts hidden and is discovered as it is dug out.
+        bed.Map.ComputeDiscovered();
         ColonyStart.Settle(bed.Simulation, ColonyStart.TheOnlyScenario(bed.Simulation.Content), "Valdeolmos");
         for (var x = 9; x < 15; x += 2)
         {

@@ -20,7 +20,7 @@ namespace OurLife.Content.Tests;
 /// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b, <c>o4.olsave</c> in format 13
 /// (a bench of planks and an order for five planks, seed 1, 8 640 ticks, by the code of <c>main</c> before O4), <c>o5.olsave</c>
 /// in format 14 (a bench, an order to keep six planks and one to repeat handles, seed 3, 4 320 ticks, before O5), <c>o6.olsave</c>
-/// in format 15 (a stockpile and berries of different freshness, seed 7, 4 320 ticks, by the code of <c>main</c> before O6), and <c>o3.olsave</c>
+/// in format 15 (a stockpile and berries of different freshness, seed 7, 4 320 ticks, by the code of <c>main</c> before O6), <c>o7.olsave</c> in format 16 (seed 7, 4 320 ticks, stairs and a gallery dug, by the code of the branch before O7), and <c>o3.olsave</c>
 /// in format 12, by the code of <c>main</c> before O3 of IP4 (workshops, recipes and furniture of
 /// planks): seed 7, 20 500 ticks, free will on, a stockpile, every tree near the arrival ordered
 /// down and a bed of timber built from the logs.
@@ -42,6 +42,7 @@ public class OldSaveTests
     [InlineData("o4.olsave", 13, "0.4.0-dev", 7, 8_640)]
     [InlineData("o5.olsave", 14, "0.4.0-dev", 7, 4_320)]
     [InlineData("o6.olsave", 15, "0.4.0-dev", 7, 4_320)]
+    [InlineData("o7.olsave", 16, "0.4.0-dev", 7, 4_320)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
@@ -208,7 +209,7 @@ public class OldSaveTests
         var again = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs, out var header);
 
         header.FormatVersion.ShouldBe(SaveGame.FormatVersion);
-        header.FormatVersion.ShouldBe(16);
+        header.FormatVersion.ShouldBe(17);
         again.ComputeStateHash().ShouldBe(simulation.ComputeStateHash());
     }
 
@@ -227,6 +228,7 @@ public class OldSaveTests
     [InlineData("o4.olsave")]
     [InlineData("o5.olsave")]
     [InlineData("o6.olsave")]
+    [InlineData("o7.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

@@ -75,6 +75,48 @@ public class SaveGameTests
     [Theory]
     [InlineData(7UL)]
     [InlineData(42UL)]
+    public void Saving_with_hidden_and_discovered_cells_and_a_vein_half_dug_gives_the_same_game_as_never_stopping(ulong seed)
+    {
+        var uninterrupted = SubsoilTests.ColonyDiggingTheOutcrop(seed, out var vein);
+        var world = uninterrupted.World;
+        var jobs = new List<Core.Ecs.EntityId>();
+
+        // Run until a colonist has worked on the vein cell for a while but has not finished it.
+        bool HalfDug()
+        {
+            world.Query<Job>(jobs);
+            return jobs.Any(colonist => world.Get<Job>(colonist) is { Kind: JobKind.Mine, Progress: > 20 } job && job.Cell == vein);
+        }
+
+        for (var tick = 0; tick < 60_000 && !HalfDug(); tick += 5)
+        {
+            uninterrupted.Run(5);
+        }
+
+        HalfDug().ShouldBeTrue("nobody started digging the vein");
+        uninterrupted.Map.ShapeAt(vein).ShouldBe(TileShape.Wall);
+        var map = uninterrupted.Map;
+        var hidden = Enumerable.Range(0, map.Size.CellCount).Count(index => !map.IsDiscovered(map.Size.CoordOf(index)));
+        hidden.ShouldBeGreaterThan(0);
+        hidden.ShouldBeLessThan(map.Size.CellCount);
+
+        var output = new MemoryStream();
+        SaveGame.Write(output, uninterrupted, Info);
+        var loaded = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs);
+        ColonySystems.AddTo(loaded);
+
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
+        loaded.Map.IsDiscovered(vein).ShouldBe(map.IsDiscovered(vein));
+        uninterrupted.Run(2_000);
+        loaded.Run(2_000);
+        loaded.ComputeStateHash().ShouldBe(uninterrupted.ComputeStateHash());
+        loaded.Map.ShapeAt(vein).ShouldBe(TileShape.Floor);
+        Stocks.Count(loaded, "iron_ore").ShouldBe(1);
+    }
+
+    [Theory]
+    [InlineData(7UL)]
+    [InlineData(42UL)]
     public void Saving_a_colony_with_a_workshop_in_use_and_orders_halfway_gives_the_same_game_as_never_stopping(ulong seed)
     {
         var uninterrupted = NewColonyAtWork(seed);

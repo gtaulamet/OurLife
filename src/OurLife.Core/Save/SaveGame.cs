@@ -11,6 +11,7 @@ using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
 using OurLife.Core.Sim;
+using OurLife.Core.WorldGen;
 
 namespace OurLife.Core.Save;
 
@@ -24,7 +25,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 16;
+    public const int FormatVersion = 17;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -48,6 +49,8 @@ public static class SaveGame
     /// a game of format 14 starts with an empty queue and no points.
     /// Format 16 (O6, farming and spoilage) adds the components <c>FarmZone</c> and <c>Crop</c> and the jobs <c>Sow</c> and
     /// <c>Reap</c> (<c>Job.Crop</c>, written only when set): a game of format 15 needs nothing.
+    /// Format 17 (O7, ore veins and fog) adds the flag <see cref="TileFlags.Discovered"/> to the flags of the cells; a game of format 16
+    /// or before gets it worked out from the shapes and veins of ore drawn in the rock that stays hidden (see <see cref="OreVeins.Migrate"/>).
     /// </summary>
     public const int OldestFormatVersion = 1;
 
@@ -174,6 +177,12 @@ public static class SaveGame
             if (header.FormatVersion <= 12)
             {
                 ColonyStart.MigrateKnowledge(simulation);
+            }
+
+            if (header.FormatVersion <= 16 && simulation.HasMap)
+            {
+                simulation.Map.ComputeDiscovered();
+                OreVeins.Migrate(simulation);
             }
 
             return (simulation, header);
