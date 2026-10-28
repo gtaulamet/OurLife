@@ -56,6 +56,12 @@ Detalle y recomendaciones en `docs/gdd/oficios.md`, "Decisiones del usuario (a c
 7. Los talleres ocupan una celda.
 8. Los cultivos no usan semillas; la silvicultura entra y es lo primero que sale si falta tiempo.
 
+## Mejoras añadidas durante la IP
+
+| Mejora | Hito | Detalle |
+|---|---|---|
+| Orden manual de cosechar | O10 | Hoy los cultivos se cosechan solos dentro de una zona (`reap`) y la orden `Harvest` sólo sirve para plantas silvestres. Se agrega una herramienta de cosecha del HUD para marcar a mano cultivos maduros, dentro o fuera de una zona, y que se cosechen antes que el resto. Pedida por el usuario el 28 de octubre de 2026. Spec en `docs/gdd/agricultura.md`; necesita criterio de aceptación, textos es/en y una captura |
+
 ## Riesgos
 
 - **Es la IP más grande hasta ahora** (11 hitos). Mitigación: O4, O5, O6, O7 y O9 son casi independientes y se pueden recortar; la silvicultura y el lugar de reunión son los primeros en salir (a una IP4.5) si O6 u O9 se pasan.

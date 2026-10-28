@@ -22,6 +22,7 @@ En orden:
 
 
 O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está hecha: ver la segunda entrada del 2026-10-24). Modelos propios de los cultivos (hoy provisorios del Nature Kit) a la pasada de arte. La lista completa de modelos propios por construir (41, con archivo y descripción) está en `docs/art.md`, sección "Modelos propios pendientes".
+0. **Mejora pedida para IP4 (O10):** orden manual de cosechar cultivos maduros (`docs/ip/IP4.md`, "Mejoras añadidas"; `docs/gdd/agricultura.md`).
 1. **IP4 "Oficios" (O3):** talleres y recetas (`docs/gdd/oficios.md`, `docs/ip/IP4.md`).
 2. **Balance pendiente de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple; ver si conviene que el deseo suba la concepción. (El balance social quedó resuelto con el radio 6 y el 30 %: hay amistades en todas las partidas de diez años.)
 3. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
