@@ -186,12 +186,24 @@ public partial class InspectorPanel : PanelContainer
         var text = _services.Text;
         _lines.Add(text.Format("ui.inspector.cell", ("x", cell.X), ("y", cell.Y), ("z", cell.Z)));
 
-        var shape = text.Format($"ui.inspector.shape.{TileShapes.Id(map.ShapeAt(cell))}");
         var material = map.MaterialAt(cell);
-        var body = material is null
-            ? shape
-            : text.Format("ui.inspector.shape_material", ("shape", shape), ("material", NameOf(material)));
-        _lines.Add(text.Capitalized(body));
+        if (!map.IsDiscovered(cell))
+        {
+            // Nobody has seen inside this rock: neither its shape nor its material is named.
+            _lines.Add(text.Format("ui.inspector.unexplored"));
+        }
+        else if (material is { Kind: MaterialKind.Ore })
+        {
+            _lines.Add(text.Format("ui.inspector.ore_cell"));
+        }
+        else
+        {
+            var shape = text.Format($"ui.inspector.shape.{TileShapes.Id(map.ShapeAt(cell))}");
+            var body = material is null
+                ? shape
+                : text.Format("ui.inspector.shape_material", ("shape", shape), ("material", NameOf(material)));
+            _lines.Add(text.Capitalized(body));
+        }
 
         var flags = map.FlagsAt(cell);
         if ((flags & TileFlags.MineDesignation) != 0)

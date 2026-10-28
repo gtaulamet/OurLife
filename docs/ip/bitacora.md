@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o7-subsuelo`: O7, Core hecho (vetas, niebla y migración al formato 17); falta la presentación. O2 a O6 hechos en `ip4/o5-conocimientos` |
+| Rama de trabajo | `ip4/o7-subsuelo`: O7 hecho (Core y presentación). O2 a O6 hechos en `ip4/o5-conocimientos` |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **IP4 "Oficios", O7, presentación** (vetas y niebla subterránea, `docs/gdd/subsuelo.md`), rama `ip4/o7-subsuelo`: el Core está hecho. Faltan el render sin celdas ocultas (`Map.IsDiscovered`), el tono de niebla en el corte por nivel, el inspector "Sin explorar" y "Veta de hierro", los textos de la interfaz, el modelo de `item.iron_ore`, el tinte de la veta en `visuals.json` y las capturas es/en. Siguen O8, O9, O10 y O11 (`docs/ip/IP4.md`).
+1. **IP4 "Oficios", O8** y siguientes (O9, O10, O11; `docs/ip/IP4.md`). O7 (vetas y niebla) está hecho.
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
 3. **Íconos pixel de O5** (rama, estado y HUD; hoy texto): a la pasada de arte junto con O10.
 4. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos, falta verlos de cerca en el juego.
@@ -43,6 +43,13 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-28: O7, presentación de vetas y niebla
+
+- `MapRenderer`: un muro sólo genera caras si `IsDiscovered` y está expuesto; el corte por nivel pinta la cara superior de una celda oculta con `LevelShading.UnexploredCap` (#26282E, más frío y oscuro que el tono de hueco) y sin patrón. Inspector: celda oculta, "Sin explorar" (no nombra forma ni material); celda de mineral, "Veta de hierro" (`ui.inspector.unexplored`, `ui.inspector.ore_cell`, sin argumentos, en es y en).
+- Patrón nuevo `ore` (`TerrainPattern.Ore` = 7) con motas oscuras en `terrain.gdshader`; `iron_vein` lo usa en `visuals.json`. Desvío: el tinte rojizo ya lo da el color `#8A4B3A` del material (el catálogo de visuales sólo asigna patrón, no color). El texto de `iron_vein` e `item.iron_ore` ya estaba bien y el modelo `item.iron_ore` ya existía en `visuals.json`.
+- Capturas en `game/out/` (no versionadas): `o7-valle-{es,en}.png`, `o7-corte-{es,en}.png` (nivel 12), `o7-tunel-{es,en}.png`, `o7-cima-es.png`, `o7-cima2-es.png`. El tono oscuro se lee como roca y no como hueco. Sin revisar de cerca: el patrón `ore` sobre una veta real (ninguna a la vista en esas tomas).
+- `dotnet test`: todo en verde; `FarmContentTests` (tiempo por tick) falló una vez con la máquina cargada y pasa solo. Smoke con código 0.
 
 ### 2026-10-28: O7, Core de vetas y niebla subterránea
 

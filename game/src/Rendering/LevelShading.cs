@@ -1,3 +1,5 @@
+using Godot;
+
 namespace OurLife.Game.Rendering;
 
 /// <summary>
@@ -12,6 +14,12 @@ public static class LevelShading
 
     /// <summary>Brightness of the top of a block cut by the view, relative to its material colour.</summary>
     public const float CutBrightness = 0.45f;
+
+    /// <summary>
+    /// Uniform tone of the cut over an unexplored cell (#26282E): cooler and darker than the
+    /// tone of a hole, so rock nobody has seen reads as solid and not as a gap.
+    /// </summary>
+    public static readonly Color UnexploredCap = new(0.15f, 0.157f, 0.18f);
 
     private const float DarkeningPerLevel = 0.025f;
     private const float MinBrightness = 0.55f;

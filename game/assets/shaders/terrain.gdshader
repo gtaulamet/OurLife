@@ -27,6 +27,7 @@ const int PATTERN_SOIL = 1;
 const int PATTERN_SPECKLED = 2;
 const int PATTERN_LAYERED = 3;
 const int PATTERN_PLANKS = 5;
+const int PATTERN_ORE = 7;
 const int PATTERN_BRICKS = 6;
 
 const int GRASS_TOP = 1;
@@ -136,6 +137,15 @@ vec3 material(int pattern, vec3 base, vec2 uv, vec3 pos, vec3 cell, bool top) {
 		float speck = hash12(floor(uv * 24.0));
 		color *= speck > 0.86 ? 0.68 : (speck < 0.1 ? 1.22 : 1.0);
 		color *= mix(0.72, 1.0, smoothstep(0.0, 0.05, voronoi_edge(uv * 2.6)));
+	} else if (pattern == PATTERN_ORE) {
+		// A reddish rock with dark, roundish blobs of ore, a few of them bright at the edge.
+		vec2 grid = uv * 7.0;
+		vec2 id = floor(grid);
+		vec2 jitter = vec2(hash12(id + 3.1), hash12(id + 8.7)) * 0.5 + 0.25;
+		float blob = length(fract(grid) - jitter);
+		float size = 0.16 + 0.14 * hash12(id + 1.9);
+		color *= mix(0.45, 1.0, smoothstep(size - 0.03, size + 0.03, blob));
+		color += vec3(0.05, 0.02, 0.0) * (1.0 - smoothstep(size, size + 0.1, blob)) * step(0.7, hash12(id));
 	} else if (pattern == PATTERN_LAYERED) {
 		if (top) {
 			color *= 0.9 + 0.2 * fbm(uv * 3.0);

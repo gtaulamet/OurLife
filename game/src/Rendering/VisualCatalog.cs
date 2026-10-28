@@ -70,6 +70,7 @@ public enum TerrainPattern
     Layered = 3,
     Planks = 5,
     Bricks = 6,
+    Ore = 7,
 }
 
 /// <summary>The kinds of foliage a model may have (<see cref="VisualModel.Foliage"/>).</summary>

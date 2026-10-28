@@ -2,7 +2,7 @@
 
 Parte de la spec de IP4 (`docs/gdd/oficios.md`): vetas de mineral de hierro generadas en el valle, y la niebla que oculta lo que no se descubrió bajo tierra. Es lo que `mapa-y-generacion.md` dejó como "vetas de mineral y niebla subterránea (IP4)" y lo que el modelo del mapa llamaba "la niebla llega en IP4".
 
-**Estado:** aprobada en O1. El Core está hecho en O7 (vetas, niebla, migración al formato 17); falta la presentación. Números iniciales, a ajustar en O11.
+**Estado:** aprobada en O1. El Core está hecho en O7 (vetas, niebla, migración al formato 17); la presentación también está hecha (O7 completo). Números iniciales, a ajustar en O11.
 
 ## Qué hay hoy
 

@@ -564,7 +564,7 @@ public partial class MapRenderer : Node3D
             case TileShape.Wall when IsBuiltWall(x, y, z):
                 AddThinWall(x, y, z, origin);
                 break;
-            case TileShape.Wall when IsExposed(x, y, z):
+            case TileShape.Wall when _map.IsDiscovered(x, y, z) && IsExposed(x, y, z):
                 Add(TerrainPiece.Block, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z + 1) ? GrassFringe : 0);
                 break;
             case TileShape.Floor:
@@ -792,7 +792,7 @@ public partial class MapRenderer : Node3D
                 {
                     if (_map.ShapeAt(x, y, z) == TileShape.Wall && !IsBuiltWall(x, y, z) && _map.ShapeAt(x, y, z + 1) != TileShape.Empty)
                     {
-                        Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), CutCapColor(x, y, z), Pattern(x, y, z));
+                        Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), _map.IsDiscovered(x, y, z) ? CutCapColor(x, y, z) : LevelShading.UnexploredCap, _map.IsDiscovered(x, y, z) ? Pattern(x, y, z) : 0);
                     }
                 }
             }
