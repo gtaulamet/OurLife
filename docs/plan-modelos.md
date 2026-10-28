@@ -13,8 +13,8 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 | 3 | Objetos de hierro, piedra y herramientas | 8 | 8 |
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 9 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 4 |
-| 6 | Piezas opcionales (puerta, escalera, rampa descartadas; tocones al backlog) | 5 | 3 descartadas, 2 al backlog |
-| | **Total** | **41** (32 sin los opcionales) | **36** (más 3 descartadas) |
+| 6 | Piezas opcionales (puerta, escalera y rampa descartadas; 2 tocones modelados) | 5 | 2 modelados, 3 descartadas |
+| | **Total** | **41** (32 sin los opcionales) | **38** (más 3 descartadas) |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -118,10 +118,10 @@ Estado (28 de octubre): integrada. Los 4 `.glb` están en `game/assets/models/ou
 Revisada el 28 de octubre. La puerta, la escalera y la rampa son piezas del terreno generadas en código (`TerrainMeshes`): las pinta el shader del terreno con el patrón de su material (tablones, mampostería), se unen sin costuras a los bloques vecinos y giran hacia donde corresponde. Un `.glb` propio no se tiñe por material de la misma manera ni gira solo, así que **se descartan los tres modelos**. La puerta ya tiene el mismo grosor que los muros finos (0,24), así que encaja con ellos.
 
 - [x] `door`, `stairs`, `ramp`: se mantienen como piezas de código (descartados como modelos propios).
-- [ ] `stump.oak` → `stump_oak.glb`. Tocón del roble talado.
-- [ ] `stump.pine` → `stump_pine.glb`. Tocón del pino talado.
+- [x] `plant.oak.stump` → `stump_oak.glb`. Tocón del roble talado (330 triángulos, 0,47 de ancho, 0,28 de alto).
+- [x] `plant.pine.stump` → `stump_pine.glb`. Tocón del pino talado (220 triángulos, 0,37 de ancho, 0,25 de alto).
 
-Los tocones requieren que el talado deje un tocón en el mapa: es una función nueva y va a `docs/ip/backlog.md`. Mientras tanto no tiene sentido modelarlos.
+Los dos modelos están hechos y a su tamaño final (escala 1,0), generados con `MODELS/generador/fase6.py` en `MODELS/entorno/`. **No están en el juego**: el test `Every_model_of_the_catalog_is_used_by_a_def` exige que todo modelo del catálogo lo use un def, y hoy el talado no deja tocón. Cuando se haga esa función (`docs/ip/backlog.md`), se copian a `game/assets/models/ourlife/` y se agregan al catálogo como `plant.oak.stump` y `plant.pine.stump`. Como `MODELS/` no se versiona, los `.glb` sólo existen en esta PC hasta entonces.
 
 Muros finos (pedido del usuario, 28 de octubre): los muros construidos dejaron de ser bloques de una celda y pasaron a ser finos. Ver `docs/ip/bitacora.md`.
 

@@ -968,3 +968,8 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Sin cambios en Core: la simulación sigue tratándolos como celdas `Wall` que bloquean el paso.
 - Puerta, escalera y rampa: se quedan como piezas de código, porque el shader del terreno las pinta con el patrón de su material y encajan sin costuras. Los tocones pasan a `docs/ip/backlog.md`.
 - `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0. Captura de la casa del smoke revisada. Falta ver un muro de dos pisos y las esquinas en T con el juego en marcha.
+
+### 2026-10-28: tocones modelados, plan de modelos cerrado
+
+- `MODELS/generador/fase6.py` genera `stump_oak.glb` y `stump_pine.glb` en `MODELS/entorno`. No entran al juego todavía: `Every_model_of_the_catalog_is_used_by_a_def` exige que un def use cada modelo del catálogo, y el talado aún no deja tocón (backlog). Se probó y se revirtió.
+- Plan de modelos cerrado: 38 modelos hechos (36 integrados y 2 tocones listos), 3 descartados (puerta, escalera y rampa siguen como piezas de código).
