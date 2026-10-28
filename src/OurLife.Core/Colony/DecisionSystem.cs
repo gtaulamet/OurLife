@@ -320,8 +320,8 @@ public sealed partial class DecisionSystem : ISimSystem
         }
     }
 
-    /// <summary>How many uses of its target a job holds: one, but for a feeder on its way to the food, the units it holds for the baby.</summary>
-    private static int UsesOf(Job job) => job.Kind == JobKind.FeedBaby ? Math.Max(1, job.Count) : 1;
+    /// <summary>How many uses of its target a job holds: one, but for a feeder or a diner on its way to the food, the units it will lift.</summary>
+    private static int UsesOf(Job job) => job.Kind == JobKind.FeedBaby || (job.Kind == JobKind.EatAtTable && job.Stage == JobStage.Moving) ? Math.Max(1, job.Count) : 1;
 
     private void ReleaseEntity(EntityId entity, int count = 1)
     {
@@ -1006,6 +1006,11 @@ public sealed partial class DecisionSystem : ISimSystem
                 if (candidate.Kind == JobKind.Eat && eatChoice && TrySeat(simulation, colonist, cell, region, out var seat))
                 {
                     (job.Kind, job.Recipient, job.Destination) = (JobKind.EatAtTable, seat.Chair, seat.Cell);
+
+                    // It lifts every unit it lacks at once, so it holds them in the pile (as a feeder does) until it lifts them: nobody else is sent to a unit that is gone.
+                    var food = simulation.World.Get<ItemStack>(target);
+                    var free = food.Count - _entityUses.GetValueOrDefault(target);
+                    job.Count = Math.Clamp(Hunger.UnitsToFeed(simulation, colonist, simulation.Content.Get<ItemDef>(food.Def).Nutrition), 1, Math.Max(1, free));
                 }
 
                 Assign(simulation, colonist, job, _path);

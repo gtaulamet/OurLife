@@ -29,11 +29,32 @@ public sealed class Blueprint
 /// </summary>
 public sealed class Furniture
 {
+    private string _buildable = string.Empty;
+    private string _material = string.Empty;
+    private string? _quality;
+
+    // What the rooms are made of: a change to any of these bumps ChangeStamp so the room index sees it without scanning.
     [DefRef(typeof(BuildableDef))]
-    public string Buildable { get; set; } = string.Empty;
+    public string Buildable
+    {
+        get => _buildable;
+        set
+        {
+            _buildable = value;
+            ChangeStamp.Bump();
+        }
+    }
 
     [DefRef(typeof(MaterialDef))]
-    public string Material { get; set; } = string.Empty;
+    public string Material
+    {
+        get => _material;
+        set
+        {
+            _material = value;
+            ChangeStamp.Bump();
+        }
+    }
 
     /// <summary>Quarter turns, from 0 to 3; only the presentation uses them.</summary>
     public int Rotation { get; set; }
@@ -45,7 +66,15 @@ public sealed class Furniture
     /// </summary>
     [DefRef(typeof(QualityDef))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Quality { get; set; }
+    public string? Quality
+    {
+        get => _quality;
+        set
+        {
+            _quality = value;
+            ChangeStamp.Bump();
+        }
+    }
 }
 
 /// <summary>

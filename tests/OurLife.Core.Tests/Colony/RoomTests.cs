@@ -580,6 +580,40 @@ public class RoomTests
     }
 
     [Fact]
+    public void Two_siblings_and_an_unrelated_couple_are_two_groups_and_sleep_crowded_not_at_home()
+    {
+        var village = Village();
+        var parent = village.AddColonist(11, 12, 1, name: "Parent");
+        var (a, b, c, d) = (village.AddColonist(12, 12, 1, name: "A"), village.AddColonist(13, 12, 1, name: "B"),
+            village.AddColonist(14, 12, 1, name: "C"), village.AddColonist(15, 12, 1, name: "D"));
+        village.World.Add(a, new Family { Father = Relationships.RelativeOf(village.Simulation, parent) });
+        village.World.Add(b, new Family { Father = Relationships.RelativeOf(village.Simulation, parent) });
+        village.World.Add(c, new Family { Partner = Relationships.RelativeOf(village.Simulation, d) });
+        village.World.Add(d, new Family { Partner = Relationships.RelativeOf(village.Simulation, c) });
+        var room = RoomWithBeds(village, a, b, c, d);
+
+        foreach (var member in new[] { a, b, c, d })
+        {
+            RoomRules.FeelWaking(village.Simulation, member, room);
+            Thoughts(village, member).Where(each => each is "family_home" or "slept_crowded").ShouldBe(["slept_crowded"]);
+        }
+    }
+
+    [Fact]
+    public void A_family_linked_through_one_member_is_one_family()
+    {
+        var village = Village();
+        var (mother, father, child) = Family(village);
+        var grown = village.AddColonist(15, 12, 1, name: "Sibling");
+        village.World.Add(grown, new Family { Mother = Relationships.RelativeOf(village.Simulation, mother) });
+        var room = RoomWithBeds(village, mother, father, child, grown);
+
+        RoomRules.FeelWaking(village.Simulation, grown, room);
+
+        Thoughts(village, grown).Where(each => each is "family_home" or "slept_crowded").ShouldBe(["family_home"]);
+    }
+
+    [Fact]
     public void The_owners_of_a_room_are_the_living_colonists_whose_beds_are_in_it()
     {
         var village = Village();
@@ -723,6 +757,52 @@ public class RoomTests
         // The meal went on to its end (the colonist is fed) before anything else was taken up.
         village.Need(diner, "hunger").Value.ShouldBeGreaterThan(8_000);
         village.CountItems("provisions").ShouldBeGreaterThan(5);
+    }
+
+    [Fact]
+    public void A_diner_who_lifts_three_units_holds_them_in_the_pile_so_nobody_is_sent_to_food_that_is_gone()
+    {
+        var village = Dining();
+        Furnish(village, "chair", 5, 4);
+        Furnish(village, "chair", 4, 3);
+        Furnish(village, "chair", 4, 5);
+        village.Simulation.Tick();
+        var food = new TileCoord(12, 12, 1);
+        village.AddItems("provisions", 4, food.X, food.Y, 1);
+        var piles = new List<EntityId>();
+        village.World.Query<ItemStack>(piles);
+        var pile = piles.Single();
+        var hungry = new[]
+        {
+            village.AddColonist(10, 10, 1, hunger: 2_000, name: "A"), village.AddColonist(10, 11, 1, hunger: 2_000, name: "B"),
+            village.AddColonist(11, 10, 1, hunger: 2_000, name: "C"), village.AddColonist(11, 11, 1, hunger: 2_000, name: "D"),
+        };
+
+        var worst = 0;
+        for (var tick = 0; tick < 200 && village.World.IsAlive(pile); tick++)
+        {
+            village.Simulation.Tick();
+            if (!village.World.IsAlive(pile))
+            {
+                break;
+            }
+
+            // Units the colonists on their way to the pile will lift, against the units it has.
+            var committed = 0;
+            foreach (var each in hungry)
+            {
+                if (village.JobOf(each) is { Stage: JobStage.Moving } job && job.Target == pile && job.Kind is JobKind.Eat or JobKind.EatAtTable)
+                {
+                    var nutrition = village.Simulation.Content.Get<ItemDef>("provisions").Nutrition;
+                    var lacks = Hunger.UnitsToFeed(village.Simulation, each, nutrition);
+                    committed += job.Kind == JobKind.Eat ? 1 : job.Count > 0 ? Math.Min(lacks, job.Count) : lacks;
+                }
+            }
+
+            worst = Math.Max(worst, committed - village.World.Get<ItemStack>(pile).Count);
+        }
+
+        worst.ShouldBeLessThanOrEqualTo(0);
     }
 
     private static ColonyTestBed WideDining()

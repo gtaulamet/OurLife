@@ -14,7 +14,8 @@ namespace OurLife.Game.Bootstrap;
 /// beds and a chest, and a dining room with a table and chairs, flattened ground, planks for floors and
 /// masonry for walls. Only for screenshots: it builds in a blink what a village takes days to build, and
 /// for that it calls the methods only the Core may call, like the smoke of the farm tool does with the knowledge.
-/// The game itself never does this.
+/// The game itself never does this. It is a debugging harness that writes to the world on purpose and is not
+/// used in the normal game.
 /// </summary>
 internal static class RoomScene
 {

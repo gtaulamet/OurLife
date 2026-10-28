@@ -18,6 +18,9 @@ public sealed class ComponentStore<T> : IComponentStore
 
     public int Count => _sortedSlots.Count;
 
+    /// <summary>Goes up with every component added or removed: a cheap way to tell that the owners changed.</summary>
+    public int Version { get; private set; }
+
     public bool Has(EntityId entity) =>
         !entity.IsNone
         && (uint)entity.Index < (uint)_owners.Length
@@ -38,6 +41,7 @@ public sealed class ComponentStore<T> : IComponentStore
                 $"{entity} cannot get a {typeof(T).Name}: the slot already holds one for {_owners[entity.Index]}.");
         }
 
+        Version++;
         _owners[entity.Index] = entity;
         _components[entity.Index] = component;
         var position = _sortedSlots.BinarySearch(entity.Index);
@@ -68,6 +72,7 @@ public sealed class ComponentStore<T> : IComponentStore
             return false;
         }
 
+        Version++;
         _owners[entity.Index] = EntityId.None;
         _components[entity.Index] = null;
         _sortedSlots.RemoveAt(_sortedSlots.BinarySearch(entity.Index));

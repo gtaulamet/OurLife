@@ -74,7 +74,8 @@ public sealed partial class JobSystem
         var stack = world.Get<ItemStack>(job.Target);
         var item = simulation.Content.Get<ItemDef>(stack.Def);
         var units = Hunger.UnitsToFeed(simulation, colonist, item.Nutrition);
-        var count = Math.Min(stack.Count, units);
+        var count = Math.Min(stack.Count, job.Count > 0 ? Math.Min(units, job.Count) : units);
+        job.Count = 0;
         if (count <= 0)
         {
             return true;

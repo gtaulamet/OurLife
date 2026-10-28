@@ -42,14 +42,25 @@ public static class Beds
         return Relationships.IsLivingColonist(world, owner) && Fits(simulation, bed, owner);
     }
 
-    /// <summary>Whether a colonist owns a bed it is still for; <paramref name="buffer"/>, if given, is reused for the query.</summary>
-    public static bool HasBed(Simulation simulation, EntityId colonist, List<EntityId>? buffer = null)
+    /// <summary>The bed a colonist owns and is still for (the lowest id if somehow more than one), or none; <paramref name="buffer"/>, if given, is reused for the query.</summary>
+    public static EntityId OwnedBy(Simulation simulation, EntityId colonist, List<EntityId>? buffer = null)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var beds = buffer ?? [];
         simulation.World.Query<Bed>(beds);
-        return beds.Exists(bed => simulation.World.Get<Bed>(bed).Owner == colonist && Fits(simulation, bed, colonist));
+        foreach (var bed in beds)
+        {
+            if (simulation.World.Get<Bed>(bed).Owner == colonist && Fits(simulation, bed, colonist))
+            {
+                return bed;
+            }
+        }
+
+        return EntityId.None;
     }
+
+    /// <summary>Whether a colonist owns a bed it is still for; <paramref name="buffer"/>, if given, is reused for the query.</summary>
+    public static bool HasBed(Simulation simulation, EntityId colonist, List<EntityId>? buffer = null) => !OwnedBy(simulation, colonist, buffer).IsNone;
 }
 
 /// <summary>
@@ -80,14 +91,11 @@ public sealed record AssignBedCommand(EntityId Bed, EntityId Colonist) : ISimCom
             return;
         }
 
-        var beds = new List<EntityId>();
-        world.Query<Bed>(beds);
-        foreach (var other in beds)
+        // A colonist has a single bed: the one it owned is freed.
+        var previous = Beds.OwnedBy(simulation, Colonist);
+        if (!previous.IsNone && previous != Bed)
         {
-            if (other != Bed && world.Get<Bed>(other).Owner == Colonist)
-            {
-                Free(simulation, other, world.Get<Bed>(other));
-            }
+            Free(simulation, previous, world.Get<Bed>(previous));
         }
 
         bed.Owner = Colonist;

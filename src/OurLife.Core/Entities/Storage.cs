@@ -10,7 +10,20 @@ namespace OurLife.Core.Entities;
 /// </summary>
 public sealed class Stockpile
 {
-    public List<TileCoord> Cells { get; set; } = [];
+    private List<TileCoord> _cells = [];
+
+    public List<TileCoord> Cells
+    {
+        get => _cells;
+        set
+        {
+            _cells = value;
+            ChangeStamp.Bump();
+        }
+    }
+
+    /// <summary>Tells the room index that <see cref="Cells"/> was edited in place.</summary>
+    internal void Touch() => ChangeStamp.Bump();
 
     /// <summary>Ids of the <see cref="ItemCategoryDef"/>s allowed in the zone.</summary>
     [DefRef(typeof(ItemCategoryDef))]
