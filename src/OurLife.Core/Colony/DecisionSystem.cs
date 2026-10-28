@@ -652,16 +652,7 @@ public sealed partial class DecisionSystem : ISimSystem
         // The harvest comes before sowing: what is ripe is reaped first (see "Cosechar" in docs/gdd/agricultura.md).
         if (jobs.Contains(JobKind.Reap))
         {
-            // Crops the player ordered reaped come before the rest of the harvest.
-            _reapOrderedOnly = true;
-            AddWork(simulation, JobKind.Reap);
-            _reapOrderedOnly = false;
-            if (_candidates.Count > 0 && TryCandidates(simulation, colonist))
-            {
-                return true;
-            }
-
-            _candidates.Clear();
+            // One pass: the crops the player ordered reaped rank before the rest (see TryCandidates).
             AddWork(simulation, JobKind.Reap);
             if (TryCandidates(simulation, colonist))
             {
@@ -890,11 +881,11 @@ public sealed partial class DecisionSystem : ISimSystem
         }
     }
 
-    private void AddEntity(Simulation simulation, JobKind kind, EntityId entity, int capacity)
+    private void AddEntity(Simulation simulation, JobKind kind, EntityId entity, int capacity, bool ordered = false)
     {
         if (_entityUses.GetValueOrDefault(entity) < capacity)
         {
-            _candidates.Add(new Candidate(kind, entity, simulation.World.Get<Position>(entity).Cell));
+            _candidates.Add(new Candidate(kind, entity, simulation.World.Get<Position>(entity).Cell, ordered));
         }
     }
 
@@ -927,7 +918,7 @@ public sealed partial class DecisionSystem : ISimSystem
             FindSites(map, candidate.Kind, candidate.Cell);
             if (AnyInRegion(_sites, connectivity, region))
             {
-                reachable.Add(new Reach(candidate, PathFinder.Estimate(from, candidate.Cell), map.Size.IndexOf(candidate.Cell.X, candidate.Cell.Y, candidate.Cell.Z)));
+                reachable.Add(new Reach(candidate, PathFinder.Estimate(from, candidate.Cell), map.Size.IndexOf(candidate.Cell.X, candidate.Cell.Y, candidate.Cell.Z), candidate.Ordered ? -1 : 0));
             }
         }
 
@@ -1266,7 +1257,8 @@ public sealed partial class DecisionSystem : ISimSystem
         Reserve(simulation, job);
     }
 
-    private readonly record struct Candidate(JobKind Kind, EntityId Target, TileCoord Cell);
+    /// <summary>A place to work. <paramref name="Ordered"/> candidates (crops the player ordered reaped) rank before the rest.</summary>
+    private readonly record struct Candidate(JobKind Kind, EntityId Target, TileCoord Cell, bool Ordered = false);
 
     /// <summary>A candidate the colonist can reach, with its distance and how it ranks when it chooses what to eat.</summary>
     private readonly record struct Reach(Candidate Candidate, int Distance, int CellIndex, int Group = 0, int NotMeal = 0, int Freshness = 0);

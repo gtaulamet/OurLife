@@ -106,7 +106,7 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
         foreach (var plant in plants)
         {
             var cell = simulation.World.Get<Position>(plant).Cell;
-            if (cell.X >= min.X && cell.X <= max.X && cell.Y >= min.Y && cell.Y <= max.Y && cell.Z >= min.Z && cell.Z <= max.Z)
+            if (IsInside(cell, min, max))
             {
                 inside.Add((plant, cell));
             }
@@ -194,13 +194,12 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
     {
         var crops = new List<EntityId>();
         simulation.World.Query<Crop, Position>(crops);
-        crops.RemoveAll(crop =>
-        {
-            var cell = simulation.World.Get<Position>(crop).Cell;
-            return cell.X < min.X || cell.X > max.X || cell.Y < min.Y || cell.Y > max.Y || cell.Z < min.Z || cell.Z > max.Z;
-        });
+        crops.RemoveAll(crop => !IsInside(simulation.World.Get<Position>(crop).Cell, min, max));
         return crops;
     }
+
+    private static bool IsInside(TileCoord cell, TileCoord min, TileCoord max) =>
+        cell.X >= min.X && cell.X <= max.X && cell.Y >= min.Y && cell.Y <= max.Y && cell.Z >= min.Z && cell.Z <= max.Z;
 
     private static void Cancel(Simulation simulation, List<(EntityId Plant, TileCoord Cell)> plants, TileCoord min, TileCoord max)
     {

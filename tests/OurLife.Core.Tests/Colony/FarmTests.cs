@@ -3,6 +3,7 @@ using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
 using OurLife.Core.Map;
+using OurLife.Core.Save;
 using OurLife.Core.Sim;
 using OurLife.Core.Text;
 
@@ -531,6 +532,66 @@ public class FarmTests
         Reap(bed, new TileCoord(10, 10, 1), new TileCoord(10, 10, 1), DesignationKind.Cancel);
         bed.World.Has<HarvestOrder>(crop).ShouldBeFalse();
         bed.Simulation.Run(3);
+        bed.JobOf(farmer)?.Kind.ShouldNotBe(JobKind.Reap);
+        bed.World.IsAlive(crop).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Cancelling_on_an_ordered_crop_inside_a_zone_ends_the_job_of_the_reaper()
+    {
+        var bed = Field();
+        Zone(bed, "wheat", new TileCoord(5, 5, 1), new TileCoord(5, 5, 1));
+        var crop = RipeCrop(bed, 5, 5);
+        Reap(bed, new TileCoord(5, 5, 1), new TileCoord(5, 5, 1));
+        var farmer = Farmer(bed, 3, 5);
+        bed.Simulation.Run(3);
+        bed.JobOf(farmer)!.Kind.ShouldBe(JobKind.Reap);
+
+        Reap(bed, new TileCoord(5, 5, 1), new TileCoord(5, 5, 1), DesignationKind.Cancel);
+        bed.Simulation.Run(3);
+
+        // Cancelling takes the cell from the zone and its crop with it (criterion 5 only keeps a crop out of zones).
+        bed.World.IsAlive(crop).ShouldBeFalse();
+        bed.CountItems("wheat").ShouldBe(0);
+        bed.JobOf(farmer)?.Kind.ShouldNotBe(JobKind.Reap);
+    }
+
+    [Fact]
+    public void A_reaping_order_on_a_crop_is_saved_and_the_fingerprint_does_not_change_on_loading()
+    {
+        var bed = Field();
+        var crop = RipeCrop(bed, 10, 10);
+        Reap(bed, new TileCoord(10, 10, 1), new TileCoord(10, 10, 1));
+        var farmer = Farmer(bed, 8, 10);
+        bed.Simulation.Run(3);
+
+        var file = new MemoryStream();
+        SaveGame.Write(file, bed.Simulation, new SaveInfo("game-1", IsAutosave: false, "test", DateTimeOffset.UnixEpoch));
+        var loaded = SaveGame.Load(new MemoryStream(file.ToArray()), Content);
+        ColonySystems.AddTo(loaded);
+
+        loaded.World.Has<HarvestOrder>(crop).ShouldBeTrue();
+        loaded.World.Get<Job>(farmer).Kind.ShouldBe(JobKind.Reap);
+        loaded.ComputeStateHash().ShouldBe(bed.Simulation.ComputeStateHash());
+        loaded.Run(300);
+        bed.Simulation.Run(300);
+        loaded.ComputeStateHash().ShouldBe(bed.Simulation.ComputeStateHash());
+    }
+
+    [Fact]
+    public void An_ordered_crop_that_nobody_can_reach_is_not_reaped_and_does_not_block_the_rest()
+    {
+        var bed = Field();
+        var crop = RipeCrop(bed, 10, 10);
+        Reap(bed, new TileCoord(10, 10, 1), new TileCoord(10, 10, 1));
+        for (var y = 0; y < 16; y++)
+        {
+            bed.Map.SetTileQuietly(9, y, 1, TileShape.Wall, (ushort)bed.Simulation.Content.IndexOf<MaterialDef>("rock"), TileFlags.None);
+        }
+
+        var farmer = Farmer(bed, 3, 5);
+        bed.Simulation.Run(5);
+
         bed.JobOf(farmer)?.Kind.ShouldNotBe(JobKind.Reap);
         bed.World.IsAlive(crop).ShouldBeTrue();
     }

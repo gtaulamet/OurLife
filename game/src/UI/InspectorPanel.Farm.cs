@@ -42,6 +42,21 @@ public partial class InspectorPanel
         }
     }
 
+    /// <summary>The order to reap a crop that stands off every farm zone (inside a zone, <see cref="DescribeFarm"/> says it).</summary>
+    private void DescribeLooseCropOrder(TileCoord cell)
+    {
+        if (FarmRules.State(_simulation, cell) is not null)
+        {
+            return;
+        }
+
+        var crop = FarmRules.CropAt(_simulation, cell);
+        if (!crop.IsNone && _simulation.World.Has<HarvestOrder>(crop))
+        {
+            _lines.Add(_services.Text.Format("ui.inspector.order.reap"));
+        }
+    }
+
     /// <summary>A button per crop the colony knows, for the zone under the selected cell; none off the farm zones.</summary>
     private void ShowFarm(EntityId zone)
     {
