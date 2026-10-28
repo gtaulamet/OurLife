@@ -13,7 +13,7 @@
     "deconstructRefundPercent": 50,
     "defaultWorkPriority": 3,
     "idleAlertHours": 2,
-    "craftFetchRadius": 30,
+    "craftFetchRadius": 45,
     "eatChoiceRadius": 15
   }
 ]

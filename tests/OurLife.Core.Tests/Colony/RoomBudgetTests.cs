@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
@@ -9,6 +8,7 @@ using Xunit.Abstractions;
 namespace OurLife.Core.Tests.Colony;
 
 /// <summary>The performance budget of rooms (criterion 15 of <c>docs/gdd/habitaciones.md</c>): 20 rooms, 15 colonists and the usual changes to the map.</summary>
+[Collection(TimingCollection.Name)]
 public class RoomBudgetTests(ITestOutputHelper output)
 {
     private const int HousesAcross = 5;
@@ -23,12 +23,10 @@ public class RoomBudgetTests(ITestOutputHelper output)
         village.Simulation.Run(600);
         var rock = (ushort)village.Simulation.Content.IndexOf<MaterialDef>("rock");
 
-        // Six stretches of half a game day; the cheapest counts, so a busy machine does not fail what the code does not cost.
-        var best = double.MaxValue;
+        // Ten stretches of half a game day; the cheapest counts, so a busy machine does not fail what the code does not cost.
         var tick = 0;
-        for (var stretch = 0; stretch < 6; stretch++)
+        var best = Timing.BestRoundMs(10, _ =>
         {
-            var clock = Stopwatch.StartNew();
             for (var i = 0; i < 720; i++, tick++)
             {
                 // Every two game hours a wall of some house falls and goes up again an hour later: the rooms are found again twice.
@@ -40,10 +38,7 @@ public class RoomBudgetTests(ITestOutputHelper output)
 
                 village.Simulation.Tick();
             }
-
-            clock.Stop();
-            best = Math.Min(best, clock.Elapsed.TotalMilliseconds / 720);
-        }
+        }) / 720;
 
         output.WriteLine($"{best:F4} ms per tick");
         best.ShouldBeLessThan(0.1);
@@ -55,19 +50,14 @@ public class RoomBudgetTests(ITestOutputHelper output)
     {
         var village = TwentyHouses();
         Rooms.All(village.Simulation);
-        var best = double.MaxValue;
-        for (var batch = 0; batch < 10; batch++)
+        var best = Timing.BestRoundMs(10, _ =>
         {
-            var clock = Stopwatch.StartNew();
             for (var round = 0; round < 20; round++)
             {
                 Rooms.Invalidate(village.Simulation);
                 Rooms.All(village.Simulation).Count.ShouldBe(HousesAcross * HousesDown);
             }
-
-            clock.Stop();
-            best = Math.Min(best, clock.Elapsed.TotalMilliseconds / 20);
-        }
+        }) / 20;
 
         output.WriteLine($"{best:F4} ms per rebuild");
         best.ShouldBeLessThan(1.0);
@@ -94,14 +84,16 @@ public class RoomBudgetTests(ITestOutputHelper output)
             Construction.Finish(village.Simulation, blueprint, village.World.Get<Position>(blueprint).Cell);
         }
 
-        var clock = Stopwatch.StartNew();
-        Rooms.Invalidate(village.Simulation);
-        Rooms.All(village.Simulation).ShouldBeEmpty();
-        clock.Stop();
+        // The cheapest of several rounds counts, so a busy machine does not fail what the code does not cost.
+        var best = Timing.BestRoundMs(8, _ =>
+        {
+            Rooms.Invalidate(village.Simulation);
+            Rooms.All(village.Simulation).ShouldBeEmpty();
+        });
 
         village.World.Store<Furniture>().Count.ShouldBe(300);
-        output.WriteLine($"{clock.Elapsed.TotalMilliseconds:F3} ms for 300 chests");
-        clock.Elapsed.TotalMilliseconds.ShouldBeLessThan(25);
+        output.WriteLine($"{best:F3} ms for 300 chests");
+        best.ShouldBeLessThan(25);
     }
 
     private static (int X, int Y) HouseOrigin(int house) => (1 + (8 * (house % HousesAcross)), 1 + (8 * (house / HousesAcross)));

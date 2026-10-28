@@ -4,26 +4,26 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-28.*
+*Actualizado el 2026-10-29.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o9-habitaciones`: O9 hecho (Core y presentación; falta `/code-review` y fusionar). O8 y la cosecha manual de O10 en `main`; O2 a O7 hechos |
+| Rama de trabajo | `ip4/o11-integracion` (desde `main` con O1 a O10): O11 hecho salvo el empaquetado, la publicación de `v0.4.0` y el playtest del usuario (`docs/ip/playtest-ip4.md`) |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build` sin advertencias, 800 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
-| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42); O8 (formato 18) y O9 (formato 19) las dejan iguales: el smoke no fabrica herramientas, ni muebles, ni muros |
+| Validación | `dotnet build --no-incremental` sin advertencias, 1192 tests en verde (49 + 879 + 264), smoke con código 0, benchmark de 30 s: 326 FPS y 0,10 ms por tick; el pueblo del año diez de las partidas de O11, 0,04 a 0,05 ms por tick |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42); O8 (formato 18), O9 (formato 19) y O11 las dejan iguales: el smoke no fabrica herramientas, ni muebles, ni muros, ni usa el radio de los talleres |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **IP4 "Oficios"**: `/code-review` de O9 y fusionarlo a `main`; después O10 (la lista de habitaciones ya está hecha, falta el panel de inventario, el orden de los atajos y el pulido a los tres tamaños de interfaz) y O11 (`docs/ip/IP4.md`).
+1. **IP4 "Oficios"**: O11 está hecho salvo lo del usuario: hacer el playtest de `docs/ip/playtest-ip4.md`, `/code-review` de O9 a O11, fusionar a `main`, empaquetar y publicar `v0.4.0` (`tools/package-windows.ps1`, `tools/package-macos.ps1`, `gh release create`). No hay tag ni cambio de versión todavía.
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
 3. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos; los de cultivos ya se vieron en el juego.
-4. **Balance de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple. Decidido el 28 de octubre de 2026: se deja así y se revisa con las partidas de diez años de O11.
+4. **Balance de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple. Decidido el 28 de octubre de 2026: se deja así. Observado en O11 (entrada del 29 de octubre): 3 a 5 hijos en diez años y población de 10 a 12 con un campo; no hace falta tocarlo.
 5. **En la otra PC**, para exportar hay que instalar las plantillas de Godot 4.7.2 .NET (README); para macOS, también `macos.zip`.
 
 ## Notas prácticas
@@ -42,6 +42,28 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-29: O11, integración (balance, tests de tiempo, benchmark, playtest)
+
+- Rama `ip4/o11-integracion`. Sin empaquetar ni publicar, sin tags ni cambio de versión: eso lo decide el usuario después del playtest.
+- **Partidas de diez años** (`IntegrationBalanceTests`, lento, semillas 1, 7 y 42; en Rápido el reloj corre más deprisa pero la simulación es la misma, así que se simulan los mismos 600 días). Las juega `VillagePlayer` (en `tests/OurLife.Content.Tests`), un jugador simulado sólo con comandos: almacenes de 6 × 6 cada veinte días, bayas mientras la reserva sea menor que la que pide un nacimiento (30 días de comida por boca, con 30 % de margen), cola de investigación (agricultura, cereales, molienda, cantería, carbón, metalurgia, herrería, conservación, ensamblaje, silvicultura), scriptorium, banco, casa 1, cocina, comedor, campos de trigo (8 × 8), guisantes y repollo (5 × 6), carbonera, horno y fragua, una casa de 5 × 5 (dos camas, cuna, mesa y silla; de 4 × 4 con dos camas si no cabe) cada 12 días mientras falten camas, minado de piedra y de las vetas a la vista, y órdenes de tablones, carbón, lingotes, mangos y las cuatro herramientas.
+
+| Semilla | Muertes por hambre | Hijos | Población (pico) | Camas | Podrido (bayas) | Herramientas hechas / equipadas | Durmieron en cama (últimos 5 años) | ms por tick |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0 | 3 | 10 | 16 | 8039 (1834) | 4 / 4 | 1042 de 1204 (579 de 602) | 0,037 |
+| 7 | 0 | 3 | 10 | 17 | 4818 (1213) | 4 / 2 | 648 de 800 (349 de 365) | 0,041 |
+| 42 | 0 | 5 | 12 | 17 | 9735 (3874) | 4 / 3 | 979 de 1124 (573 de 587) | 0,051 |
+
+- **Criterios:** nadie muere de hambre; la población pasa de 8 en las tres; el pan no se pudre (se come al hacerse) y se pudren 500 a 1000 unidades al año, sobre todo bayas y trigo, con reservas de 3000 a 4000 de trigo y menos de 3000 bayas (lo que pide la regla de concepción para 11 bocas son unas 4000 bayas): no es en masa; las cuatro herramientas se fabrican en las tres semillas y se equipan entre 2 y 4 (sólo cuando alguien toma un trabajo de ese tipo: un pico o un hacha no se equipan si nadie mina ni tala después de forjarlos, es lo esperado); los colonos duermen en cama el 97 % de las noches de los últimos cinco años.
+- **Ajuste de balance (uno):** `craftFetchRadius` de `game/content/defs/ai.json` pasa de 30 a 45. Motivo: con la fragua a unas 30 celdas del almacén (algo normal en una aldea con campos, casas y talleres), las órdenes de herramientas se quedaban en "Esperando ingredientes" para siempre (ingredientes guardados, taller alcanzable) y nadie recogía las herramientas del almacén. Con 45 las tres semillas forjan las cuatro herramientas. El radio vale para traer ingredientes, para que un colono vaya a buscar una herramienta y para el estado `waiting_inputs` de las órdenes. Actualizado en `oficios.md`. El smoke no craftea: las huellas siguen igual.
+- **Meta de comida de 3000 y regla de concepción (30 días por boca):** se dejan. Con bayas solas, 3000 bayas son 1,2 millones de reserva y alcanzan para 8,3 bocas con la que nacería: una aldea con libre albedrío y sin campo tiende a quedarse en 7 u 8. Con un campo (el trigo vale 300 de reserva y casi no se pudre: 200 días) la población llega a 10 a 12 en diez años. Meta de madera de 40: suficiente, los jugadores simulados terminan con decenas de troncos y tablones.
+- **Balance de IP3 (40 % por año):** con un campo y casas, nacen 3 a 5 hijos en diez años en una aldea de 7 con 3 parejas fundadoras; todo embarazo termina en nacimiento (3 de 3, 3 de 3, 5 de 5). Crece despacio pero crece. No se toca.
+- **Hallazgos que quedan al backlog** (no son bugs del Core): (1) un almacén lleno no avisa; las existencias quedan sueltas junto a los talleres y las órdenes esperan ingredientes sin decir por qué; (2) el radio de ingredientes no se ve en la interfaz; (3) la regla de 30 días de comida por boca es invisible para el jugador; (4) un almacén dibujado sobre árboles o pendiente se recorta a pocas celdas sin avisar (el jugador simulado recibió zonas de 2, 7 y 13 celdas). Anotados en `docs/ip/backlog.md`.
+- **Tests de tiempo estabilizados:** `tests/Shared/Timing.cs` (`Timing.BestRoundMs`: una vuelta de calentamiento que no cuenta y la mejor de varias vueltas) y la colección `Timing` (`DisableParallelization`), que corre aparte de los demás tests del ensamblado. Usados en `FarmContentTests` (300 celdas y 200 pilas, 0,1 ms), `RoomBudgetTests` (20 habitaciones, reconstrucción y 300 cofres), `DiscoveryTests` (descubrir al cavar), `ValleyTests` (valle en menos de 2 s) y la integración. Los presupuestos son los mismos. Antes, `RoomBudgetTests` fallaba al correr los tres proyectos a la vez (0,146 ms contra 0,1, con 0,037 ms en reposo).
+- **Benchmark de 30 s** (`--benchmark 30 --seed 42`, RTX 4090 Laptop, 1280 × 720): 326 FPS (3,07 ms), el 1 % más lento 220 FPS, 0,1037 ms por tick; dentro del presupuesto. (En O10 fueron 377 FPS y 0,07 ms; el valle tiene más contenido.) Con una colonia grande: el pueblo del año diez de la integración (casas, talleres, campos, pilas) cuesta 0,04 a 0,05 ms por tick; 300 celdas de cultivo y 200 pilas, menos de 0,1 (criterio 15 de agricultura); 20 habitaciones y 15 colonos, 0,037 ms.
+- **`.uid` generados** con `--headless --import`: `IToggleablePanel.cs.uid` e `InventoryPanel.cs.uid`.
+- **Playtest:** `docs/ip/playtest-ip4.md`, con pasos y criterios de O2 a O10, el criterio 15 de `oficios.md` y los controles por tamaño de interfaz (100, 150 y 200 %), en es y en.
+- Smoke con código 0; huellas con `--ticks 5000`: `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42), sin cambios.
 
 ### 2026-10-28: O10, panel de inventario y orden de los paneles
 

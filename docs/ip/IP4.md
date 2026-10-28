@@ -6,7 +6,7 @@
 
 **Estimación:** 105 a 130 h. **Versión al cerrar:** `v0.4.0`, para Windows y macOS.
 
-**Estado:** en curso desde el 22 de octubre de 2026 (O1 hecho, sigue O2).
+**Estado:** en curso desde el 22 de octubre de 2026. O1 a O11 hechos; faltan el playtest del usuario (`docs/ip/playtest-ip4.md`), la revisión final, la fusión a `main` y el release `v0.4.0`.
 
 ## Estado de los hitos
 
@@ -22,7 +22,7 @@
 | O8 Fundición, herrería y herramientas | Core y presentación hechos (faltan los 3 modelos propios de los talleres de fuego y el criterio 15 en la partida) | `ip4/o8-metales` | Carbonera, horno de fundición y fragua, recetas de carbón, lingote y cuatro herramientas con calidad, `Equipment` y trabajo `Equip`, formato 18. Ver la bitácora del 28 de octubre |
 | O9 Habitaciones, dormitorios y comedor | Hecho (Core y presentación): falta el `/code-review` y la fusión a `main` | `ip4/o9-habitaciones` | Detección con caché, puntaje y nivel, `AssignBedCommand` y camas reservadas, familias, comer sentado (`EatAtTable`), reunión (`Gather`), 11 pensamientos nuevos, formato 19. Presentación: capa de habitaciones (tecla L), lista de habitaciones con asignación de camas y de familia (tecla U y botón del HUD), inspector de celda y de colono, colono sentado (`sit`), íconos de 16 × 16 y capturas es/en. Adelanta de O10 la lista de habitaciones. Ver la bitácora del 28 de octubre y las notas de implementación de `habitaciones.md` |
 | O10 Paneles | Hecho (presentación; falta el `/code-review` y la fusión a `main`) | `ip4/o10-paneles` | Panel de inventario (tecla I, `Stocks.Totals()`, con calidad y frescura), un solo panel abierto a la vez, Esc cierra la ficha o el panel, la barra superior en dos filas con el atajo de cada panel y el tiempo y el nivel en la segunda, paneles con desplazamiento para no tapar el registro, la ficha no tapa la barra ni el inspector. Capturas es/en de todos los paneles a 100, 150 y 200 %. Ver la bitácora del 28 de octubre y `oficios.md` |
-| O11 Integración | Pendiente | `ip4/o11-integracion` | |
+| O11 Integración | Hecho salvo el playtest del usuario, el `/code-review` de O9 a O11 y el release | `ip4/o11-integracion` | Partidas de diez años con un jugador simulado (semillas 1, 7 y 42: sin hambre, población de 10 a 12, cuatro herramientas de hierro, 97 % de noches en cama), `craftFetchRadius` de 30 a 45, tests de tiempo estabilizados, benchmark 326 FPS y 0,10 ms por tick, `.uid` y `playtest-ip4.md`. Ver la bitácora del 29 de octubre |
 
 **Ruta crítica:** O1 → O2 → O3 → O5 → O8 → O10 → O11 (unas 62 h de las 105 mínimas). Detalle: O4, O5, O6 y O9 salen de O3 y pueden hacerse en paralelo; O7 sólo depende de O2 y puede empezar apenas se apruebe la spec; O8 necesita O3, O5 y O7; O10 espera a O4, O5, O6 y O9; el arte de cada taller y de la comida va junto a O3 y O6.
 
