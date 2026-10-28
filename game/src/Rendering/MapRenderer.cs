@@ -564,7 +564,7 @@ public partial class MapRenderer : Node3D
             case TileShape.Wall when IsBuiltWall(x, y, z):
                 AddThinWall(x, y, z, origin);
                 break;
-            case TileShape.Wall when _map.IsDiscovered(x, y, z) && IsExposed(x, y, z):
+            case TileShape.Wall when IsSeen(x, y, z) && IsExposed(x, y, z):
                 Add(TerrainPiece.Block, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z + 1) ? GrassFringe : 0);
                 break;
             case TileShape.Floor:
@@ -659,6 +659,10 @@ public partial class MapRenderer : Node3D
     /// A block is drawn when a face touches an open cell. The sides of the map count as open, so
     /// its edges show the strata; the bottom of the map does not.
     /// </summary>
+    // The sides of the map show their strata, so the border counts as seen even when no open cell touches it.
+    private bool IsSeen(int x, int y, int z) =>
+        _map.IsDiscovered(x, y, z) || x == 0 || y == 0 || x == _map.Size.Width - 1 || y == _map.Size.Height - 1;
+
     private bool IsExposed(int x, int y, int z) =>
         !IsWallOrBelowMap(x - 1, y, z) || !IsWallOrBelowMap(x + 1, y, z)
         || !IsWallOrBelowMap(x, y - 1, z) || !IsWallOrBelowMap(x, y + 1, z)
@@ -792,7 +796,8 @@ public partial class MapRenderer : Node3D
                 {
                     if (_map.ShapeAt(x, y, z) == TileShape.Wall && !IsBuiltWall(x, y, z) && _map.ShapeAt(x, y, z + 1) != TileShape.Empty)
                     {
-                        Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), _map.IsDiscovered(x, y, z) ? CutCapColor(x, y, z) : LevelShading.UnexploredCap, _map.IsDiscovered(x, y, z) ? Pattern(x, y, z) : 0);
+                        var seen = IsSeen(x, y, z);
+                        Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), seen ? CutCapColor(x, y, z) : LevelShading.UnexploredCap, seen ? Pattern(x, y, z) : 0);
                     }
                 }
             }

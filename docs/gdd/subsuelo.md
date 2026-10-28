@@ -92,7 +92,6 @@ Entre 6 y 9 vetas de 10 a 24 celdas dan unas 135 celdas, 135 minerales y unos 67
 | `def.material.iron_vein.name` / `desc` | veta de hierro | iron vein |
 | `def.item.iron_ore.name` | mineral de hierro | iron ore |
 | `ui.inspector.unexplored` | Sin explorar | Unexplored |
-| `ui.inspector.ore_cell` | Veta de hierro | Iron vein |
 
 ## Modelos y arte
 

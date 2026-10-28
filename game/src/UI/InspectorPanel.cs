@@ -192,10 +192,6 @@ public partial class InspectorPanel : PanelContainer
             // Nobody has seen inside this rock: neither its shape nor its material is named.
             _lines.Add(text.Format("ui.inspector.unexplored"));
         }
-        else if (material is { Kind: MaterialKind.Ore })
-        {
-            _lines.Add(text.Format("ui.inspector.ore_cell"));
-        }
         else
         {
             var shape = text.Format($"ui.inspector.shape.{TileShapes.Id(map.ShapeAt(cell))}");

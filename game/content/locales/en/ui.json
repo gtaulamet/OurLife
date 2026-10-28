@@ -89,7 +89,6 @@
   "ui.inspector.need": "{need}: {percent}%",
   "ui.inspector.cell": "Cell ({x}, {y}), level {z}",
   "ui.inspector.unexplored": "Unexplored",
-  "ui.inspector.ore_cell": "Iron vein",
   "ui.inspector.shape_material": "{material} {shape}",
   "ui.inspector.shape.empty": "air",
   "ui.inspector.shape.floor": "floor",

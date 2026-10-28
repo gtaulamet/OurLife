@@ -89,7 +89,6 @@
   "ui.inspector.need": "{need}: {percent} %",
   "ui.inspector.cell": "Celda ({x}, {y}), nivel {z}",
   "ui.inspector.unexplored": "Sin explorar",
-  "ui.inspector.ore_cell": "Veta de hierro",
   "ui.inspector.shape_material": "{shape} de {material}",
   "ui.inspector.shape.empty": "aire",
   "ui.inspector.shape.floor": "suelo",
