@@ -15,6 +15,9 @@
   "def.material.sandstone.name": "arenisca",
   "def.material.sandstone.desc": "Roca de arena compactada, fácil de trabajar.",
   "def.material.sandstone.gender": "female",
+  "def.material.iron_vein.name": "veta de hierro",
+  "def.material.iron_vein.desc": "Roca con vetas de mineral de hierro, dura de excavar.",
+  "def.material.iron_vein.gender": "female",
 
   "def.plant.oak.name": "{count, plural, one {roble} other {robles}}",
   "def.plant.oak.desc": "Árbol robusto de madera dura.",

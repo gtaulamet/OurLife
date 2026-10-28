@@ -15,6 +15,9 @@
   "def.material.sandstone.name": "sandstone",
   "def.material.sandstone.desc": "Compacted sand rock, easy to work.",
   "def.material.sandstone.gender": "other",
+  "def.material.iron_vein.name": "iron vein",
+  "def.material.iron_vein.desc": "Rock streaked with iron ore, hard to dig.",
+  "def.material.iron_vein.gender": "other",
 
   "def.plant.oak.name": "{count, plural, one {oak} other {oaks}}",
   "def.plant.oak.desc": "A sturdy tree of hard wood.",

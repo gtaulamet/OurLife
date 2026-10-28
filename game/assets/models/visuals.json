@@ -10,7 +10,8 @@
       "timber": "planks",
       "masonry": "bricks",
       "planks": "planks",
-      "ashlar": "bricks"
+      "ashlar": "bricks",
+      "iron_vein": "speckled"
     }
   },
   "srgbAsLinearKits": [

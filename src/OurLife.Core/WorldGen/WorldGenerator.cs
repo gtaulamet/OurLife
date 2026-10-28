@@ -8,7 +8,7 @@ namespace OurLife.Core.WorldGen;
 
 /// <summary>
 /// Generates the map of a new game from a <see cref="WorldGenDef"/>: relief, soil, strata, ramps,
-/// grass and plants (see <c>docs/gdd/mapa-y-generacion.md</c>). Every layer draws from its own
+/// ore veins, grass and plants (see <c>docs/gdd/mapa-y-generacion.md</c>). Every layer draws from its own
 /// random stream, so the same seed and content always give the same map.
 /// </summary>
 public static class WorldGenerator
@@ -31,7 +31,7 @@ public static class WorldGenerator
             throw new InvalidOperationException("The simulation already has a map.");
         }
 
-        var problems = settings.ProblemsWith(simulation.Content).ToList();
+        var problems = settings.ProblemsWith(simulation.Content).Concat(OreVeins.Problems(simulation.Content)).ToList();
         if (problems.Count > 0)
         {
             throw new ArgumentException(
@@ -42,6 +42,11 @@ public static class WorldGenerator
         var map = new GameMap(new MapSize(settings.Width, settings.Height, settings.Depth), content.All<MaterialDef>());
         var surface = BuildSurface(simulation.Random, settings);
         FillColumns(map, surface, simulation.Random, settings, content);
+
+        // The fog depends on shapes alone, so it is known before the veins, which look for what is in sight.
+        map.ComputeDiscovered();
+        OreVeins.Generate(simulation, map, surface);
+
         PlantVegetation(simulation, map, surface, settings, content);
         var connectivity = FreeEnclosedSurface(simulation, map);
         simulation.AttachMap(map, connectivity);

@@ -40,6 +40,7 @@ internal static class DefTypes
         ("KnowledgeConfig", typeof(KnowledgeConfigDef), null),
         ("Crop", typeof(CropDef), "crop"),
         ("SpoilageConfig", typeof(SpoilageConfigDef), null),
+        ("OreVein", typeof(OreVeinDef), null),
     ];
 
     public static IEnumerable<string> Names => Known.Select(entry => entry.Name);

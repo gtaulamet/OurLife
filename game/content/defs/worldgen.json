@@ -31,5 +31,17 @@
       { "plant": "oak", "chance": 350, "minElevation": -5, "maxElevation": 4 },
       { "plant": "pine", "chance": 400, "minElevation": 2, "maxElevation": 20 }
     ]
+  },
+  {
+    "type": "OreVein",
+    "id": "iron",
+    "era": "medieval",
+    "material": "iron_vein",
+    "hosts": ["sandstone", "limestone"],
+    "veins": { "min": 6, "max": 9 },
+    "cells": { "min": 10, "max": 24 },
+    "minFit": 6,
+    "attempts": 200,
+    "outcrop": { "veins": 1, "radius": 40 }
   }
 ]
