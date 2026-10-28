@@ -118,6 +118,9 @@ public partial class GameInput : Node3D
     /// <summary>Raised by the key of the list of rooms, under the same rules.</summary>
     public event Action? RoomPanelRequested;
 
+    /// <summary>Raised by the key of the inventory, under the same rules.</summary>
+    public event Action? InventoryPanelRequested;
+
     /// <summary>Raised by the key of the layer of rooms, under the same rules.</summary>
     public event Action? RoomLayerRequested;
 
@@ -395,6 +398,11 @@ public partial class GameInput : Node3D
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleRooms))
         {
             RoomPanelRequested?.Invoke();
+        }
+
+        if (Godot.Input.IsActionJustPressed(InputActions.ToggleInventory))
+        {
+            InventoryPanelRequested?.Invoke();
         }
 
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleRoomLayer))

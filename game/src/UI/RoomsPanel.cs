@@ -31,6 +31,7 @@ public partial class RoomsPanel : PanelContainer
     private GameInput _input = null!;
     private WorldView _view = null!;
     private VBoxContainer _column = null!;
+    private ScrollContainer _fit = null!;
     private Button _layer = null!;
     private VBoxContainer _list = null!;
     private VBoxContainer _beds = null!;
@@ -54,7 +55,11 @@ public partial class RoomsPanel : PanelContainer
         var panel = new RoomsPanel { Name = nameof(RoomsPanel), _services = services, _session = session, _input = input, _view = view, Visible = false };
         panel._column = new VBoxContainer();
         panel._column.AddThemeConstantOverride("separation", 6);
-        panel.AddChild(panel._column);
+
+        // The whole panel scrolls rather than reach the event log on a small canvas (UiBuilder.FitToCanvas).
+        panel._fit = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        panel.AddChild(panel._fit);
+        panel._fit.AddChild(panel._column);
         panel._column.AddChild(new Label { Text = "ui.rooms.title" });
         panel._layer = new Button { Text = "ui.rooms.overlay", ToggleMode = true, FocusMode = FocusModeEnum.None, SizeFlagsHorizontal = SizeFlags.ShrinkBegin };
         panel._layer.Pressed += () => view.RoomLayer.Shown = !view.RoomLayer.Shown;
@@ -135,6 +140,7 @@ public partial class RoomsPanel : PanelContainer
             return;
         }
 
+        UiBuilder.FitToCanvas(_fit, _column);
         _sinceRefresh += delta;
         if (_sinceRefresh >= RefreshSeconds)
         {

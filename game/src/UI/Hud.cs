@@ -25,8 +25,9 @@ public partial class Hud : CanvasLayer
     private const int Margin = 12;
     private const int Gap = 8;
 
-    // Under the top bar, where the left column and the inspector start.
-    private const int PanelsTop = 56;
+    // Under the top bar, where the left column and the inspector start: the bar's own height is read
+    // once it has been laid out (PlacePanels); this is where it starts until then.
+    private const int PanelsTopDefault = 90;
 
     // The frames per second are counted over this long, and shown again as often.
     private const double FpsSeconds = 0.5;
@@ -81,6 +82,14 @@ public partial class Hud : CanvasLayer
     /// <summary>The list of rooms and the assignment of beds, opened with the key or its button.</summary>
     public RoomsPanel Rooms { get; private set; } = null!;
 
+    /// <summary>What the colony has, by category with quality and freshness, opened with the key or its button.</summary>
+    public InventoryPanel Inventory { get; private set; } = null!;
+
+    // The panels that open under the top bar, one at a time, and the column they sit in.
+    private Control[] _panels = [];
+    private VBoxContainer _left = null!;
+    private float _panelsTop = PanelsTopDefault;
+
     private Label _research = null!;
     private HBoxContainer _researchRow = null!;
     private double _sinceResearch;
@@ -124,13 +133,12 @@ public partial class Hud : CanvasLayer
         root.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         hud.AddChild(root);
 
-        root.AddChild(hud.BuildTopBar(colonyName));
         root.AddChild(hud.BuildBottom());
 
         // Under the top bar on the left: the alerts, or the colony panel when it is open. The panel
         // says what every colonist does, and with the alerts above it, it reached the event log on
         // a small canvas (docs/gdd/tamano-de-la-interfaz.md).
-        var left = new VBoxContainer { Name = "Left", MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(Margin, PanelsTop) };
+        var left = new VBoxContainer { Name = "Left", MouseFilter = Control.MouseFilterEnum.Ignore, Position = new Vector2(Margin, PanelsTopDefault) };
         left.AddThemeConstantOverride("separation", Gap);
         root.AddChild(left);
         hud._alerts = new VBoxContainer { Name = "Alerts", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
@@ -150,43 +158,104 @@ public partial class Hud : CanvasLayer
         left.AddChild(hud.Knowledge);
         hud.Rooms = RoomsPanel.Create(services, session, input, view);
         left.AddChild(hud.Rooms);
+        hud.Inventory = InventoryPanel.Create(services, session);
+        left.AddChild(hud.Inventory);
+        hud._left = left;
+        hud._panels = [hud.Colony, hud.Production, hud.Knowledge, hud.Rooms, hud.Inventory];
+
+        // After the panels it has buttons for, and over them: they never share its place.
+        root.AddChild(hud.BuildTopBar(colonyName));
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
-        hud.Inspector.Position = new Vector2(-Margin, PanelsTop);
+        hud.Inspector.Position = new Vector2(-Margin, PanelsTopDefault);
         hud.Inspector.GrowHorizontal = Control.GrowDirection.Begin;
         root.AddChild(hud.Inspector);
 
         hud.Sheet = ColonistSheet.Create(services, session);
         root.AddChild(hud.Sheet);
+        hud.Sheet.VisibilityChanged += () => hud.Inspector.SetCovered(hud.Sheet.Visible);
 
         input.SelectionChanged += hud.Inspector.Inspect;
         input.SelectionChanged += hud.FollowSelection;
         input.SheetRequested += hud.OnSheetKey;
-        input.CloseFirst = () =>
-        {
-            if (!hud.Sheet.Visible)
-            {
-                return false;
-            }
-
-            hud.Sheet.Close();
-            return true;
-        };
+        input.CloseFirst = hud.CloseOpenPanel;
         hud.Inspector.SheetRequested += hud.ToggleSheet;
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
         input.FarmChanged += hud.OnFarmChanged;
-        input.ColonyPanelRequested += hud.Colony.Toggle;
-        input.ProductionPanelRequested += hud.Production.Toggle;
-        input.KnowledgePanelRequested += hud.Knowledge.Toggle;
-        input.RoomPanelRequested += hud.Rooms.Toggle;
+        input.ColonyPanelRequested += () => hud.TogglePanel(hud.Colony);
+        input.ProductionPanelRequested += () => hud.TogglePanel(hud.Production);
+        input.KnowledgePanelRequested += () => hud.TogglePanel(hud.Knowledge);
+        input.RoomPanelRequested += () => hud.TogglePanel(hud.Rooms);
+        input.InventoryPanelRequested += () => hud.TogglePanel(hud.Inventory);
         input.RoomLayerRequested += hud.ToggleRoomLayer;
         input.SelectionChanged += hud.Rooms.FollowSelection;
         session.ClockChanged += hud.RefreshTimeButtons;
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
         return hud;
+    }
+
+    /// <summary>
+    /// Opens a panel of the left column or closes it. Only one of them is open at a time (the colony's
+    /// table, the orders, the tree of knowledge, the rooms and the inventory are all wide and tall): opening one
+    /// closes the open one, and the sheet of a colonist, which covers them.
+    /// </summary>
+    public void TogglePanel(Control panel)
+    {
+        if (!panel.Visible)
+        {
+            CloseOpenPanel();
+            Sheet.Close();
+        }
+
+        (panel switch
+        {
+            ColonyPanel colony => colony.Toggle,
+            ProductionPanel production => production.Toggle,
+            KnowledgePanel knowledge => knowledge.Toggle,
+            RoomsPanel rooms => rooms.Toggle,
+            InventoryPanel inventory => inventory.Toggle,
+            _ => (Action)(() => { }),
+        })();
+    }
+
+    /// <summary>Esc: closes the sheet of a colonist or the open panel, whichever is there, and says whether it closed one.</summary>
+    private bool CloseOpenPanel()
+    {
+        if (Sheet.Visible)
+        {
+            Sheet.Close();
+            return true;
+        }
+
+        foreach (var panel in _panels)
+        {
+            if (panel.Visible)
+            {
+                TogglePanel(panel);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>A button of the top bar's second row: it shows the panel's key, and looks pressed while the panel is open.</summary>
+    private void AddPanelButton(HBoxContainer row, Control panel, string key, Texture2D? icon)
+    {
+        var button = new Button { Text = key, ToggleMode = true, FocusMode = Control.FocusModeEnum.None, Icon = icon, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
+        button.Pressed += () => TogglePanel(panel);
+        panel.VisibilityChanged += () => button.SetPressedNoSignal(panel.Visible);
+        row.AddChild(button);
+    }
+
+    /// <summary>Puts the left column and the inspector under the top bar, whatever its height at this size.</summary>
+    private void PlacePanels(float top)
+    {
+        _panelsTop = Mathf.Ceil(top);
+        _left.Position = new Vector2(Margin, _panelsTop);
     }
 
     /// <summary>The key of the layer of rooms: on or off, with or without the list open.</summary>
@@ -204,6 +273,12 @@ public partial class Hud : CanvasLayer
     {
         if (!colonist.IsNone)
         {
+            // The sheet covers the panels of the left column: it replaces the open one.
+            foreach (var panel in _panels.Where(candidate => candidate.Visible))
+            {
+                TogglePanel(panel);
+            }
+
             Sheet.Toggle(colonist);
         }
     }
@@ -317,6 +392,23 @@ public partial class Hud : CanvasLayer
         }
 
         KeepInspectorClear();
+        KeepSheetBelowBar();
+    }
+
+    /// <summary>The sheet is centred, but never over the top bar: on a canvas of 960 × 540 it would cover the buttons of the panels.</summary>
+    private void KeepSheetBelowBar()
+    {
+        if (!Sheet.Visible)
+        {
+            return;
+        }
+
+        var canvas = Sheet.GetViewportRect().Size;
+        var top = Mathf.Max((canvas.Y - Sheet.Size.Y) / 2f, _panelsTop);
+        if (!Mathf.IsEqualApprox(Sheet.Position.Y, top))
+        {
+            Sheet.Position = new Vector2(Sheet.Position.X, top);
+        }
     }
 
     /// <summary>
@@ -326,10 +418,11 @@ public partial class Hud : CanvasLayer
     /// </summary>
     private void KeepInspectorClear()
     {
-        var top = (float)PanelsTop;
-        if (Colony.Visible && Inspector.Visible)
+        var top = _panelsTop;
+        var open = _panels.FirstOrDefault(candidate => candidate.Visible);
+        if (open is not null && Inspector.Visible)
         {
-            var panel = Colony.GetGlobalRect();
+            var panel = open.GetGlobalRect();
             var below = panel.End.Y + Gap;
             if (panel.End.X + Gap > Inspector.GetGlobalRect().Position.X && below + Inspector.Size.Y + Gap <= BottomBarsTop())
             {
@@ -380,7 +473,6 @@ public partial class Hud : CanvasLayer
 
         var time = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         time.AddThemeConstantOverride("separation", Gap / 2);
-        row.AddChild(time);
 
         _pause = new Button { Text = "ui.hud.pause", ToggleMode = true, FocusMode = Control.FocusModeEnum.None };
         _pause.Pressed += () => _session.TogglePause();
@@ -393,28 +485,29 @@ public partial class Hud : CanvasLayer
             _speedButtons.Add((speed, button));
         }
 
-        var colony = new Button { Text = "ui.colony.button", FocusMode = Control.FocusModeEnum.None };
-        colony.Pressed += () => Colony.Toggle();
-        row.AddChild(colony);
-        var production = new Button { Text = "ui.production.button", FocusMode = Control.FocusModeEnum.None };
-        production.Pressed += () => Production.Toggle();
-        row.AddChild(production);
-        var knowledge = new Button { Text = "ui.knowledge.button", FocusMode = Control.FocusModeEnum.None };
-        knowledge.Pressed += () => Knowledge.Toggle();
-        row.AddChild(knowledge);
-        // An icon with its name in the tooltip: the top bar has no more room for a word (docs/gdd/tamano-de-la-interfaz.md).
-        var rooms = new Button
-        {
-            Icon = RoomIcons.Role("bedroom"),
-            FocusMode = Control.FocusModeEnum.None,
-            TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-            TooltipText = "ui.rooms.button",
-        };
-        rooms.Pressed += () => Rooms.Toggle();
-        row.AddChild(rooms);
-
         _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(90, 0), HorizontalAlignment = HorizontalAlignment.Right };
-        row.AddChild(_level);
+
+        // The panels sit on a second row, each with its key in its text (docs/gdd/tamano-de-la-interfaz.md):
+        // with the date and the stock on the first row, everything fits in one line only on a wide canvas.
+        var panels = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        panels.AddThemeConstantOverride("separation", Gap / 2);
+        AddPanelButton(panels, Colony, "ui.colony.button", null);
+        AddPanelButton(panels, Production, "ui.production.button", null);
+        AddPanelButton(panels, Knowledge, "ui.knowledge.button", null);
+        AddPanelButton(panels, Rooms, "ui.rooms.button", RoomIcons.Role("bedroom"));
+        AddPanelButton(panels, Inventory, "ui.inventory.button", null);
+
+        // Time and level at the right end of the second row: the first one keeps its room for the date and the stock.
+        panels.AddChild(new Control { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, MouseFilter = Control.MouseFilterEnum.Ignore });
+        panels.AddChild(time);
+        panels.AddChild(_level);
+        var bar = new VBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        bar.AddThemeConstantOverride("separation", Gap / 2);
+        panel.RemoveChild(row);
+        bar.AddChild(row);
+        bar.AddChild(panels);
+        panel.AddChild(bar);
+        panel.Resized += () => PlacePanels(panel.Position.Y + panel.Size.Y + Gap);
         return panel;
     }
 

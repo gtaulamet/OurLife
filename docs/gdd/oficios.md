@@ -339,9 +339,16 @@ Las claves siguen `docs/i18n.md`. El i18n-specialist ajusta el texto final.
 | `ui.inspector.workshop_inputs` | En el taller: {items} | In the workshop: {items} |
 | `ui.inspector.tool` | Herramienta: {item} | Tool: {item} |
 | `ui.inventory.title` | Inventario | Inventory |
-| `ui.inventory.columns` | Objeto, Cantidad, Calidad, Frescura | Item, Amount, Quality, Freshness |
+| `ui.inventory.button`, `ui.inventory.empty` | Inventario (I), La colonia no tiene nada todavía. | Inventory (I), The colony has nothing yet. |
+| `ui.inventory.col.{item,amount,quality,freshness}` | Objeto, Cantidad, Calidad, Frescura | Item, Amount, Quality, Freshness |
 | `ui.orders.locked_hint` | Requiere: {knowledge} | Requires: {knowledge} |
 | `def.thought.*`, `def.desire.*` | Ver `habitaciones.md` | |
+
+## Panel de inventario (O10)
+
+- Tecla **I** y botón "Inventario (I)" en la segunda fila de la barra superior. Un bloque por categoría de objetos, en el orden del contenido y con su total, y una fila por objeto y calidad: nombre, cantidad, calidad (sólo si no es la usual) y frescura (sólo lo que se pudre; amarilla bajo 40 %, roja bajo 15 %). Lee `Stocks.Totals()`; se actualiza dos veces por segundo mientras está abierto y se desplaza si no entra sobre el registro.
+- **Paneles de IP4** (colonia P, producción O, conocimientos K, habitaciones U, inventario I): se abre uno a la vez, abrir uno cierra el abierto y la ficha del colono, la misma tecla lo cierra y Esc cierra la ficha o el panel abierto antes de abrir el menú de pausa. La ficha (F) tapa el inspector mientras está abierta. Los botones muestran su tecla y se ven presionados mientras su panel está abierto.
+- Captura: `--inventory`.
 
 ## Modelos 3D necesarios
 

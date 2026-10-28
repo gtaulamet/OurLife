@@ -24,6 +24,8 @@ public partial class ProductionPanel : PanelContainer
     private GameServices _services = null!;
     private GameSession _session = null!;
     private VBoxContainer _list = null!;
+    private VBoxContainer _content = null!;
+    private ScrollContainer _scroll = null!;
     private OptionButton _recipes = null!;
     private OptionButton _modes = null!;
     private Label _quantityLabel = null!;
@@ -64,6 +66,7 @@ public partial class ProductionPanel : PanelContainer
             return;
         }
 
+        UiBuilder.FitToCanvas(_scroll, _content);
         _sinceRefresh += delta;
         if (_sinceRefresh >= RefreshSeconds)
         {
@@ -91,7 +94,12 @@ public partial class ProductionPanel : PanelContainer
         var text = _services.Text;
         var column = new VBoxContainer();
         column.AddThemeConstantOverride("separation", 6);
-        AddChild(column);
+
+        // Many orders scroll rather than reach the event log (UiBuilder.FitToCanvas).
+        _scroll = new ScrollContainer { HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        AddChild(_scroll);
+        _scroll.AddChild(column);
+        _content = column;
         column.AddChild(new Label { Text = "ui.production.title" });
         _list = new VBoxContainer();
         _list.AddThemeConstantOverride("separation", 4);

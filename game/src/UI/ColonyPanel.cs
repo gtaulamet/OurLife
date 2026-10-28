@@ -74,7 +74,7 @@ public partial class ColonyPanel : PanelContainer
         panel._scroll = new ScrollContainer
         {
             HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
         };
         panel._scroll.AddChild(panel._grid);
         column.AddChild(panel._scroll);
@@ -332,8 +332,14 @@ public partial class ColonyPanel : PanelContainer
         var chrome = GetThemeStylebox("panel").GetMinimumSize().X;
         var room = Mathf.Max(0, GetViewportRect().Size.X - (2 * SideMargin) - chrome);
         var table = _grid.GetCombinedMinimumSize();
-        var width = Mathf.Min(table.X, room);
-        var height = table.Y + (table.X > room ? _scroll.GetHScrollBar().GetCombinedMinimumSize().Y : 0);
+
+        // Many colonists scroll down rather than push the help and the targets over the event log: what is left under
+        // the table (help, targets and margins) and the bars at the bottom of the canvas stay free (UiBuilder.FitToCanvas).
+        var below = 125f + UiBuilder.BottomReserve;
+        var tall = Mathf.Max(120f, GetViewportRect().Size.Y - _scroll.GetGlobalRect().Position.Y - below);
+        var capped = table.Y > tall;
+        var height = Mathf.Min(table.Y, tall) + (table.X > room ? _scroll.GetHScrollBar().GetCombinedMinimumSize().Y : 0);
+        var width = Mathf.Min(table.X + (capped ? _scroll.GetVScrollBar().GetCombinedMinimumSize().X : 0), room);
         var size = new Vector2(Mathf.Ceil(width), Mathf.Ceil(height));
         if (!_scroll.CustomMinimumSize.IsEqualApprox(size))
         {

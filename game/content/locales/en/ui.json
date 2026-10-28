@@ -306,5 +306,12 @@
   "ui.inspector.room_beds": "{count, plural, one {# bed} other {# beds}}",
   "ui.inspector.room_roles": "Functions: {roles}",
   "ui.inspector.room_owners": "Belongs to {names}",
-  "ui.inspector.sleeps_in_room": "Sleeps in a {level} {role}"
+  "ui.inspector.sleeps_in_room": "Sleeps in a {level} {role}",
+  "ui.inventory.button": "Inventory (I)",
+  "ui.inventory.title": "Inventory",
+  "ui.inventory.empty": "The colony has nothing yet.",
+  "ui.inventory.col.item": "Item",
+  "ui.inventory.col.amount": "Amount",
+  "ui.inventory.col.quality": "Quality",
+  "ui.inventory.col.freshness": "Freshness"
 }

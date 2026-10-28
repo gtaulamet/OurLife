@@ -615,6 +615,11 @@ public partial class GameRoot : Node
             screen.Hud.Colony.Toggle();
         }
 
+        if (options.Inventory)
+        {
+            screen.Hud.Inventory.Toggle();
+        }
+
         if (options.Build)
         {
             screen.Input.ToggleBuild();
@@ -1182,6 +1187,7 @@ public partial class GameRoot : Node
         CheckProduction(screen);
         CheckKnowledge(screen);
         CheckRooms(screen);
+        CheckInventory(screen);
         CheckFarm(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
@@ -1710,6 +1716,43 @@ public partial class GameRoot : Node
         }
 
         GD.Print($"[smoke] the farm tool offers {bar.Count} crops, previews {previewed} cells, draws, shows and cancels a field: '{notice}'");
+    }
+
+    /// <summary>
+    /// The inventory lists what the colony has by category, and the panels of the left column open one at a time
+    /// (docs/gdd/oficios.md, O10). Leaves every panel closed.
+    /// </summary>
+    private static void CheckInventory(GameScreen screen)
+    {
+        var hud = screen.Hud;
+        hud.TogglePanel(hud.Inventory);
+        hud.Inventory.Refresh();
+        var rows = hud.Inventory.RowTexts.ToList();
+        var food = ColonyStock.ByCategory(screen.Session.Simulation).FirstOrDefault(line => line.Count > 0);
+        if (!hud.Inventory.Visible || rows.Count == 0 || rows.Any(row => row.Length == 0 || row.StartsWith("ui.", StringComparison.Ordinal) || row.Contains('{', StringComparison.Ordinal))
+            || (food is not null && !rows.Any(row => row.Contains(food.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal))))
+        {
+            throw new InvalidOperationException($"the inventory shows '{string.Join(" | ", rows)}'");
+        }
+
+        // One at a time: the next one replaces it, and opening the same one again closes it.
+        Control[] panels = [hud.Colony, hud.Production, hud.Knowledge, hud.Rooms, hud.Inventory];
+        foreach (var panel in panels)
+        {
+            hud.TogglePanel(panel);
+            if (!panel.Visible || panels.Count(other => other.Visible) != 1)
+            {
+                throw new InvalidOperationException($"{panel.Name} did not replace the open panel");
+            }
+        }
+
+        hud.TogglePanel(hud.Inventory);
+        if (panels.Any(panel => panel.Visible))
+        {
+            throw new InvalidOperationException("a panel stayed open after its key");
+        }
+
+        GD.Print($"[smoke] the inventory lists {rows.Count} rows and the panels open one at a time: '{rows[0]}'");
     }
 
     /// <summary>The production panel lists an order made by command, with its mode and state, and forgets it when it is removed.</summary>

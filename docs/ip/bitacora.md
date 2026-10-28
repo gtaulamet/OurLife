@@ -43,6 +43,14 @@ En orden:
 
 ## Historial
 
+### 2026-10-28: O10, panel de inventario y orden de los paneles
+
+- **Inventario:** `InventoryPanel` (tecla I, botón en el HUD): bloques por categoría con total, filas por objeto y calidad (cantidad, calidad si no es la usual, frescura de lo que se pudre, amarilla bajo 40 % y roja bajo 15 %). Lee `Stocks.Totals()`; sin cambios en el Core. Captura `--inventory`; el smoke suma `CheckInventory`.
+- **Orden de los paneles:** colonia (P), producción (O), conocimientos (K), habitaciones (U) e inventario (I) se abren de a uno (`Hud.TogglePanel`): abrir uno cierra el abierto y la ficha del colono; Esc cierra la ficha o el panel antes de abrir el menú de pausa; los botones se ven presionados mientras su panel está abierto. La ficha (F) oculta el inspector mientras está abierta.
+- **Barra superior:** dos filas. Primera: villa, fecha y existencias. Segunda: botones de los paneles con su atajo, y a la derecha el tiempo y el nivel. La fecha ya no se corta a 1280 ni a 960 de lienzo; el botón de habitaciones ya dice su nombre. Los paneles y el inspector se colocan bajo la barra según su altura real.
+- **Tamaño de la interfaz:** `UiBuilder.FitToCanvas` limita la altura de producción, conocimientos, habitaciones e inventario al espacio sobre el registro (antes conocimientos y habitaciones lo tapaban a 960 × 540) y la ficha no pasa sobre la barra.
+- **Capturas** (es y en, 100 %, 150 % y 200 %): `out/o10/{colony,production,knowledge,rooms,inventory,inspector,sheet}-{es,en}-{100,150,200}.png`.
+
 ### 2026-10-28: O9, presentación de habitaciones, dormitorios y comedor
 
 - Misma rama `ip4/o9-habitaciones`. Todo en `game/`, más textos es/en; el Core no cambió, así que las huellas del smoke siguen en `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42).

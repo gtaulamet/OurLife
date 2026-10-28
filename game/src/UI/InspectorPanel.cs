@@ -88,8 +88,22 @@ public partial class InspectorPanel : PanelContainer
     public void Inspect(Selection? selection)
     {
         _selection = selection;
-        Visible = selection is not null;
+        Visible = selection is not null && !_covered;
         Refresh();
+    }
+
+    // The sheet of a colonist covers the inspector: it says the same and more, and a panel peeking out from under it looks like a mistake.
+    private bool _covered;
+
+    /// <summary>Hides the inspector while something wider covers its place, and shows it again when it is gone.</summary>
+    public void SetCovered(bool covered)
+    {
+        _covered = covered;
+        Visible = _selection is not null && !covered;
+        if (Visible)
+        {
+            Refresh();
+        }
     }
 
     /// <summary>Raised when the player asks for the sheet of the colonist shown.</summary>

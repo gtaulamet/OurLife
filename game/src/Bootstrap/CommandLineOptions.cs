@@ -67,6 +67,9 @@ public sealed record CommandLineOptions
     /// <summary>Open the knowledge panel, with something in its queue, to see it in screenshots (milestone O5).</summary>
     public bool Knowledge { get; init; }
 
+    /// <summary>Opens the inventory panel, for screenshots and the smoke.</summary>
+    public bool Inventory { get; init; }
+
     /// <summary>Turn the farm tool on, with the first crop the colony knows, to see its bar and its preview in screenshots (milestone O6).</summary>
     public bool Farm { get; init; }
 
@@ -236,6 +239,9 @@ public sealed record CommandLineOptions
                     break;
                 case "--knowledge":
                     options = options with { Knowledge = true };
+                    break;
+                case "--inventory":
+                    options = options with { Inventory = true };
                     break;
                 case "--production":
                     options = options with { Production = true };
@@ -407,7 +413,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, metals={Metals}, rooms={Rooms}, rooms-dining={RoomsDining}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, inventory={Inventory}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, metals={Metals}, rooms={Rooms}, rooms-dining={RoomsDining}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, season={Season ?? "-"}, " +

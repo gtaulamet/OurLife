@@ -23,6 +23,7 @@ public partial class KnowledgePanel : PanelContainer
     private GameServices _services = null!;
     private GameSession _session = null!;
     private VBoxContainer _column = null!;
+    private ScrollContainer _scroll = null!;
     private string _signature = string.Empty;
     private double _sinceRefresh;
 
@@ -33,7 +34,11 @@ public partial class KnowledgePanel : PanelContainer
         var panel = new KnowledgePanel { Name = nameof(KnowledgePanel), _services = services, _session = session, Visible = false };
         panel._column = new VBoxContainer();
         panel._column.AddThemeConstantOverride("separation", 6);
-        panel.AddChild(panel._column);
+
+        // The tree is wide and tall: it scrolls rather than reach the event log (UiBuilder.FitToCanvas).
+        panel._scroll = new ScrollContainer();
+        panel.AddChild(panel._scroll);
+        panel._scroll.AddChild(panel._column);
         return panel;
     }
 
@@ -61,6 +66,7 @@ public partial class KnowledgePanel : PanelContainer
             return;
         }
 
+        UiBuilder.FitToCanvas(_scroll, _column);
         _sinceRefresh += delta;
         if (_sinceRefresh >= RefreshSeconds)
         {

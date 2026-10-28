@@ -6,7 +6,7 @@ namespace OurLife.Game.Input;
 /// <summary>
 /// Input actions of the game, registered in code so <c>project.godot</c> stays minimal. The keys
 /// follow <c>docs/gdd/interfaz-ip1.md</c>: WASD or arrows to move, Q/E to rotate, + and - to zoom, Page Up/Down to change level,
-/// M, B, T, R, N, Z, V, H and X for orders, C to build, U for the list of rooms, L for their layer, J for farm zones, G to turn furniture, P for the colony panel, F for the sheet of the
+/// M, B, T, R, N, Z, V, H and X for orders, C to build, U for the list of rooms, L for their layer, I for the inventory, J for farm zones, G to turn furniture, P for the colony panel, F for the sheet of the
 /// selected colonist, Space and 1 to 3 for time.
 /// </summary>
 public static class InputActions
@@ -44,6 +44,9 @@ public static class InputActions
     /// <summary>Opens or closes the list of rooms and the assignment of beds (see <c>docs/gdd/habitaciones.md</c>).</summary>
     public const string ToggleRooms = "rooms_toggle";
 
+    /// <summary>Opens or closes the inventory of the colony (see "Panel de inventario" in <c>docs/gdd/oficios.md</c>).</summary>
+    public const string ToggleInventory = "inventory_toggle";
+
     /// <summary>Turns the layer of rooms on or off.</summary>
     public const string ToggleRoomLayer = "rooms_layer_toggle";
 
@@ -75,6 +78,7 @@ public static class InputActions
         (ToggleKnowledge, [Key.K]),
         (ToggleSheet, [Key.F]),
         (ToggleRooms, [Key.U]),
+        (ToggleInventory, [Key.I]),
         (ToggleRoomLayer, [Key.L]),
     ];
 

@@ -306,5 +306,12 @@
   "ui.inspector.room_beds": "{count, plural, one {# cama} other {# camas}}",
   "ui.inspector.room_roles": "Funciones: {roles}",
   "ui.inspector.room_owners": "De {names}",
-  "ui.inspector.sleeps_in_room": "Duerme en un {role} {level}"
+  "ui.inspector.sleeps_in_room": "Duerme en un {role} {level}",
+  "ui.inventory.button": "Inventario (I)",
+  "ui.inventory.title": "Inventario",
+  "ui.inventory.empty": "La colonia no tiene nada todavía.",
+  "ui.inventory.col.item": "Objeto",
+  "ui.inventory.col.amount": "Cantidad",
+  "ui.inventory.col.quality": "Calidad",
+  "ui.inventory.col.freshness": "Frescura"
 }

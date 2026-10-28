@@ -70,4 +70,27 @@ public static class UiBuilder
         button.Pressed += pressed;
         return button;
     }
+
+    // What the bottom of the canvas keeps for itself: the event log and the orders bar.
+    public const float BottomReserve = 205;
+
+    /// <summary>
+    /// Sizes a scroll to its content, up to the room a panel has: under the top bar and over the event log and the orders
+    /// bar, and not past the right edge of the canvas. A panel that would reach the log scrolls instead
+    /// (docs/gdd/tamano-de-la-interfaz.md). Call it again when the content changes or the panel is laid out anew.
+    /// </summary>
+    public static void FitToCanvas(ScrollContainer scroll, Control content)
+    {
+        var canvas = scroll.GetViewportRect().Size;
+        var origin = scroll.GetGlobalRect().Position;
+        var wanted = content.GetCombinedMinimumSize();
+        var room = new Vector2(Mathf.Max(240f, canvas.X - origin.X - 24f), Mathf.Max(120f, canvas.Y - origin.Y - BottomReserve));
+
+        // A scroll bar takes some room of its own.
+        var size = new Vector2(Mathf.Min(wanted.X + (wanted.Y > room.Y ? 12f : 0f), room.X), Mathf.Min(wanted.Y + (wanted.X > room.X ? 12f : 0f), room.Y));
+        if (scroll.CustomMinimumSize != size)
+        {
+            scroll.CustomMinimumSize = size;
+        }
+    }
 }
