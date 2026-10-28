@@ -16,7 +16,7 @@ namespace OurLife.Game.UI;
 /// queued one takes it out. Under the tree, the queue, with buttons to reorder it, and a warning
 /// when there is no scriptorium. It is built again only when something it shows changes.
 /// </summary>
-public partial class KnowledgePanel : PanelContainer
+public partial class KnowledgePanel : PanelContainer, IToggleablePanel
 {
     private const double RefreshSeconds = 0.25;
 

@@ -71,23 +71,39 @@ public static class UiBuilder
         return button;
     }
 
-    // What the bottom of the canvas keeps for itself: the event log and the orders bar.
-    public const float BottomReserve = 205;
+    // Until the HUD has measured it: about what the event log and one bar keep for themselves.
+    private const float DefaultBottomReserve = 205;
 
     /// <summary>
-    /// Sizes a scroll to its content, up to the room a panel has: under the top bar and over the event log and the orders
-    /// bar, and not past the right edge of the canvas. A panel that would reach the log scrolls instead
-    /// (docs/gdd/tamano-de-la-interfaz.md). Call it again when the content changes or the panel is laid out anew.
+    /// Where the bottom of the canvas starts (the event log and the rows above it that come and go: hint, build bar, farm bar),
+    /// measured by the HUD every frame. NaN until it has.
     /// </summary>
-    public static void FitToCanvas(ScrollContainer scroll, Control content)
+    public static float BottomEdge { get; set; } = float.NaN;
+
+    /// <summary>
+    /// Sizes a scroll to its content, up to the room a panel has: under the top bar and over the bottom bars and the event
+    /// log (<see cref="BottomEdge"/>), and not past the right edge of the canvas. A panel that would not fit scrolls instead,
+    /// down and, when the content is wider than the room, sideways too (docs/gdd/tamano-de-la-interfaz.md). Call it again when
+    /// the content changes or the panel is laid out anew. <paramref name="below"/> is what the panel keeps under the scroll.
+    /// </summary>
+    public static void FitToCanvas(ScrollContainer scroll, Control content, float below = 0f)
     {
         var canvas = scroll.GetViewportRect().Size;
         var origin = scroll.GetGlobalRect().Position;
         var wanted = content.GetCombinedMinimumSize();
-        var room = new Vector2(Mathf.Max(240f, canvas.X - origin.X - 24f), Mathf.Max(120f, canvas.Y - origin.Y - BottomReserve));
+        var bottom = float.IsNaN(BottomEdge) ? canvas.Y - DefaultBottomReserve : BottomEdge;
+        var room = new Vector2(Mathf.Max(240f, canvas.X - origin.X - 24f), Mathf.Max(120f, bottom - origin.Y - below));
 
-        // A scroll bar takes some room of its own.
-        var size = new Vector2(Mathf.Min(wanted.X + (wanted.Y > room.Y ? 12f : 0f), room.X), Mathf.Min(wanted.Y + (wanted.X > room.X ? 12f : 0f), room.Y));
+        // A scroll bar takes some room of its own, and only the one that shows.
+        var sideways = wanted.X > room.X;
+        var down = wanted.Y > room.Y;
+        var mode = sideways ? ScrollContainer.ScrollMode.Auto : ScrollContainer.ScrollMode.Disabled;
+        if (scroll.HorizontalScrollMode != mode)
+        {
+            scroll.HorizontalScrollMode = mode;
+        }
+
+        var size = new Vector2(Mathf.Min(wanted.X + (down ? 12f : 0f), room.X), Mathf.Min(wanted.Y + (sideways ? 12f : 0f), room.Y));
         if (scroll.CustomMinimumSize != size)
         {
             scroll.CustomMinimumSize = size;

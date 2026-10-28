@@ -313,5 +313,6 @@
   "ui.inventory.col.item": "Item",
   "ui.inventory.col.amount": "Amount",
   "ui.inventory.col.quality": "Quality",
-  "ui.inventory.col.freshness": "Freshness"
+  "ui.inventory.col.freshness": "Freshness",
+  "ui.inventory.freshness": "{percent} %"
 }

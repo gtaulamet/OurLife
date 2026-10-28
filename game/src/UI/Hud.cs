@@ -86,7 +86,9 @@ public partial class Hud : CanvasLayer
     public InventoryPanel Inventory { get; private set; } = null!;
 
     // The panels that open under the top bar, one at a time, and the column they sit in.
-    private Control[] _panels = [];
+    private IToggleablePanel[] _panels = [];
+    private Control _sheetHost = null!;
+    private Control _bottom = null!;
     private VBoxContainer _left = null!;
     private float _panelsTop = PanelsTopDefault;
 
@@ -172,8 +174,16 @@ public partial class Hud : CanvasLayer
         hud.Inspector.GrowHorizontal = Control.GrowDirection.Begin;
         root.AddChild(hud.Inspector);
 
+        // The sheet sits centred in what is left under the top bar: a container places it, so it never fights its anchors.
+        hud._sheetHost = new Control { Name = "SheetHost", MouseFilter = Control.MouseFilterEnum.Ignore };
+        hud._sheetHost.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        hud._sheetHost.OffsetTop = PanelsTopDefault;
+        var centre = new CenterContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
+        centre.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+        hud._sheetHost.AddChild(centre);
+        root.AddChild(hud._sheetHost);
         hud.Sheet = ColonistSheet.Create(services, session);
-        root.AddChild(hud.Sheet);
+        centre.AddChild(hud.Sheet);
         hud.Sheet.VisibilityChanged += () => hud.Inspector.SetCovered(hud.Sheet.Visible);
 
         input.SelectionChanged += hud.Inspector.Inspect;
@@ -202,23 +212,16 @@ public partial class Hud : CanvasLayer
     /// table, the orders, the tree of knowledge, the rooms and the inventory are all wide and tall): opening one
     /// closes the open one, and the sheet of a colonist, which covers them.
     /// </summary>
-    public void TogglePanel(Control panel)
+    public void TogglePanel(IToggleablePanel panel)
     {
+        ArgumentNullException.ThrowIfNull(panel);
         if (!panel.Visible)
         {
             CloseOpenPanel();
             Sheet.Close();
         }
 
-        (panel switch
-        {
-            ColonyPanel colony => colony.Toggle,
-            ProductionPanel production => production.Toggle,
-            KnowledgePanel knowledge => knowledge.Toggle,
-            RoomsPanel rooms => rooms.Toggle,
-            InventoryPanel inventory => inventory.Toggle,
-            _ => (Action)(() => { }),
-        })();
+        panel.Toggle();
     }
 
     /// <summary>Esc: closes the sheet of a colonist or the open panel, whichever is there, and says whether it closed one.</summary>
@@ -243,7 +246,8 @@ public partial class Hud : CanvasLayer
     }
 
     /// <summary>A button of the top bar's second row: it shows the panel's key, and looks pressed while the panel is open.</summary>
-    private void AddPanelButton(HBoxContainer row, Control panel, string key, Texture2D? icon)
+    private void AddPanelButton<T>(HBoxContainer row, T panel, string key, Texture2D? icon)
+        where T : Control, IToggleablePanel
     {
         var button = new Button { Text = key, ToggleMode = true, FocusMode = Control.FocusModeEnum.None, Icon = icon, TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
         button.Pressed += () => TogglePanel(panel);
@@ -256,6 +260,7 @@ public partial class Hud : CanvasLayer
     {
         _panelsTop = Mathf.Ceil(top);
         _left.Position = new Vector2(Margin, _panelsTop);
+        _sheetHost.OffsetTop = _panelsTop;
     }
 
     /// <summary>The key of the layer of rooms: on or off, with or without the list open.</summary>
@@ -391,23 +396,27 @@ public partial class Hud : CanvasLayer
             RefreshAlerts(force: false);
         }
 
+        KeepBottomEdge();
         KeepInspectorClear();
-        KeepSheetBelowBar();
     }
 
-    /// <summary>The sheet is centred, but never over the top bar: on a canvas of 960 × 540 it would cover the buttons of the panels.</summary>
-    private void KeepSheetBelowBar()
+    /// <summary>
+    /// Tells the panels where the bottom of the canvas starts: the top of the column with the event log, the hint and the
+    /// bars of orders, build and farm, as they are laid out now. Those rows come and go, so it is measured, not assumed.
+    /// </summary>
+    private void KeepBottomEdge()
     {
-        if (!Sheet.Visible)
+        var edge = _bottom.GetGlobalRect().Position.Y - Gap;
+        if (!Mathf.IsEqualApprox(UiBuilder.BottomEdge, edge))
         {
-            return;
+            UiBuilder.BottomEdge = edge;
         }
 
-        var canvas = Sheet.GetViewportRect().Size;
-        var top = Mathf.Max((canvas.Y - Sheet.Size.Y) / 2f, _panelsTop);
-        if (!Mathf.IsEqualApprox(Sheet.Position.Y, top))
+        // The sheet may cover the log, but not the bar of orders: its room ends where that bar starts.
+        var bars = _ordersBar.GetGlobalRect().Position.Y - Gap - _sheetHost.GetViewportRect().Size.Y;
+        if (!Mathf.IsEqualApprox(_sheetHost.OffsetBottom, bars))
         {
-            Sheet.Position = new Vector2(Sheet.Position.X, top);
+            _sheetHost.OffsetBottom = bars;
         }
     }
 
@@ -452,7 +461,7 @@ public partial class Hud : CanvasLayer
         panel.OffsetRight = -Margin;
         panel.OffsetTop = Margin;
 
-        // Everything fits in one line down to a canvas of 960 × 540 (docs/gdd/tamano-de-la-interfaz.md).
+        // First row: the village, the date and the stock; the panels' buttons and the time have a second row under it (docs/gdd/tamano-de-la-interfaz.md).
         var row = new HBoxContainer { MouseFilter = Control.MouseFilterEnum.Ignore };
         row.AddThemeConstantOverride("separation", Gap + (Gap / 4));
         panel.AddChild(row);
@@ -513,7 +522,7 @@ public partial class Hud : CanvasLayer
 
     private Control BuildBottom()
     {
-        var column = new VBoxContainer { Name = "Bottom", MouseFilter = Control.MouseFilterEnum.Ignore };
+        var column = _bottom = new VBoxContainer { Name = "Bottom", MouseFilter = Control.MouseFilterEnum.Ignore };
         column.SetAnchorsPreset(Control.LayoutPreset.BottomWide);
         column.OffsetLeft = Margin;
         column.OffsetRight = -Margin;

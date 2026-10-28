@@ -21,7 +21,7 @@ namespace OurLife.Game.UI;
 /// <see cref="RoomRules.SuggestAssignments"/> suggests, so the choice of which bed is the Core's. While the panel is
 /// open the layer of rooms shows. The rows are built again only when something they show changes.
 /// </summary>
-public partial class RoomsPanel : PanelContainer
+public partial class RoomsPanel : PanelContainer, IToggleablePanel
 {
     private const double RefreshSeconds = 0.25;
 

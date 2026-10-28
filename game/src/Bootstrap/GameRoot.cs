@@ -496,7 +496,7 @@ public partial class GameRoot : Node
                 screen.Advance(0);
             }
 
-            screen.Hud.Rooms.Toggle();
+            screen.Hud.TogglePanel(screen.Hud.Rooms);
             var chosen = Rooms.At(simulation, options.RoomsDining ? built.DiningCell : built.BedroomCell);
             if (chosen is not null)
             {
@@ -602,22 +602,22 @@ public partial class GameRoot : Node
             screen.Session.Enqueue(new SetResearchQueueCommand(["stonecutting", "agriculture"]));
             screen.Advance(1);
             screen.Hud.RefreshResearch();
-            screen.Hud.Knowledge.Toggle();
+            screen.Hud.TogglePanel(screen.Hud.Knowledge);
         }
 
         if (options.Production)
         {
-            screen.Hud.Production.Toggle();
+            screen.Hud.TogglePanel(screen.Hud.Production);
         }
 
         if (options.Colony)
         {
-            screen.Hud.Colony.Toggle();
+            screen.Hud.TogglePanel(screen.Hud.Colony);
         }
 
         if (options.Inventory)
         {
-            screen.Hud.Inventory.Toggle();
+            screen.Hud.TogglePanel(screen.Hud.Inventory);
         }
 
         if (options.Build)
@@ -1722,24 +1722,64 @@ public partial class GameRoot : Node
     /// The inventory lists what the colony has by category, and the panels of the left column open one at a time
     /// (docs/gdd/oficios.md, O10). Leaves every panel closed.
     /// </summary>
-    private static void CheckInventory(GameScreen screen)
+    private void CheckInventory(GameScreen screen)
     {
         var hud = screen.Hud;
-        hud.TogglePanel(hud.Inventory);
-        hud.Inventory.Refresh();
-        var rows = hud.Inventory.RowTexts.ToList();
-        var food = ColonyStock.ByCategory(screen.Session.Simulation).FirstOrDefault(line => line.Count > 0);
-        if (!hud.Inventory.Visible || rows.Count == 0 || rows.Any(row => row.Length == 0 || row.StartsWith("ui.", StringComparison.Ordinal) || row.Contains('{', StringComparison.Ordinal))
-            || (food is not null && !rows.Any(row => row.Contains(food.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal))))
+        var simulation = screen.Session.Simulation;
+        var text = _services!.Text;
+        Control[] panels = [hud.Colony, hud.Production, hud.Knowledge, hud.Rooms, hud.Inventory];
+
+        // Whatever an earlier check left open is closed first, so the next toggle opens the inventory.
+        foreach (var open in panels.Where(panel => panel.Visible))
         {
-            throw new InvalidOperationException($"the inventory shows '{string.Join(" | ", rows)}'");
+            hud.TogglePanel((IToggleablePanel)open);
         }
 
+        hud.TogglePanel(hud.Inventory);
+        hud.Inventory.Refresh();
+        if (!hud.Inventory.Visible)
+        {
+            throw new InvalidOperationException("the inventory did not open");
+        }
+
+        // The columns' names are words, not keys.
+        var titles = hud.Inventory.ColumnTitles.ToList();
+        if (titles.Count != 4 || titles.Any(title => title.Length == 0 || title.StartsWith("ui.", StringComparison.Ordinal)))
+        {
+            throw new InvalidOperationException($"the inventory columns read '{string.Join(" | ", titles)}'");
+        }
+
+        // Every stack the colony has is a row: under its category, with its name and its exact amount in its own cell.
+        var totals = Stocks.Totals(simulation);
+        var shown = hud.Inventory.Entries;
+        var categories = ItemCategoryDef.InOrder(simulation.Content).ToDictionary(category => category.Id, category => text.CategoryName(category), StringComparer.Ordinal);
+        if (shown.Count != totals.Count)
+        {
+            throw new InvalidOperationException($"the colony has {totals.Count} stacks and the inventory shows {shown.Count}: '{string.Join(" | ", hud.Inventory.RowTexts)}'");
+        }
+
+        foreach (var total in totals)
+        {
+            var name = text.Capitalized(text.Format(total.Item.NameKey!, ("count", total.Count)));
+            var amount = total.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!shown.Any(row => row.Category == categories[total.Item.Category] && row.Item == name && row.Amount == amount))
+            {
+                throw new InvalidOperationException($"the inventory has no row of {name} x{amount} under {categories[total.Item.Category]}: '{string.Join(" | ", hud.Inventory.RowTexts)}'");
+            }
+        }
+
+        if (shown.Count == 0 || shown.Any(row => new[] { row.Category, row.Item, row.Amount, row.Quality, row.Freshness }.Any(cell => cell.StartsWith("ui.", StringComparison.Ordinal) || cell.Contains('{', StringComparison.Ordinal))))
+        {
+            throw new InvalidOperationException($"the inventory shows an empty row or a raw key: '{string.Join(" | ", hud.Inventory.RowTexts)}'");
+        }
+
+        var rows = hud.Inventory.RowTexts;
+
         // One at a time: the next one replaces it, and opening the same one again closes it.
-        Control[] panels = [hud.Colony, hud.Production, hud.Knowledge, hud.Rooms, hud.Inventory];
+        hud.TogglePanel(hud.Inventory);
         foreach (var panel in panels)
         {
-            hud.TogglePanel(panel);
+            hud.TogglePanel((IToggleablePanel)panel);
             if (!panel.Visible || panels.Count(other => other.Visible) != 1)
             {
                 throw new InvalidOperationException($"{panel.Name} did not replace the open panel");
@@ -1752,7 +1792,7 @@ public partial class GameRoot : Node
             throw new InvalidOperationException("a panel stayed open after its key");
         }
 
-        GD.Print($"[smoke] the inventory lists {rows.Count} rows and the panels open one at a time: '{rows[0]}'");
+        GD.Print($"[smoke] the inventory lists {shown.Count} stacks in {rows.Count} rows and the panels open one at a time: '{rows[0]}'");
     }
 
     /// <summary>The production panel lists an order made by command, with its mode and state, and forgets it when it is removed.</summary>

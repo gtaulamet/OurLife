@@ -20,7 +20,7 @@ namespace OurLife.Game.UI;
 /// colonists come or go, or the language changes, and their texts refresh a few times per second
 /// while the panel is open.
 /// </summary>
-public partial class ColonyPanel : PanelContainer
+public partial class ColonyPanel : PanelContainer, IToggleablePanel
 {
     private const double RefreshSeconds = 0.25;
 
@@ -43,9 +43,6 @@ public partial class ColonyPanel : PanelContainer
     private long _pendingTick = -1;
     private double _sinceRefresh;
     private ScrollContainer _scroll = null!;
-
-    // Room the panel leaves at the sides of the canvas: the margin of the HUD on each side.
-    private const float SideMargin = 12;
 
     public static ColonyPanel Create(GameServices services, GameSession session, GameInput input)
     {
@@ -325,26 +322,21 @@ public partial class ColonyPanel : PanelContainer
     /// <summary>
     /// The table's scroll gets the width of the table when it fits the canvas, or what is left of
     /// the canvas when it does not, so the panel never goes past the screen (960 × 540 and every
-    /// size of the interface). The scrollbar's room is added to the height, so no row is covered.
+    /// size of the interface). The help and the targets under the table are measured, and the bars at
+    /// the bottom of the canvas stay free (<see cref="UiBuilder.FitToCanvas"/>).
     /// </summary>
     private void FitScroll()
     {
-        var chrome = GetThemeStylebox("panel").GetMinimumSize().X;
-        var room = Mathf.Max(0, GetViewportRect().Size.X - (2 * SideMargin) - chrome);
-        var table = _grid.GetCombinedMinimumSize();
-
-        // Many colonists scroll down rather than push the help and the targets over the event log: what is left under
-        // the table (help, targets and margins) and the bars at the bottom of the canvas stay free (UiBuilder.FitToCanvas).
-        var below = 125f + UiBuilder.BottomReserve;
-        var tall = Mathf.Max(120f, GetViewportRect().Size.Y - _scroll.GetGlobalRect().Position.Y - below);
-        var capped = table.Y > tall;
-        var height = Mathf.Min(table.Y, tall) + (table.X > room ? _scroll.GetHScrollBar().GetCombinedMinimumSize().Y : 0);
-        var width = Mathf.Min(table.X + (capped ? _scroll.GetVScrollBar().GetCombinedMinimumSize().X : 0), room);
-        var size = new Vector2(Mathf.Ceil(width), Mathf.Ceil(height));
-        if (!_scroll.CustomMinimumSize.IsEqualApprox(size))
+        var chrome = GetThemeStylebox("panel").GetMinimumSize();
+        var column = _scroll.GetParent<VBoxContainer>();
+        var separation = column.GetThemeConstant("separation");
+        var below = chrome.Y;
+        foreach (var child in column.GetChildren().OfType<Control>().Where(child => child != _scroll && child.Visible))
         {
-            _scroll.CustomMinimumSize = size;
+            below += separation + child.GetCombinedMinimumSize().Y;
         }
+
+        UiBuilder.FitToCanvas(_scroll, _grid, below);
     }
 
     /// <summary>

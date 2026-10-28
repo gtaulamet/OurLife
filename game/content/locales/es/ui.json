@@ -313,5 +313,6 @@
   "ui.inventory.col.item": "Objeto",
   "ui.inventory.col.amount": "Cantidad",
   "ui.inventory.col.quality": "Calidad",
-  "ui.inventory.col.freshness": "Frescura"
+  "ui.inventory.col.freshness": "Frescura",
+  "ui.inventory.freshness": "{percent} %"
 }

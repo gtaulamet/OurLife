@@ -16,7 +16,7 @@ namespace OurLife.Game.UI;
 /// form of a new order: a recipe, a mode and a number. The rows refresh a few times per second
 /// while the panel is open, and are built again only when something they show changes.
 /// </summary>
-public partial class ProductionPanel : PanelContainer
+public partial class ProductionPanel : PanelContainer, IToggleablePanel
 {
     private const double RefreshSeconds = 0.25;
     private const int DefaultQuantity = 5;
