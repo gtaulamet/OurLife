@@ -2,7 +2,7 @@
 
 Seguimiento de los 41 modelos `.glb` propios que faltan. Los requisitos y las descripciones de arte están en `docs/art.md` (sección "Modelos propios pendientes"). Este documento lleva la cuenta de qué falta y qué ya se hizo.
 
-Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imágenes, `.blend`, scripts) quedan en `MODELS/`, que no se versiona.
+Los archivos van en `game/assets/models/ourlife/`. Los scripts que generan los modelos están en `tools/models/` (ver su `README.md`); la salida va a `MODELS/`, que no se versiona.
 
 ## Progreso
 
@@ -37,7 +37,7 @@ Nada nuevo entra a mitad de una IP: si este trabajo cae en medio de una, se agen
 
 ## Fase 1: puestos de trabajo y cuna (prioridad alta)
 
-Estado (28 de octubre): integrada. Los 5 `.glb` están en `game/assets/models/ourlife/` y en `visuals.json`: los cuatro puestos a escala 0,8 y la cuna a 0,7 con `restHeight` 0,2. Generados con `MODELS/generador/fase1.py`. Probados en la vista previa de muebles (`--furniture`), con `dotnet test` y el smoke en verde. Falta revisar a ojo la cuna con el bebé dentro y los puestos con un colono trabajando, y el color de cada material.
+Estado (28 de octubre): integrada. Los 5 `.glb` están en `game/assets/models/ourlife/` y en `visuals.json`: los cuatro puestos a escala 0,8 y la cuna a 0,7 con `restHeight` 0,2. Generados con `tools/models/fase1.py`. Probados en la vista previa de muebles (`--furniture`), con `dotnet test` y el smoke en verde. Falta revisar a ojo la cuna con el bebé dentro y los puestos con un colono trabajando, y el color de cada material.
 
 Los cuatro puestos usan hoy la misma `table_small`.
 
@@ -51,7 +51,7 @@ Los cuatro puestos usan hoy la misma `table_small`.
 
 Objetos de 0,2 a 0,5 celdas. Hoy se reutilizan `log`, `rock_smallA` y `cherries` (`barrel_small` ya se quitó). `item.log` e `item.stone` ya se ven bien: no se tocan.
 
-Estado (28 de octubre): integrada. Los 10 `.glb` están en `game/assets/models/ourlife/` a su tamaño final (escala 1,0 en `visuals.json`, entre 0,15 y 0,7 de largo) y se quitó `barrel_small` de KayKit, que quedó sin uso. Generados con `MODELS/generador/fase2.py`. La tabla y el mango tienen pocos triángulos (48 y 96) porque son formas simples. Falta ver cada objeto de cerca en el juego.
+Estado (28 de octubre): integrada. Los 10 `.glb` están en `game/assets/models/ourlife/` a su tamaño final (escala 1,0 en `visuals.json`, entre 0,15 y 0,7 de largo) y se quitó `barrel_small` de KayKit, que quedó sin uso. Generados con `tools/models/fase2.py`. La tabla y el mango tienen pocos triángulos (48 y 96) porque son formas simples. Falta ver cada objeto de cerca en el juego.
 
 - [x] `item.cabbage` → `item_cabbage.glb`. Cabeza redonda de hojas verdes.
 - [x] `item.peas` → `item_peas.glb`. Vainas verdes o un puñado de granos.
@@ -66,7 +66,7 @@ Estado (28 de octubre): integrada. Los 10 `.glb` están en `game/assets/models/o
 
 ## Fase 3: objetos de hierro, piedra y herramientas
 
-Estado (28 de octubre): integrada. Los 8 `.glb` están en `game/assets/models/ourlife/`, generados con `MODELS/generador/fase3.py`. Los materiales de piedra y carbón van a escala 1,0 y las herramientas a 0,8 (miden entre 0,37 y 0,62 de largo, acostadas en el suelo). Las partes de hierro usan el material `iron` y los mangos `wood`, para poder teñirlos. Los modelos provisorios de `log` y `rock_smallA` siguen en uso por otros ids. Falta verlos de cerca en el juego.
+Estado (28 de octubre): integrada. Los 8 `.glb` están en `game/assets/models/ourlife/`, generados con `tools/models/fase3.py`. Los materiales de piedra y carbón van a escala 1,0 y las herramientas a 0,8 (miden entre 0,37 y 0,62 de largo, acostadas en el suelo). Las partes de hierro usan el material `iron` y los mangos `wood`, para poder teñirlos. Los modelos provisorios de `log` y `rock_smallA` siguen en uso por otros ids. Falta verlos de cerca en el juego.
 
 - [x] `item.stone_block` → `item_stone_block.glb`. Sillar rectangular tallado.
 - [x] `item.iron_ore` → `item_iron_ore.glb`. Roca con vetas oxidadas.
@@ -83,7 +83,7 @@ Las cuatro herramientas comparten mango: conviene modelar uno y reutilizar su ma
 
 Cubren una celda de cultivo, con varias plantas por modelo. Cada etapa es un modelo distinto. Hoy son pastos y arbustos del Nature Kit. Nombres: `crop_<cultivo>_sprout.glb`, `crop_<cultivo>_growing.glb` y `crop_<cultivo>.glb` (maduro).
 
-Estado (28 de octubre): integrada. Los 9 `.glb` están en `game/assets/models/ourlife/`, generados con `MODELS/generador/fase4.py`, a escala 1,0 y cubriendo casi toda la celda (0,75 a 0,94 de lado, 0,05 a 0,58 de alto). Las plantas de un cultivo ocupan los mismos puntos en sus tres etapas. Reemplazan a los pastos y arbustos del Nature Kit, que siguen en uso por la decoración y el arbusto de bayas. No pude ver un campo real en el juego (la captura con `--farm` no mostró cultivos): falta revisarlo de cerca.
+Estado (28 de octubre): integrada. Los 9 `.glb` están en `game/assets/models/ourlife/`, generados con `tools/models/fase4.py`, a escala 1,0 y cubriendo casi toda la celda (0,75 a 0,94 de lado, 0,05 a 0,58 de alto). Las plantas de un cultivo ocupan los mismos puntos en sus tres etapas. Reemplazan a los pastos y arbustos del Nature Kit, que siguen en uso por la decoración y el arbusto de bayas. No pude ver un campo real en el juego (la captura con `--farm` no mostró cultivos): falta revisarlo de cerca.
 
 Trigo (`crop.wheat`):
 - [x] Brote → `crop_wheat_sprout.glb`. Brotes verdes.
@@ -106,7 +106,7 @@ Las tres etapas de un cultivo deben leerse como la misma planta en distintos mom
 
 Los modelos actuales de KayKit funcionan. Reemplazarlos sirve para unificar el estilo con el resto de los modelos propios, así que van después de las fases 1 a 4.
 
-Estado (28 de octubre): integrada. Los 4 `.glb` están en `game/assets/models/ourlife/`, generados con `MODELS/generador/fase5.py`, a escala 1,0 (la cama con `restHeight` 0,24). Como ya no quedaba ningún modelo de KayKit en uso, se quitó el kit entero (`game/assets/models/kaykit_dungeon-remastered`), su fila de `CREDITS.md` y el color `texture` de la paleta, que sólo teñía esa madera. En la casa del smoke se ven la cama, la mesa y el baúl (teñidos por su material).
+Estado (28 de octubre): integrada. Los 4 `.glb` están en `game/assets/models/ourlife/`, generados con `tools/models/fase5.py`, a escala 1,0 (la cama con `restHeight` 0,24). Como ya no quedaba ningún modelo de KayKit en uso, se quitó el kit entero (`game/assets/models/kaykit_dungeon-remastered`), su fila de `CREDITS.md` y el color `texture` de la paleta, que sólo teñía esa madera. En la casa del smoke se ven la cama, la mesa y el baúl (teñidos por su material).
 
 - [x] `furniture.table` → `furniture_table.glb`. Mesa de madera sencilla, distinta de los bancos de trabajo. Hoy: `table_small`.
 - [x] `furniture.bed` → `furniture_bed.glb`. Camastro con paja o manta. Hoy: `bed_frame`.
@@ -121,7 +121,7 @@ Revisada el 28 de octubre. La puerta, la escalera y la rampa son piezas del terr
 - [x] `plant.oak.stump` → `stump_oak.glb`. Tocón del roble talado (330 triángulos, 0,47 de ancho, 0,28 de alto).
 - [x] `plant.pine.stump` → `stump_pine.glb`. Tocón del pino talado (220 triángulos, 0,37 de ancho, 0,25 de alto).
 
-Los dos modelos están hechos y a su tamaño final (escala 1,0), generados con `MODELS/generador/fase6.py` en `MODELS/entorno/`. **No están en el juego**: el test `Every_model_of_the_catalog_is_used_by_a_def` exige que todo modelo del catálogo lo use un def, y hoy el talado no deja tocón. Cuando se haga esa función (`docs/ip/backlog.md`), se copian a `game/assets/models/ourlife/` y se agregan al catálogo como `plant.oak.stump` y `plant.pine.stump`. Como `MODELS/` no se versiona, los `.glb` sólo existen en esta PC hasta entonces.
+Los dos modelos están hechos y a su tamaño final (escala 1,0), generados con `tools/models/fase6.py` en `MODELS/entorno/` y una copia versionada en `tools/models/pendientes/`. **No están en el juego**: el test `Every_model_of_the_catalog_is_used_by_a_def` exige que todo modelo del catálogo lo use un def, y hoy el talado no deja tocón. Cuando se haga esa función (`docs/ip/backlog.md`), se copian a `game/assets/models/ourlife/` (desde `tools/models/pendientes/`) y se agregan al catálogo como `plant.oak.stump` y `plant.pine.stump`. 
 
 Muros finos (pedido del usuario, 28 de octubre): los muros construidos dejaron de ser bloques de una celda y pasaron a ser finos. Ver `docs/ip/bitacora.md`.
 

@@ -973,3 +973,5 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 
 - `MODELS/generador/fase6.py` genera `stump_oak.glb` y `stump_pine.glb` en `MODELS/entorno`. No entran al juego todavía: `Every_model_of_the_catalog_is_used_by_a_def` exige que un def use cada modelo del catálogo, y el talado aún no deja tocón (backlog). Se probó y se revirtió.
 - Plan de modelos cerrado: 38 modelos hechos (36 integrados y 2 tocones listos), 3 descartados (puerta, escalera y rampa siguen como piezas de código).
+
+- Los scripts generadores pasaron de `MODELS/generador` a `tools/models/` (versionados, con `README.md`), y los dos tocones se guardan en `tools/models/pendientes/`. Las vistas previas se ignoran con `.gitignore`.
