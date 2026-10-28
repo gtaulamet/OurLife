@@ -19,7 +19,7 @@
 | O5 Conocimientos y scriptorium | Hecho (sin íconos pixel) | `ip4/o5-conocimientos` | Árbol de 12 conocimientos, investigación, práctica, cola, scriptorium y trabajo `Research`, formato 15, panel K, línea del HUD y barra de construcción atenuada. Revisado; los íconos pixel van a una pasada de arte |
 | O6 Agricultura y deterioro | Hecho y revisado; modelos propios de cultivos revisados en pantalla (28 de octubre) | `ip4/o5-conocimientos` | Formato 16; ver la bitácora del 24 de octubre |
 | O7 Vetas y niebla subterránea | Hecho | `ip4/o7-subsuelo` | Core (vetas `OreVein`, `world.ore`, veta a la vista, `Discovered`, formato 17) y presentación: los chunks no dibujan celdas ocultas, el corte por nivel pinta las ocultas con un tono uniforme oscuro, el inspector dice "Sin explorar" o "Veta de hierro", patrón `ore` (motas oscuras) en el shader del terreno |
-| O8 Fundición, herrería y herramientas | Pendiente | `ip4/o8-metales` | |
+| O8 Fundición, herrería y herramientas | Core hecho (falta presentación) | `ip4/o8-metales` | Carbonera, horno de fundición y fragua, recetas de carbón, lingote y cuatro herramientas con calidad, `Equipment` y trabajo `Equip`, formato 18. Ver la bitácora del 28 de octubre |
 | O9 Habitaciones, dormitorios y comedor | Pendiente | `ip4/o9-habitaciones` | |
 | O10 Paneles | Pendiente | `ip4/o10-paneles` | |
 | O11 Integración | Pendiente | `ip4/o11-integracion` | |
