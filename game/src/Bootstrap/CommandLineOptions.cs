@@ -76,6 +76,9 @@ public sealed record CommandLineOptions
     /// <summary>Plants a 3 x 3 patch (wheat, peas and cabbage in their three stages) next to the first colonist, to see the crop models in screenshots (milestone O6).</summary>
     public bool Crops { get; init; }
 
+    /// <summary>Places a forge next to the first colonist, with an order for an axe, and gives the colonist a masterwork axe and a pickaxe, to see the fire workshops and the tools in screenshots (milestone O8).</summary>
+    public bool Metals { get; init; }
+
     /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
     public bool Build { get; init; }
 
@@ -237,6 +240,9 @@ public sealed record CommandLineOptions
                 case "--farm":
                     options = options with { Farm = true };
                     break;
+                case "--metals":
+                    options = options with { Metals = true };
+                    break;
                 case "--crops":
                     options = options with { Crops = true };
                     break;
@@ -383,7 +389,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, metals={Metals}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, season={Season ?? "-"}, " +

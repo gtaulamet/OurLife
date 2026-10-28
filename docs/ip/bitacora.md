@@ -49,6 +49,16 @@ En orden:
 - Íconos de O5: `tools/make-knowledge-icons.py` genera 8 PNG de 16 x 16 en `game/assets/icons/knowledge/` (ramas `branch_crafts`, `branch_field`, `branch_fire_metal`; estados `state_learned`, `state_available`, `state_queued`, `state_blocked`, los cuatro de `KnowledgeState`; y `research` para el HUD). Se cargan con `KnowledgeIcons` (filtro más cercano, sin textos nuevos): ícono de estado en cada tarjeta del panel K, ícono de rama (doble tamaño) en la cabecera de cada fila y la libreta junto a la línea "Investigando" del HUD. El texto se queda al lado como respaldo accesible. Los `.png` y `.import` se versionan.
 - Capturas es y en: `game/out/k-es.png`, `game/out/k-en.png` (`--play --knowledge --hour 12`; ahora también refresca la línea del HUD).
 
+### 2026-10-28: O8, presentación de los talleres de fuego y las herramientas
+
+- Inspector del taller: ya listaba las recetas de cualquier taller (`Recipes.Of`), así que carbonera, horno y fragua salen solos. Una receta bloqueada ahora nombra el conocimiento que falta (`ui.workshop.make_missing`, "requiere: herrería"); si sólo bloquea la época queda `make_locked`. El desplegable del panel de producción hace lo mismo (`ui.production.recipe_locked`).
+- Hoja del colono: sección "Herramientas" (`ui.sheet.tools`) antes de las habilidades, con una línea por herramienta (`ui.inspector.tool`: nombre, calidad si no es la normal y `Tools.SpeedPercent` en el oficio); se oculta si el colono no tiene ninguna.
+- `job.equip.report` ya se mostraba por `TextResolver.Activity` (usa `JobKinds.ReportKey`); sin cambios. La barra de construcción ya traía los tres talleres atenuados por conocimiento; ahora es un `HFlowContainer` porque con 16 piezas la fila se salía de la pantalla a 1280 x 720.
+- Textos: la receta `charcoal` pasa a "Quemar carbón" (el botón decía "Hacer 5: hacer carbón").
+- Modo de captura `--metals` (con `--play`): una fragua junto al primer colono con órdenes de hacha y carbón, y al colono un hacha obra maestra y un pico. Con `--inspect-furniture` muestra la fragua; con `--sheet`, la hoja. Capturas en `game/out/` (no versionadas): `o8-taller-{es,en}.png`, `o8-hoja-{es,en}.png`, `o8-build-es.png`. La fragua sale "bloqueada" porque la colonia nueva no sabe herrería (no hay forma de aprender desde el modo de captura).
+- Modelos: fase 7 en `docs/plan-modelos.md` y filas en `docs/art.md` para `furniture_charcoal_kiln.glb`, `furniture_bloomery.glb` y `furniture_forge.glb`; los provisorios siguen.
+- Falta: los tres modelos propios y el criterio 15 en la partida (taller en uso y herramienta forjada, que necesita jugar días o una partida guardada con los conocimientos).
+
 ### 2026-10-28: O8, Core de fundición, herrería y herramientas
 
 - Rama `ip4/o8-metales` (desde `main` con O1 a O7). Sólo Core, defs, textos mínimos y tests; la presentación (inspector del taller, modelos propios de los talleres de fuego, capturas) queda para el godot-engineer y el art-integrator.

@@ -60,9 +60,14 @@ public partial class InspectorPanel
         foreach (var recipe in recipes)
         {
             var unlocked = _simulation.Unlocks.IsUnlocked(recipe, _simulation.Progress);
+            var missing = unlocked ? [] : _simulation.Unlocks.Missing(recipe, _simulation.Progress);
             var button = new Button
             {
-                Text = text.Format(unlocked ? "ui.workshop.make" : "ui.workshop.make_locked", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant())),
+                Text = unlocked
+                    ? text.Format("ui.workshop.make", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()))
+                    : missing.Count == 0
+                        ? text.Format("ui.workshop.make_locked", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()))
+                        : text.Format("ui.workshop.make_missing", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()), ("knowledge", KnowledgeNames(missing))),
                 AutoTranslateMode = AutoTranslateModeEnum.Disabled,
                 FocusMode = FocusModeEnum.None,
                 Alignment = HorizontalAlignment.Left,
@@ -100,6 +105,9 @@ public partial class InspectorPanel
             _workshop.AddChild(row);
         }
     }
+
+    private string KnowledgeNames(IReadOnlyList<string> ids) =>
+        string.Join(", ", ids.Select(id => _services.Text.Format(_simulation.Content.Get<KnowledgeDef>(id).NameKey!)));
 
     private void ClearWorkshop()
     {

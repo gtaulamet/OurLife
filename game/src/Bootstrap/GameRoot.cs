@@ -460,6 +460,11 @@ public partial class GameRoot : Node
             screen.Advance((minutes + perTick - 1) / perTick);
         }
 
+        if (options.Metals && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+        {
+            PlaceMetals(screen, colonists[0]);
+        }
+
         if ((options.Inspect || options.Sheet) && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
         {
             screen.Input.SelectColonist(colonists[0]);
@@ -489,7 +494,7 @@ public partial class GameRoot : Node
         if (options.InspectFurniture && pieces.Count > 0)
         {
             // A workshop first, to see its recipes and orders (milestone O3).
-            var chosen = pieces.FirstOrDefault(piece => simulation.World.Has<Workshop>(piece), pieces[0]);
+            var chosen = pieces.FirstOrDefault(piece => simulation.World.Has<Workshop>(piece) && (!options.Metals || simulation.World.Get<Furniture>(piece).Buildable == "forge"), pieces[0]);
             var cell = simulation.World.Get<Position>(chosen).Cell;
             screen.Input.SelectCell(cell);
             screen.View.Camera.Focus(new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
@@ -1378,6 +1383,31 @@ public partial class GameRoot : Node
         var taken = beds.Count(bed => Beds.IsTaken(simulation, bed));
         GD.Print($"[smoke] construction: {simulation.World.Store<Blueprint>().Count} blueprints left, {built} cells built in the house, {doors} doors, "
                  + $"{simulation.World.Store<Furniture>().Count} pieces of furniture, {taken} beds taken");
+    }
+
+    /// <summary>
+    /// For <c>--metals</c>: a forge two cells from the colonist with an order for an iron axe, and the
+    /// colonist carrying a masterwork axe and a normal pickaxe, so the screenshots show the fire
+    /// workshop and the tools without playing for days.
+    /// </summary>
+    private static void PlaceMetals(GameScreen screen, EntityId colonist)
+    {
+        var simulation = screen.Session.Simulation;
+        var origin = simulation.World.Get<Position>(colonist).Cell;
+        var cell = new TileCoord(origin.X + 2, origin.Y + 2, 0);
+        cell = cell with { Z = simulation.Map.SurfaceZ(cell.X, cell.Y) + 1 };
+        var piece = simulation.World.CreateEntity();
+        simulation.World.Add(piece, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
+        simulation.World.Add(piece, new Furniture { Buildable = "forge", Material = "planks" });
+        simulation.World.Add(piece, new Workshop());
+        simulation.Events.Emit(new EntitySpawnedEvent(piece));
+        simulation.World.Add(colonist, new Equipment
+        {
+            Tools = [new ItemStack { Def = "iron_axe", Count = 1, Quality = "masterwork" }, new ItemStack { Def = "iron_pickaxe", Count = 1 }],
+        });
+        screen.Session.Enqueue(new CreateWorkOrderCommand("iron_axe", WorkOrderMode.Count, 2));
+        screen.Session.Enqueue(new CreateWorkOrderCommand("charcoal", WorkOrderMode.Count, 5));
+        simulation.ApplyCommandsNow();
     }
 
     /// <summary>The knowledge panel shows the whole tree, lets a click queue a knowledge and a click again take it out.</summary>

@@ -111,7 +111,12 @@ public partial class ProductionPanel : PanelContainer
         _recipes = new OptionButton { AutoTranslateMode = AutoTranslateModeEnum.Disabled, FocusMode = FocusModeEnum.None };
         foreach (var recipe in _recipeDefs)
         {
-            _recipes.AddItem(text.Capitalized(text.Format(recipe.NameKey!)));
+            var name = text.Capitalized(text.Format(recipe.NameKey!));
+            var simulation = _session.Simulation;
+            var missing = simulation.Unlocks.IsUnlocked(recipe, simulation.Progress) ? [] : simulation.Unlocks.Missing(recipe, simulation.Progress);
+            _recipes.AddItem(missing.Count == 0
+                ? name
+                : text.Format("ui.production.recipe_locked", ("recipe", name), ("knowledge", string.Join(", ", missing.Select(id => text.Format(content.Get<KnowledgeDef>(id).NameKey!))))));
         }
 
         form.AddChild(_recipes);

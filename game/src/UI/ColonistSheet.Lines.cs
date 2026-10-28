@@ -115,6 +115,37 @@ public partial class ColonistSheet
         return lines;
     }
 
+    /// <summary>The tools the colonist has equipped, with their quality and the speed they add to their work.</summary>
+    private List<string> ToolLines(EntityId colonist)
+    {
+        var lines = new List<string>();
+        var text = _services.Text;
+        var content = _simulation.Content;
+        var defaultQuality = QualityRules.From(content).Default.Id;
+        foreach (var stack in Tools.Of(_simulation, colonist))
+        {
+            var item = content.Get<ItemDef>(stack.Def);
+            if (item.Tool is not { } tool)
+            {
+                continue;
+            }
+
+            var name = NameOf(item);
+            if (stack.Quality is { } quality && quality != defaultQuality)
+            {
+                name = text.Format("ui.quality.label", ("item", name), ("quality", NameOf(content.Get<QualityDef>(quality)).ToLowerInvariant()));
+            }
+
+            lines.Add(text.Format(
+                "ui.inspector.tool",
+                ("item", name),
+                ("percent", Tools.SpeedPercent(_simulation, item, stack.Quality)),
+                ("work_type", NameOf(content.Get<WorkTypeDef>(tool.WorkType)).ToLowerInvariant())));
+        }
+
+        return lines;
+    }
+
     /// <summary>Each thought once, with how many times it adds up and its whole effect.</summary>
     private List<string> Thoughts(EntityId colonist)
     {

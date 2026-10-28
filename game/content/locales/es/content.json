@@ -458,7 +458,7 @@
   "def.recipe.pickled_cabbage.name": "Encurtir repollo",
   "def.recipe.pickled_cabbage.desc": "El repollo encurtido dura mucho más que el fresco.",
   "def.recipe.pickled_cabbage.gender": "male",
-  "def.recipe.charcoal.name": "Hacer carbón",
+  "def.recipe.charcoal.name": "Quemar carbón",
   "def.recipe.charcoal.desc": "Cuatro troncos se queman lentamente y rinden dos de carbón vegetal.",
   "def.recipe.charcoal.gender": "male",
   "def.recipe.iron_ingot.name": "Fundir hierro",

@@ -136,6 +136,9 @@ Requisitos comunes:
 | `furniture.mason_bench` | `furniture_mason_bench.glb` | Bloque de piedra tosca sobre caballetes, con cincel y martillo y un sillar a medio tallar |
 | `furniture.kitchen` | `furniture_kitchen.glb` | Hogar de piedra con olla colgada, parrilla y brasas (se construye con masonería) |
 | `furniture.scriptorium` | `furniture_scriptorium.glb` | Pupitre inclinado con pergamino, tintero, pluma y un libro abierto |
+| `furniture.charcoal_kiln` | `furniture_charcoal_kiln.glb` | Montículo de tierra y leña con césped, boca baja de aire y humo gris por arriba (O8; hoy usa el modelo de la cocina) |
+| `furniture.bloomery` | `furniture_bloomery.glb` | Horno bajo de piedra con boca al frente con brasas, chimenea corta y un fuelle (O8; hoy usa el modelo de la cocina) |
+| `furniture.forge` | `furniture_forge.glb` | Fragua con fogón de piedra, brasas, fuelle de cuero y yunque con un martillo apoyado (O8; hoy usa el banco de cantero) |
 | `furniture.cradle` | `furniture_cradle.glb` | Cuna de madera con balancines, más pequeña que la cama |
 | `furniture.table` | `furniture_table.glb` | Mesa de madera sencilla, distinta de los bancos de trabajo (opcional) |
 | `furniture.bed` | `furniture_bed.glb` | Camastro con paja o manta  |

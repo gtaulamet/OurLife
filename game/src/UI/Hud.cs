@@ -54,7 +54,7 @@ public partial class Hud : CanvasLayer
     private bool _stockChanged;
     private bool _stockWidthsChanged = true;
     private Label _hint = null!;
-    private HBoxContainer _buildRow = null!;
+    private HFlowContainer _buildRow = null!;
     private HBoxContainer _farmRow = null!;
     private Button _farmButton = null!;
     private VBoxContainer _alerts = null!;
@@ -416,8 +416,9 @@ public partial class Hud : CanvasLayer
         column.AddChild(_hint);
 
         // What to build and of what, shown while the build tool is on.
-        _buildRow = new HBoxContainer { Name = "BuildBar", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
-        _buildRow.AddThemeConstantOverride("separation", Gap / 2);
+        _buildRow = new HFlowContainer { Name = "BuildBar", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
+        _buildRow.AddThemeConstantOverride("h_separation", Gap / 2);
+        _buildRow.AddThemeConstantOverride("v_separation", Gap / 2);
         column.AddChild(_buildRow);
 
         // Which crop the farm tool sows, shown while the tool is on.

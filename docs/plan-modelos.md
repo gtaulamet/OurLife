@@ -1,6 +1,6 @@
 # Plan de modelos propios
 
-Seguimiento de los 41 modelos `.glb` propios que faltan. Los requisitos y las descripciones de arte están en `docs/art.md` (sección "Modelos propios pendientes"). Este documento lleva la cuenta de qué falta y qué ya se hizo.
+Seguimiento de los 44 modelos `.glb` propios que faltan. Los requisitos y las descripciones de arte están en `docs/art.md` (sección "Modelos propios pendientes"). Este documento lleva la cuenta de qué falta y qué ya se hizo.
 
 Los archivos van en `game/assets/models/ourlife/`. Los scripts que generan los modelos están en `tools/models/` (ver su `README.md`); la salida va a `MODELS/`, que no se versiona.
 
@@ -14,7 +14,8 @@ Los archivos van en `game/assets/models/ourlife/`. Los scripts que generan los m
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 9 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 4 |
 | 6 | Piezas opcionales (puerta, escalera y rampa descartadas; 2 tocones modelados) | 5 | 2 modelados, 3 descartadas |
-| | **Total** | **41** (32 sin los opcionales) | **38** (más 3 descartadas) |
+| 7 | Talleres de fuego de O8 (carbonera, horno de fundición, fragua) | 3 | 0 |
+| | **Total** | **44** (35 sin los opcionales) | **38** (más 3 descartadas) |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -124,6 +125,16 @@ Revisada el 28 de octubre. La puerta, la escalera y la rampa son piezas del terr
 Los dos modelos están hechos y a su tamaño final (escala 1,0), generados con `tools/models/fase6.py` en `MODELS/entorno/` y una copia versionada en `tools/models/pendientes/`. **No están en el juego**: el test `Every_model_of_the_catalog_is_used_by_a_def` exige que todo modelo del catálogo lo use un def, y hoy el talado no deja tocón. Cuando se haga esa función (`docs/ip/backlog.md`), se copian a `game/assets/models/ourlife/` (desde `tools/models/pendientes/`) y se agregan al catálogo como `plant.oak.stump` y `plant.pine.stump`. 
 
 Muros finos (pedido del usuario, 28 de octubre): los muros construidos dejaron de ser bloques de una celda y pasaron a ser finos. Ver `docs/ip/bitacora.md`.
+
+## Fase 7: talleres de fuego (O8)
+
+Los tres talleres de O8 existen en el juego con modelos provisorios en `visuals.json`: la carbonera y el horno de fundición usan `furniture_kitchen.glb` y la fragua `furniture_mason_bench.glb`, así que hoy se confunden con la cocina y el banco de cantero. Cada uno ocupa 1 celda y se tiñe por su material (mampostería).
+
+- [ ] `furniture.charcoal_kiln` → `furniture_charcoal_kiln.glb`. Montículo de tierra y leña cubierto de césped, con una boca baja de aire y un hilo de humo gris que sale por arriba. Hoy: `furniture_kitchen.glb`.
+- [ ] `furniture.bloomery` → `furniture_bloomery.glb`. Horno bajo de piedra, en forma de torreta ancha, con una boca al frente con brasas y una chimenea corta; al lado, un fuelle sencillo. Hoy: `furniture_kitchen.glb`.
+- [ ] `furniture.forge` → `furniture_forge.glb`. Fragua con yunque: fogón de piedra con brasas, fuelle de cuero y un yunque de hierro con un martillo apoyado. Hoy: `furniture_mason_bench.glb`.
+
+Al entregarlos se aplican los pasos de la sección anterior y se reemplazan las tres entradas de `furniture.*` en `visuals.json`.
 
 ## Fuera de alcance
 
