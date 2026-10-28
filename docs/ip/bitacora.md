@@ -8,19 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o7-subsuelo`: O7 hecho (Core y presentación). O2 a O6 hechos en `ip4/o5-conocimientos` |
+| Rama de trabajo | `ip4/o9-habitaciones`: Core de O9 hecho (falta la presentación). O8 en `main`; O2 a O7 hechos |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 800 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
-| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42) |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42); O8 (formato 18) y O9 (formato 19) las dejan iguales: el smoke no fabrica herramientas, ni muebles, ni muros |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **IP4 "Oficios", O8** y siguientes (O9, O10, O11; `docs/ip/IP4.md`). O7 (vetas y niebla) está hecho.
+1. **IP4 "Oficios"**: presentación de O9 (capa de habitaciones, inspector, lista, asignación de camas, comedor, capturas es/en, íconos), y después O10 y O11 (`docs/ip/IP4.md`). El Core de O9 está hecho.
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
 3. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos; los de cultivos ya se vieron en el juego.
 4. **Balance de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple. Decidido el 28 de octubre de 2026: se deja así y se revisa con las partidas de diez años de O11.
@@ -42,6 +42,18 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-28: O9, Core de habitaciones, dormitorios y comedor
+
+- Rama `ip4/o9-habitaciones` (desde `main` con O1 a O8). Sólo Core, defs, textos mínimos y tests; la presentación (capa de habitaciones, inspector, lista, asignación de camas en la UI, comedor con colonos sentados, capturas es/en) queda para el godot-engineer y el i18n-specialist.
+- Defs (`rooms.json`): `RoomConfig` con los números de la spec, cinco `RoomLevel` (mísero 0, pobre 8, decente 18, cómodo 36, lujoso 61) y cuatro `RoomRole` (dormitorio, comedor, taller, almacén). `Material.beauty {wall, floor}` (madera 0/1, mampostería 1/1, tablones 1/2, sillería 2/3), `Buildable.tags` (`bed`, `table`, `seat`, `chest`, `workshop`) y once pensamientos nuevos en `mood.json` con `MoodConfig.ateAtTable`, `familyHome` y `sleptCrowded`. Ningún número de la spec se movió. Desvío menor: `RoomRole` dice lo que pide con `needs` y el almacén con `storageCellsPercent` (la spec lo decía en prosa).
+- Core: `Rooms.At`/`Rooms.All` sobre un índice derivado por simulación (`RoomIndex`, `RoomSetup` con la validación de los defs), búsqueda por cuatro direcciones con tope de `maxCells`, exterior recordado, puntaje (tamaño, muebles por la calidad en centésimas, suelo y límite con las esquinas), nivel y funciones por etiqueta, `roofed`. `GameMap.StructureVersion` (forma, material y marca de mueble) y `RoomSystem` (`RoomsChangedEvent` sólo si cambió el conjunto de habitaciones con muebles). `Bed.Reserved` y `AssignBedCommand` (reservar, liberar, reasignar; rechaza etapa que no cabe), `RoomRules.Owners`, `SuggestAssignments`, y los pensamientos al despertar (nivel, `family_home`, `slept_crowded`). `JobKind.EatAtTable` (pila, camino con la comida en las manos, silla, come sentado, pensamientos) y `JobKind.Gather` (libre albedrío, 18 a 22 h, `gatherTicks`; interrumpible por necesidad o trabajo).
+- Desvíos y decisiones anotados en `docs/gdd/habitaciones.md` ("Notas de implementación"): la reunión tira con el flujo `colony.free_will` (la spec decía "ninguno"); `All()` sólo da habitaciones con muebles o zonas de almacén; el radio del comedor se mide en el plano como los demás del libre albedrío; la reserva termina al morir el dueño; los pensamientos de nivel se reemplazan entre sí.
+- Formato 19 sin migración (sólo `Bed.Reserved` si es verdadero, los trabajos nuevos y el comando). Fixture `o9.olsave` (formato 18, semilla 7, 4 320 ticks, cama, mesa y silla de tablones, escrito con el código de la rama antes de O9).
+- Tests: `RoomTests` (61: detección, cavar, tope, techo, puntaje 20/54/79, calidad, funciones, cambios del mapa y evento, pensamientos de dormir, reservas, familias, sugerencias, comer sentado, crítico y sin comedor, reunión con y sin libre albedrío, guardado a mitad de una comida, determinismo, validación de los defs), `RoomBudgetTests` (20 habitaciones y 15 colonos: unos 0,05 ms por tick; rehacer 20 habitaciones unos 0,2 ms; 300 cofres a cielo abierto unos 4 ms), `RoomContentTests` (los números reales de la spec) y `OldSaveTests` con `o9.olsave`. 861 tests del Core, 261 de contenido y 49 de localización en verde (`FarmContentTests` de tiempo falló una vez con la máquina cargada por correr todo en paralelo y pasa solo; los de presupuesto de habitaciones toman la mejor de varias tandas por lo mismo); smoke con código 0.
+- Huellas del smoke con `--ticks 5000`: `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42), las mismas que en O7 y O8: el smoke no construye muebles ni muros, así que no hay habitaciones ni camas reservadas y la huella no cambia.
+- Textos mínimos para que den verde los tests de contenido (los pulirá el i18n-specialist): `def.room_role.*`, `def.room_level.*` (nombre con `select` sobre el género de la función), los 11 `def.thought.*` y `job.eat_at_table.report` y `job.gather.report`. Las claves de la interfaz de la spec (`ui.inspector.room`, `ui.rooms.*`) no están todavía.
+- Falta (presentación de O9): botón y capa de habitaciones (paleta por nivel e íconos 16 × 16 de función y nivel), inspector de celda y de colono, lista de habitaciones, panel de camas con `Asignar familia` (manda un `AssignBedCommand` por cada `SuggestAssignments`), pose `sit` del colono sentado (`Job.Kind` `EatAtTable` o `Gather` en etapa `Working`), claves `ui.*` de la spec, capturas es/en del comedor con colonos sentados y de una familia asignada, y el criterio 14 en la partida.
 
 ### 2026-10-28: revisión de cultivos e íconos pixel de O5
 

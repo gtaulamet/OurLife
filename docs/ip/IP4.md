@@ -20,7 +20,7 @@
 | O6 Agricultura y deterioro | Hecho y revisado; modelos propios de cultivos revisados en pantalla (28 de octubre) | `ip4/o5-conocimientos` | Formato 16; ver la bitácora del 24 de octubre |
 | O7 Vetas y niebla subterránea | Hecho | `ip4/o7-subsuelo` | Core (vetas `OreVein`, `world.ore`, veta a la vista, `Discovered`, formato 17) y presentación: los chunks no dibujan celdas ocultas, el corte por nivel pinta las ocultas con un tono uniforme oscuro, el inspector dice "Sin explorar" o "Veta de hierro", patrón `ore` (motas oscuras) en el shader del terreno |
 | O8 Fundición, herrería y herramientas | Core y presentación hechos (faltan los 3 modelos propios de los talleres de fuego y el criterio 15 en la partida) | `ip4/o8-metales` | Carbonera, horno de fundición y fragua, recetas de carbón, lingote y cuatro herramientas con calidad, `Equipment` y trabajo `Equip`, formato 18. Ver la bitácora del 28 de octubre |
-| O9 Habitaciones, dormitorios y comedor | Pendiente | `ip4/o9-habitaciones` | |
+| O9 Habitaciones, dormitorios y comedor | Core hecho; falta la presentación (capa, inspector, lista, asignación de camas en la UI, comedor, capturas es/en) | `ip4/o9-habitaciones` | Detección con caché, puntaje y nivel, `AssignBedCommand` y camas reservadas, familias, comer sentado (`EatAtTable`), reunión (`Gather`), 11 pensamientos nuevos, formato 19. Ver la bitácora del 28 de octubre y las notas de implementación de `habitaciones.md` |
 | O10 Paneles | Pendiente | `ip4/o10-paneles` | |
 | O11 Integración | Pendiente | `ip4/o11-integracion` | |
 

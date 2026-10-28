@@ -2,7 +2,7 @@
 
 Parte de la spec de IP4 (`docs/gdd/oficios.md`): detección de habitaciones y su calidad por tamaño, muebles y materiales; dormitorios asignados a una persona o a una familia; comedor, y el lugar de reunión que `libre-albedrio.md` dejó para IP4. Todo suma pensamientos al ánimo de IP3 (`vida-y-generaciones.md`).
 
-**Estado:** propuesta de O1, pendiente de aprobación. Números iniciales, a ajustar en O11.
+**Estado:** aprobada en O1. El Core está hecho en O9 (28 de octubre de 2026: detección, puntaje, dormitorios, familias, comedor y reunión, formato 19); falta la presentación (capa, inspector, lista, asignación en la UI, comedor con colonos sentados, capturas). Números iniciales, a ajustar en O11.
 
 ## Qué hay hoy
 
@@ -141,7 +141,7 @@ Con la opción de libre albedrío prendida:
 | Defs | `RoomConfig`, `RoomLevel`, `RoomRole`, `Buildable.tags`, `Buildable.beauty`, `Material.beauty` | `rooms.json`, `buildables.json`, `materials.json` |
 | Datos de ánimo | `MoodConfig` suma los pensamientos de dormir, de comer, `family_home` y `slept_crowded`; el nivel dice cuál (`RoomLevel.bedroomThought`, `diningThought`) | `mood.json` |
 
-- Flujos aleatorios: ninguno.
+- Flujos aleatorios: ninguno para las habitaciones. La reunión usa el flujo `colony.free_will` para la probabilidad de ir (ver las notas de implementación).
 - Las habitaciones no entran en la huella (derivadas); sí entran los pensamientos que dejan.
 - Una partida de `v0.3.5` carga sin cambios: no hay camas reservadas y las habitaciones se calculan solas.
 
@@ -186,6 +186,22 @@ Los nombres de nivel concuerdan en género con la función ("dormitorio decente"
 13. **Guardado.** Una cama reservada y una habitación con asignaciones se guardan y cargan con la misma huella; las habitaciones se recalculan sin guardarse.
 14. **En la partida.** La capa de habitaciones, el inspector y la lista en es y en, un comedor con colonos sentados y una familia asignada a una casa, con capturas.
 15. **Presupuesto.** Menos de 0,1 ms por tick de media con 20 habitaciones, 15 colonos y los cambios normales del mapa.
+
+## Notas de implementación (Core de O9)
+
+Lo que el código decidió donde la spec dejaba margen, o donde se corrigió:
+
+- **Defs.** `RoomConfig`, `RoomLevel` (con `bedroomThought` y `diningThought`, que el nivel pobre no tiene) y `RoomRole` viven en `game/content/defs/rooms.json`. Un `RoomRole` dice qué pide con `needs` (todas: etiqueta y cantidad) y, el almacén, con `storageCellsPercent` (50): tiene la función si cumple los `needs` **o** si las zonas de almacén cubren ese porcentaje de sus celdas. Las etiquetas (`Buildable.tags`) son `bed` (cama y cuna), `table`, `seat`, `chest` y `workshop` (todo mueble con `workstation`). `MoodConfig` suma `ateAtTable`, `familyHome` y `sleptCrowded`. Los textos de `RoomLevel` y `RoomRole` van en `def.room_level.*` y `def.room_role.*`; el nombre de un nivel es un `select` sobre el género de la función.
+- **Sin `RoomConfig` no hay habitaciones** (el contenido de pruebas sin él sigue igual). Con más de uno, sin niveles, con niveles que no suben o que no empiezan en 0, `RoomSetup.From` lanza `InvalidOperationException`.
+- **El límite incluye las esquinas.** La búsqueda es por las cuatro direcciones, pero las piezas del límite que puntúan son los muros y puertas del mismo nivel en las ocho celdas vecinas de cada celda de la habitación (así la casa de 5 × 5 tiene 16 piezas, como dice el ejemplo). Una puerta cuenta con el material con que está hecha su celda.
+- **`Rooms.All()`** da las habitaciones que contienen algún mueble o alguna celda de una zona de almacén, por `Room.Id` ascendente (el índice de su celda más baja). Una habitación vacía se encuentra con `Rooms.At(celda)`, pero no sale en `All()` (no hace falta recorrer todo el mapa, y el resultado no depende de qué se preguntó antes).
+- **Caché.** El índice (`RoomIndex`, uno por simulación, derivado: no entra en el guardado ni en la huella) se rehace entero, perezosamente, cuando cambia `GameMap.StructureVersion` (forma o material de una celda, o aparece o desaparece una marca de mueble), la cantidad de muebles o las celdas de las zonas de almacén. `RoomSystem` lo mira al final de cada tick y emite `RoomsChangedEvent` sólo si el conjunto de habitaciones con muebles cambió (identidad, tamaño, puntaje, techo o funciones), así cavar lejos de una casa no avisa. Se mide en `RoomBudgetTests`: unos 0,2 ms para volver a encontrar 20 habitaciones y unos 0,05 ms por tick de media (el presupuesto es 0,1) con 20 habitaciones, 15 colonos y una pared que cae y vuelve cada dos horas, todo en compilación Debug. 300 cofres a cielo abierto se recorren en unos 4 ms: lo ya visto como exterior se recuerda.
+- **Puntaje.** Los muebles se suman en centésimas (`beauty × valuePercent`) y se dividen por 100 al final, truncando: una cama buena (4,8) cuenta 4, y un banco pobre (−0,75) cuenta 0. No hay mesa larga todavía (llega con el resto de `oficios.md`).
+- **Camas reservadas.** `AssignBedCommand(cama, colono)` con `EntityId.None` libera. Reservar quita la cama a quien la tenía y libera las otras camas del colono. `Bed.Reserved` no se escribe mientras es falso. Al morir el dueño se apaga la reserva; una cama ajena que otro colono toma por primera vez deja de estar reservada. `RoomRules.SuggestAssignments` pone primero al colono, luego su pareja, sus hijos vivos y sus hermanos, y prefiere, en este orden, la cama que ya tiene, las libres y las de otro, y dentro de cada grupo las hechas para su etapa (la cuna para el bebé).
+- **Pensamientos al despertar.** Los de nivel se reemplazan entre sí (un dormitorio mejor no suma al de la noche anterior), y lo mismo `family_home` y `slept_crowded`. La cuenta de camas con dueño es la de dueños distintos que viven.
+- **Comer sentado.** La hace `JobKind.EatAtTable` (objetivo: la pila, destinatario: la silla) sólo cuando el colono elige qué comer (hambre baja). Va a la pila, toma las unidades que le faltan, camina con ellas (`Carried`) a la silla, se sienta y come una unidad cada `eatTicksPerUnit`; las sobras caen en su celda. "A `diningRadius` celdas" se mide en el plano desde donde está el colono, como los demás radios del libre albedrío, y entre las sillas libres gana la de menor costo de camino. Si al levantar la comida no hay camino a la silla, come parado ahí mismo. Una necesidad crítica que no sea el hambre interrumpe la comida; los pensamientos se dan al terminar si comió algo.
+- **Reunión.** `JobKind.Gather` (destinatario: la silla) está dentro de `JobKinds.IsLeisure`. La probabilidad es `gatherChancePercent` escalada por la sociabilidad y el ánimo igual que la búsqueda de compañía (`FreeWillRules.Chance`), así que usa el flujo `colony.free_will`; sólo se tira entre las horas de reunión y si hay alguna silla libre. Si no va, el colono busca compañía como siempre. Dura `gatherTicks` o hasta que una necesidad o un trabajo lo llame, y deja de ser válida si ya no puede buscar compañía (crisis, libre albedrío apagado).
+- **Guardado.** Formato 19: sólo `Bed.Reserved`, los trabajos `EatAtTable` y `Gather` y el comando `AssignBedCommand`. Una partida de formato 18 carga sin migración (fixture `o9.olsave`).
 
 ## Fuera de alcance
 
