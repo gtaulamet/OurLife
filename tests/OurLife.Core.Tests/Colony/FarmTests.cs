@@ -439,6 +439,119 @@ public class FarmTests
         bed.JobOf(farmer)!.Kind.ShouldBe(JobKind.Reap);
     }
 
+    private static EntityId RipeCrop(ColonyTestBed bed, int x, int y, string crop = "wheat")
+    {
+        FarmRules.Sow(bed.Simulation, bed.Simulation.Content.Get<CropDef>(crop), new TileCoord(x, y, 1));
+        var sown = Crops(bed).Last();
+        bed.World.Get<Crop>(sown).Days = 10;
+        return sown;
+    }
+
+    private static void Reap(ColonyTestBed bed, TileCoord from, TileCoord to, DesignationKind kind = DesignationKind.Reap)
+    {
+        bed.Simulation.Commands.Enqueue(new DesignateCommand(kind, from, to));
+        bed.Simulation.ApplyCommandsNow();
+    }
+
+    [Fact]
+    public void Reaping_orders_the_ripe_crops_of_the_box_in_a_zone_or_not_and_ignores_the_unripe()
+    {
+        var bed = Field();
+        Zone(bed, "wheat", new TileCoord(5, 5, 1), new TileCoord(6, 5, 1));
+        var inZone = RipeCrop(bed, 5, 5);
+        var outside = RipeCrop(bed, 10, 10);
+        FarmRules.Sow(bed.Simulation, bed.Simulation.Content.Get<CropDef>("wheat"), new TileCoord(6, 5, 1));
+        var unripe = Crops(bed).Last();
+
+        Reap(bed, new TileCoord(12, 12, 1), new TileCoord(4, 4, 1));
+
+        bed.World.Has<HarvestOrder>(inZone).ShouldBeTrue();
+        bed.World.Has<HarvestOrder>(outside).ShouldBeTrue();
+        bed.World.Has<HarvestOrder>(unripe).ShouldBeFalse();
+
+        // A wild gathering order leaves the crops alone, and a reaping order the wild plants.
+        var other = RipeCrop(bed, 3, 3);
+        Reap(bed, new TileCoord(0, 0, 0), new TileCoord(15, 15, 3), DesignationKind.Harvest);
+        bed.World.Has<HarvestOrder>(other).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_farmer_reaps_an_ordered_crop_outside_any_zone_with_the_same_yield()
+    {
+        var bed = Field();
+        var crop = RipeCrop(bed, 10, 10);
+        var farmer = Farmer(bed, 8, 10);
+        bed.Simulation.Run(3);
+        bed.JobOf(farmer)?.Kind.ShouldNotBe(JobKind.Reap);
+
+        Reap(bed, new TileCoord(10, 10, 1), new TileCoord(10, 10, 1));
+        for (var tick = 0; tick < 200 && bed.JobOf(farmer)?.Kind != JobKind.Reap; tick++)
+        {
+            bed.Simulation.Run(1);
+        }
+
+        bed.JobOf(farmer)!.Kind.ShouldBe(JobKind.Reap);
+        bed.JobOf(farmer)!.Target.ShouldBe(crop);
+
+        for (var tick = 0; tick < 600 && bed.World.IsAlive(crop); tick += 20)
+        {
+            bed.Simulation.Run(20);
+        }
+
+        bed.World.IsAlive(crop).ShouldBeFalse();
+        bed.CountItems("wheat").ShouldBe(8);
+    }
+
+    [Fact]
+    public void An_ordered_crop_comes_before_a_nearer_one_of_the_zone_and_the_gatherer_does_not_take_it()
+    {
+        var bed = Field();
+        Zone(bed, "wheat", new TileCoord(5, 5, 1), new TileCoord(5, 5, 1));
+        RipeCrop(bed, 5, 5);
+        var far = RipeCrop(bed, 13, 5);
+        Reap(bed, new TileCoord(13, 5, 1), new TileCoord(13, 5, 1));
+        var farmer = Farmer(bed, 5, 6);
+
+        bed.Simulation.Run(3);
+
+        bed.JobOf(farmer)!.Kind.ShouldBe(JobKind.Reap);
+        bed.JobOf(farmer)!.Target.ShouldBe(far);
+    }
+
+    [Fact]
+    public void Cancelling_removes_the_reaping_order_and_the_job_ends()
+    {
+        var bed = Field();
+        var crop = RipeCrop(bed, 10, 10);
+        Reap(bed, new TileCoord(10, 10, 1), new TileCoord(10, 10, 1));
+        var farmer = Farmer(bed, 8, 10);
+        bed.Simulation.Run(3);
+        bed.JobOf(farmer)!.Kind.ShouldBe(JobKind.Reap);
+
+        Reap(bed, new TileCoord(10, 10, 1), new TileCoord(10, 10, 1), DesignationKind.Cancel);
+        bed.World.Has<HarvestOrder>(crop).ShouldBeFalse();
+        bed.Simulation.Run(3);
+        bed.JobOf(farmer)?.Kind.ShouldNotBe(JobKind.Reap);
+        bed.World.IsAlive(crop).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void The_run_with_a_reaping_order_is_deterministic()
+    {
+        ulong Run()
+        {
+            var bed = Field(seed: 7);
+            RipeCrop(bed, 10, 10);
+            RipeCrop(bed, 11, 10);
+            Reap(bed, new TileCoord(10, 10, 1), new TileCoord(11, 10, 1));
+            Farmer(bed, 8, 10);
+            bed.Simulation.Run(300);
+            return bed.Simulation.ComputeStateHash();
+        }
+
+        Run().ShouldBe(Run());
+    }
+
     [Fact]
     public void Two_farmers_do_not_sow_the_same_cell()
     {

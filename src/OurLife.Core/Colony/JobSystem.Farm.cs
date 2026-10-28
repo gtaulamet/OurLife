@@ -13,7 +13,7 @@ public sealed partial class JobSystem
 
     /// <summary>
     /// Sowing goes on while the cell is still in the zone that sent the colonist; reaping, while
-    /// the crop is there, ripe, on a cell of some zone. A zone that disappears under the work ends it.
+    /// the crop is there, ripe, and ordered reaped or on a cell of some zone. A zone that disappears under the work ends it.
     /// </summary>
     private bool IsFarmValid(Simulation simulation, Job job)
     {
@@ -26,7 +26,8 @@ public sealed partial class JobSystem
         }
 
         return world.IsAlive(job.Target) && world.TryGet<Crop>(job.Target, out var crop) && FarmRules.IsRipe(simulation, crop)
-               && !FarmRules.ZoneAt(simulation, world.Get<Position>(job.Target).Cell, _farmZoneBuffer).IsNone;
+               && (world.Has<HarvestOrder>(job.Target)
+                   || !FarmRules.ZoneAt(simulation, world.Get<Position>(job.Target).Cell, _farmZoneBuffer).IsNone);
     }
 
     /// <summary>

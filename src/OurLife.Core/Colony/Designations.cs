@@ -14,6 +14,9 @@ public enum DesignationKind
     Chop,
     Harvest,
 
+    /// <summary>Orders the ripe crops of the box reaped, in a farm zone or not (see <c>docs/gdd/agricultura.md</c>).</summary>
+    Reap,
+
     /// <summary>Marks a stockpile zone (see <c>docs/gdd/almacenes.md</c>).</summary>
     Stockpile,
 
@@ -37,6 +40,7 @@ public static class DesignationKinds
         DesignationKind.Stairs => "stairs",
         DesignationKind.Chop => "chop",
         DesignationKind.Harvest => "harvest",
+        DesignationKind.Reap => "reap",
         DesignationKind.Stockpile => "stockpile",
         DesignationKind.Deconstruct => "deconstruct",
         DesignationKind.Channel => "channel",
@@ -77,6 +81,9 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
             case DesignationKind.Chop:
             case DesignationKind.Harvest:
                 OrderPlants(simulation, plants);
+                break;
+            case DesignationKind.Reap:
+                OrderCrops(simulation, min, max);
                 break;
             case DesignationKind.Cancel:
                 Cancel(simulation, plants, min, max);
@@ -166,8 +173,45 @@ public sealed record DesignateCommand(DesignationKind Kind, TileCoord From, Tile
         }
     }
 
+    /// <summary>
+    /// Orders the ripe crops inside the box reaped, reusing <see cref="HarvestOrder"/>. A crop that
+    /// is not ripe yet is ignored: the order is not kept for when it ripens.
+    /// </summary>
+    private static void OrderCrops(Simulation simulation, TileCoord min, TileCoord max)
+    {
+        var world = simulation.World;
+        foreach (var crop in CropsInside(simulation, min, max))
+        {
+            if (!world.Has<HarvestOrder>(crop) && FarmRules.IsRipe(simulation, world.Get<Crop>(crop)))
+            {
+                world.Add(crop, new HarvestOrder());
+                simulation.Events.Emit(new EntityChangedEvent(crop));
+            }
+        }
+    }
+
+    private static List<EntityId> CropsInside(Simulation simulation, TileCoord min, TileCoord max)
+    {
+        var crops = new List<EntityId>();
+        simulation.World.Query<Crop, Position>(crops);
+        crops.RemoveAll(crop =>
+        {
+            var cell = simulation.World.Get<Position>(crop).Cell;
+            return cell.X < min.X || cell.X > max.X || cell.Y < min.Y || cell.Y > max.Y || cell.Z < min.Z || cell.Z > max.Z;
+        });
+        return crops;
+    }
+
     private static void Cancel(Simulation simulation, List<(EntityId Plant, TileCoord Cell)> plants, TileCoord min, TileCoord max)
     {
+        foreach (var crop in CropsInside(simulation, min, max))
+        {
+            if (simulation.World.Remove<HarvestOrder>(crop))
+            {
+                simulation.Events.Emit(new EntityChangedEvent(crop));
+            }
+        }
+
         var map = simulation.Map;
         for (var z = min.Z; z <= max.Z; z++)
         {

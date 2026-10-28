@@ -43,6 +43,10 @@ En orden:
 
 ## Historial
 
+### 2026-10-28: O10, orden manual de cosechar cultivos
+
+Rama `ip4/o10-cosecha` desde `main`. Nueva orden `DesignationKind.Reap` (atajo N, botón Cosechar) que reutiliza `HarvestOrder` y el trabajo `reap` en cultivos maduros, dentro o fuera de zona, y pasan antes que la cosecha automática; Cancelar la quita. Los inmaduros se ignoran. Sin estado nuevo: formato de guardado sin cambios. `Harvest` de plantas silvestres no toca cultivos. Modo `--reap-order` para capturas (`out/reap-es.png`, `out/reap-en.png`). Spec en `agricultura.md`.
+
 ### 2026-10-28: revisión de cultivos e íconos pixel de O5
 
 - Cultivos: modo de captura nuevo `--crops` (con `--play`: un parche 3 x 3 junto al primer colono, trigo, guisantes y repollo en brote, crecimiento y maduro). Revisado en pantalla (`game/out/cultivos.png`, `cultivos2.png`, zoom 4): los tres cultivos y sus tres etapas se distinguen. Los brotes y el crecimiento se perdían contra el pasto, así que en `visuals.json` los `.sprout` pasan a escala 1,6 y los `.growing` a 1,3 (los maduros quedan en 1,0).

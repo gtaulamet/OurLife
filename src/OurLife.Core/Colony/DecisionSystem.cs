@@ -652,6 +652,16 @@ public sealed partial class DecisionSystem : ISimSystem
         // The harvest comes before sowing: what is ripe is reaped first (see "Cosechar" in docs/gdd/agricultura.md).
         if (jobs.Contains(JobKind.Reap))
         {
+            // Crops the player ordered reaped come before the rest of the harvest.
+            _reapOrderedOnly = true;
+            AddWork(simulation, JobKind.Reap);
+            _reapOrderedOnly = false;
+            if (_candidates.Count > 0 && TryCandidates(simulation, colonist))
+            {
+                return true;
+            }
+
+            _candidates.Clear();
             AddWork(simulation, JobKind.Reap);
             if (TryCandidates(simulation, colonist))
             {
@@ -700,7 +710,8 @@ public sealed partial class DecisionSystem : ISimSystem
                 world.Query<HarvestOrder, Position>(_entities);
                 foreach (var plant in _entities)
                 {
-                    if (!world.Has<Harvested>(plant))
+                    // A crop with the same order is reaped, not gathered.
+                    if (world.Has<Plant>(plant) && !world.Has<Harvested>(plant))
                     {
                         AddEntity(simulation, kind, plant, capacity: 1);
                     }

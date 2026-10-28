@@ -76,6 +76,9 @@ public sealed record CommandLineOptions
     /// <summary>Plants a 3 x 3 patch (wheat, peas and cabbage in their three stages) next to the first colonist, to see the crop models in screenshots (milestone O6).</summary>
     public bool Crops { get; init; }
 
+    /// <summary>With <c>--crops</c>, orders the ripe crops of the patch reaped, to see the markers and the tool in screenshots (milestone O10).</summary>
+    public bool ReapOrder { get; init; }
+
     /// <summary>Places a forge next to the first colonist, with an order for an axe, and gives the colonist a masterwork axe and a pickaxe, to see the fire workshops and the tools in screenshots (milestone O8).</summary>
     public bool Metals { get; init; }
 
@@ -245,6 +248,9 @@ public sealed record CommandLineOptions
                     break;
                 case "--crops":
                     options = options with { Crops = true };
+                    break;
+                case "--reap-order":
+                    options = options with { Crops = true, ReapOrder = true };
                     break;
                 case "--inspect-farm":
                     options = options with { InspectFarm = true };
