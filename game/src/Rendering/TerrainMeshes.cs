@@ -28,6 +28,12 @@ public enum TerrainPiece
     /// of the walls, where it reads as a gap with a door in it.
     /// </summary>
     Door,
+
+    /// <summary>The post of a built wall: a thin column in the middle of the cell, on a slab where the cell has no ground below.</summary>
+    WallPost,
+
+    /// <summary>A thin arm of a built wall from its post to the edge of the cell towards +X; turned towards each neighbour that joins it.</summary>
+    WallArm,
 }
 
 /// <summary>
@@ -37,6 +43,9 @@ public enum TerrainPiece
 public static class TerrainMeshes
 {
     public const float FloorThickness = 0.06f;
+
+    /// <summary>The thickness of a built wall and of the posts of a door, a quarter of a cell.</summary>
+    public const float WallThickness = 0.24f;
 
     public static Mesh Create(TerrainPiece piece) => piece switch
     {
@@ -53,6 +62,8 @@ public static class TerrainMeshes
             (new Vector3(-0.5f, 0, -0.12f), new Vector3(-0.38f, 1f, 0.12f)),
             (new Vector3(0.38f, 0, -0.12f), new Vector3(0.5f, 1f, 0.12f)),
             (new Vector3(-0.38f, FloorThickness, -0.04f), new Vector3(0.38f, 0.75f, 0.04f))),
+        TerrainPiece.WallPost => Boxes((new Vector3(-WallThickness / 2, 0, -WallThickness / 2), new Vector3(WallThickness / 2, 1, WallThickness / 2))),
+        TerrainPiece.WallArm => Boxes((new Vector3(WallThickness / 2, 0, -WallThickness / 2), new Vector3(0.5f, 1, WallThickness / 2))),
         _ => throw new ArgumentOutOfRangeException(nameof(piece), piece, null),
     };
 

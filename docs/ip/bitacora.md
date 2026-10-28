@@ -960,3 +960,11 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Con ellos no quedó ningún modelo de KayKit Dungeon Remastered en uso: se borró la carpeta del kit, su fila en `CREDITS.md` y el color `texture` de la paleta (el test `Every_palette_colour_replaces_a_material_of_some_model` lo pedía). `docs/art.md` actualizado; los ADR y las IPs antiguas conservan la mención histórica.
 - `dotnet build`, `dotnet test` y el smoke con código 0. Captura de la casa del smoke revisada.
 - Progreso: 36 de 41. Queda la fase 6 (puerta, escalera, rampa y 2 tocones), opcional.
+
+### 2026-10-28: muros finos y revisión de puerta, escalera y rampa
+
+- Rama `ip4/muros-finos`. Los muros construidos (los de material con `builtFrom`) ya no son bloques de una celda: son finos, de 0,24 (`TerrainMeshes.WallThickness`), con un poste en el centro y un brazo hacia cada vecino que es muro o puerta (`TerrainPiece.WallPost` y `WallArm`). La roca y la tierra del valle siguen siendo bloques. La puerta ya tenía ese grosor.
+- Efectos en `MapRenderer`: los bloques vecinos de un muro construido se dibujan como si hubiera aire (un muro fino no tapa sus caras); el corte por nivel no pone tapa oscura sobre un muro construido; bajo el muro queda el suelo de abajo, con pasto si lo tiene alrededor, o una losa del material si no hay suelo debajo (segundo piso).
+- Sin cambios en Core: la simulación sigue tratándolos como celdas `Wall` que bloquean el paso.
+- Puerta, escalera y rampa: se quedan como piezas de código, porque el shader del terreno las pinta con el patrón de su material y encajan sin costuras. Los tocones pasan a `docs/ip/backlog.md`.
+- `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0. Captura de la casa del smoke revisada. Falta ver un muro de dos pisos y las esquinas en T con el juego en marcha.

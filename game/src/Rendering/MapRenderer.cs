@@ -32,7 +32,7 @@ public partial class MapRenderer : Node3D
     private const string DecorationShaderPath = "res://assets/shaders/decoration.gdshader";
 
     private static readonly TerrainPiece[] ChunkPieces =
-        [TerrainPiece.Block, TerrainPiece.Floor, TerrainPiece.Ramp, TerrainPiece.Steps, TerrainPiece.Hole, TerrainPiece.Door];
+        [TerrainPiece.Block, TerrainPiece.Floor, TerrainPiece.Ramp, TerrainPiece.Steps, TerrainPiece.Hole, TerrainPiece.Door, TerrainPiece.WallPost, TerrainPiece.WallArm];
 
     // North, east, south and west in map coordinates, with the yaw that turns +X towards each.
     private static readonly (int Dx, int Dy, float Yaw)[] Directions =
@@ -559,6 +559,9 @@ public partial class MapRenderer : Node3D
         var origin = new Vector3(x + 0.5f, z, y + 0.5f);
         switch (_map.ShapeAt(x, y, z))
         {
+            case TileShape.Wall when IsBuiltWall(x, y, z):
+                AddThinWall(x, y, z, origin);
+                break;
             case TileShape.Wall when IsExposed(x, y, z):
                 Add(TerrainPiece.Block, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z), Pattern(x, y, z), HasGrass(x, y, z + 1) ? GrassFringe : 0);
                 break;
@@ -586,6 +589,39 @@ public partial class MapRenderer : Node3D
         }
     }
 
+    /// <summary>Whether the cell is a wall somebody built, which is drawn thin; the rock and soil of the valley are blocks.</summary>
+    private bool IsBuiltWall(int x, int y, int z) =>
+        _map.ShapeOrEmpty(x, y, z) == TileShape.Wall && _map.MaterialAt(new TileCoord(x, y, z))?.IsBuilt == true;
+
+    /// <summary>
+    /// A built wall is a post in the middle of the cell with an arm towards each neighbour that
+    /// joins it (a wall, a block or a door), so a row of them reads as one thin wall. Where the
+    /// cell has no ground below, a slab of its material holds the post.
+    /// </summary>
+    private void AddThinWall(int x, int y, int z, Vector3 origin)
+    {
+        var color = MaterialColor(x, y, z);
+        var pattern = Pattern(x, y, z);
+        Add(TerrainPiece.WallPost, new Transform3D(Basis.Identity, origin), color, pattern);
+        foreach (var (dx, dy, yaw) in Directions)
+        {
+            if (_map.ShapeOrEmpty(x + dx, y + dy, z) is TileShape.Wall or TileShape.Door)
+            {
+                Add(TerrainPiece.WallArm, new Transform3D(new Basis(Vector3.Up, yaw), origin), color, pattern);
+            }
+        }
+
+        if (z > 0 && _map.ShapeOrEmpty(x, y, z - 1) != TileShape.Wall)
+        {
+            Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), color, pattern);
+        }
+        else if (Directions.Any(direction => HasGrass(x + direction.Dx, y + direction.Dy, z)))
+        {
+            // The ground the wall stands on keeps the grass of the ground around it.
+            Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z - 1), Pattern(x, y, z - 1), GrassAll);
+        }
+    }
+
     /// <summary>
     /// A door lies in the line of its walls: across X unless the walls are only to its north or
     /// south, which turns it a quarter.
@@ -607,7 +643,8 @@ public partial class MapRenderer : Node3D
         || !IsWallOrBelowMap(x, y - 1, z) || !IsWallOrBelowMap(x, y + 1, z)
         || !IsWallOrBelowMap(x, y, z - 1) || !IsWallOrBelowMap(x, y, z + 1);
 
-    private bool IsWallOrBelowMap(int x, int y, int z) => z < 0 || _map.ShapeOrEmpty(x, y, z) == TileShape.Wall;
+    // A built wall is thin, so it does not hide the faces of the blocks next to it.
+    private bool IsWallOrBelowMap(int x, int y, int z) => z < 0 || (_map.ShapeOrEmpty(x, y, z) == TileShape.Wall && !IsBuiltWall(x, y, z));
 
     /// <summary>
     /// A ramp rises towards the neighbour whose surface is one level higher: a block on the ramp's
@@ -732,7 +769,7 @@ public partial class MapRenderer : Node3D
             {
                 for (var x = 0; x < _map.Size.Width; x++)
                 {
-                    if (_map.ShapeAt(x, y, z) == TileShape.Wall && _map.ShapeAt(x, y, z + 1) != TileShape.Empty)
+                    if (_map.ShapeAt(x, y, z) == TileShape.Wall && !IsBuiltWall(x, y, z) && _map.ShapeAt(x, y, z + 1) != TileShape.Empty)
                     {
                         Add(TerrainPiece.Cut, new Transform3D(Basis.Identity, new Vector3(x + 0.5f, z, y + 0.5f)), CutCapColor(x, y, z), Pattern(x, y, z));
                     }

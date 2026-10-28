@@ -13,8 +13,8 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 | 3 | Objetos de hierro, piedra y herramientas | 8 | 8 |
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 9 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 4 |
-| 6 | Piezas opcionales (puerta, escalera, rampa, tocones) | 5 | 0 |
-| | **Total** | **41** (32 sin los opcionales) | **36** |
+| 6 | Piezas opcionales (puerta, escalera, rampa descartadas; tocones al backlog) | 5 | 3 descartadas, 2 al backlog |
+| | **Total** | **41** (32 sin los opcionales) | **36** (más 3 descartadas) |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -115,15 +115,15 @@ Estado (28 de octubre): integrada. Los 4 `.glb` están en `game/assets/models/ou
 
 ## Fase 6: piezas opcionales
 
-Hoy las piezas de construcción son geometría generada en código y teñida por material. Un modelo propio sólo hace falta donde no deba teñirse. Los árboles, piedras, arbustos y flores ya los cubre el Nature Kit.
+Revisada el 28 de octubre. La puerta, la escalera y la rampa son piezas del terreno generadas en código (`TerrainMeshes`): las pinta el shader del terreno con el patrón de su material (tablones, mampostería), se unen sin costuras a los bloques vecinos y giran hacia donde corresponde. Un `.glb` propio no se tiñe por material de la misma manera ni gira solo, así que **se descartan los tres modelos**. La puerta ya tiene el mismo grosor que los muros finos (0,24), así que encaja con ellos.
 
-- [ ] `door` → `door.glb`. Puerta de madera de 1 celda: hoja con bisagras y manilla.
-- [ ] `stairs` → `stairs.glb`. Escalera, si se quiere salir del bloque genérico.
-- [ ] `ramp` → `ramp.glb`. Rampa, con el mismo criterio que la escalera.
+- [x] `door`, `stairs`, `ramp`: se mantienen como piezas de código (descartados como modelos propios).
 - [ ] `stump.oak` → `stump_oak.glb`. Tocón del roble talado.
 - [ ] `stump.pine` → `stump_pine.glb`. Tocón del pino talado.
 
-Los ids visuales de la puerta, la escalera, la rampa y los tocones hay que confirmarlos contra `visuals.json` y el código antes de empezar: los tocones requieren además que el talado deje un tocón en el mapa, lo que sería una función nueva (backlog).
+Los tocones requieren que el talado deje un tocón en el mapa: es una función nueva y va a `docs/ip/backlog.md`. Mientras tanto no tiene sentido modelarlos.
+
+Muros finos (pedido del usuario, 28 de octubre): los muros construidos dejaron de ser bloques de una celda y pasaron a ser finos. Ver `docs/ip/bitacora.md`.
 
 ## Fuera de alcance
 

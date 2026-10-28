@@ -97,6 +97,7 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Modelo | Estado | Plan |
 |---|---|---|
 | Terreno | Resuelto con piezas generadas en código y pintadas por el shader (ADR-012) | — |
+| Muros construidos | Resueltos: finos (0,24 de una celda), con un poste y un brazo hacia cada vecino que los une; la roca y la tierra del valle siguen siendo bloques | — |
 | Arbusto de bayas con bayas y sin bayas | Resuelto: `plant_bushDetailed` con tres racimos de `cherries` del Food Kit como partes; `plant_bush` sin bayas | — |
 | Bayas | Resuelto: `cherries` del Food Kit | — |
 | Provisiones | Resuelto: cesta propia `item_provisions` (el barril de KayKit se quitó) | — |
@@ -172,7 +173,7 @@ Requisitos comunes:
 | Arvejas (`crop.peas`) | Brotes con zarcillos | Enredadera sobre estacas | Vainas colgando |
 | Repollo (`crop.cabbage`) | Plántulas | Hojas abiertas | Cabezas formadas |
 
-**B. Opcionales** (no existen o son piezas generadas en código): puerta (`door`, hoja con bisagras y manilla), escalera, rampa y tocones de roble y de pino. Los árboles y el entorno ya los cubre el Nature Kit.
+**B. Opcionales**: tocones de roble y de pino (no existen). La puerta, la escalera y la rampa se quedan como piezas generadas en código: se pintan con el shader del terreno (madera o mampostería según el material) y encajan sin costuras con el resto. Los árboles y el entorno ya los cubre el Nature Kit.
 
 Total: 9 muebles (5 imprescindibles), 18 objetos, 9 cultivos y 5 opcionales, 41 modelos en total. No hay ningún objeto "cantera": la piedra se obtiene excavando y el puesto más cercano es el banco de cantero.
 
