@@ -4,23 +4,23 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 ## Estado actual
 
-*Actualizado el 2026-10-24.*
+*Actualizado el 2026-10-28.*
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o5-conocimientos`: O2 a O5 hechos y O6 (Core y presentación; falta su `/code-review`) |
+| Rama de trabajo | `ip4/o7-subsuelo`: O7, Core hecho (vetas, niebla y migración al formato 17); falta la presentación. O2 a O6 hechos en `ip4/o5-conocimientos` |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
 | Validación | `dotnet build` sin advertencias, 800 tests en verde, smoke con código 0, benchmark de 30 s dentro del presupuesto (377 FPS, 0,07 ms por tick; con `diez-anos`, 382 FPS y 0,08 ms) |
-| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42) |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42) |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
-1. **IP4 "Oficios", O7** (vetas y niebla subterránea, `docs/gdd/subsuelo.md`), rama `ip4/o7-subsuelo`. Siguen O8, O9, O10 y O11 (`docs/ip/IP4.md`).
+1. **IP4 "Oficios", O7, presentación** (vetas y niebla subterránea, `docs/gdd/subsuelo.md`), rama `ip4/o7-subsuelo`: el Core está hecho. Faltan el render sin celdas ocultas (`Map.IsDiscovered`), el tono de niebla en el corte por nivel, el inspector "Sin explorar" y "Veta de hierro", los textos de la interfaz, el modelo de `item.iron_ore`, el tinte de la veta en `visuals.json` y las capturas es/en. Siguen O8, O9, O10 y O11 (`docs/ip/IP4.md`).
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
 3. **Íconos pixel de O5** (rama, estado y HUD; hoy texto): a la pasada de arte junto con O10.
 4. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos, falta verlos de cerca en el juego.
@@ -43,6 +43,17 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-28: O7, Core de vetas y niebla subterránea
+
+- Rama `ip4/o7-subsuelo`. Sólo Core, defs y tests; la presentación (render sin celdas ocultas, tono de niebla, inspector, textos de la interfaz, modelo del mineral, capturas) queda para el godot-engineer, el i18n-specialist y el art-integrator.
+- Defs: `OreVein` en `worldgen.json` (`iron`: 6 a 9 vetas de 10 a 24 celdas en arenisca y caliza, una a la vista a 40 celdas del centro), `MaterialKind.Ore` y el material `iron_vein` (200 ticks, 100 % de mineral). El item `iron_ore` ya existía desde O2. Desvío de la spec: el def suma `minFit` (6) y `attempts` (200), dos números de balance que la spec no nombraba.
+- Core: `TileFlags.Discovered` (bit 128; viaja en los bytes de banderas, así que el guardado y la huella ya lo llevan). `GameMap.IsDiscovered`; `SetTile` descubre la celda y sus 26 vecinas cuando la forma nueva no es muro (excavar, escaleras, canalizar y desmontar pasan todos por ahí), marca sucios los chunks de las celdas recién descubiertas y nunca oculta de nuevo (`SetTile` y `SetFlags` conservan el bit aunque quien llama reconstruya las banderas). `ComputeDiscovered` calcula la niebla inicial desde las formas. `OreVeins` (`WorldGen/OreVeins.cs`) siembra con el flujo `world.ore`: arranque aleatorio en muro de roca anfitriona a 2 o más niveles bajo la superficie, crecimiento por la frontera (a lo ancho: no más de un nivel arriba o abajo del arranque), y la veta a la vista (si ninguna veta tiene una celda descubierta a 40 celdas del centro `(Width/2, Height/2)`, se vuelve a sortear la primera que no la tiene desde la roca ya descubierta; si no hay, `InvalidOperationException`). El generador rechaza antes de sortear un `OreVein` cuyo material no sea mineral o cuyo anfitrión no sea roca natural.
+- Formato 17 con migración: una partida de formato 16 o anterior calcula la niebla y recibe vetas con `world.ore` en roca anfitriona sin descubrir, sin veta a la vista (`OreVeins.Migrate`). Fixture `o7.olsave` (formato 16, semilla 7, 4 320 ticks, escaleras y una galería, escrito con el código de la rama antes de O7).
+- Tests: `DiscoveryTests` (regla de las 27 celdas, chunks sucios, no se oculta de nuevo, excavar a ciegas, escaleras y canal, 200 ticks y un mineral, presupuesto por excavación), `OreVeinTests` (valle de prueba: determinismo, conteos, solo anfitriones, veta a la vista, error de generación, 70 % oculto, conectividad igual con y sin niebla, migración), `SubsoilTests` (valle real con las semillas 1, 7 y 42; un colono cava una veta a la vista; migración del fixture), continuidad con vetas a medio cavar y celdas ocultas y descubiertas (`SaveGameTests` en Core y en Content) y `o7.olsave` en `OldSaveTests`. 781 tests del Core, 237 de contenido, smoke con código 0.
+- Huellas del smoke con `--ticks 5000`: `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42).
+- Añadidos mínimos fuera del Core para que los tests de contenido den verde (los pueden pulir los otros agentes): `def.material.iron_vein.name/desc/gender` en es y en, y `iron_vein` con el patrón `speckled` en `terrain.materials` de `visuals.json`.
+- Sin hacer: ver los pendientes (presentación de O7).
 
 ### 2026-10-25: O6, revisión
 

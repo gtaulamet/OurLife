@@ -2,7 +2,7 @@
 
 Parte de la spec de IP4 (`docs/gdd/oficios.md`): vetas de mineral de hierro generadas en el valle, y la niebla que oculta lo que no se descubrió bajo tierra. Es lo que `mapa-y-generacion.md` dejó como "vetas de mineral y niebla subterránea (IP4)" y lo que el modelo del mapa llamaba "la niebla llega en IP4".
 
-**Estado:** propuesta de O1, pendiente de aprobación. Números iniciales, a ajustar en O11.
+**Estado:** aprobada en O1. El Core está hecho en O7 (vetas, niebla, migración al formato 17); falta la presentación. Números iniciales, a ajustar en O11.
 
 ## Qué hay hoy
 
@@ -20,6 +20,8 @@ Def nuevo `OreVein`, en `worldgen.json` (lo lee la generación, como `strata` y 
   "veins": { "min": 6, "max": 9 }, "cells": { "min": 10, "max": 24 },
   "outcrop": { "veins": 1, "radius": 40 } }
 ```
+
+En la implementación el def suma dos campos que la spec no nombraba, por ser números de balance: `minFit` (6, las celdas mínimas de una veta que no cabe) y `attempts` (200, los intentos por veta y por veta a la vista).
 
 | Campo | Qué es |
 |---|---|
