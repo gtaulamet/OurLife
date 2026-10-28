@@ -110,6 +110,8 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 
 ### Modelos propios pendientes (lista para el modelador)
 
+Seguimiento por modelo en `docs/plan-modelos.md`.
+
 Revisado el 28 de octubre de 2026. Varios objetos comparten hoy un modelo provisorio de KayKit o del Nature Kit, y no se distinguen entre sí. Cada fila es un modelo `.glb` propio, a guardar en `game/assets/models/ourlife/` con el nombre indicado. Al entregarlo se reemplaza la entrada del id visual en `visuals.json` (ajustando `scale` y `turn`) y se quita el modelo provisorio si queda sin uso.
 
 Requisitos comunes:

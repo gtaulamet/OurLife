@@ -918,3 +918,8 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Se borraron `kenney_mini-characters` y `tools/make-elder-models.py`; se actualizaron `CREDITS.md`, `docs/art.md` y el GDD de vida.
 - `dotnet test` en verde y smoke con código 0. La captura no mostró bien a los colonos (la cámara no los encuadra), así que **falta revisar a ojo** el aspecto, la escala y el color de los modelos en el juego.
 - `MODELS/` (fuentes, imágenes, scripts de Blender) no se versiona.
+
+### 2026-10-28: plan de modelos propios
+
+- Nuevo `docs/plan-modelos.md`: una casilla por cada uno de los 41 modelos pendientes (6 fases, de los 5 imprescindibles a los opcionales), con id visual, archivo, descripción, modelo provisorio actual y los pasos para darlo por hecho.
+- `docs/art.md` enlaza al plan. Ningún modelo está hecho todavía (0 de 41).
