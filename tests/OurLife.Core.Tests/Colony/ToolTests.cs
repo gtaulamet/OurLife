@@ -20,7 +20,9 @@ public class ToolTests
         { "type": "Item", "id": "iron_axe", "category": "misc", "kind": "raw", "visual": "item.iron_axe", "stackLimit": 1,
           "tool": { "workType": "woodcutting", "speedPercent": 30 } },
         { "type": "Item", "id": "iron_pickaxe", "category": "misc", "kind": "raw", "visual": "item.iron_pickaxe", "stackLimit": 1,
-          "tool": { "workType": "mining", "speedPercent": 30 } }
+          "tool": { "workType": "mining", "speedPercent": 30 } },
+        { "type": "Item", "id": "iron_cart", "category": "misc", "kind": "raw", "visual": "item.iron_cart", "stackLimit": 1,
+          "tool": { "workType": "hauling", "speedPercent": 30 } }
         """;
 
     private static readonly Lazy<DefDatabase> ContentLazy = new(() =>
@@ -171,6 +173,51 @@ public class ToolTests
         var woodcutter = bed.AddColonist(2, 2, 1);
 
         bed.Simulation.Run(300);
+
+        Tools.Of(bed.Simulation, woodcutter).ShouldBeEmpty();
+        bed.CountItems("iron_axe").ShouldBe(1);
+    }
+
+    [Fact]
+    public void A_colonist_who_hauls_does_not_give_the_haul_up_to_fetch_a_tool_that_would_not_speed_it_up()
+    {
+        var bed = Village();
+        ItemPiles.Drop(bed.Simulation, "iron_cart", 1, new TileCoord(2, 2, 1));
+        bed.AddItems("log", 1, 12, 12, 1);
+        var hauler = bed.AddColonist(6, 6, 1);
+        var kinds = new List<JobKind>();
+        for (var tick = 0; tick < 300; tick++)
+        {
+            bed.Simulation.Tick();
+            if (bed.JobOf(hauler) is { } job && (kinds.Count == 0 || kinds[^1] != job.Kind))
+            {
+                kinds.Add(job.Kind);
+            }
+        }
+
+        kinds.ShouldContain(JobKind.Haul);
+        kinds.ShouldNotContain(JobKind.Equip);
+        Tools.Of(bed.Simulation, hauler).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void A_colonist_on_its_way_to_a_tool_gives_up_when_it_may_no_longer_do_that_work()
+    {
+        var bed = Village();
+        ItemPiles.Drop(bed.Simulation, "iron_axe", 1, new TileCoord(2, 2, 1));
+        bed.AddPlant("tree", 9, 9, 1);
+        bed.Designate(DesignationKind.Chop, new TileCoord(9, 9, 1), new TileCoord(9, 9, 1));
+        var woodcutter = bed.AddColonist(6, 6, 1);
+        for (var tick = 0; tick < 100 && bed.JobOf(woodcutter)?.Kind != JobKind.Equip; tick++)
+        {
+            bed.Simulation.Tick();
+        }
+
+        bed.JobOf(woodcutter)?.Kind.ShouldBe(JobKind.Equip);
+        bed.Simulation.Commands.Enqueue(new SetWorkPriorityCommand(woodcutter, "woodcutting", 0));
+        bed.Simulation.ApplyCommandsNow();
+
+        bed.Simulation.Run(200);
 
         Tools.Of(bed.Simulation, woodcutter).ShouldBeEmpty();
         bed.CountItems("iron_axe").ShouldBe(1);

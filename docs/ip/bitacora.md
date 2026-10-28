@@ -59,6 +59,8 @@ En orden:
 - Modelos: fase 7 en `docs/plan-modelos.md` y filas en `docs/art.md` para `furniture_charcoal_kiln.glb`, `furniture_bloomery.glb` y `furniture_forge.glb`; los provisorios siguen.
 - Falta: los tres modelos propios y el criterio 15 en la partida (taller en uso y herramienta forjada, que necesita jugar días o una partida guardada con los conocimientos).
 
+- Revisión (`/code-review`) corregida: el desvío a la herramienta se calcula una vez por tick y sólo para trabajos con bonus; `Equip` se cancela si la pila deja el almacén o el colono ya no puede ese trabajo; `QualityRules.ValuePercentOf`; `Tools.Grant` para el modo `--metals` (fragua en `masonry` y en celda libre); texto "requiere" del panel de producción refrescado. Huellas del smoke sin cambios.
+
 ### 2026-10-28: O8, Core de fundición, herrería y herramientas
 
 - Rama `ip4/o8-metales` (desde `main` con O1 a O7). Sólo Core, defs, textos mínimos y tests; la presentación (inspector del taller, modelos propios de los talleres de fuego, capturas) queda para el godot-engineer y el art-integrator.

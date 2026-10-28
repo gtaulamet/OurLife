@@ -86,12 +86,7 @@ public static class Stocks
     /// <summary>Place of a quality in the ladder; 0 for all when the content has no qualities (then nothing has one).</summary>
     private static Func<string?, int> Ranks(DefDatabase content)
     {
-        if (content.All<QualityConfigDef>().Count != 1)
-        {
-            return _ => 0;
-        }
-
-        var rules = QualityRules.From(content);
-        return quality => rules.RankOf(quality);
+        var rules = QualityRules.FromOrNull(content);
+        return rules is null ? _ => 0 : quality => rules.RankOf(quality);
     }
 }

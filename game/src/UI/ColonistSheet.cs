@@ -24,10 +24,8 @@ public partial class ColonistSheet : PanelContainer
     private const string ForbiddenKey = "ui.sheet.children_forbidden";
     private const int ColumnWidth = 340;
 
-    private readonly List<(Label Header, Label Body)> _sections = [];
+    private readonly List<(Label Header, Label Body, bool HideWhenEmpty)> _sections = [];
 
-    /// <summary>Index of the tools in <see cref="_sections"/>, which has no text when the colonist has none.</summary>
-    private const int ToolsSection = 1;
     private GameServices _services = null!;
     private GameSession _session = null!;
     private Simulation _simulation = null!;
@@ -100,10 +98,11 @@ public partial class ColonistSheet : PanelContainer
         scroll.AddChild(columns);
         var left = Column(columns);
         var right = Column(columns);
-        foreach (var (key, parent) in new[]
+        // The tools show only for a colonist that has one.
+        foreach (var (key, parent, hideWhenEmpty) in new[]
                  {
-                     ("ui.sheet.traits", left), ("ui.sheet.tools", left), ("ui.sheet.skills", left), ("ui.sheet.family", left),
-                     ("ui.sheet.thoughts", right), ("ui.sheet.desires", right), ("ui.sheet.relations", right), ("ui.sheet.recent", right),
+                     ("ui.sheet.traits", left, false), ("ui.sheet.tools", left, true), ("ui.sheet.skills", left, false), ("ui.sheet.family", left, false),
+                     ("ui.sheet.thoughts", right, false), ("ui.sheet.desires", right, false), ("ui.sheet.relations", right, false), ("ui.sheet.recent", right, false),
                  })
         {
             var header = new Label { Text = key, ThemeTypeVariation = "HeaderSmall" };
@@ -111,7 +110,7 @@ public partial class ColonistSheet : PanelContainer
             parent.AddChild(header);
             var body = new Label { AutoTranslateMode = AutoTranslateModeEnum.Disabled, AutowrapMode = TextServer.AutowrapMode.WordSmart };
             parent.AddChild(body);
-            sheet._sections.Add((header, body));
+            sheet._sections.Add((header, body, hideWhenEmpty));
         }
 
         return sheet;
@@ -232,8 +231,7 @@ public partial class ColonistSheet : PanelContainer
         for (var i = 0; i < _sections.Count; i++)
         {
             var lines = bodies[i];
-            // The tools (second section) show only for a colonist that has one.
-            var shown = i != ToolsSection || lines.Count > 0;
+            var shown = !_sections[i].HideWhenEmpty || lines.Count > 0;
             _sections[i].Header.Visible = shown;
             _sections[i].Body.Visible = shown;
             _sections[i].Body.Text = lines.Count == 0 ? _services.Text.Format("ui.sheet.none") : string.Join("\n", lines);

@@ -47,7 +47,7 @@ public partial class InspectorPanel
         var signature = string.Join(
             ';',
             new[] { kind }
-                .Concat(recipes.Select(recipe => $"{recipe.Id}:{_simulation.Unlocks.IsUnlocked(recipe, _simulation.Progress)}"))
+                .Concat(recipes.Select(recipe => $"{recipe.Id}:{string.Join(',', RecipeKnowledge.Missing(_simulation, recipe))}:{_simulation.Unlocks.IsUnlocked(recipe, _simulation.Progress)}"))
                 .Concat(orders.Select(item => $"{item.Entity.Index}:{item.Order.Mode}:{item.Order.Quantity}:{item.Order.Done}:{item.Order.Paused}:{item.Status}")));
         if (signature == _workshopSignature)
         {
@@ -60,14 +60,14 @@ public partial class InspectorPanel
         foreach (var recipe in recipes)
         {
             var unlocked = _simulation.Unlocks.IsUnlocked(recipe, _simulation.Progress);
-            var missing = unlocked ? [] : _simulation.Unlocks.Missing(recipe, _simulation.Progress);
+            var missing = RecipeKnowledge.Missing(_simulation, recipe);
             var button = new Button
             {
                 Text = unlocked
                     ? text.Format("ui.workshop.make", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()))
                     : missing.Count == 0
                         ? text.Format("ui.workshop.make_locked", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()))
-                        : text.Format("ui.workshop.make_missing", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()), ("knowledge", KnowledgeNames(missing))),
+                        : text.Format("ui.workshop.make_missing", ("count", OrderedUnits), ("recipe", text.Format(recipe.NameKey!).ToLowerInvariant()), ("knowledge", RecipeKnowledge.Names(_services, _simulation, missing))),
                 AutoTranslateMode = AutoTranslateModeEnum.Disabled,
                 FocusMode = FocusModeEnum.None,
                 Alignment = HorizontalAlignment.Left,
@@ -105,9 +105,6 @@ public partial class InspectorPanel
             _workshop.AddChild(row);
         }
     }
-
-    private string KnowledgeNames(IReadOnlyList<string> ids) =>
-        string.Join(", ", ids.Select(id => _services.Text.Format(_simulation.Content.Get<KnowledgeDef>(id).NameKey!)));
 
     private void ClearWorkshop()
     {

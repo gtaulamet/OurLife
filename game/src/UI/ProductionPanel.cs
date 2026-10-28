@@ -111,12 +111,7 @@ public partial class ProductionPanel : PanelContainer
         _recipes = new OptionButton { AutoTranslateMode = AutoTranslateModeEnum.Disabled, FocusMode = FocusModeEnum.None };
         foreach (var recipe in _recipeDefs)
         {
-            var name = text.Capitalized(text.Format(recipe.NameKey!));
-            var simulation = _session.Simulation;
-            var missing = simulation.Unlocks.IsUnlocked(recipe, simulation.Progress) ? [] : simulation.Unlocks.Missing(recipe, simulation.Progress);
-            _recipes.AddItem(missing.Count == 0
-                ? name
-                : text.Format("ui.production.recipe_locked", ("recipe", name), ("knowledge", string.Join(", ", missing.Select(id => text.Format(content.Get<KnowledgeDef>(id).NameKey!))))));
+            _recipes.AddItem(RecipeLabel(recipe));
         }
 
         form.AddChild(_recipes);
@@ -156,6 +151,18 @@ public partial class ProductionPanel : PanelContainer
         RefreshList();
     }
 
+    /// <summary>The recipe's name in the list, with the knowledge it still lacks.</summary>
+    private string RecipeLabel(RecipeDef recipe)
+    {
+        var text = _services.Text;
+        var simulation = _session.Simulation;
+        var name = text.Capitalized(text.Format(recipe.NameKey!));
+        var missing = RecipeKnowledge.Missing(simulation, recipe);
+        return missing.Count == 0
+            ? name
+            : text.Format("ui.production.recipe_locked", ("recipe", name), ("knowledge", RecipeKnowledge.Names(_services, simulation, missing)));
+    }
+
     private void AddOrder()
     {
         if (_recipes.Selected < 0 || _recipes.Selected >= _recipeDefs.Count || _modes.Selected < 0)
@@ -178,6 +185,17 @@ public partial class ProductionPanel : PanelContainer
     private void RefreshList()
     {
         _sinceRefresh = 0;
+
+        // What a recipe lacks changes as the colony learns, while the panel stays open.
+        for (var index = 0; index < _recipeDefs.Count && index < _recipes.ItemCount; index++)
+        {
+            var label = RecipeLabel(_recipeDefs[index]);
+            if (_recipes.GetItemText(index) != label)
+            {
+                _recipes.SetItemText(index, label);
+            }
+        }
+
         var simulation = _session.Simulation;
         var world = simulation.World;
         var orders = WorkOrderRules.InOrder(simulation)

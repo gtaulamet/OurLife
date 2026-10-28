@@ -270,9 +270,11 @@ public sealed partial class JobSystem : ISimSystem
             case JobKind.Reap:
                 return IsFarmValid(simulation, job);
             case JobKind.Equip:
-                // The tool must still lie there, and the colonist must not have got one for the same work meanwhile.
+                // The tool must still lie in a stockpile, the colonist must not have got one for the same work
+                // meanwhile, and must still be one that does that work (as when it chose it).
                 return world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var tool) && tool.Count > 0
-                       && simulation.Content.Get<ItemDef>(tool.Def).Tool is { } toolDef && Tools.EquippedFor(simulation, colonist, toolDef.WorkType) is null;
+                       && simulation.Content.Get<ItemDef>(tool.Def).Tool is { } toolDef && Tools.EquippedFor(simulation, colonist, toolDef.WorkType) is null
+                       && Storage(simulation).IsStored(simulation, job.Target) && CanDoWork(simulation, colonist, toolDef.WorkType);
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -515,8 +517,23 @@ public sealed partial class JobSystem : ISimSystem
         return job.Progress >= workTicks;
     }
 
+    /// <summary>Whether the colonist does a work type at its stage of life and has not turned it off, as for choosing a job.</summary>
+    private bool CanDoWork(Simulation simulation, EntityId colonist, string workType)
+    {
+        foreach (var type in _rules.WorkTypes)
+        {
+            if (type.Id == workType)
+            {
+                return LifeRules.DoesWork(LifeRules.Stage(simulation, colonist), type)
+                       && WorkPriorityRules.Of(simulation.World, colonist, type.Id, _rules.Ai.DefaultWorkPriority) != WorkPriorityLevels.Never;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>Whether the job is work for the player, which goes at the speed of the worker.</summary>
-    private static bool IsWork(Job job) => job.Kind switch
+    internal static bool IsWork(Job job) => job.Kind switch
     {
         JobKind.Mine or JobKind.DigStairs or JobKind.Channel or JobKind.Chop or JobKind.Build or JobKind.Deconstruct or JobKind.FeedBaby
             or JobKind.Craft or JobKind.Research or JobKind.Sow or JobKind.Reap => true,

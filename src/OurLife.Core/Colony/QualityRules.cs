@@ -61,6 +61,12 @@ public sealed class QualityRules
         return rules;
     }
 
+    /// <summary>The rules, or null when the content has no qualities (then nothing has one).</summary>
+    internal static QualityRules? FromOrNull(DefDatabase content) => content.All<QualityConfigDef>().Count == 1 ? From(content) : null;
+
+    /// <summary>The value of a quality in percent; 100 when the content has no qualities.</summary>
+    internal static int ValuePercentOf(DefDatabase content, string? quality) => FromOrNull(content)?.Of(quality).ValuePercent ?? 100;
+
     private static QualityRules Build(DefDatabase content)
     {
         var configs = content.All<QualityConfigDef>();

@@ -54,8 +54,7 @@ public static class Tools
             return 0;
         }
 
-        var value = simulation.Content.All<QualityConfigDef>().Count == 1 ? QualityRules.From(simulation.Content).Of(quality).ValuePercent : 100;
-        return tool.SpeedPercent * value / 100;
+        return tool.SpeedPercent * QualityRules.ValuePercentOf(simulation.Content, quality) / 100;
     }
 
     /// <summary>The speed the tool a colonist has for a work type adds to it, in percent; 0 without one.</summary>
@@ -96,16 +95,38 @@ public static class Tools
             return false;
         }
 
-        if (!world.TryGet<Equipment>(colonist, out var equipment))
+        AddTool(simulation, colonist, new ItemStack { Def = stack.Def, Count = 1, Quality = stack.Quality });
+        ItemPiles.Take(simulation, pile, 1);
+        return true;
+    }
+
+    /// <summary>
+    /// Gives a colonist a tool out of nothing (for scenarios and tools of the game's own setup), by the
+    /// same rules as equipping one: nothing happens if it is not a tool or the colonist has one for that work.
+    /// </summary>
+    public static bool Grant(Simulation simulation, EntityId colonist, string item, string? quality = null)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        if (!simulation.World.IsAlive(colonist) || simulation.Content.Get<ItemDef>(item).Tool is not { } tool
+            || EquippedFor(simulation, colonist, tool.WorkType) is not null)
         {
-            equipment = new Equipment();
-            world.Add(colonist, equipment);
+            return false;
         }
 
-        equipment.Tools.Add(new ItemStack { Def = stack.Def, Count = 1, Quality = stack.Quality });
-        ItemPiles.Take(simulation, pile, 1);
-        simulation.Events.Emit(new EntityChangedEvent(colonist));
+        AddTool(simulation, colonist, new ItemStack { Def = item, Count = 1, Quality = quality });
         return true;
+    }
+
+    private static void AddTool(Simulation simulation, EntityId colonist, ItemStack tool)
+    {
+        if (!simulation.World.TryGet<Equipment>(colonist, out var equipment))
+        {
+            equipment = new Equipment();
+            simulation.World.Add(colonist, equipment);
+        }
+
+        equipment.Tools.Add(tool);
+        simulation.Events.Emit(new EntityChangedEvent(colonist));
     }
 
     /// <summary>Leaves the tools of a colonist who dies on the ground where it stands.</summary>

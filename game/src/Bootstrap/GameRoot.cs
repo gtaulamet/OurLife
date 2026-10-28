@@ -1393,18 +1393,48 @@ public partial class GameRoot : Node
     private static void PlaceMetals(GameScreen screen, EntityId colonist)
     {
         var simulation = screen.Session.Simulation;
+        var forge = simulation.Content.Get<BuildableDef>("forge");
         var origin = simulation.World.Get<Position>(colonist).Cell;
-        var cell = new TileCoord(origin.X + 2, origin.Y + 2, 0);
-        cell = cell with { Z = simulation.Map.SurfaceZ(cell.X, cell.Y) + 1 };
-        var piece = simulation.World.CreateEntity();
-        simulation.World.Add(piece, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
-        simulation.World.Add(piece, new Furniture { Buildable = "forge", Material = "planks" });
-        simulation.World.Add(piece, new Workshop());
-        simulation.Events.Emit(new EntitySpawnedEvent(piece));
-        simulation.World.Add(colonist, new Equipment
+        var plants = new List<EntityId>();
+        simulation.World.Query<Plant, Position>(plants);
+        var plantCells = plants.Select(plant => simulation.World.Get<Position>(plant).Cell).ToHashSet();
+        var occupied = Construction.FurnitureCells(simulation);
+
+        // The nearest free cell around the colonist, ring by ring, in a fixed order.
+        TileCoord? site = null;
+        for (var ring = 2; ring <= 6 && site is null; ring++)
         {
-            Tools = [new ItemStack { Def = "iron_axe", Count = 1, Quality = "masterwork" }, new ItemStack { Def = "iron_pickaxe", Count = 1 }],
-        });
+            for (var dx = -ring; dx <= ring && site is null; dx++)
+            {
+                for (var dy = -ring; dy <= ring && site is null; dy++)
+                {
+                    var column = (X: origin.X + dx, Y: origin.Y + dy);
+                    if (Math.Max(Math.Abs(dx), Math.Abs(dy)) != ring || !simulation.Map.Size.Contains(column.X, column.Y, 0))
+                    {
+                        continue;
+                    }
+
+                    var candidate = new TileCoord(column.X, column.Y, simulation.Map.SurfaceZ(column.X, column.Y) + 1);
+                    if (simulation.Map.Size.Contains(candidate.X, candidate.Y, candidate.Z)
+                        && Construction.CanPlace(simulation.Map, forge, candidate, plantCells, occupied))
+                    {
+                        site = candidate;
+                    }
+                }
+            }
+        }
+
+        if (site is { } cell)
+        {
+            var piece = simulation.World.CreateEntity();
+            simulation.World.Add(piece, new Position { X = cell.X, Y = cell.Y, Z = cell.Z });
+            simulation.World.Add(piece, new Furniture { Buildable = "forge", Material = forge.Materials[0] });
+            simulation.World.Add(piece, new Workshop());
+            simulation.Events.Emit(new EntitySpawnedEvent(piece));
+        }
+
+        Tools.Grant(simulation, colonist, "iron_axe", "masterwork");
+        Tools.Grant(simulation, colonist, "iron_pickaxe", null);
         screen.Session.Enqueue(new CreateWorkOrderCommand("iron_axe", WorkOrderMode.Count, 2));
         screen.Session.Enqueue(new CreateWorkOrderCommand("charcoal", WorkOrderMode.Count, 5));
         simulation.ApplyCommandsNow();
