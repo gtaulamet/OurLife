@@ -20,6 +20,12 @@
     "cost": 6, "workTicks": 240, "order": 21, "visual": "furniture.mason_bench", "beauty": -1, "workstation": { "workType": "stonecutting" } },
   { "type": "Buildable", "id": "kitchen", "era": "medieval", "requires": ["cooking"], "shape": "furniture", "materials": ["masonry"],
     "cost": 8, "workTicks": 300, "order": 22, "visual": "furniture.kitchen", "workstation": { "workType": "cooking" } },
+  { "type": "Buildable", "id": "charcoal_kiln", "era": "medieval", "requires": ["charcoal_burning"], "shape": "furniture", "materials": ["masonry"],
+    "cost": 8, "workTicks": 300, "order": 24, "visual": "furniture.charcoal_kiln", "beauty": -2, "workstation": { "workType": "smelting" } },
+  { "type": "Buildable", "id": "bloomery", "era": "medieval", "requires": ["metallurgy"], "shape": "furniture", "materials": ["masonry"],
+    "cost": 12, "workTicks": 450, "order": 25, "visual": "furniture.bloomery", "beauty": -4, "workstation": { "workType": "smelting" } },
+  { "type": "Buildable", "id": "forge", "era": "medieval", "requires": ["ironwork"], "shape": "furniture", "materials": ["masonry"],
+    "cost": 12, "workTicks": 450, "order": 26, "visual": "furniture.forge", "beauty": -4, "workstation": { "workType": "smithing" } },
   { "type": "Buildable", "id": "scriptorium", "era": "medieval", "shape": "furniture", "materials": ["planks"],
     "cost": 6, "workTicks": 240, "order": 23, "visual": "furniture.scriptorium", "beauty": 1, "workstation": { "workType": "research" } }
 ]

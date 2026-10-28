@@ -19,6 +19,7 @@ internal static class ColonistDeath
             ItemPiles.Drop(simulation, carried.Def, carried.Count, simulation.World.Get<Position>(colonist).Cell, carried.Quality, carried.Freshness);
         }
 
+        Tools.DropAll(simulation, colonist);
         Relationships.ForgetTheDead(simulation, colonist);
         simulation.Events.Emit(new EntityRemovedEvent(colonist));
         simulation.World.DestroyEntity(colonist);

@@ -227,6 +227,7 @@ Una orden es una entidad `WorkOrder` (como un plano). La lista de órdenes es el
 
 - **Equipar:** el campo `Item.tool` (`{ workType, speedPercent }`) hace de un objeto una herramienta. Cada colono lleva como mucho **una por tipo de trabajo** (componente `Equipment`, una lista de pila con calidad). Una herramienta equipada sale del mundo: no se acarrea ni se cuenta en las existencias.
 - Antes de un trabajo de un tipo para el que no tiene herramienta, si hay una libre en un almacén a 30 celdas o menos, el colono la va a buscar (trabajo `equip`, del tipo de ese trabajo) y se la queda. Una herramienta ya equipada se conserva para siempre: no se cambia por una mejor, no se gasta (backlog) y al morir su dueño cae en su celda.
+- **Cómo se decide (O8):** cuando un colono toma un trabajo de un tipo para el que no tiene herramienta, y hay una libre en un almacén dentro de `craftFetchRadius` (30) celdas, deja ese trabajo y va a buscarla (trabajo `equip`); al volver a decidir toma el trabajo, ya con la herramienta. Una pila fuera de un almacén no cuenta (se acarrea primero) y una que otro colono va a buscar tampoco. Entre varias, gana la que más velocidad da con su calidad, luego la más cercana y luego la de menor id. El componente `Equipment` se agrega con la primera herramienta, así una partida sin herramientas se guarda como antes.
 - **Efecto:** su `speedPercent` por el `valuePercent` de su calidad se suma a la velocidad del trabajo (junto a la habilidad, la etapa, la diligencia y el ánimo). Contenido de IP4 (sólo hierro; herramientas de piedra o bronce quedan en el backlog):
 
 | Herramienta | Tipo de trabajo | `speedPercent` | Motivo |
@@ -236,7 +237,7 @@ Una orden es una entidad `WorkOrder` (como un plano). La lista de órdenes es el
 | `iron_hoe` | farming | 25 | La azada rinde un poco menos que el hacha |
 | `iron_hammer` | construction | 20 | Construir ya tiene mucha habilidad en juego |
 
-- Con calidad obra maestra un hacha da +60 % de velocidad (30 × 200 %); pobre, +22 %.
+- Con calidad obra maestra un hacha da +60 % de velocidad (30 × 200 %); pobre, +22 %. El bonus multiplica la velocidad del colono como los demás factores (`velocidad × (100 + bonus) / 100`), así que un hacha normal de 30 sobre una velocidad de 80 da 104.
 
 ## Materiales de construcción nuevos y muebles de tablones
 

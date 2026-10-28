@@ -164,6 +164,9 @@
     "furniture.carpenter_bench": { "model": "res://assets/models/ourlife/furniture_carpenter_bench.glb", "scale": 0.8 },
     "furniture.mason_bench": { "model": "res://assets/models/ourlife/furniture_mason_bench.glb", "scale": 0.8 },
     "furniture.kitchen": { "model": "res://assets/models/ourlife/furniture_kitchen.glb", "scale": 0.8 },
-    "furniture.scriptorium": { "model": "res://assets/models/ourlife/furniture_scriptorium.glb", "scale": 0.8 }
+    "furniture.scriptorium": { "model": "res://assets/models/ourlife/furniture_scriptorium.glb", "scale": 0.8 },
+    "furniture.charcoal_kiln": { "model": "res://assets/models/ourlife/furniture_kitchen.glb", "scale": 0.8 },
+    "furniture.bloomery": { "model": "res://assets/models/ourlife/furniture_kitchen.glb", "scale": 0.9 },
+    "furniture.forge": { "model": "res://assets/models/ourlife/furniture_mason_bench.glb", "scale": 0.9 }
   }
 }

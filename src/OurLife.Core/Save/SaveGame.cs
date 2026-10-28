@@ -25,7 +25,7 @@ namespace OurLife.Core.Save;
 public static class SaveGame
 {
     /// <summary>Grows with every change to the saved state that older readers cannot handle.</summary>
-    public const int FormatVersion = 17;
+    public const int FormatVersion = 18;
 
     /// <summary>
     /// The oldest format this game still reads. Older formats are migrated on loading, one step
@@ -51,6 +51,8 @@ public static class SaveGame
     /// <c>Reap</c> (<c>Job.Crop</c>, written only when set): a game of format 15 needs nothing.
     /// Format 17 (O7, ore veins and fog) adds the flag <see cref="TileFlags.Discovered"/> to the flags of the cells; a game of format 16
     /// or before gets it worked out from the shapes and veins of ore drawn in the rock that stays hidden (see <see cref="OreVeins.Migrate"/>).
+    /// Format 18 (O8, forges and tools) adds the component <c>Equipment</c> (the tools of a colonist, added with the first one) and the job
+    /// <c>Equip</c>: a game of format 17 needs nothing, nobody has a tool in it.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

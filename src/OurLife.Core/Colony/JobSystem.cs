@@ -269,6 +269,10 @@ public sealed partial class JobSystem : ISimSystem
             case JobKind.Sow:
             case JobKind.Reap:
                 return IsFarmValid(simulation, job);
+            case JobKind.Equip:
+                // The tool must still lie there, and the colonist must not have got one for the same work meanwhile.
+                return world.IsAlive(job.Target) && world.TryGet<ItemStack>(job.Target, out var tool) && tool.Count > 0
+                       && simulation.Content.Get<ItemDef>(tool.Def).Tool is { } toolDef && Tools.EquippedFor(simulation, colonist, toolDef.WorkType) is null;
             case JobKind.Deconstruct:
                 return StillOrdered(simulation, job.Cell, TileFlags.DeconstructDesignation, Construction.CanDeconstruct(simulation, job.Cell));
             case JobKind.Channel:
@@ -385,6 +389,10 @@ public sealed partial class JobSystem : ISimSystem
                 return Craft(simulation, colonist, job, workType, speed);
             case JobKind.Research:
                 return Research(simulation, job, speed);
+            case JobKind.Equip:
+                Tools.Equip(simulation, colonist, job.Target);
+                _storage.Invalidate();
+                return true;
             case JobKind.Sow:
                 return Sow(simulation, job, speed);
             case JobKind.Reap:

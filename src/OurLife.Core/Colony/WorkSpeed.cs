@@ -6,7 +6,7 @@ namespace OurLife.Core.Colony;
 
 /// <summary>
 /// How fast a colonist works for the player, in percent of an average adult: its stage of life
-/// times its traits times its skill in the work times its mood times the end of a pregnancy (see <c>docs/gdd/vida-y-generaciones.md</c>), and
+/// times its traits times its skill in the work times its mood times the end of a pregnancy and the tool it has for the work (see <c>docs/gdd/vida-y-generaciones.md</c>), and
 /// never under 1 %. A job of <c>ticks</c> lasts <c>ticks × 100 / speed</c>. A read-only query.
 /// </summary>
 public static class WorkSpeed
@@ -18,6 +18,13 @@ public static class WorkSpeed
         var percent = LifeRules.WorkSpeedPercent(simulation, colonist) * PersonalityRules.WorkSpeedPercent(simulation, colonist) / 100;
         percent = percent * skills.SpeedPercent(simulation, colonist, workType) / 100;
         percent = percent * LifeRules.PregnancyWorkSpeedPercent(simulation, colonist) / 100;
+
+        // The tool the colonist has for this work (see "Herramientas" in docs/gdd/oficios.md).
+        if (workType is not null)
+        {
+            percent = percent * (100 + Tools.SpeedPercent(simulation, colonist, workType.Id)) / 100;
+        }
+
         return Math.Max(1, percent * MoodRules.WorkSpeedPercent(simulation, colonist) / 100);
     }
 }

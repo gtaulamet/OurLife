@@ -629,6 +629,7 @@ public sealed partial class DecisionSystem : ISimSystem
                         ? TryCraft(simulation, colonist, _rules.WorkTypes[type])
                         : TryWorkType(simulation, colonist, _rules.WorkJobs[type])))
                 {
+                    FetchToolFirst(simulation, colonist, _rules.WorkTypes[type]);
                     return true;
                 }
             }

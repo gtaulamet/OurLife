@@ -12,5 +12,17 @@
   { "type": "Recipe", "id": "pottage", "era": "medieval", "requires": ["cooking"], "workshop": "kitchen",
     "inputs": [{ "item": "cabbage", "count": 2 }, { "item": "peas", "count": 1 }], "outputs": [{ "item": "pottage", "count": 2 }], "workTicks": 120, "order": 2 },
   { "type": "Recipe", "id": "pickled_cabbage", "era": "medieval", "requires": ["food_preservation"], "workshop": "kitchen",
-    "inputs": [{ "item": "cabbage", "count": 3 }], "outputs": [{ "item": "pickled_cabbage", "count": 3 }], "workTicks": 100, "order": 3 }
+    "inputs": [{ "item": "cabbage", "count": 3 }], "outputs": [{ "item": "pickled_cabbage", "count": 3 }], "workTicks": 100, "order": 3 },
+  { "type": "Recipe", "id": "charcoal", "era": "medieval", "requires": ["charcoal_burning"], "workshop": "charcoal_kiln",
+    "inputs": [{ "item": "log", "count": 4 }], "outputs": [{ "item": "charcoal", "count": 2 }], "workTicks": 240, "order": 0 },
+  { "type": "Recipe", "id": "iron_ingot", "era": "medieval", "requires": ["metallurgy"], "workshop": "bloomery",
+    "inputs": [{ "item": "iron_ore", "count": 2 }, { "item": "charcoal", "count": 2 }], "outputs": [{ "item": "iron_ingot", "count": 1 }], "workTicks": 300, "order": 0 },
+  { "type": "Recipe", "id": "iron_axe", "era": "medieval", "requires": ["ironwork"], "workshop": "forge",
+    "inputs": [{ "item": "iron_ingot", "count": 1 }, { "item": "handle", "count": 1 }], "outputs": [{ "item": "iron_axe", "count": 1 }], "workTicks": 360, "quality": true, "order": 0 },
+  { "type": "Recipe", "id": "iron_pickaxe", "era": "medieval", "requires": ["ironwork"], "workshop": "forge",
+    "inputs": [{ "item": "iron_ingot", "count": 1 }, { "item": "handle", "count": 1 }], "outputs": [{ "item": "iron_pickaxe", "count": 1 }], "workTicks": 360, "quality": true, "order": 1 },
+  { "type": "Recipe", "id": "iron_hoe", "era": "medieval", "requires": ["ironwork"], "workshop": "forge",
+    "inputs": [{ "item": "iron_ingot", "count": 1 }, { "item": "handle", "count": 1 }], "outputs": [{ "item": "iron_hoe", "count": 1 }], "workTicks": 300, "quality": true, "order": 2 },
+  { "type": "Recipe", "id": "iron_hammer", "era": "medieval", "requires": ["ironwork"], "workshop": "forge",
+    "inputs": [{ "item": "iron_ingot", "count": 1 }, { "item": "handle", "count": 1 }], "outputs": [{ "item": "iron_hammer", "count": 1 }], "workTicks": 300, "quality": true, "order": 3 }
 ]

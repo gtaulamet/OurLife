@@ -20,7 +20,7 @@ namespace OurLife.Content.Tests;
 /// the trades), the same game as <c>l3.olsave</c> but with the saplings of L4b, <c>o4.olsave</c> in format 13
 /// (a bench of planks and an order for five planks, seed 1, 8 640 ticks, by the code of <c>main</c> before O4), <c>o5.olsave</c>
 /// in format 14 (a bench, an order to keep six planks and one to repeat handles, seed 3, 4 320 ticks, before O5), <c>o6.olsave</c>
-/// in format 15 (a stockpile and berries of different freshness, seed 7, 4 320 ticks, by the code of <c>main</c> before O6), <c>o7.olsave</c> in format 16 (seed 7, 4 320 ticks, stairs and a gallery dug, by the code of the branch before O7), and <c>o3.olsave</c>
+/// in format 15 (a stockpile and berries of different freshness, seed 7, 4 320 ticks, by the code of <c>main</c> before O6), <c>o7.olsave</c> in format 16 (seed 7, 4 320 ticks, stairs and a gallery dug, by the code of the branch before O7), <c>o8.olsave</c> in format 17 (seed 7, 4 320 ticks, a new colony with the fog and the veins, by the code of the branch before O8), and <c>o3.olsave</c>
 /// in format 12, by the code of <c>main</c> before O3 of IP4 (workshops, recipes and furniture of
 /// planks): seed 7, 20 500 ticks, free will on, a stockpile, every tree near the arrival ordered
 /// down and a bed of timber built from the logs.
@@ -43,6 +43,7 @@ public class OldSaveTests
     [InlineData("o5.olsave", 14, "0.4.0-dev", 7, 4_320)]
     [InlineData("o6.olsave", 15, "0.4.0-dev", 7, 4_320)]
     [InlineData("o7.olsave", 16, "0.4.0-dev", 7, 4_320)]
+    [InlineData("o8.olsave", 17, "0.4.0-dev", 7, 4_320)]
     public void An_old_game_loads_with_ages_surnames_personalities_skills_and_a_pace(string file, int format, string gameVersion, int founders, long tick)
     {
         var simulation = Load(file, out var header);
@@ -200,6 +201,43 @@ public class OldSaveTests
     }
 
     [Fact]
+    public void A_game_of_format_17_has_nobody_with_tools_and_a_colonist_fetches_the_first_axe_that_is_stored()
+    {
+        var simulation = Load("o8.olsave", out _);
+        var world = simulation.World;
+        world.Store<Equipment>().Count.ShouldBe(0);
+
+        // A stockpile on the village centre with an axe in it, and the nearest tree ordered down.
+        var center = simulation.VillageCenter!.Value;
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Stockpile, center with { X = center.X - 2, Y = center.Y - 2 }, center with { X = center.X + 2, Y = center.Y + 2 }));
+        simulation.ApplyCommandsNow();
+        var zone = new List<EntityId>();
+        world.Query<Stockpile>(zone);
+        var piles = new List<EntityId>();
+        world.Query<ItemStack, Position>(piles);
+        var free = world.Get<Stockpile>(zone.Single()).Cells.First(cell => piles.All(pile => world.Get<Position>(pile).Cell != cell));
+        ItemPiles.Drop(simulation, "iron_axe", 1, free, "good");
+        var trees = new List<EntityId>();
+        world.Query<Plant, Position>(trees);
+        var tree = trees.Where(plant => GameContent.Defs.Get<PlantDef>(world.Get<Plant>(plant).Def).Chop is not null)
+            .MinBy(plant => (Math.Abs(world.Get<Position>(plant).Cell.X - center.X) + Math.Abs(world.Get<Position>(plant).Cell.Y - center.Y), plant));
+        var treeCell = world.Get<Position>(tree).Cell;
+        simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Chop, treeCell, treeCell));
+
+        var equipped = new List<EntityId>();
+        for (var tick = 0; tick < 6_000 && equipped.Count == 0; tick += 20)
+        {
+            simulation.Run(20);
+            world.Query<Equipment>(equipped);
+        }
+
+        equipped.Count.ShouldBe(1);
+        world.Get<Equipment>(equipped[0]).Tools.Select(tool => (tool.Def, tool.Quality)).ShouldBe([("iron_axe", "good")]);
+        Stocks.Count(simulation, "iron_axe").ShouldBe(0);
+        Colonists(simulation).Count.ShouldBe(7);
+    }
+
+    [Fact]
     public void A_migrated_game_is_saved_in_the_new_format_and_loads_again_with_the_same_state()
     {
         var simulation = Load("o3.olsave", out _);
@@ -209,7 +247,7 @@ public class OldSaveTests
         var again = SaveGame.Load(new MemoryStream(output.ToArray()), GameContent.Defs, out var header);
 
         header.FormatVersion.ShouldBe(SaveGame.FormatVersion);
-        header.FormatVersion.ShouldBe(17);
+        header.FormatVersion.ShouldBe(18);
         again.ComputeStateHash().ShouldBe(simulation.ComputeStateHash());
     }
 
@@ -229,6 +267,7 @@ public class OldSaveTests
     [InlineData("o5.olsave")]
     [InlineData("o6.olsave")]
     [InlineData("o7.olsave")]
+    [InlineData("o8.olsave")]
     public void The_same_old_game_always_migrates_the_same_way_and_goes_on(string file)
     {
         var first = Load(file, out _);

@@ -214,6 +214,7 @@
   "job.research.report": "Investigando",
   "job.sow.report": "Sembrando {crop}",
   "job.reap.report": "Cosechando {crop}",
+  "job.equip.report": "Yendo a buscar una herramienta",
 
   "ui.workshop.recipes": "Recetas",
   "ui.workshop.make": "Hacer {count}: {recipe}",

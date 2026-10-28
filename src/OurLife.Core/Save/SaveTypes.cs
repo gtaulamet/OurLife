@@ -48,6 +48,7 @@ public static class SaveTypes
         Component<WorkOrder>("work_order");
         Component<FarmZone>("farm_zone");
         Component<Crop>("crop");
+        Component<Equipment>("equipment");
 
         Command<DesignateCommand>("designate");
         Command<SetStockpileFilterCommand>("set_stockpile_filter");

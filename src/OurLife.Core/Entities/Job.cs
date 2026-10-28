@@ -63,6 +63,12 @@ public enum JobKind
 
     /// <summary>Reaping a ripe crop of a farm zone.</summary>
     Reap,
+
+    /// <summary>
+    /// Fetching a tool from a stockpile and keeping it (see "Herramientas" in <c>docs/gdd/oficios.md</c>).
+    /// It belongs to no work type: it is the way to a tool for the work the colonist is about to do.
+    /// </summary>
+    Equip,
 }
 
 public enum JobStage
@@ -162,6 +168,7 @@ public static class JobKinds
         JobKind.Research => "research",
         JobKind.Sow => "sow",
         JobKind.Reap => "reap",
+        JobKind.Equip => "equip",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
     };
 

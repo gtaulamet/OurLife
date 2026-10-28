@@ -13,7 +13,10 @@ namespace OurLife.Content.Tests;
 /// </summary>
 public class WorkshopContentTests
 {
-    private static readonly string[] Recipes = ["bread", "flour", "handle", "pickled_cabbage", "plank", "pottage", "stone_block"];
+    private static readonly string[] Recipes =
+    [
+        "bread", "charcoal", "flour", "handle", "iron_axe", "iron_hammer", "iron_hoe", "iron_ingot", "iron_pickaxe", "pickled_cabbage", "plank", "pottage", "stone_block",
+    ];
 
     [Fact]
     public void The_recipes_of_O3_exist_and_each_one_is_made_at_a_workshop_with_a_work_type_of_workshops()
@@ -46,14 +49,17 @@ public class WorkshopContentTests
     }
 
     [Fact]
-    public void The_workshops_are_the_benches_of_the_carpenter_and_the_mason_the_kitchen_and_the_scriptorium()
+    public void The_workshops_are_the_benches_the_kitchen_the_scriptorium_and_the_kiln_the_bloomery_and_the_forge()
     {
         var workshops = GameContent.Defs.All<BuildableDef>().Where(buildable => buildable.Workstation is not null)
             .Select(buildable => (buildable.Id, buildable.Workstation!.WorkType, buildable.Cost, buildable.WorkTicks, buildable.Beauty, string.Join(",", buildable.Requires)));
 
         workshops.ShouldBe(
         [
+            ("bloomery", "smelting", 12, 450, -4, "metallurgy"),
             ("carpenter_bench", "carpentry", 6, 240, -1, "carpentry"),
+            ("charcoal_kiln", "smelting", 8, 300, -2, "charcoal_burning"),
+            ("forge", "smithing", 12, 450, -4, "ironwork"),
             ("kitchen", "cooking", 8, 300, 0, "cooking"),
             ("mason_bench", "stonecutting", 6, 240, -1, "stonecutting"),
             ("scriptorium", "research", 6, 240, 1, ""),
