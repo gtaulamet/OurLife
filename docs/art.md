@@ -108,6 +108,72 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Etapas de la vida (H3.8) | Resuelto: 60 modelos propios (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), cada uno con su proporción; el catálogo los dibuja a escala 3,1 | — |
 | Globos de interacción (H3.8) | Resuelto: íconos pixel propios de 16 × 16 (`tools/make-interaction-icons.py`) | — |
 
+### Modelos propios pendientes (lista para el modelador)
+
+Revisado el 28 de octubre de 2026. Varios objetos comparten hoy un modelo provisorio de KayKit o del Nature Kit, y no se distinguen entre sí. Cada fila es un modelo `.glb` propio, a guardar en `game/assets/models/ourlife/` con el nombre indicado. Al entregarlo se reemplaza la entrada del id visual en `visuals.json` (ajustando `scale` y `turn`) y se quita el modelo provisorio si queda sin uso.
+
+Requisitos comunes:
+
+| Punto | Requisito |
+|---|---|
+| Formato | Un `.glb` por objeto |
+| Tamaño | Cabe en una celda (1 × 1 unidades). La escala final se ajusta en el catálogo. |
+| Origen | Centro de la base, apoyada en Y = 0 |
+| Frente | Hacia +Z (si queda girado, se corrige con `turn`) |
+| Estilo | Low-poly de colores planos, entre 300 y 2.000 triángulos |
+| Materiales | Pocos y con nombre claro (`wood`, `metal`, `stone`, `cloth`, `food`), porque el catálogo puede reemplazar el color de un material por su nombre |
+| Vista | La cámara rota en pasos de 90°: el objeto debe leerse bien desde los cuatro lados |
+| Escala relativa | Probarlo junto a un colono (escala 3,1) antes de darlo por bueno |
+
+**A1. Muebles y puestos de trabajo** (1 celda). Prioridad alta: los cuatro puestos usan hoy la misma mesa.
+
+| Id visual | Archivo | Descripción |
+|---|---|---|
+| `furniture.carpenter_bench` | `furniture_carpenter_bench.glb` | Banco robusto con tornillo de banco, serrucho colgado, viruta y un tablón |
+| `furniture.mason_bench` | `furniture_mason_bench.glb` | Bloque de piedra tosca sobre caballetes, con cincel y martillo y un sillar a medio tallar |
+| `furniture.kitchen` | `furniture_kitchen.glb` | Hogar de piedra con olla colgada, parrilla y brasas (se construye con masonería) |
+| `furniture.scriptorium` | `furniture_scriptorium.glb` | Pupitre inclinado con pergamino, tintero, pluma y un libro abierto |
+| `furniture.cradle` | `furniture_cradle.glb` | Cuna de madera con balancines, más pequeña que la cama |
+| `furniture.table` | `furniture_table.glb` | Mesa de madera sencilla, distinta de los bancos de trabajo (opcional) |
+| `furniture.bed` | `furniture_bed.glb` | Camastro con paja o manta (opcional: sirve el de KayKit) |
+| `furniture.chair` | `furniture_chair.glb` | Banco o silla tosca (opcional: sirve la de KayKit) |
+| `furniture.chest` | `furniture_chest.glb` | Cofre de madera con herrajes (opcional: sirve el de KayKit) |
+
+**A2. Objetos** (0,2 a 0,5 celdas). Hoy se reutilizan `log`, `rock_smallA`, `cherries` y `barrel_small` para casi todos. `item.log` e `item.stone` ya se ven bien.
+
+| Id visual | Archivo | Descripción |
+|---|---|---|
+| `item.cabbage` | `item_cabbage.glb` | Cabeza redonda de hojas verdes |
+| `item.peas` | `item_peas.glb` | Vainas verdes o un puñado de granos |
+| `item.bread` | `item_bread.glb` | Hogaza redonda con cortes |
+| `item.pottage` | `item_pottage.glb` | Cuenco u olla de barro con guiso |
+| `item.pickled_cabbage` | `item_pickled_cabbage.glb` | Tarro o barrica pequeña, de color distinto a la de provisiones |
+| `item.wheat` | `item_wheat.glb` | Gavilla de espigas |
+| `item.flour` | `item_flour.glb` | Saco de tela atado |
+| `item.provisions` | `item_provisions.glb` | Cesta o barrica con comida variada |
+| `item.plank` | `item_plank.glb` | Tabla rectangular de madera |
+| `item.handle` | `item_handle.glb` | Palo corto y pulido |
+| `item.stone_block` | `item_stone_block.glb` | Sillar rectangular tallado |
+| `item.iron_ore` | `item_iron_ore.glb` | Roca con vetas oxidadas |
+| `item.iron_ingot` | `item_iron_ingot.glb` | Barra o prisma gris azulado |
+| `item.charcoal` | `item_charcoal.glb` | Trozos negros y angulosos |
+| `item.iron_axe` | `item_iron_axe.glb` | Mango de madera y hoja de hierro |
+| `item.iron_pickaxe` | `item_iron_pickaxe.glb` | Mango de madera y cabeza en punta |
+| `item.iron_hoe` | `item_iron_hoe.glb` | Mango de madera y hoja plana en ángulo |
+| `item.iron_hammer` | `item_iron_hammer.glb` | Mango corto y cabeza de hierro |
+
+**A3. Cultivos** (una celda de cultivo, varias plantas por modelo). Hoy son pastos y arbustos del Nature Kit. Cada etapa es un modelo distinto: `crop_<cultivo>_sprout.glb`, `crop_<cultivo>_growing.glb` y `crop_<cultivo>.glb`.
+
+| Cultivo | Brote | Creciendo | Maduro |
+|---|---|---|---|
+| Trigo (`crop.wheat`) | Brotes verdes | Tallos altos verdes | Espigas doradas |
+| Arvejas (`crop.peas`) | Brotes con zarcillos | Enredadera sobre estacas | Vainas colgando |
+| Repollo (`crop.cabbage`) | Plántulas | Hojas abiertas | Cabezas formadas |
+
+**B. Opcionales** (no existen o son piezas generadas en código): puerta (`door`, hoja con bisagras y manilla), escalera, rampa y tocones de roble y de pino. Los árboles y el entorno ya los cubre el Nature Kit.
+
+Total: 9 muebles (5 imprescindibles), 18 objetos, 9 cultivos y 5 opcionales, 41 modelos en total. No hay ningún objeto "cantera": la piedra se obtiene excavando y el puesto más cercano es el banco de cantero.
+
 ## Fuente tipográfica
 
 **Tiny5**, de Stefan Schmidt, con licencia SIL OFL 1.1, en `game/assets/fonts/tiny5`. Se importa sin suavizado, sin hinting, sin posicionamiento subpíxel y sin fuentes de respaldo del sistema (`Tiny5.ttf.import`), y `UiTheme` la usa como fuente por defecto.
