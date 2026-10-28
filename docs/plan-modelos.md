@@ -11,10 +11,10 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 | 1 | Puestos de trabajo y cuna (imprescindibles) | 5 | 5 |
 | 2 | Objetos de comida y materiales | 10 | 10 |
 | 3 | Objetos de hierro, piedra y herramientas | 8 | 8 |
-| 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 0 |
+| 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 9 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 0 |
 | 6 | Piezas opcionales (puerta, escalera, rampa, tocones) | 5 | 0 |
-| | **Total** | **41** (32 sin los opcionales) | **23** |
+| | **Total** | **41** (32 sin los opcionales) | **32** |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -83,20 +83,22 @@ Las cuatro herramientas comparten mango: conviene modelar uno y reutilizar su ma
 
 Cubren una celda de cultivo, con varias plantas por modelo. Cada etapa es un modelo distinto. Hoy son pastos y arbustos del Nature Kit. Nombres: `crop_<cultivo>_sprout.glb`, `crop_<cultivo>_growing.glb` y `crop_<cultivo>.glb` (maduro).
 
+Estado (28 de octubre): integrada. Los 9 `.glb` están en `game/assets/models/ourlife/`, generados con `MODELS/generador/fase4.py`, a escala 1,0 y cubriendo casi toda la celda (0,75 a 0,94 de lado, 0,05 a 0,58 de alto). Las plantas de un cultivo ocupan los mismos puntos en sus tres etapas. Reemplazan a los pastos y arbustos del Nature Kit, que siguen en uso por la decoración y el arbusto de bayas. No pude ver un campo real en el juego (la captura con `--farm` no mostró cultivos): falta revisarlo de cerca.
+
 Trigo (`crop.wheat`):
-- [ ] Brote → `crop_wheat_sprout.glb`. Brotes verdes.
-- [ ] Creciendo → `crop_wheat_growing.glb`. Tallos altos verdes.
-- [ ] Maduro → `crop_wheat.glb`. Espigas doradas.
+- [x] Brote → `crop_wheat_sprout.glb`. Brotes verdes.
+- [x] Creciendo → `crop_wheat_growing.glb`. Tallos altos verdes.
+- [x] Maduro → `crop_wheat.glb`. Espigas doradas.
 
 Arvejas (`crop.peas`):
-- [ ] Brote → `crop_peas_sprout.glb`. Brotes con zarcillos.
-- [ ] Creciendo → `crop_peas_growing.glb`. Enredadera sobre estacas.
-- [ ] Maduro → `crop_peas.glb`. Vainas colgando.
+- [x] Brote → `crop_peas_sprout.glb`. Brotes con zarcillos.
+- [x] Creciendo → `crop_peas_growing.glb`. Enredadera sobre estacas.
+- [x] Maduro → `crop_peas.glb`. Vainas colgando.
 
 Repollo (`crop.cabbage`):
-- [ ] Brote → `crop_cabbage_sprout.glb`. Plántulas.
-- [ ] Creciendo → `crop_cabbage_growing.glb`. Hojas abiertas.
-- [ ] Maduro → `crop_cabbage.glb`. Cabezas formadas.
+- [x] Brote → `crop_cabbage_sprout.glb`. Plántulas.
+- [x] Creciendo → `crop_cabbage_growing.glb`. Hojas abiertas.
+- [x] Maduro → `crop_cabbage.glb`. Cabezas formadas.
 
 Las tres etapas de un cultivo deben leerse como la misma planta en distintos momentos: mismo ancho de parcela y misma paleta de verdes. Revisarlas en fila antes de cerrar el cultivo.
 

@@ -946,3 +946,10 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Los 8 objetos de piedra, hierro y herramientas (sillar, mineral de hierro, lingote, carbón, hacha, pico, azada y martillo) están en `game/assets/models/ourlife/` y en `visuals.json`: los materiales a escala 1,0 y las herramientas a 0,8. Se generaron con `MODELS/generador/fase3.py`.
 - `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0.
 - Progreso: 23 de 41. Sigue la fase 4 (cultivos, 9 modelos).
+
+### 2026-10-28: fase 4 de modelos integrada
+
+- Los 9 modelos de cultivo (trigo, arvejas y repollo en brote, creciendo y maduro) están en `game/assets/models/ourlife/` y en `visuals.json`, a escala 1,0 y sin `parts`: cada modelo ya trae todas las plantas de la celda. Se generaron con `MODELS/generador/fase4.py`.
+- `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0.
+- Pendiente: ver un campo real en el juego (la captura con `--farm --inspect-farm` no mostró cultivos) y ajustar escala o color si hace falta.
+- Progreso: 32 de 41, todos los imprescindibles. Quedan las fases 5 y 6, opcionales (muebles de KayKit y piezas de construcción).

@@ -85,50 +85,15 @@
       ]
     },
     "plant.berry_bush.harvested": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 1.4, "foliage": "deciduous" },
-    "crop.wheat.sprout": {
-      "model": "res://assets/models/kenney_nature-kit/grass.glb",
-      "scale": 1.5,
-      "parts": [
-        { "model": "res://assets/models/kenney_nature-kit/grass.glb", "offset": [0.2, 0, 0.15], "scale": 1.3 },
-        { "model": "res://assets/models/kenney_nature-kit/grass.glb", "offset": [-0.18, 0, -0.2], "scale": 1.3 }
-      ]
-    },
-    "crop.wheat.growing": {
-      "model": "res://assets/models/kenney_nature-kit/grass_large.glb",
-      "scale": 1.2,
-      "parts": [
-        { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "offset": [0.22, 0, 0.1], "scale": 1.1 },
-        { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "offset": [-0.2, 0, 0.18], "scale": 1.1 },
-        { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "offset": [0, 0, -0.24], "scale": 1.1 }
-      ]
-    },
-    "crop.wheat": {
-      "model": "res://assets/models/kenney_nature-kit/grass_large.glb",
-      "scale": 1.9,
-      "parts": [
-        { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "offset": [0.24, 0, 0.1], "scale": 1.7 },
-        { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "offset": [-0.22, 0, 0.2], "scale": 1.7 },
-        { "model": "res://assets/models/kenney_nature-kit/grass_large.glb", "offset": [0, 0, -0.26], "scale": 1.7 },
-        { "model": "res://assets/models/kenney_nature-kit/flower_yellowA.glb", "offset": [0.1, 0.1, 0.1], "scale": 1.2 },
-        { "model": "res://assets/models/kenney_nature-kit/flower_yellowA.glb", "offset": [-0.12, 0.1, -0.06], "scale": 1.2 },
-        { "model": "res://assets/models/kenney_nature-kit/flower_yellowA.glb", "offset": [0.0, 0.1, 0.26], "scale": 1.2 },
-        { "model": "res://assets/models/kenney_nature-kit/flower_yellowA.glb", "offset": [-0.28, 0.1, 0.2], "scale": 1.2 }
-      ]
-    },
-    "crop.peas.sprout": { "model": "res://assets/models/kenney_nature-kit/grass_leafs.glb", "scale": 1.4 },
-    "crop.peas.growing": { "model": "res://assets/models/kenney_nature-kit/plant_bush.glb", "scale": 0.4 },
-    "crop.peas": {
-      "model": "res://assets/models/kenney_nature-kit/plant_bush.glb",
-      "scale": 0.75,
-      "parts": [
-        { "model": "res://assets/models/kenney_nature-kit/flower_purpleA.glb", "offset": [0.12, 0.25, 0.08], "scale": 1.1 },
-        { "model": "res://assets/models/kenney_nature-kit/flower_purpleA.glb", "offset": [-0.14, 0.22, -0.06], "scale": 1.1 },
-        { "model": "res://assets/models/kenney_nature-kit/flower_purpleA.glb", "offset": [0.0, 0.28, -0.18], "scale": 1.1 }
-      ]
-    },
-    "crop.cabbage.sprout": { "model": "res://assets/models/kenney_nature-kit/grass_leafs.glb", "scale": 1.6 },
-    "crop.cabbage.growing": { "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb", "scale": 0.35 },
-    "crop.cabbage": { "model": "res://assets/models/kenney_nature-kit/plant_bushDetailed.glb", "scale": 0.65 },
+    "crop.wheat.sprout": { "model": "res://assets/models/ourlife/crop_wheat_sprout.glb", "scale": 1.0 },
+    "crop.wheat.growing": { "model": "res://assets/models/ourlife/crop_wheat_growing.glb", "scale": 1.0 },
+    "crop.wheat": { "model": "res://assets/models/ourlife/crop_wheat.glb", "scale": 1.0 },
+    "crop.peas.sprout": { "model": "res://assets/models/ourlife/crop_peas_sprout.glb", "scale": 1.0 },
+    "crop.peas.growing": { "model": "res://assets/models/ourlife/crop_peas_growing.glb", "scale": 1.0 },
+    "crop.peas": { "model": "res://assets/models/ourlife/crop_peas.glb", "scale": 1.0 },
+    "crop.cabbage.sprout": { "model": "res://assets/models/ourlife/crop_cabbage_sprout.glb", "scale": 1.0 },
+    "crop.cabbage.growing": { "model": "res://assets/models/ourlife/crop_cabbage_growing.glb", "scale": 1.0 },
+    "crop.cabbage": { "model": "res://assets/models/ourlife/crop_cabbage.glb", "scale": 1.0 },
     "item.log": { "model": "res://assets/models/kenney_nature-kit/log.glb", "scale": 1.0 },
     "item.stone": { "model": "res://assets/models/kenney_nature-kit/rock_smallA.glb", "scale": 1.0 },
     "item.berries": { "model": "res://assets/models/kenney_food-kit/cherries.glb", "scale": 2.4 },
