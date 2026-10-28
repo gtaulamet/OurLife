@@ -37,6 +37,8 @@ Nada nuevo entra a mitad de una IP: si este trabajo cae en medio de una, se agen
 
 ## Fase 1: puestos de trabajo y cuna (prioridad alta)
 
+Estado (28 de octubre): los 5 `.glb` están generados en `MODELS/puestos-trabajo` y `MODELS/muebles` con el script `MODELS/generador/fase1.py` (cajas y cilindros con materiales con nombre, 244 a 408 triángulos, apoyados en Y = 0). Faltan probarlos en el juego junto a un colono, ajustar `scale` y `turn`, y pasarlos a `game/assets/models/ourlife/`; las casillas se marcan al integrarlos.
+
 Los cuatro puestos usan hoy la misma `table_small`.
 
 - [ ] `furniture.carpenter_bench` → `furniture_carpenter_bench.glb`. Mesa baja y robusta con tornillo de banco, serrucho colgado, algo de viruta y un tablón. Hoy: `table_small`.

@@ -923,3 +923,8 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 
 - Nuevo `docs/plan-modelos.md`: una casilla por cada uno de los 41 modelos pendientes (6 fases, de los 5 imprescindibles a los opcionales), con id visual, archivo, descripción, modelo provisorio actual y los pasos para darlo por hecho.
 - `docs/art.md` enlaza al plan. Ningún modelo está hecho todavía (0 de 41).
+
+### 2026-10-28: modelos de la fase 1 generados
+
+- `MODELS/` se organiza por tipo de objeto: `puestos-trabajo`, `muebles`, `objetos/{comida,materiales,herramientas}`, `cultivos`, `construccion`, `entorno` y `generador` (scripts y vistas previas).
+- `MODELS/generador/lib.py` y `fase1.py` generan los 5 modelos de la fase 1 (banco de carpintero, banco de cantero, cocina, escritorio de copista y cuna). Pendiente: probarlos en el juego, ajustar `visuals.json` y copiarlos a `game/assets/models/ourlife/`.
