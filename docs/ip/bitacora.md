@@ -940,3 +940,9 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Los 10 objetos de comida y materiales (repollo, arvejas, pan, potaje, repollo en conserva, trigo, harina, provisiones, tablón y mango) están en `game/assets/models/ourlife/` y en `visuals.json`, a su tamaño final (escala 1,0). Se generaron con `MODELS/generador/fase2.py`; la paleta de `lib.py` ganó los colores de comida.
 - Se borró `barrel_small` de KayKit (y su textura), porque ningún id lo usa ya: el test `Only_the_models_of_the_catalog_are_in_the_repository` lo exigía.
 - Progreso: 15 de 41. Sigue la fase 3 (hierro, piedra y herramientas).
+
+### 2026-10-28: fase 3 de modelos integrada
+
+- Los 8 objetos de piedra, hierro y herramientas (sillar, mineral de hierro, lingote, carbón, hacha, pico, azada y martillo) están en `game/assets/models/ourlife/` y en `visuals.json`: los materiales a escala 1,0 y las herramientas a 0,8. Se generaron con `MODELS/generador/fase3.py`.
+- `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0.
+- Progreso: 23 de 41. Sigue la fase 4 (cultivos, 9 modelos).

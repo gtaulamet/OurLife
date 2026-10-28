@@ -10,11 +10,11 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 |---|---|---|---|
 | 1 | Puestos de trabajo y cuna (imprescindibles) | 5 | 5 |
 | 2 | Objetos de comida y materiales | 10 | 10 |
-| 3 | Objetos de hierro, piedra y herramientas | 8 | 0 |
+| 3 | Objetos de hierro, piedra y herramientas | 8 | 8 |
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 0 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 0 |
 | 6 | Piezas opcionales (puerta, escalera, rampa, tocones) | 5 | 0 |
-| | **Total** | **41** (32 sin los opcionales) | **15** |
+| | **Total** | **41** (32 sin los opcionales) | **23** |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -66,14 +66,16 @@ Estado (28 de octubre): integrada. Los 10 `.glb` están en `game/assets/models/o
 
 ## Fase 3: objetos de hierro, piedra y herramientas
 
-- [ ] `item.stone_block` → `item_stone_block.glb`. Sillar rectangular tallado.
-- [ ] `item.iron_ore` → `item_iron_ore.glb`. Roca con vetas oxidadas.
-- [ ] `item.iron_ingot` → `item_iron_ingot.glb`. Barra o prisma gris azulado.
-- [ ] `item.charcoal` → `item_charcoal.glb`. Trozos negros y angulosos.
-- [ ] `item.iron_axe` → `item_iron_axe.glb`. Mango de madera y hoja de hierro.
-- [ ] `item.iron_pickaxe` → `item_iron_pickaxe.glb`. Mango de madera y cabeza en punta.
-- [ ] `item.iron_hoe` → `item_iron_hoe.glb`. Mango de madera y hoja plana en ángulo.
-- [ ] `item.iron_hammer` → `item_iron_hammer.glb`. Mango corto y cabeza de hierro.
+Estado (28 de octubre): integrada. Los 8 `.glb` están en `game/assets/models/ourlife/`, generados con `MODELS/generador/fase3.py`. Los materiales de piedra y carbón van a escala 1,0 y las herramientas a 0,8 (miden entre 0,37 y 0,62 de largo, acostadas en el suelo). Las partes de hierro usan el material `iron` y los mangos `wood`, para poder teñirlos. Los modelos provisorios de `log` y `rock_smallA` siguen en uso por otros ids. Falta verlos de cerca en el juego.
+
+- [x] `item.stone_block` → `item_stone_block.glb`. Sillar rectangular tallado.
+- [x] `item.iron_ore` → `item_iron_ore.glb`. Roca con vetas oxidadas.
+- [x] `item.iron_ingot` → `item_iron_ingot.glb`. Barra o prisma gris azulado.
+- [x] `item.charcoal` → `item_charcoal.glb`. Trozos negros y angulosos.
+- [x] `item.iron_axe` → `item_iron_axe.glb`. Mango de madera y hoja de hierro.
+- [x] `item.iron_pickaxe` → `item_iron_pickaxe.glb`. Mango de madera y cabeza en punta.
+- [x] `item.iron_hoe` → `item_iron_hoe.glb`. Mango de madera y hoja plana en ángulo.
+- [x] `item.iron_hammer` → `item_iron_hammer.glb`. Mango corto y cabeza de hierro.
 
 Las cuatro herramientas comparten mango: conviene modelar uno y reutilizar su material `wood`. Que se distingan por la silueta de la cabeza, porque se ven muy pequeñas.
 
