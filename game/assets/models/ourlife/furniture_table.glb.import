@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dejiyym0p5jqu"
-path="res://.godot/imported/chair.glb-2f9113d2ed5d5da2dfe74a94f4de1933.scn"
+uid="uid://cvblr71s5kwqg"
+path="res://.godot/imported/furniture_table.glb-8a2ab635e5af6f10eee96822aefec6a9.scn"
 
 [deps]
 
-source_file="res://assets/models/kaykit_dungeon-remastered/chair.glb"
-dest_files=["res://.godot/imported/chair.glb-2f9113d2ed5d5da2dfe74a94f4de1933.scn"]
+source_file="res://assets/models/ourlife/furniture_table.glb"
+dest_files=["res://.godot/imported/furniture_table.glb-8a2ab635e5af6f10eee96822aefec6a9.scn"]
 
 [params]
 

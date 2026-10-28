@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bso1o1h3ljor4"
-path="res://.godot/imported/bed_frame.glb-1fccca61d084264c587c97de3e8ef553.scn"
+uid="uid://ce8opmn3j0043"
+path="res://.godot/imported/furniture_chest.glb-2db6d6bf1a998694f2623a377e0fe13b.scn"
 
 [deps]
 
-source_file="res://assets/models/kaykit_dungeon-remastered/bed_frame.glb"
-dest_files=["res://.godot/imported/bed_frame.glb-1fccca61d084264c587c97de3e8ef553.scn"]
+source_file="res://assets/models/ourlife/furniture_chest.glb"
+dest_files=["res://.godot/imported/furniture_chest.glb-2db6d6bf1a998694f2623a377e0fe13b.scn"]
 
 [params]
 

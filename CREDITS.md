@@ -11,7 +11,6 @@ Todo asset o código de terceros se registra aquí **antes** de entrar al reposi
 | Colonos por etapa de vida, 60 modelos (6 hombres y 6 mujeres en 5 etapas) | Propios del proyecto, generados por `MODELS/colonos-vida/generar_colonos_vida.py` | Del proyecto | `game/assets/models/settlers` | Colonos, con su altura real por etapa |
 | Íconos de los globos de interacción | Propios del proyecto, dibujados por `tools/make-interaction-icons.py` | Del proyecto | `game/assets/icons/interactions` | Globos sobre los colonos que interactúan |
 | Food Kit, 1 modelo y su textura | Kenney (www.kenney.nl) | CC0 1.0; texto en `game/assets/models/kenney_food-kit/License.txt` | kenney.nl/assets/food-kit | Bayas, sueltas y en los arbustos |
-| KayKit Dungeon Remastered 1.0, 5 modelos | Kay Lousberg (www.kaylousberg.com) | CC0 1.0; texto en `game/assets/models/kaykit_dungeon-remastered/License.txt` | github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0 | Cama, mesa, silla, baúl y el barril de las provisiones |
 
 ## Código de terceros
 

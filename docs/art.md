@@ -11,7 +11,7 @@
 
 1. **[Nature Kit de Kenney](https://kenney.nl/assets/nature-kit)**, CC0: terreno, acantilados, árboles, arbustos, rocas y troncos para la superficie del valle. Al descargarlo hay que confirmar el contenido exacto y la licencia.
 2. Otros kits 3D CC0 de Kenney para lo que falte, sobre todo colonos y objetos. Conviene elegir kits con el mismo estilo low-poly. Los aldeanos son los 12 de Mini Characters, con la ropa recoloreada con tonos de la época (ADR-012).
-3. **[KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette` (material `texture`, el nombre que KayKit da a su único material; otro kit con un material de ese nombre también se teñiría). No guarda sus colores como Kenney, así que no va en `srgbAsLinearKits`.
+3. **(Ya no se usa; se quitó el 28 de octubre de 2026 al reemplazar sus muebles por modelos propios)** [KayKit Dungeon Remastered](https://github.com/KayKit-Game-Assets/KayKit-Dungeon-Remastered-1.0)** de Kay Lousberg, CC0: muebles, barriles, cajas y comida de estética medieval (ADR-012). Usa una textura de degradé; su madera rojiza se entona con la `palette` (material `texture`, el nombre que KayKit da a su único material; otro kit con un material de ese nombre también se teñiría). No guarda sus colores como Kenney, así que no va en `srgbAsLinearKits`.
 4. Modelos propios simples: el bloque de estrato para teñir, las escaleras y los marcadores de designación.
 5. Otros assets CC0 o CC-BY, con atribución en `CREDITS.md`. Los modelos para épocas futuras pueden tener que encargarse o comprarse.
 
@@ -103,8 +103,8 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 | Aldeanos | Resuelto: los 12 de Mini Characters (6 mujeres y 6 hombres), con la ropa recoloreada y animaciones de caminar, golpear, manipular, levantar, sostener y quieto | Animaciones de comer y de dormir, si las pide el juego |
 | Marcas de órdenes, marco del cursor y selección | Resuelto con cajas translúcidas generadas en código (`OrderMarkers`, `GameInput`) | — |
 | Iconos de UI | No hicieron falta: los botones del HUD son de texto | Cuando la UI los pida |
-| Muebles | Resuelto: cama, mesa, silla y baúl de KayKit Dungeon Remastered, con la madera entonada por la paleta (`texture`) | — |
-| Cuna (H3.7) | Resuelto en H3.8: la cama de KayKit a escala 0,2 se lee como cuna en la vista de la aldea | Una cuna propia si algún kit CC0 la trae |
+| Muebles | Resuelto: cama, mesa, silla y baúl propios (`furniture_*.glb`); el kit KayKit Dungeon Remastered se quitó | — |
+| Cuna (H3.7) | Resuelto: cuna propia `furniture_cradle` | — |
 | Etapas de la vida (H3.8) | Resuelto: 60 modelos propios (6 hombres y 6 mujeres en bebé, niño, adolescente, adulto y anciano), cada uno con su proporción; el catálogo los dibuja a escala 3,1 | — |
 | Globos de interacción (H3.8) | Resuelto: íconos pixel propios de 16 × 16 (`tools/make-interaction-icons.py`) | — |
 
@@ -112,7 +112,7 @@ Revisado en V5 de IP2.5, el 14 de octubre de 2026:
 
 Seguimiento por modelo en `docs/plan-modelos.md`.
 
-Revisado el 28 de octubre de 2026. Varios objetos comparten hoy un modelo provisorio de KayKit o del Nature Kit, y no se distinguen entre sí. Cada fila es un modelo `.glb` propio, a guardar en `game/assets/models/ourlife/` con el nombre indicado. Al entregarlo se reemplaza la entrada del id visual en `visuals.json` (ajustando `scale` y `turn`) y se quita el modelo provisorio si queda sin uso.
+Revisado el 28 de octubre de 2026. Varios objetos compartían un modelo provisorio de KayKit o del Nature Kit, y no se distinguen entre sí. Cada fila es un modelo `.glb` propio, a guardar en `game/assets/models/ourlife/` con el nombre indicado. Al entregarlo se reemplaza la entrada del id visual en `visuals.json` (ajustando `scale` y `turn`) y se quita el modelo provisorio si queda sin uso.
 
 Requisitos comunes:
 
@@ -137,9 +137,9 @@ Requisitos comunes:
 | `furniture.scriptorium` | `furniture_scriptorium.glb` | Pupitre inclinado con pergamino, tintero, pluma y un libro abierto |
 | `furniture.cradle` | `furniture_cradle.glb` | Cuna de madera con balancines, más pequeña que la cama |
 | `furniture.table` | `furniture_table.glb` | Mesa de madera sencilla, distinta de los bancos de trabajo (opcional) |
-| `furniture.bed` | `furniture_bed.glb` | Camastro con paja o manta (opcional: sirve el de KayKit) |
-| `furniture.chair` | `furniture_chair.glb` | Banco o silla tosca (opcional: sirve la de KayKit) |
-| `furniture.chest` | `furniture_chest.glb` | Cofre de madera con herrajes (opcional: sirve el de KayKit) |
+| `furniture.bed` | `furniture_bed.glb` | Camastro con paja o manta  |
+| `furniture.chair` | `furniture_chair.glb` | Banco o silla tosca  |
+| `furniture.chest` | `furniture_chest.glb` | Cofre de madera con herrajes  |
 
 **A2. Objetos** (0,2 a 0,5 celdas). Hoy se reutilizan `log`, `rock_smallA` y `cherries` para varios; los de comida y materiales ya tienen modelo propio. `item.log` e `item.stone` ya se ven bien.
 

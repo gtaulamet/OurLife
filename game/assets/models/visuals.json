@@ -24,8 +24,7 @@
     "woodBark": "#7A5233",
     "woodBarkDark": "#5C4030",
     "woodInner": "#C9AE84",
-    "dirt": "#7A5A3E",
-    "texture": "#A89584"
+    "dirt": "#7A5A3E"
   },
   "decoration": {
     "grass": { "model": "res://assets/models/kenney_nature-kit/grass.glb", "scale": 1.8, "chance": 170 },
@@ -156,11 +155,11 @@
         "male": ["res://assets/models/settlers/settler-male-a-elder.glb", "res://assets/models/settlers/settler-male-b-elder.glb", "res://assets/models/settlers/settler-male-c-elder.glb", "res://assets/models/settlers/settler-male-d-elder.glb", "res://assets/models/settlers/settler-male-e-elder.glb", "res://assets/models/settlers/settler-male-f-elder.glb"]
       }
     },
-    "furniture.bed": { "model": "res://assets/models/kaykit_dungeon-remastered/bed_frame.glb", "scale": 0.33, "restHeight": 0.22 },
+    "furniture.bed": { "model": "res://assets/models/ourlife/furniture_bed.glb", "scale": 1.0, "restHeight": 0.24 },
     "furniture.cradle": { "model": "res://assets/models/ourlife/furniture_cradle.glb", "scale": 0.7, "restHeight": 0.2 },
-    "furniture.table": { "model": "res://assets/models/kaykit_dungeon-remastered/table_small.glb", "scale": 0.6 },
-    "furniture.chair": { "model": "res://assets/models/kaykit_dungeon-remastered/chair.glb", "scale": 0.55 },
-    "furniture.chest": { "model": "res://assets/models/kaykit_dungeon-remastered/trunk_medium_A.glb", "scale": 0.8, "turn": 3 },
+    "furniture.table": { "model": "res://assets/models/ourlife/furniture_table.glb", "scale": 1.0 },
+    "furniture.chair": { "model": "res://assets/models/ourlife/furniture_chair.glb", "scale": 1.0 },
+    "furniture.chest": { "model": "res://assets/models/ourlife/furniture_chest.glb", "scale": 1.0 },
     "furniture.carpenter_bench": { "model": "res://assets/models/ourlife/furniture_carpenter_bench.glb", "scale": 0.8 },
     "furniture.mason_bench": { "model": "res://assets/models/ourlife/furniture_mason_bench.glb", "scale": 0.8 },
     "furniture.kitchen": { "model": "res://assets/models/ourlife/furniture_kitchen.glb", "scale": 0.8 },

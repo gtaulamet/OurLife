@@ -953,3 +953,10 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0.
 - Pendiente: ver un campo real en el juego (la captura con `--farm --inspect-farm` no mostró cultivos) y ajustar escala o color si hace falta.
 - Progreso: 32 de 41, todos los imprescindibles. Quedan las fases 5 y 6, opcionales (muebles de KayKit y piezas de construcción).
+
+### 2026-10-28: fase 5 de modelos integrada y KayKit retirado
+
+- Mesa, cama, silla y baúl propios en `game/assets/models/ourlife/` y en `visuals.json` (escala 1,0; la cama con `restHeight` 0,24), generados con `MODELS/generador/fase5.py`.
+- Con ellos no quedó ningún modelo de KayKit Dungeon Remastered en uso: se borró la carpeta del kit, su fila en `CREDITS.md` y el color `texture` de la paleta (el test `Every_palette_colour_replaces_a_material_of_some_model` lo pedía). `docs/art.md` actualizado; los ADR y las IPs antiguas conservan la mención histórica.
+- `dotnet build`, `dotnet test` y el smoke con código 0. Captura de la casa del smoke revisada.
+- Progreso: 36 de 41. Queda la fase 6 (puerta, escalera, rampa y 2 tocones), opcional.

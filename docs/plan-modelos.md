@@ -12,9 +12,9 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 | 2 | Objetos de comida y materiales | 10 | 10 |
 | 3 | Objetos de hierro, piedra y herramientas | 8 | 8 |
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 9 |
-| 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 0 |
+| 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 4 |
 | 6 | Piezas opcionales (puerta, escalera, rampa, tocones) | 5 | 0 |
-| | **Total** | **41** (32 sin los opcionales) | **32** |
+| | **Total** | **41** (32 sin los opcionales) | **36** |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -106,10 +106,12 @@ Las tres etapas de un cultivo deben leerse como la misma planta en distintos mom
 
 Los modelos actuales de KayKit funcionan. Reemplazarlos sirve para unificar el estilo con el resto de los modelos propios, así que van después de las fases 1 a 4.
 
-- [ ] `furniture.table` → `furniture_table.glb`. Mesa de madera sencilla, distinta de los bancos de trabajo. Hoy: `table_small`.
-- [ ] `furniture.bed` → `furniture_bed.glb`. Camastro con paja o manta. Hoy: `bed_frame`.
-- [ ] `furniture.chair` → `furniture_chair.glb`. Banco o silla de madera tosca. Hoy: `chair`.
-- [ ] `furniture.chest` → `furniture_chest.glb`. Cofre de madera con herrajes. Hoy: `trunk_medium_A`.
+Estado (28 de octubre): integrada. Los 4 `.glb` están en `game/assets/models/ourlife/`, generados con `MODELS/generador/fase5.py`, a escala 1,0 (la cama con `restHeight` 0,24). Como ya no quedaba ningún modelo de KayKit en uso, se quitó el kit entero (`game/assets/models/kaykit_dungeon-remastered`), su fila de `CREDITS.md` y el color `texture` de la paleta, que sólo teñía esa madera. En la casa del smoke se ven la cama, la mesa y el baúl (teñidos por su material).
+
+- [x] `furniture.table` → `furniture_table.glb`. Mesa de madera sencilla, distinta de los bancos de trabajo. Hoy: `table_small`.
+- [x] `furniture.bed` → `furniture_bed.glb`. Camastro con paja o manta. Hoy: `bed_frame`.
+- [x] `furniture.chair` → `furniture_chair.glb`. Banco o silla de madera tosca. Hoy: `chair`.
+- [x] `furniture.chest` → `furniture_chest.glb`. Cofre de madera con herrajes. Hoy: `trunk_medium_A`.
 
 ## Fase 6: piezas opcionales
 
