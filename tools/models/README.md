@@ -21,3 +21,4 @@ python fase1.py
 - Los modelos que usa el juego se copian a `game/assets/models/ourlife/` y se registran en `game/assets/models/visuals.json`.
 - `pendientes/` guarda los modelos listos que todavía no están en el juego: los tocones (`stump_oak.glb`, `stump_pine.glb`) esperan a que el talado deje un tocón (`docs/ip/backlog.md`). No van a `game/assets` porque el test `Every_model_of_the_catalog_is_used_by_a_def` exige que un def use cada modelo del catálogo.
 - Convenciones: origen en el centro de la base sobre Y = 0, frente hacia +Z, materiales con nombre (`wood`, `metal`, `stone`, `cloth`…) que el catálogo puede recolorear.
+- La fuente de verdad son los scripts: `pendientes/` y `game/assets/models/ourlife/` son copias de su salida. Si cambias un script, vuelve a generar y a copiar el modelo.

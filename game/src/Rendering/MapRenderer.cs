@@ -72,6 +72,7 @@ public partial class MapRenderer : Node3D
     private GameMap _map = null!;
     private Color[] _materialColors = [];
     private int[] _materialPatterns = [];
+    private bool[] _builtMaterials = [];
     private GrassColors _grass = null!;
     private Color _cutColor;
     private ShaderMaterial[] _levelMaterials = [];
@@ -94,6 +95,7 @@ public partial class MapRenderer : Node3D
             _plantCells = plantCells,
             _decorationDensity = decorationDensity,
             _materialColors = map.Materials.Select(material => Color.FromHtml(material.Color)).ToArray(),
+            _builtMaterials = map.Materials.Select(material => material.IsBuilt).ToArray(),
             _materialPatterns = map.Materials.Select(material => (int)catalog.Patterns.GetValueOrDefault(material.Id)).ToArray(),
             _grass = catalog.Grass,
             _cutColor = Color.FromHtml(catalog.CutColor),
@@ -591,12 +593,14 @@ public partial class MapRenderer : Node3D
 
     /// <summary>Whether the cell is a wall somebody built, which is drawn thin; the rock and soil of the valley are blocks.</summary>
     private bool IsBuiltWall(int x, int y, int z) =>
-        _map.ShapeOrEmpty(x, y, z) == TileShape.Wall && _map.MaterialAt(new TileCoord(x, y, z))?.IsBuilt == true;
+        _map.ShapeOrEmpty(x, y, z) == TileShape.Wall && _map.MaterialIndexAt(x, y, z) is var material && material != GameMap.NoMaterial && _builtMaterials[material];
 
     /// <summary>
     /// A built wall is a post in the middle of the cell with an arm towards each neighbour that
-    /// joins it (a wall, a block or a door), so a row of them reads as one thin wall. Where the
-    /// cell has no ground below, a slab of its material holds the post.
+    /// joins it (a wall, a block or a door lying along the arm), so a row of them reads as one thin
+    /// wall. Where the cell has no solid ground below (air, or another thin wall), a slab of its
+    /// material holds the post; on rock or soil the ground shows, with grass if the cells around
+    /// have it.
     /// </summary>
     private void AddThinWall(int x, int y, int z, Vector3 origin)
     {
@@ -605,22 +609,39 @@ public partial class MapRenderer : Node3D
         Add(TerrainPiece.WallPost, new Transform3D(Basis.Identity, origin), color, pattern);
         foreach (var (dx, dy, yaw) in Directions)
         {
-            if (_map.ShapeOrEmpty(x + dx, y + dy, z) is TileShape.Wall or TileShape.Door)
+            if (JoinsWall(x + dx, y + dy, z, dx))
             {
                 Add(TerrainPiece.WallArm, new Transform3D(new Basis(Vector3.Up, yaw), origin), color, pattern);
             }
         }
 
-        if (z > 0 && _map.ShapeOrEmpty(x, y, z - 1) != TileShape.Wall)
+        if (z == 0)
+        {
+            return;
+        }
+
+        var below = new TileCoord(x, y, z - 1);
+        if (_map.ShapeOrEmpty(below.X, below.Y, below.Z) != TileShape.Wall || IsBuiltWall(below.X, below.Y, below.Z))
         {
             Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), color, pattern);
         }
         else if (Directions.Any(direction => HasGrass(x + direction.Dx, y + direction.Dy, z)))
         {
             // The ground the wall stands on keeps the grass of the ground around it.
-            Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), MaterialColor(x, y, z - 1), Pattern(x, y, z - 1), GrassAll);
+            Add(TerrainPiece.Floor, new Transform3D(Basis.Identity, origin), MaterialColor(below.X, below.Y, below.Z), Pattern(below.X, below.Y, below.Z), GrassAll);
         }
     }
+
+    /// <summary>
+    /// Whether the cell next to a wall, to the side given by <paramref name="dx"/> (non-zero for
+    /// east or west), joins it: a wall or a block, or a door that lies along the same line.
+    /// </summary>
+    private bool JoinsWall(int x, int y, int z, int dx) => _map.ShapeOrEmpty(x, y, z) switch
+    {
+        TileShape.Wall => true,
+        TileShape.Door => (DoorYaw(x, y, z) == 0) == (dx != 0),
+        _ => false,
+    };
 
     /// <summary>
     /// A door lies in the line of its walls: across X unless the walls are only to its north or

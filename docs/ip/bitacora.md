@@ -975,3 +975,9 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 - Plan de modelos cerrado: 38 modelos hechos (36 integrados y 2 tocones listos), 3 descartados (puerta, escalera y rampa siguen como piezas de código).
 
 - Los scripts generadores pasaron de `MODELS/generador` a `tools/models/` (versionados, con `README.md`), y los dos tocones se guardan en `tools/models/pendientes/`. Las vistas previas se ignoran con `.gitignore`.
+
+### 2026-10-28: /code-review de los muros finos
+
+- Hallazgos corregidos en `MapRenderer`: un muro construido en el nivel 0 junto a pasto lanzaba una excepción al armar el chunk (se pedía el material del nivel -1); si debajo hay otro muro fino, ahora lleva su losa en lugar de quedar colgado ni de poner pasto flotando; un muro sólo une con una puerta que está en su misma línea (`JoinsWall`); y la pregunta "es un muro construido" usa una tabla de materiales por índice en lugar de buscar el def.
+- Sin cambios: no hay prueba automática del dibujo de muros (la presentación sólo tiene el smoke); queda cubierto por la captura de la casa y el smoke.
+- `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0.
