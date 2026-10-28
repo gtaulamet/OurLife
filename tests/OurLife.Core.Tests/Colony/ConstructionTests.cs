@@ -127,7 +127,7 @@ public class ConstructionTests
 
         bed.Map.ShapeAt(8, 8, 1).ShouldBe(TileShape.Empty);
         bed.Map.ShapeAt(8, 8, 0).ShouldBe(TileShape.Ramp);
-        bed.Map.FlagsAt(8, 8, 1).ShouldBe(TileFlags.None);
+        (bed.Map.FlagsAt(8, 8, 1) & ~TileFlags.Discovered).ShouldBe(TileFlags.None);
         bed.CountItems("stone").ShouldBe(1);
         bed.Simulation.Connectivity.AreConnected(new TileCoord(5, 5, 1), new TileCoord(8, 8, 0)).ShouldBeTrue();
     }

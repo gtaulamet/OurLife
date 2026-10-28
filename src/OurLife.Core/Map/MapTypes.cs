@@ -41,7 +41,7 @@ public static class TileShapes
     };
 }
 
-/// <summary>Extra facts about a cell. Fog arrives in a later milestone.</summary>
+/// <summary>Extra facts about a cell.</summary>
 [Flags]
 public enum TileFlags : byte
 {
@@ -67,6 +67,12 @@ public enum TileFlags : byte
 
     /// <summary>A piece of furniture stands on the cell (see <c>docs/gdd/muebles-y-camas.md</c>).</summary>
     Furniture = 64,
+
+    /// <summary>
+    /// The cell is known to the player: it or one of the 26 cells around it is not a wall. Once set it
+    /// is never cleared (see <c>docs/gdd/subsuelo.md</c>). It is information, not simulation.
+    /// </summary>
+    Discovered = 128,
 }
 
 /// <summary>A cell of the map. <c>Z</c> grows upwards: 0 is the deepest level.</summary>

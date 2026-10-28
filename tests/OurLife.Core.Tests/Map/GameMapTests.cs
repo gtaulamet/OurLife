@@ -64,6 +64,9 @@ public class GameMapTests
     public void Changing_a_cell_marks_its_chunk_and_those_of_its_neighbours()
     {
         var map = new GameMap(new MapSize(40, 40, 3), []);
+
+        // All air: everything is discovered already, so only the change itself makes chunks dirty.
+        map.ComputeDiscovered();
         map.DrainDirtyChunks([]);
         var chunks = new List<ChunkKey>();
 

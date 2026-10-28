@@ -87,6 +87,14 @@ public sealed class GameMap
 
     public TileFlags FlagsAt(int x, int y, int z) => _flags[Index(x, y, z)];
 
+    /// <summary>
+    /// True if the player knows the cell: it, or one of the 26 around it, is not a wall. Hidden cells
+    /// are not drawn and the inspector does not name them. The simulation ignores it.
+    /// </summary>
+    public bool IsDiscovered(int x, int y, int z) => (_flags[Index(x, y, z)] & TileFlags.Discovered) != 0;
+
+    public bool IsDiscovered(TileCoord cell) => IsDiscovered(cell.X, cell.Y, cell.Z);
+
     /// <summary>Shape at a cell, or <see cref="TileShape.Empty"/> outside the map.</summary>
     public TileShape ShapeOrEmpty(int x, int y, int z) =>
         Size.Contains(x, y, z) ? _shapes[Size.IndexOf(x, y, z)] : TileShape.Empty;
@@ -152,8 +160,15 @@ public sealed class GameMap
     {
         var index = Index(x, y, z);
         var (oldShape, oldFlags) = (_shapes[index], _flags[index]);
+
+        // Discovering is one way: a caller that rebuilds the flags cannot hide the cell again.
+        flags = (flags & ~TileFlags.Discovered) | (oldFlags & TileFlags.Discovered);
         SetTileQuietly(x, y, z, shape, material, flags);
         RecordNavigationChange(index, oldShape, oldFlags, shape, flags);
+        if (shape != TileShape.Wall)
+        {
+            DiscoverAround(x, y, z);
+        }
 
         MarkDirty(x, y, z);
         MarkDirty(x - 1, y, z);
@@ -171,6 +186,7 @@ public sealed class GameMap
     internal void SetFlags(int x, int y, int z, TileFlags flags)
     {
         var index = Index(x, y, z);
+        flags = (flags & ~TileFlags.Discovered) | (_flags[index] & TileFlags.Discovered);
         if (_flags[index] == flags)
         {
             return;
@@ -183,6 +199,75 @@ public sealed class GameMap
         if (((oldFlags ^ flags) & ~OrderFlags) != 0)
         {
             MarkDirty(x, y, z);
+        }
+    }
+
+    /// <summary>
+    /// Discovers the cell and the 26 around it (inside the map) and marks the chunks of the ones that
+    /// were hidden as dirty. Called when a cell stops being a wall.
+    /// </summary>
+    private void DiscoverAround(int x, int y, int z)
+    {
+        for (var dz = -1; dz <= 1; dz++)
+        {
+            for (var dy = -1; dy <= 1; dy++)
+            {
+                for (var dx = -1; dx <= 1; dx++)
+                {
+                    int nx = x + dx, ny = y + dy, nz = z + dz;
+                    if (!Size.Contains(nx, ny, nz))
+                    {
+                        continue;
+                    }
+
+                    var index = Size.IndexOf(nx, ny, nz);
+                    if ((_flags[index] & TileFlags.Discovered) == 0)
+                    {
+                        _flags[index] |= TileFlags.Discovered;
+                        MarkDirty(nx, ny, nz);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Works out the discovered cells of a map from its shapes alone, by the rule of
+    /// <c>docs/gdd/subsuelo.md</c>: a cell is discovered if it or one of its 26 neighbours is not a
+    /// wall. Used when a map is generated and when an old game is migrated; flags that were
+    /// already set stay set. Does not mark chunks: those maps are all dirty anyway.
+    /// </summary>
+    internal void ComputeDiscovered()
+    {
+        var (width, height, depth) = (Size.Width, Size.Height, Size.Depth);
+        var index = 0;
+        for (var z = 0; z < depth; z++)
+        {
+            for (var y = 0; y < height; y++)
+            {
+                for (var x = 0; x < width; x++, index++)
+                {
+                    if (_shapes[index] == TileShape.Wall)
+                    {
+                        continue;
+                    }
+
+                    int x0 = Math.Max(0, x - 1), x1 = Math.Min(width - 1, x + 1);
+                    int y0 = Math.Max(0, y - 1), y1 = Math.Min(height - 1, y + 1);
+                    int z0 = Math.Max(0, z - 1), z1 = Math.Min(depth - 1, z + 1);
+                    for (var nz = z0; nz <= z1; nz++)
+                    {
+                        for (var ny = y0; ny <= y1; ny++)
+                        {
+                            var row = (nz * width * height) + (ny * width);
+                            for (var nx = x0; nx <= x1; nx++)
+                            {
+                                _flags[row + nx] |= TileFlags.Discovered;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -7,6 +7,9 @@ public enum MaterialKind
     Soil,
     Stone,
     Wood,
+
+    /// <summary>Mineral in veins of rock; it is dug out, not built with (see <c>docs/gdd/subsuelo.md</c>).</summary>
+    Ore,
 }
 
 /// <summary>
@@ -61,6 +64,11 @@ public sealed partial class MaterialDef : Def
         if (MinedItem is null && MinedItemChance > 0)
         {
             yield return "minedItemChance needs a minedItem.";
+        }
+
+        if (Kind == MaterialKind.Ore && (IsBuilt || MinedItem is null))
+        {
+            yield return "an ore material is dug out for a minedItem and has no builtFrom.";
         }
 
         if (IsBuilt && MinedItem is not null)
