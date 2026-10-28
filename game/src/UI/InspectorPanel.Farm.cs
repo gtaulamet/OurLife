@@ -35,6 +35,25 @@ public partial class InspectorPanel
             _lines.Add(text.Capitalized(farm.State == FarmCellState.Ripe
                 ? text.Format("ui.inspector.crop_ripe", ("crop", name))
                 : text.Format("ui.inspector.crop", ("crop", name), ("percent", farm.PercentGrown))));
+            if (_simulation.World.IsAlive(farm.Crop) && _simulation.World.Has<HarvestOrder>(farm.Crop))
+            {
+                _lines.Add(text.Format("ui.inspector.order.reap"));
+            }
+        }
+    }
+
+    /// <summary>The order to reap a crop that stands off every farm zone (inside a zone, <see cref="DescribeFarm"/> says it).</summary>
+    private void DescribeLooseCropOrder(TileCoord cell)
+    {
+        if (FarmRules.State(_simulation, cell) is not null)
+        {
+            return;
+        }
+
+        var crop = FarmRules.CropAt(_simulation, cell);
+        if (!crop.IsNone && _simulation.World.Has<HarvestOrder>(crop))
+        {
+            _lines.Add(_services.Text.Format("ui.inspector.order.reap"));
         }
     }
 

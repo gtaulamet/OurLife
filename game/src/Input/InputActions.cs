@@ -90,6 +90,7 @@ public static class InputActions
         DesignationKind.Stairs => Key.B,
         DesignationKind.Chop => Key.T,
         DesignationKind.Harvest => Key.R,
+        DesignationKind.Reap => Key.N,
         DesignationKind.Stockpile => Key.Z,
         DesignationKind.Deconstruct => Key.V,
         DesignationKind.Channel => Key.H,

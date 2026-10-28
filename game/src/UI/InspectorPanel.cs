@@ -223,6 +223,7 @@ public partial class InspectorPanel : PanelContainer
         }
 
         DescribeFarm(cell);
+        DescribeLooseCropOrder(cell);
 
         // What stands on the cell, or on the floor above a wall's top.
         var above = map.ShapeAt(cell) == TileShape.Wall ? new TileCoord(cell.X, cell.Y, cell.Z + 1) : cell;

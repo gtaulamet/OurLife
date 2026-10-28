@@ -63,7 +63,7 @@ public sealed partial class DecisionSystem
         }
     }
 
-    /// <summary>The ripe crops on a cell of a zone that nobody reaps.</summary>
+    /// <summary>The ripe crops on a cell of a zone, or ordered reaped anywhere, that nobody reaps.</summary>
     private void AddRipeCrops(Simulation simulation)
     {
         RefreshFarmIndex(simulation);
@@ -73,9 +73,11 @@ public sealed partial class DecisionSystem
         foreach (var crop in _farmEntities)
         {
             var cell = world.Get<Position>(crop).Cell;
-            if (_farmZoneByCell.ContainsKey(size.IndexOf(cell.X, cell.Y, cell.Z)) && FarmRules.IsRipe(simulation, world.Get<Crop>(crop)))
+            var ordered = world.Has<HarvestOrder>(crop);
+            if ((ordered || _farmZoneByCell.ContainsKey(size.IndexOf(cell.X, cell.Y, cell.Z)))
+                && FarmRules.IsRipe(simulation, world.Get<Crop>(crop)))
             {
-                AddEntity(simulation, JobKind.Reap, crop, capacity: 1);
+                AddEntity(simulation, JobKind.Reap, crop, capacity: 1, ordered);
             }
         }
     }

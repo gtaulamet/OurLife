@@ -54,6 +54,11 @@ En orden:
 - Huellas del smoke con `--ticks 5000`: `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42), las mismas que en O7 y O8: el smoke no construye muebles ni muros, así que no hay habitaciones ni camas reservadas y la huella no cambia.
 - Textos mínimos para que den verde los tests de contenido (los pulirá el i18n-specialist): `def.room_role.*`, `def.room_level.*` (nombre con `select` sobre el género de la función), los 11 `def.thought.*` y `job.eat_at_table.report` y `job.gather.report`. Las claves de la interfaz de la spec (`ui.inspector.room`, `ui.rooms.*`) no están todavía.
 - Falta (presentación de O9): botón y capa de habitaciones (paleta por nivel e íconos 16 × 16 de función y nivel), inspector de celda y de colono, lista de habitaciones, panel de camas con `Asignar familia` (manda un `AssignBedCommand` por cada `SuggestAssignments`), pose `sit` del colono sentado (`Job.Kind` `EatAtTable` o `Gather` en etapa `Working`), claves `ui.*` de la spec, capturas es/en del comedor con colonos sentados y de una familia asignada, y el criterio 14 en la partida.
+### 2026-10-28: O10, orden manual de cosechar cultivos
+
+Rama `ip4/o10-cosecha` desde `main`. Nueva orden `DesignationKind.Reap` (atajo N, botón Cosechar) que reutiliza `HarvestOrder` y el trabajo `reap` en cultivos maduros, dentro o fuera de zona, y pasan antes que la cosecha automática; Cancelar la quita. Los inmaduros se ignoran. Sin estado nuevo: formato de guardado sin cambios. `Harvest` de plantas silvestres no toca cultivos. Modo `--reap-order` para capturas (`out/reap-es.png`, `out/reap-en.png`). Spec en `agricultura.md`.
+
+- Revisión (/code-review) de la cosecha manual: una sola pasada de candidatos con los cultivos ordenados primero (`Candidate.Ordered`, grupo -1 en `Reach`; sin campo mutable); `CropsInside` y `PlantsInside` comparten `IsInside`; el inspector muestra la orden de cosechar de un cultivo fuera de zona; `HarvestOrder` documenta su doble uso. Cancelar sobre un cultivo de zona quita la celda y el cultivo, así que el trabajo termina sin estado nuevo en `Job` (formato sin cambios). Tests de guardado, cancelar en zona y cultivo inalcanzable.
 
 ### 2026-10-28: revisión de cultivos e íconos pixel de O5
 

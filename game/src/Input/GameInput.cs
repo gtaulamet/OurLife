@@ -562,7 +562,7 @@ public partial class GameInput : Node3D
     /// Orders whose box stays on one level: Cancel too, so it never clears orders the view does not
     /// show, and building, which is no order (null).
     /// </summary>
-    private static bool IsCellOrder(DesignationKind? order) => order is not (DesignationKind.Chop or DesignationKind.Harvest);
+    private static bool IsCellOrder(DesignationKind? order) => order is not (DesignationKind.Chop or DesignationKind.Harvest or DesignationKind.Reap);
 
     /// <summary>
     /// The box of cells a drag gives. Digging, stairs and cancelling stay on the level of the first

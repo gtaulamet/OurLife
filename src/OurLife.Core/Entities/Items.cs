@@ -44,7 +44,12 @@ public sealed class ChopOrder
 {
 }
 
-/// <summary>The player ordered to gather from this plant.</summary>
+/// <summary>
+/// The player ordered to gather from this plant. It has a second use: a ripe <see cref="Crop"/>
+/// carries it when the player ordered it reaped (tool Cosechar, see <c>docs/gdd/agricultura.md</c>).
+/// Whoever queries it tells them apart by <see cref="Plant"/> or <see cref="Crop"/>: gathering only
+/// takes plants, reaping only crops.
+/// </summary>
 public sealed class HarvestOrder
 {
 }

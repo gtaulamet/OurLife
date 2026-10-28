@@ -60,7 +60,7 @@ Detalle y recomendaciones en `docs/gdd/oficios.md`, "Decisiones del usuario (a c
 
 | Mejora | Hito | Detalle |
 |---|---|---|
-| Orden manual de cosechar | O10 | Hoy los cultivos se cosechan solos dentro de una zona (`reap`) y la orden `Harvest` sólo sirve para plantas silvestres. Se agrega una herramienta de cosecha del HUD para marcar a mano cultivos maduros, dentro o fuera de una zona, y que se cosechen antes que el resto. Pedida por el usuario el 28 de octubre de 2026. Spec en `docs/gdd/agricultura.md`; necesita criterio de aceptación, textos es/en y una captura |
+| Orden manual de cosechar | O10 | Hoy los cultivos se cosechan solos dentro de una zona (`reap`) y la orden `Harvest` sólo sirve para plantas silvestres. Se agrega una herramienta de cosecha del HUD para marcar a mano cultivos maduros, dentro o fuera de una zona, y que se cosechen antes que el resto. Pedida por el usuario el 28 de octubre de 2026. Spec en `docs/gdd/agricultura.md`. Hecha en `ip4/o10-cosecha`: nueva orden `DesignationKind.Reap` (atajo N), sin estado nuevo ni cambio de formato |
 
 ## Riesgos
 

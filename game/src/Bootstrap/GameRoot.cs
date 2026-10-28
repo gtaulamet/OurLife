@@ -543,7 +543,14 @@ public partial class GameRoot : Node
                 }
             }
 
-            screen.View.Camera.Focus(new Vector2(origin.X + 4.5f, origin.Y + 4.5f));
+            if (options.ReapOrder)
+            {
+                simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Reap, new TileCoord(origin.X + 2, origin.Y + 2, 0), new TileCoord(origin.X + 8, origin.Y + 8, simulation.Map.Size.Depth - 1)));
+                simulation.ApplyCommandsNow();
+                screen.Input.Order = DesignationKind.Reap;
+            }
+
+            screen.View.Camera.Focus(new Vector2(origin.X + 4.5f, origin.Y + (options.ReapOrder ? 9f : 4.5f)));
         }
 
         if (options.Farm)
