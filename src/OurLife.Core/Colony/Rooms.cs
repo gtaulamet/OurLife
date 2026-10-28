@@ -69,6 +69,35 @@ public sealed class Room
     /// <summary>The beds and cradles inside, by ascending id.</summary>
     public IReadOnlyList<EntityId> Beds { get; }
 
+    /// <summary>The cell of the room nearest to its centroid (ties to the lowest index): where the camera goes and where the icons stand.</summary>
+    public TileCoord Middle
+    {
+        get
+        {
+            long sumX = 0, sumY = 0;
+            foreach (var cell in Cells)
+            {
+                sumX += cell.X;
+                sumY += cell.Y;
+            }
+
+            long count = Cells.Count;
+            var best = Cells[0];
+            var bestDistance = long.MaxValue;
+            foreach (var cell in Cells)
+            {
+                long dx = (count * cell.X) - sumX, dy = (count * cell.Y) - sumY;
+                var distance = (dx * dx) + (dy * dy);
+                if (distance < bestDistance)
+                {
+                    (best, bestDistance) = (cell, distance);
+                }
+            }
+
+            return best;
+        }
+    }
+
     public bool Has(string role)
     {
         foreach (var each in Roles)
@@ -124,7 +153,7 @@ public static class Rooms
         return IsEnabled(simulation) ? IndexOf(simulation).All(simulation) : [];
     }
 
-    /// <summary>Forgets the rooms found, so the next question finds them again: for changes the map cannot tell, like the quality of a piece of furniture.</summary>
+    /// <summary>Forgets the rooms found, so the next question finds them again. Nothing in the game needs it (the key of the index sees the changes); the tests use it to measure finding them.</summary>
     internal static void Invalidate(Simulation simulation) => IndexOf(simulation).Invalidate();
 
     internal static RoomIndex IndexOf(Simulation simulation) => Indexes.GetValue(simulation, _ => new RoomIndex());
@@ -151,11 +180,14 @@ internal sealed class RoomIndex
     private readonly List<EntityId> _inside = [];
     private readonly List<EntityId> _insideBeds = [];
 
-    private (int Structure, int Furniture, int Zones, int ZoneCells)? _key;
+    private (int Structure, long Content)? _key;
     private int _signature;
 
-    /// <summary>A number that tells whether the rooms with furniture are the same as the last time it was asked.</summary>
+    /// <summary>A number that tells whether the rooms with furniture are the same as the last time they were found.</summary>
     public int Signature => _signature;
+
+    /// <summary>The <see cref="Signature"/> the <see cref="RoomSystem"/> last told the presentation about; kept here because anyone may refresh the index first.</summary>
+    public int NotifiedSignature { get; set; }
 
     public void Invalidate() => _key = null;
 
@@ -215,18 +247,44 @@ internal sealed class RoomIndex
         return _seats;
     }
 
-    private (int Structure, int Furniture, int Zones, int ZoneCells) KeyOf(Simulation simulation)
+    /// <summary>
+    /// What the rooms depend on besides the map: a hash, in ascending id order, of every piece of furniture (its
+    /// cell, def, material and quality, which is what its points are made of) and every stockpile zone (its cells).
+    /// A deletion and an addition of the same size change it, which a count would not see.
+    /// </summary>
+    private (int Structure, long Content) KeyOf(Simulation simulation)
     {
         var world = simulation.World;
-        var cells = 0;
+        var hash = 14695981039346656037UL;
+        world.Query<Furniture, Position>(_entities);
+        foreach (var piece in _entities)
+        {
+            var furniture = world.Get<Furniture>(piece);
+            var cell = world.Get<Position>(piece).Cell;
+            hash = Mix(hash, ((ulong)(uint)piece.Index << 32) | (uint)piece.Generation);
+            hash = Mix(hash, (ulong)(uint)cell.X | ((ulong)(uint)cell.Y << 20) | ((ulong)(uint)cell.Z << 40));
+            hash = Mix(hash, TextHash(furniture.Buildable));
+            hash = Mix(hash, TextHash(furniture.Material));
+            hash = Mix(hash, TextHash(furniture.Quality));
+        }
+
         world.Query<Stockpile>(_zones);
         foreach (var zone in _zones)
         {
-            cells += world.Get<Stockpile>(zone).Cells.Count;
+            hash = Mix(hash, (((ulong)(uint)zone.Index << 32) | (uint)zone.Generation) ^ 0x5bd1e995UL);
+            foreach (var cell in world.Get<Stockpile>(zone).Cells)
+            {
+                hash = Mix(hash, (ulong)(uint)cell.X | ((ulong)(uint)cell.Y << 20) | ((ulong)(uint)cell.Z << 40));
+            }
         }
 
-        return (simulation.Map.StructureVersion, world.Store<Furniture>().Count, _zones.Count, cells);
+        return (simulation.Map.StructureVersion, (long)hash);
     }
+
+    private static ulong Mix(ulong hash, ulong value) => (hash ^ value) * 1099511628211UL;
+
+    // Only compared within the run, never saved: the per-process hash of a string is enough to tell that it changed.
+    private static ulong TextHash(string? text) => (ulong)(uint)(text?.GetHashCode() ?? 0);
 
     private void Rebuild(Simulation simulation)
     {

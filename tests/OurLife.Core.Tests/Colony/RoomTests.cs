@@ -398,6 +398,59 @@ public class RoomTests
         Thoughts(village, sleeper).ShouldBe(["bedroom_comfortable"]);
     }
 
+    [Fact]
+    public void A_change_found_by_a_query_before_the_tick_is_still_told_once()
+    {
+        var village = Village();
+        House(village);
+        Furnish(village, "bed", 3, 3);
+        village.Simulation.Tick();
+        village.DrainEvents();
+
+        village.Map.SetTile(2, 4, 1, TileShape.Floor, Material(village, "rock"), TileFlags.None);
+        Rooms.All(village.Simulation).ShouldBeEmpty();
+        village.Simulation.Tick();
+        village.DrainEvents().OfType<RoomsChangedEvent>().Count().ShouldBe(1);
+
+        village.Simulation.Run(5);
+        village.DrainEvents().OfType<RoomsChangedEvent>().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void Deleting_a_zone_and_drawing_another_of_the_same_size_finds_the_rooms_again()
+    {
+        var village = Village();
+        House(village, 2, 2, 5);
+        House(village, 10, 2, 5);
+        village.Designate(DesignationKind.Stockpile, new TileCoord(3, 3, 1), new TileCoord(4, 3, 1));
+        village.Simulation.ApplyCommandsNow();
+        var first = Rooms.All(village.Simulation).Select(room => room.Id).ToList();
+        first.Count.ShouldBe(1);
+
+        var zones = new List<EntityId>();
+        village.World.Query<Stockpile>(zones);
+        village.World.DestroyEntity(zones.Single());
+        village.Designate(DesignationKind.Stockpile, new TileCoord(11, 3, 1), new TileCoord(12, 3, 1));
+        village.Simulation.ApplyCommandsNow();
+
+        var second = Rooms.All(village.Simulation).Select(room => room.Id).ToList();
+        second.Count.ShouldBe(1);
+        second[0].ShouldNotBe(first[0]);
+    }
+
+    [Fact]
+    public void The_quality_of_a_piece_of_furniture_that_changes_changes_the_score_without_anyone_invalidating()
+    {
+        var village = Village();
+        House(village);
+        var bed = Furnish(village, "bed", 3, 3);
+        var before = Rooms.At(village.Simulation, new TileCoord(4, 4, 1))!.Score;
+
+        village.World.Get<Furniture>(bed).Quality = "poor";
+
+        Rooms.At(village.Simulation, new TileCoord(4, 4, 1))!.Score.ShouldNotBe(before);
+    }
+
     // ---- Reserved beds ----
 
     [Fact]
@@ -409,7 +462,7 @@ public class RoomTests
         var stranger = village.AddColonist(4, 4, 1, name: "Stranger");
         village.Simulation.Commands.Enqueue(new AssignBedCommand(bed, owner));
         village.Simulation.ApplyCommandsNow();
-        (village.World.Get<Bed>(bed).Owner, village.World.Get<Bed>(bed).Reserved).ShouldBe((owner, true));
+        village.World.Get<Bed>(bed).Owner.ShouldBe(owner);
 
         village.Simulation.Run(Night);
         village.Need(owner, "rest").Value = 2_000;
@@ -423,7 +476,7 @@ public class RoomTests
     }
 
     [Fact]
-    public void When_the_owner_dies_the_reservation_ends_and_another_colonist_takes_the_bed()
+    public void When_the_owner_dies_the_bed_is_free_and_another_colonist_takes_the_bed()
     {
         var village = Village();
         var bed = Furnish(village, "bed", 3, 3);
@@ -433,13 +486,11 @@ public class RoomTests
 
         ColonistDeath.Die(village.Simulation, owner, LocalizedText.Of("event.colonist.died"));
 
-        village.World.Get<Bed>(bed).Reserved.ShouldBeFalse();
         Beds.IsTaken(village.Simulation, bed).ShouldBeFalse();
         village.Simulation.Run(Night);
         var next = village.AddColonist(6, 6, 1, rest: 2_000, name: "Next");
         village.Simulation.Run(60);
         village.World.Get<Bed>(bed).Owner.ShouldBe(next);
-        village.World.Get<Bed>(bed).Reserved.ShouldBeFalse();
     }
 
     [Fact]
@@ -453,15 +504,15 @@ public class RoomTests
 
         Assign(village, first, a);
         Assign(village, second, a);
-        (village.World.Get<Bed>(first).Owner.IsNone, village.World.Get<Bed>(first).Reserved).ShouldBe((true, false));
-        (village.World.Get<Bed>(second).Owner, village.World.Get<Bed>(second).Reserved).ShouldBe((a, true));
+        village.World.Get<Bed>(first).Owner.IsNone.ShouldBeTrue();
+        village.World.Get<Bed>(second).Owner.ShouldBe(a);
 
         Assign(village, second, b);
-        (village.World.Get<Bed>(second).Owner, village.World.Get<Bed>(second).Reserved).ShouldBe((b, true));
+        village.World.Get<Bed>(second).Owner.ShouldBe(b);
         Beds.HasBed(village.Simulation, a).ShouldBeFalse();
 
         Assign(village, second, EntityId.None);
-        (village.World.Get<Bed>(second).Owner.IsNone, village.World.Get<Bed>(second).Reserved).ShouldBe((true, false));
+        village.World.Get<Bed>(second).Owner.IsNone.ShouldBeTrue();
     }
 
     [Fact]
@@ -478,7 +529,6 @@ public class RoomTests
         Assign(village, adult, adult);
 
         village.World.Get<Bed>(cradle).Owner.IsNone.ShouldBeTrue();
-        village.World.Get<Bed>(cradle).Reserved.ShouldBeFalse();
     }
 
     // ---- Families ----
@@ -653,6 +703,77 @@ public class RoomTests
     }
 
     [Fact]
+    public void A_meal_at_a_table_is_not_dropped_half_way_by_another_critical_need()
+    {
+        var village = WideDining();
+        village.AddItems("provisions", 10, 24, 12, 1);
+        var diner = village.AddColonist(24, 13, 1, hunger: 3_000, name: "Diner");
+        for (var tick = 0; tick < 400 && village.JobOf(diner) is not { Kind: JobKind.EatAtTable, Stage: JobStage.Carrying }; tick++)
+        {
+            village.Simulation.Tick();
+        }
+
+        village.JobOf(diner)!.Kind.ShouldBe(JobKind.EatAtTable);
+        village.Need(diner, "rest").Value = 0;
+        for (var tick = 0; tick < 300 && village.JobOf(diner) is { Kind: JobKind.EatAtTable }; tick++)
+        {
+            village.Simulation.Tick();
+        }
+
+        // The meal went on to its end (the colonist is fed) before anything else was taken up.
+        village.Need(diner, "hunger").Value.ShouldBeGreaterThan(8_000);
+        village.CountItems("provisions").ShouldBeGreaterThan(5);
+    }
+
+    private static ColonyTestBed WideDining()
+    {
+        var village = new ColonyTestBed(RoomContent.Defs, 1, ColonyTestBed.Level(80, 20, '#'), ColonyTestBed.Level(80, 20, '.'), ColonyTestBed.Level(80, 20, '_'));
+        House(village);
+        Furnish(village, "table", 4, 4);
+        Furnish(village, "chair", 3, 4);
+        Style(village, floor: "planks", walls: "rock");
+        village.Simulation.Tick();
+        return village;
+    }
+
+    [Fact]
+    public void The_dining_radius_is_measured_from_the_pile_the_food_comes_from_not_from_the_colonist()
+    {
+        // The pile is next to the chair and the colonist is far from it, but near the pile: it sits.
+        var near = WideDining();
+        near.AddItems("provisions", 10, 20, 12, 1);
+        var diner = near.AddColonist(40, 12, 1, hunger: 3_000, name: "Diner");
+        var kinds = new HashSet<JobKind>();
+        for (var tick = 0; tick < 300; tick++)
+        {
+            near.Simulation.Tick();
+            if (near.JobOf(diner) is { } job)
+            {
+                kinds.Add(job.Kind);
+            }
+        }
+
+        kinds.ShouldContain(JobKind.EatAtTable);
+
+        // The colonist is next to the chair but the pile is out of the radius of it: the food would be carried too far, so it eats standing.
+        var far = WideDining();
+        far.AddItems("provisions", 10, 45, 12, 1);
+        var other = far.AddColonist(24, 8, 1, hunger: 3_000, name: "Other");
+        kinds.Clear();
+        for (var tick = 0; tick < 300; tick++)
+        {
+            far.Simulation.Tick();
+            if (far.JobOf(other) is { } job)
+            {
+                kinds.Add(job.Kind);
+            }
+        }
+
+        kinds.ShouldContain(JobKind.Eat);
+        kinds.ShouldNotContain(JobKind.EatAtTable);
+    }
+
+    [Fact]
     public void Without_a_dining_room_nothing_changes_and_eating_standing_costs_no_thought()
     {
         var village = Village();
@@ -797,7 +918,7 @@ public class RoomTests
         ColonySystems.AddTo(loaded);
 
         loaded.ComputeStateHash().ShouldBe(village.Simulation.ComputeStateHash());
-        loaded.World.Get<Bed>(bed).Reserved.ShouldBeTrue();
+        loaded.World.Get<Bed>(bed).Owner.ShouldBe(owner);
         Rooms.At(loaded, new TileCoord(4, 4, 1))!.Score.ShouldBe(Rooms.At(village.Simulation, new TileCoord(4, 4, 1))!.Score);
         village.Simulation.Run(600);
         loaded.Run(600);
@@ -916,7 +1037,6 @@ public class RoomTests
         if (quality is not null)
         {
             village.World.Get<Furniture>(piece).Quality = quality;
-            Rooms.Invalidate(village.Simulation);
         }
 
         return piece;

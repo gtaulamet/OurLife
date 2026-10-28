@@ -53,8 +53,8 @@ public static class SaveGame
     /// or before gets it worked out from the shapes and veins of ore drawn in the rock that stays hidden (see <see cref="OreVeins.Migrate"/>).
     /// Format 18 (O8, forges and tools) adds the component <c>Equipment</c> (the tools of a colonist, added with the first one) and the job
     /// <c>Equip</c>: a game of format 17 needs nothing, nobody has a tool in it.
-    /// Format 19 (O9, rooms) adds <c>Bed.Reserved</c> (written only when true) and the jobs <c>EatAtTable</c> and <c>Gather</c>, and the command
-    /// <c>AssignBedCommand</c>: a game of format 18 needs nothing, no bed is reserved in it; the rooms are derived and are never saved.
+    /// Format 19 (O9, rooms) adds the jobs <c>EatAtTable</c> and <c>Gather</c> and the command
+    /// <c>AssignBedCommand</c>: a game of format 18 needs nothing; the rooms are derived and are never saved.
     /// </summary>
     public const int OldestFormatVersion = 1;
 

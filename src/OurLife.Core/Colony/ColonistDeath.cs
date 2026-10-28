@@ -20,31 +20,9 @@ internal static class ColonistDeath
         }
 
         Tools.DropAll(simulation, colonist);
-        FreeReservedBeds(simulation, colonist);
         Relationships.ForgetTheDead(simulation, colonist);
         simulation.Events.Emit(new EntityRemovedEvent(colonist));
         simulation.World.DestroyEntity(colonist);
-    }
-
-    /// <summary>The beds the player reserved for a colonist are free when it dies (see "Dormitorios" in <c>docs/gdd/habitaciones.md</c>).</summary>
-    private static void FreeReservedBeds(Simulation simulation, EntityId colonist)
-    {
-        var world = simulation.World;
-        if (world.Store<Bed>().Count == 0)
-        {
-            return;
-        }
-
-        var beds = new List<EntityId>();
-        world.Query<Bed>(beds);
-        foreach (var bed in beds)
-        {
-            if (world.Get<Bed>(bed).Owner == colonist && world.Get<Bed>(bed).Reserved)
-            {
-                world.Get<Bed>(bed).Reserved = false;
-                simulation.Events.Emit(new EntityChangedEvent(bed));
-            }
-        }
     }
 
     /// <summary>After some died: when nobody is left, the colony is lost.</summary>

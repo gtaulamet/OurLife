@@ -58,7 +58,6 @@ internal static class RoomScene
         Furnish(simulation, "chair", dx0 + 3, y0 + 1, z, 0);
         Furnish(simulation, "chair", dx0 + 2, y0 + 3, z, 0);
         Furnish(simulation, "chair", dx0 + 3, y0 + 3, z, 0);
-        simulation.Events.Emit(new RoomsChangedEvent(simulation.CurrentTick));
         return new Built(new TileCoord(x0 + 2, y0 + 2, z), new TileCoord(dx0 + 2, y0 + 2, z));
     }
 

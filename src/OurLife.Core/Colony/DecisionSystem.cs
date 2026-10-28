@@ -394,8 +394,9 @@ public sealed partial class DecisionSystem : ISimSystem
     /// <summary>True if the colonist got a more urgent job instead of <paramref name="job"/>.</summary>
     private bool TryInterrupt(Simulation simulation, EntityId colonist, Job job)
     {
-        // Eating is short and gathering to eat already serves a need: neither is interrupted.
-        var interruptible = job.Kind != JobKind.Eat && !(job.Kind == JobKind.Harvest && job.ForFood);
+        // Eating is short, and gathering to eat already serves a need; a meal at a table carries the food in hand from
+        // the pile to the chair, and dropping it half way would waste it. None of them is interrupted.
+        var interruptible = job.Kind is not (JobKind.Eat or JobKind.EatAtTable) && !(job.Kind == JobKind.Harvest && job.ForFood);
         if (interruptible)
         {
             foreach (var need in NeedsBelow(simulation, colonist, critical: true))
@@ -552,11 +553,10 @@ public sealed partial class DecisionSystem : ISimSystem
             _goal.Add(cell);
             if (cell == from || _paths.TryFind(simulation.Map, from, _goal, _path))
             {
-                // A free bed becomes the colonist's only once it can get there; one reserved for someone who is gone stops being reserved.
+                // A free bed becomes the colonist's only once it can get there.
                 if (world.Get<Bed>(bed).Owner != colonist)
                 {
                     world.Get<Bed>(bed).Owner = colonist;
-                    world.Get<Bed>(bed).Reserved = false;
                     simulation.Events.Emit(new EntityChangedEvent(bed));
                 }
 
@@ -1001,8 +1001,9 @@ public sealed partial class DecisionSystem : ISimSystem
                     Crop = crop,
                 };
 
-                // A colonist who chooses what to eat sits down to it if a dining room has a free chair near.
-                if (candidate.Kind == JobKind.Eat && eatChoice && TrySeat(simulation, colonist, from, region, out var seat))
+                // A colonist who chooses what to eat sits down to it if a dining room has a free chair near the pile it
+                // takes the food from: the food is carried from the pile to the chair, so the dining radius is measured from the pile.
+                if (candidate.Kind == JobKind.Eat && eatChoice && TrySeat(simulation, colonist, cell, region, out var seat))
                 {
                     (job.Kind, job.Recipient, job.Destination) = (JobKind.EatAtTable, seat.Chair, seat.Cell);
                 }

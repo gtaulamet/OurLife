@@ -23,27 +23,6 @@ public static class RoomRules
     /// <summary>The tag of furniture to eat at: a chair needs one beside it.</summary>
     public const string TableTag = "table";
 
-    /// <summary>The points of a room: its size, furniture, floors and walls.</summary>
-    public static int Score(Room room)
-    {
-        ArgumentNullException.ThrowIfNull(room);
-        return room.Score;
-    }
-
-    /// <summary>The level of quality of a room by its points.</summary>
-    public static RoomLevelDef Level(Room room)
-    {
-        ArgumentNullException.ThrowIfNull(room);
-        return room.Level;
-    }
-
-    /// <summary>The functions of a room, from what it holds.</summary>
-    public static IReadOnlyList<RoomRoleDef> Roles(Room room)
-    {
-        ArgumentNullException.ThrowIfNull(room);
-        return room.Roles;
-    }
-
     /// <summary>The living colonists whose beds are in the room, by the ascending id of the bed, each once.</summary>
     public static IReadOnlyList<EntityId> Owners(Simulation simulation, Room room)
     {

@@ -75,7 +75,7 @@ La condición se escribe por etiqueta de mueble (`Buildable.tags`): cama y cuna 
 
 ## Dormitorios
 
-- Una cama puede estar **reservada** para un colono (`Bed.Reserved`): ya tenía dueño (`Bed.Owner`); lo nuevo es que lo fija el jugador. Una cama reservada sólo la usa su dueño, y la asignación automática de camas libres la saltea. Si el dueño muere o deja de existir, la reserva termina y la cama queda libre.
+- Una cama con dueño vivo (`Bed.Owner`) sólo la usa su dueño, y la asignación automática de camas libres la saltea; lo nuevo es que el jugador puede fijar el dueño. No hay un indicador aparte de «reservada»: si el dueño muere o deja de existir, la cama queda libre sola.
 - `AssignBedCommand(cama, colono?)` reserva la cama para el colono, o la libera si no hay colono. Si el colono ya tenía otra cama, la deja libre. Se rechaza si la etapa del colono no puede usar la cama (`forStages`) o si el colono no existe.
 - **Asignar una casa:** al seleccionar una habitación con camas, el panel muestra la lista de camas con su dueño y un botón **Asignar familia**: se elige un colono y la UI manda un `AssignBedCommand` para él y para su pareja, sus hijos vivos y sus hermanos, cada uno a una cama de la habitación según `RoomRules.SuggestAssignments(habitación, colono)`, que prefiere las camas de la etapa de cada uno (la cuna para un bebé). La consulta es del Core; la lógica de elegir no va en la UI.
 - **Pensamientos al despertar** (se suman al "Dormí en mi cama" de IP3):
@@ -133,7 +133,7 @@ Con la opción de libre albedrío prendida:
 | Tipo | Nombre | Uso |
 |---|---|---|
 | Comando | `AssignBedCommand(cama, colono?)` | Reservar o liberar una cama |
-| Estado | `Bed.Reserved` | Guardado y huella; las habitaciones son derivadas (no se guardan) |
+| Estado | `Bed.Owner` (ya existía) | Guardado y huella; las habitaciones son derivadas (no se guardan) |
 | Trabajos | `JobKind.EatAtTable`, `JobKind.Gather` | Comer sentado; reunirse |
 | Evento | `RoomsChangedEvent` | La vista actualiza la capa |
 | Consulta | `Rooms.At(celda)`, `Rooms.All()` | Habitaciones |
@@ -143,7 +143,7 @@ Con la opción de libre albedrío prendida:
 
 - Flujos aleatorios: ninguno para las habitaciones. La reunión usa el flujo `colony.free_will` para la probabilidad de ir (ver las notas de implementación).
 - Las habitaciones no entran en la huella (derivadas); sí entran los pensamientos que dejan.
-- Una partida de `v0.3.5` carga sin cambios: no hay camas reservadas y las habitaciones se calculan solas.
+- Una partida de `v0.3.5` carga sin cambios: las habitaciones se calculan solas.
 
 ## Textos nuevos (propuesta)
 
@@ -183,7 +183,7 @@ Los nombres de nivel concuerdan en género con la función ("dormitorio decente"
 10. **Sin mesa no hay castigo.** Un colono sin comedor no recibe pensamientos negativos por comer parado.
 11. **Reunión.** Con la opción prendida, entre las 18 y las 22, hay colonos sentados en el comedor, y charlan; con la opción apagada, nadie va. El resto de la rutina (trabajo, necesidades, camas) no cambia.
 12. **Cambios del mapa.** Derribar un muro de un dormitorio lo vuelve exterior en el siguiente tick; cerrarlo lo recupera, con el mismo nivel.
-13. **Guardado.** Una cama reservada y una habitación con asignaciones se guardan y cargan con la misma huella; las habitaciones se recalculan sin guardarse.
+13. **Guardado.** Una cama asignada y una habitación con asignaciones se guardan y cargan con la misma huella; las habitaciones se recalculan sin guardarse.
 14. **En la partida.** La capa de habitaciones, el inspector y la lista en es y en, un comedor con colonos sentados y una familia asignada a una casa, con capturas.
 15. **Presupuesto.** Menos de 0,1 ms por tick de media con 20 habitaciones, 15 colonos y los cambios normales del mapa.
 
@@ -197,11 +197,11 @@ Lo que el código decidió donde la spec dejaba margen, o donde se corrigió:
 - **`Rooms.All()`** da las habitaciones que contienen algún mueble o alguna celda de una zona de almacén, por `Room.Id` ascendente (el índice de su celda más baja). Una habitación vacía se encuentra con `Rooms.At(celda)`, pero no sale en `All()` (no hace falta recorrer todo el mapa, y el resultado no depende de qué se preguntó antes).
 - **Caché.** El índice (`RoomIndex`, uno por simulación, derivado: no entra en el guardado ni en la huella) se rehace entero, perezosamente, cuando cambia `GameMap.StructureVersion` (forma o material de una celda, o aparece o desaparece una marca de mueble), la cantidad de muebles o las celdas de las zonas de almacén. `RoomSystem` lo mira al final de cada tick y emite `RoomsChangedEvent` sólo si el conjunto de habitaciones con muebles cambió (identidad, tamaño, puntaje, techo o funciones), así cavar lejos de una casa no avisa. Se mide en `RoomBudgetTests`: unos 0,2 ms para volver a encontrar 20 habitaciones y unos 0,05 ms por tick de media (el presupuesto es 0,1) con 20 habitaciones, 15 colonos y una pared que cae y vuelve cada dos horas, todo en compilación Debug. 300 cofres a cielo abierto se recorren en unos 4 ms: lo ya visto como exterior se recuerda.
 - **Puntaje.** Los muebles se suman en centésimas (`beauty × valuePercent`) y se dividen por 100 al final, truncando: una cama buena (4,8) cuenta 4, y un banco pobre (−0,75) cuenta 0. No hay mesa larga todavía (llega con el resto de `oficios.md`).
-- **Camas reservadas.** `AssignBedCommand(cama, colono)` con `EntityId.None` libera. Reservar quita la cama a quien la tenía y libera las otras camas del colono. `Bed.Reserved` no se escribe mientras es falso. Al morir el dueño se apaga la reserva; una cama ajena que otro colono toma por primera vez deja de estar reservada. `RoomRules.SuggestAssignments` pone primero al colono, luego su pareja, sus hijos vivos y sus hermanos, y prefiere, en este orden, la cama que ya tiene, las libres y las de otro, y dentro de cada grupo las hechas para su etapa (la cuna para el bebé).
+- **Camas reservadas.** `AssignBedCommand(cama, colono)` con `EntityId.None` libera. Asignar quita la cama a quien la tenía y libera las otras camas del colono. No hay indicador de reserva (se quitó en la revisión: el dueño vivo ya protegía la cama); al morir el dueño la cama queda libre. `RoomRules.SuggestAssignments` pone primero al colono, luego su pareja, sus hijos vivos y sus hermanos, y prefiere, en este orden, la cama que ya tiene, las libres y las de otro, y dentro de cada grupo las hechas para su etapa (la cuna para el bebé).
 - **Pensamientos al despertar.** Los de nivel se reemplazan entre sí (un dormitorio mejor no suma al de la noche anterior), y lo mismo `family_home` y `slept_crowded`. La cuenta de camas con dueño es la de dueños distintos que viven.
 - **Comer sentado.** La hace `JobKind.EatAtTable` (objetivo: la pila, destinatario: la silla) sólo cuando el colono elige qué comer (hambre baja). Va a la pila, toma las unidades que le faltan, camina con ellas (`Carried`) a la silla, se sienta y come una unidad cada `eatTicksPerUnit`; las sobras caen en su celda. "A `diningRadius` celdas" se mide en el plano desde donde está el colono, como los demás radios del libre albedrío, y entre las sillas libres gana la de menor costo de camino. Si al levantar la comida no hay camino a la silla, come parado ahí mismo. Una necesidad crítica que no sea el hambre interrumpe la comida; los pensamientos se dan al terminar si comió algo.
 - **Reunión.** `JobKind.Gather` (destinatario: la silla) está dentro de `JobKinds.IsLeisure`. La probabilidad es `gatherChancePercent` escalada por la sociabilidad y el ánimo igual que la búsqueda de compañía (`FreeWillRules.Chance`), así que usa el flujo `colony.free_will`; sólo se tira entre las horas de reunión y si hay alguna silla libre. Si no va, el colono busca compañía como siempre. Dura `gatherTicks` o hasta que una necesidad o un trabajo lo llame, y deja de ser válida si ya no puede buscar compañía (crisis, libre albedrío apagado).
-- **Guardado.** Formato 19: sólo `Bed.Reserved`, los trabajos `EatAtTable` y `Gather` y el comando `AssignBedCommand`. Una partida de formato 18 carga sin migración (fixture `o9.olsave`).
+- **Guardado.** Formato 19: sólo los trabajos `EatAtTable` y `Gather` y el comando `AssignBedCommand`. Una partida de formato 18 carga sin migración (fixture `o9.olsave`).
 
 ## Notas de implementación (presentación de O9)
 

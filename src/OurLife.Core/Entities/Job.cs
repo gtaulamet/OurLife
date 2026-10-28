@@ -77,7 +77,7 @@ public enum JobKind
     EatAtTable,
 
     /// <summary>
-    /// Sitting at a chair of a dining room with the others in the evening (see "Lugar de reunión" in
+    /// Sitting at a chair of a dining room with the others in the evening (see "Lugar de reuniÃ³n" in
     /// <c>docs/gdd/habitaciones.md</c>). Its recipient is the chair; it waits like wandering or visiting.
     /// </summary>
     Gather,

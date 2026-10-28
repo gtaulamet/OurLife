@@ -48,16 +48,12 @@ public sealed class Furniture
     public string? Quality { get; set; }
 }
 
-/// <summary>A bed and the colonist it belongs to; none, or a colonist no longer alive, means it is free.</summary>
+/// <summary>
+/// A bed and the colonist it belongs to; none, or a colonist no longer alive, means it is free. Only a living
+/// owner uses it (see <see cref="OurLife.Core.Colony.Beds.IsTaken"/>), so a bed the player assigns
+/// (<c>AssignBedCommand</c>) needs no flag of its own: it is the owner that is set.
+/// </summary>
 public sealed class Bed
 {
     public EntityId Owner { get; set; }
-
-    /// <summary>
-    /// The player set the owner (see <c>AssignBedCommand</c>): only the owner uses the bed. It ends with
-    /// the owner, and a bed taken by another colonist is no longer reserved. Left out of the saved game
-    /// and the fingerprint while false, so a game without reservations is written as before them.
-    /// </summary>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool Reserved { get; set; }
 }

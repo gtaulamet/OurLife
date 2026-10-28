@@ -91,14 +91,12 @@ public sealed record AssignBedCommand(EntityId Bed, EntityId Colonist) : ISimCom
         }
 
         bed.Owner = Colonist;
-        bed.Reserved = true;
         simulation.Events.Emit(new EntityChangedEvent(Bed));
     }
 
     private static void Free(Simulation simulation, EntityId id, Bed bed)
     {
         bed.Owner = EntityId.None;
-        bed.Reserved = false;
         simulation.Events.Emit(new EntityChangedEvent(id));
     }
 }

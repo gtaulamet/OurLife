@@ -162,25 +162,7 @@ public partial class RoomLayer : Node3D
     /// <summary>A row of icons over the cell of the room nearest to its middle: its functions, then its level.</summary>
     private void AddIcons(Room room)
     {
-        float sumX = 0, sumY = 0;
-        foreach (var cell in room.Cells)
-        {
-            sumX += cell.X;
-            sumY += cell.Y;
-        }
-
-        var middleX = sumX / room.Cells.Count;
-        var middleY = sumY / room.Cells.Count;
-        var best = room.Cells[0];
-        var bestDistance = float.MaxValue;
-        foreach (var cell in room.Cells)
-        {
-            var distance = ((cell.X - middleX) * (cell.X - middleX)) + ((cell.Y - middleY) * (cell.Y - middleY));
-            if (distance < bestDistance)
-            {
-                (best, bestDistance) = (cell, distance);
-            }
-        }
+        var best = room.Middle;
 
         var textures = new List<Texture2D>(room.Roles.Count + 1);
         foreach (var role in room.Roles)

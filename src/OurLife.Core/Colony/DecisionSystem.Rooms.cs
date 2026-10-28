@@ -11,8 +11,9 @@ namespace OurLife.Core.Colony;
 public sealed partial class DecisionSystem
 {
     /// <summary>
-    /// The nearest free chair of a dining room, within the dining radius and in the colonist's region, with a
-    /// table beside it; ties to the lowest id. A chair somebody holds, or the colonist failed to reach, is not free.
+    /// The nearest free chair of a dining room to <paramref name="from"/> (the pile the food is taken from, when eating:
+    /// it is carried from there), within the dining radius and in the region, with a table beside it; ties to the
+    /// lowest id. A chair somebody holds, or the colonist failed to reach, is not free.
     /// </summary>
     private bool TrySeat(Simulation simulation, EntityId colonist, TileCoord from, int region, out Seat seat) =>
         TryFindSeat(simulation, colonist, from, region, radius: null, out seat);

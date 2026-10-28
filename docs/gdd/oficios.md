@@ -307,7 +307,7 @@ Cada hito que suma estado sube el formato (ADR-013). Los números dependen del o
 | 16 | O6 | Zonas de cultivo, `Crop`, trabajos `Sow` y `Reap` | Nada |
 | 17 | O7 | Bandera `Discovered` de cada celda y las vetas | Descubiertas por la regla de `subsuelo.md` y vetas sorteadas con `world.ore` (decisión 4) |
 | 18 | O8 | `Equipment`, trabajo `Equip` | Nada |
-| 19 | O9 | `Bed.Reserved`, trabajos `EatAtTable` y `Gather` | Nada |
+| 19 | O9 | Trabajos `EatAtTable` y `Gather`, comando `AssignBedCommand` | Nada |
 
 - Una partida de `v0.3.5` (formato 11) carga sin la llegada de los 16 tablones, sin conocimientos más que los iniciales, con los muebles de madera que tuviera (el material `timber` sigue existiendo) y con la niebla calculada. Los muebles viejos conservan su madera y calidad normal.
 - Se guarda una partida real nueva de cada formato como fixture (`o2.olsave` ...), como en IP3.5.

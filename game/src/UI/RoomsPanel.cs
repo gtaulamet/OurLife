@@ -35,6 +35,7 @@ public partial class RoomsPanel : PanelContainer
     private VBoxContainer _list = null!;
     private VBoxContainer _beds = null!;
     private string _signature = string.Empty;
+    private bool _turnedLayerOn;
     private double _sinceRefresh;
     private int _chosenRoom = -1;
     private EntityId _familyOf;
@@ -106,8 +107,26 @@ public partial class RoomsPanel : PanelContainer
         }
     }
 
-    /// <summary>The layer follows the panel: it shows while the list is open, and the key of the layer can still turn it off.</summary>
-    private void OnVisibilityChanged() => _view.RoomLayer.Shown = Visible;
+    /// <summary>
+    /// Opening the list turns the layer on if it was off, and closing it turns it off again only if the list was
+    /// the one that turned it on: the key of the layer (L) is never overruled.
+    /// </summary>
+    private void OnVisibilityChanged()
+    {
+        if (IsVisibleInTree())
+        {
+            if (!_view.RoomLayer.Shown)
+            {
+                _view.RoomLayer.Shown = true;
+                _turnedLayerOn = true;
+            }
+        }
+        else if (_turnedLayerOn)
+        {
+            _turnedLayerOn = false;
+            _view.RoomLayer.Shown = false;
+        }
+    }
 
     public override void _Process(double delta)
     {
@@ -158,37 +177,11 @@ public partial class RoomsPanel : PanelContainer
     {
         ArgumentNullException.ThrowIfNull(room);
         _chosenRoom = room.Id;
-        var cell = Middle(room);
+        var cell = room.Middle;
         _view.Camera.GoTo(new Vector2(cell.X + 0.5f, cell.Y + 0.5f), cell.Z);
         _input.SelectCell(cell);
         _signature = string.Empty;
         Refresh();
-    }
-
-    /// <summary>The cell of the room nearest to its middle: where the camera goes and what the inspector shows.</summary>
-    private static TileCoord Middle(Room room)
-    {
-        float sumX = 0, sumY = 0;
-        foreach (var cell in room.Cells)
-        {
-            sumX += cell.X;
-            sumY += cell.Y;
-        }
-
-        var middleX = sumX / room.Cells.Count;
-        var middleY = sumY / room.Cells.Count;
-        var best = room.Cells[0];
-        var bestDistance = float.MaxValue;
-        foreach (var cell in room.Cells)
-        {
-            var distance = ((cell.X - middleX) * (cell.X - middleX)) + ((cell.Y - middleY) * (cell.Y - middleY));
-            if (distance < bestDistance)
-            {
-                (best, bestDistance) = (cell, distance);
-            }
-        }
-
-        return best;
     }
 
     /// <summary>Reads the rooms now, without waiting for the next refresh. For the smoke.</summary>

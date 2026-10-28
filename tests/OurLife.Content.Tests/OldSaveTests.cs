@@ -239,7 +239,7 @@ public class OldSaveTests
     }
 
     [Fact]
-    public void A_game_of_format_18_has_no_reserved_beds_and_its_furniture_makes_no_rooms_until_walls_close_one()
+    public void A_game_of_format_18_loads_and_its_furniture_makes_no_rooms_until_walls_close_one()
     {
         var simulation = Load("o9.olsave", out _);
         var world = simulation.World;
@@ -247,7 +247,6 @@ public class OldSaveTests
         var beds = new List<EntityId>();
         world.Query<Bed>(beds);
         beds.Count.ShouldBe(1);
-        world.Get<Bed>(beds[0]).Reserved.ShouldBeFalse();
         world.Store<Furniture>().Count.ShouldBe(3);
 
         // The rooms are derived: the furniture of the valley stands in the open, so there is none, and the game goes on.
