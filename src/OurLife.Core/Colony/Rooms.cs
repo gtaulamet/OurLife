@@ -180,14 +180,14 @@ internal sealed class RoomIndex
     private readonly List<EntityId> _inside = [];
     private readonly List<EntityId> _insideBeds = [];
 
-    private (int Structure, long Content)? _key;
-    private int _signature;
+    private (int Structure, int Furniture, int Zones, long Edits)? _key;
+    private long _signature;
 
     /// <summary>A number that tells whether the rooms with furniture are the same as the last time they were found.</summary>
-    public int Signature => _signature;
+    public long Signature => _signature;
 
     /// <summary>The <see cref="Signature"/> the <see cref="RoomSystem"/> last told the presentation about; kept here because anyone may refresh the index first.</summary>
-    public int NotifiedSignature { get; set; }
+    public long NotifiedSignature { get; set; }
 
     public void Invalidate() => _key = null;
 
@@ -248,43 +248,12 @@ internal sealed class RoomIndex
     }
 
     /// <summary>
-    /// What the rooms depend on besides the map: a hash, in ascending id order, of every piece of furniture (its
-    /// cell, def, material and quality, which is what its points are made of) and every stockpile zone (its cells).
-    /// A deletion and an addition of the same size change it, which a count would not see.
+    /// What the rooms depend on besides the map, as counters that cost nothing to read: the structure of the map,
+    /// the pieces of furniture and the zones added or removed (the versions of their stores) and the edits in place
+    /// to their fields (<see cref="ChangeStamp"/>). A deletion and an addition of the same size both bump a version.
     /// </summary>
-    private (int Structure, long Content) KeyOf(Simulation simulation)
-    {
-        var world = simulation.World;
-        var hash = 14695981039346656037UL;
-        world.Query<Furniture, Position>(_entities);
-        foreach (var piece in _entities)
-        {
-            var furniture = world.Get<Furniture>(piece);
-            var cell = world.Get<Position>(piece).Cell;
-            hash = Mix(hash, ((ulong)(uint)piece.Index << 32) | (uint)piece.Generation);
-            hash = Mix(hash, (ulong)(uint)cell.X | ((ulong)(uint)cell.Y << 20) | ((ulong)(uint)cell.Z << 40));
-            hash = Mix(hash, TextHash(furniture.Buildable));
-            hash = Mix(hash, TextHash(furniture.Material));
-            hash = Mix(hash, TextHash(furniture.Quality));
-        }
-
-        world.Query<Stockpile>(_zones);
-        foreach (var zone in _zones)
-        {
-            hash = Mix(hash, (((ulong)(uint)zone.Index << 32) | (uint)zone.Generation) ^ 0x5bd1e995UL);
-            foreach (var cell in world.Get<Stockpile>(zone).Cells)
-            {
-                hash = Mix(hash, (ulong)(uint)cell.X | ((ulong)(uint)cell.Y << 20) | ((ulong)(uint)cell.Z << 40));
-            }
-        }
-
-        return (simulation.Map.StructureVersion, (long)hash);
-    }
-
-    private static ulong Mix(ulong hash, ulong value) => (hash ^ value) * 1099511628211UL;
-
-    // Only compared within the run, never saved: the per-process hash of a string is enough to tell that it changed.
-    private static ulong TextHash(string? text) => (ulong)(uint)(text?.GetHashCode() ?? 0);
+    private (int Structure, int Furniture, int Zones, long Edits) KeyOf(Simulation simulation) =>
+        (simulation.Map.StructureVersion, simulation.World.Store<Furniture>().Version, simulation.World.Store<Stockpile>().Version, ChangeStamp.Value);
 
     private void Rebuild(Simulation simulation)
     {
@@ -563,22 +532,37 @@ internal sealed class RoomIndex
         _seats.Sort((a, b) => a.Chair.CompareTo(b.Chair));
     }
 
-    private int SignatureOf()
+    // FNV-1a over the numbers and the characters of the ids: the same in every run.
+    private long SignatureOf()
     {
-        var hash = new HashCode();
-        hash.Add(_seeded.Count);
-        foreach (var room in _seeded)
+        if (_seeded.Count == 0)
         {
-            hash.Add(room.Id);
-            hash.Add(room.Cells.Count);
-            hash.Add(room.Score);
-            hash.Add(room.Roofed);
-            foreach (var role in room.Roles)
-            {
-                hash.Add(role.Id, StringComparer.Ordinal);
-            }
+            return 0;
         }
 
-        return _seeded.Count == 0 ? 0 : hash.ToHashCode();
+        var hash = 14695981039346656037UL;
+        hash = Mix(hash, (ulong)_seeded.Count);
+        foreach (var room in _seeded)
+        {
+            hash = Mix(hash, (ulong)room.Id);
+            hash = Mix(hash, (ulong)room.Cells.Count);
+            hash = Mix(hash, (ulong)(uint)room.Score);
+            hash = Mix(hash, room.Roofed ? 1UL : 0UL);
+            foreach (var role in room.Roles)
+            {
+                foreach (var letter in role.Id)
+                {
+                    hash = Mix(hash, letter);
+                }
+
+                hash = Mix(hash, 0xFFFFUL);
+            }
+
+            hash = Mix(hash, 0xFFFEUL);
+        }
+
+        return (long)hash;
     }
+
+    private static ulong Mix(ulong hash, ulong value) => (hash ^ value) * 1099511628211UL;
 }

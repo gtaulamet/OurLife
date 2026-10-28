@@ -86,7 +86,7 @@ La condición se escribe por etiqueta de mueble (`Buildable.tags`): cama y cuna 
 | `bedroom_decent` Dormitorio decente | +1 | 12 h | Decente |
 | `bedroom_comfortable` Dormitorio cómodo | +3 | 12 h | Cómoda |
 | `bedroom_luxurious` Dormitorio lujoso | +5 | 12 h | Lujosa (el nivel pobre no deja pensamiento) |
-| `family_home` Dormí en casa con mi familia | +2 | 12 h | La habitación tiene al menos 2 camas con dueño y todos sus dueños son parientes de otro (pareja, padres, hijos o hermanos) |
+| `family_home` Dormí en casa con mi familia | +2 | 12 h | La habitación tiene al menos 2 camas con dueño y todos sus dueños forman una sola familia: cada uno es pariente de otro (pareja, padres, hijos o hermanos) y, yendo de pariente en pariente, se llega de cualquiera a todos los demás. Dos hermanos y una pareja ajena en la misma habitación son dos grupos, no una familia: cuentan como extraños |
 | `slept_crowded` Dormí amontonado | -2 | 12 h | La habitación tiene `crowdedBeds` (3) o más camas con dueño y alguno de los dueños no es pariente de ningún otro |
 
 - Una cama fuera de toda habitación (a cielo abierto) sólo deja "Dormí en mi cama".

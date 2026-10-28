@@ -185,23 +185,15 @@ public partial class InspectorPanel : PanelContainer
     {
         var world = _simulation.World;
         var text = _services.Text;
-        world.Query<Bed>(_entities);
-        foreach (var bed in _entities)
+        var bed = Beds.OwnedBy(_simulation, colonist, _entities);
+        if (bed.IsNone)
         {
-            if (world.Get<Bed>(bed).Owner != colonist || !Beds.Fits(_simulation, bed, colonist))
-            {
-                continue;
-            }
-
-            if (Rooms.At(_simulation, world.Get<Position>(bed).Cell) is { } room)
-            {
-                return text.Format("ui.inspector.sleeps_in_room", ("role", RoomTexts.RoleName(text, room)), ("level", RoomTexts.LevelName(text, room)));
-            }
-
-            return text.Format("ui.inspector.has_bed");
+            return text.Format("ui.inspector.no_bed");
         }
 
-        return text.Format("ui.inspector.no_bed");
+        return Rooms.At(_simulation, world.Get<Position>(bed).Cell) is { } room
+            ? text.Format("ui.inspector.sleeps_in_room", ("role", RoomTexts.RoleName(text, room)), ("level", RoomTexts.LevelName(text, room)))
+            : text.Format("ui.inspector.has_bed");
     }
 
     /// <summary>The room the cell is in: its function, level and score, its beds, its other functions and who sleeps there.</summary>

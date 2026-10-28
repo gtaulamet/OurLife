@@ -20,6 +20,8 @@ public class DeterminismRulesTests
         (new Regex(@"\bEnvironment\.TickCount(64)?\b"), "use the simulation clock"),
         (new Regex(@"\bStopwatch\b"), "real time must not drive simulation decisions"),
         (new Regex(@"\bParallel\."), "parallel execution order is not deterministic"),
+        (new Regex(@"\bHashCode\b"), "System.HashCode is seeded per process; use a stable hash (FNV-1a)"),
+        (new Regex(@"\.GetHashCode\s*\("), "string hashes are seeded per process; use a stable hash (FNV-1a)"),
     ];
 
     [Fact]
@@ -53,6 +55,8 @@ public class DeterminismRulesTests
     [InlineData("var id = Guid.NewGuid();")]
     [InlineData("var t = Environment.TickCount64;")]
     [InlineData("Parallel.For(0, 10, Work);")]
+    [InlineData("var hash = new HashCode();")]
+    [InlineData("var h = text.GetHashCode();")]
     public void Scanner_flags_forbidden_apis(string line)
     {
         FindViolations(line).ShouldNotBeEmpty();

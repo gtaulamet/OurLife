@@ -157,6 +157,7 @@ public static class Stockpiles
             }
 
             changed = true;
+            stockpile.Touch();
             if (stockpile.Cells.Count == 0)
             {
                 world.DestroyEntity(zone);

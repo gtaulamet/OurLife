@@ -50,13 +50,22 @@ public partial class RoomLayer : Node3D
         return layer;
     }
 
+    /// <summary>The layer was turned on or off, by whoever did.</summary>
+    public event Action? ShownChanged;
+
     /// <summary>Whether the layer shows. Turning it on builds it if the rooms changed while it was off.</summary>
     public bool Shown
     {
         get => Visible;
         set
         {
+            var changed = Visible != value;
             Visible = value;
+            if (changed)
+            {
+                ShownChanged?.Invoke();
+            }
+
             if (value && _dirty)
             {
                 Rebuild();

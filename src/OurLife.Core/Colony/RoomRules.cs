@@ -90,6 +90,7 @@ public static class RoomRules
         var used = new List<EntityId>();
         foreach (var person in people)
         {
+            var own = Beds.OwnedBy(simulation, person);
             var best = EntityId.None;
             var bestRank = int.MaxValue;
             foreach (var bed in room.Beds)
@@ -99,8 +100,7 @@ public static class RoomRules
                     continue;
                 }
 
-                var owner = world.Get<Bed>(bed).Owner;
-                var ownerRank = owner == person ? 0 : Beds.IsTaken(simulation, bed) ? 2 : 1;
+                var ownerRank = bed == own ? 0 : Beds.IsTaken(simulation, bed) ? 2 : 1;
                 var stages = simulation.Content.Get<BuildableDef>(world.Get<Furniture>(bed).Buildable).ForStages;
                 var rank = (ownerRank * 2) + (stages.Count > 0 ? 0 : 1);
                 if (rank < bestRank)
@@ -133,21 +133,43 @@ public static class RoomRules
 
         FeelLevel(simulation, colonist, room.Level.BedroomThought, setup.Levels.Select(level => level.BedroomThought));
         var owners = Owners(simulation, room);
-        var related = 0;
-        foreach (var owner in owners)
+
+        // A family is one group of kin: owners who are relatives in separate groups (two siblings and an unrelated couple) are strangers to one another.
+        var oneFamily = IsOneFamily(simulation, owners);
+        var thought = owners.Count >= setup.Config.CrowdedBeds && !oneFamily ? mood.SleptCrowded
+            : owners.Count >= 2 && oneFamily ? mood.FamilyHome
+            : null;
+        FeelLevel(simulation, colonist, thought, [mood.SleptCrowded, mood.FamilyHome]);
+    }
+
+    /// <summary>Whether the colonists are all connected through kinship (partner, parent, child or sibling), directly or through one another.</summary>
+    private static bool IsOneFamily(Simulation simulation, IReadOnlyList<EntityId> people)
+    {
+        if (people.Count == 0)
         {
-            if (owners.Any(other => other != owner && Relationships.IsFamily(simulation, owner, other)))
+            return false;
+        }
+
+        var reached = new bool[people.Count];
+        var pending = new Stack<int>();
+        reached[0] = true;
+        pending.Push(0);
+        var count = 1;
+        while (pending.Count > 0)
+        {
+            var from = pending.Pop();
+            for (var other = 0; other < people.Count; other++)
             {
-                related++;
+                if (!reached[other] && Relationships.IsFamily(simulation, people[from], people[other]))
+                {
+                    reached[other] = true;
+                    pending.Push(other);
+                    count++;
+                }
             }
         }
 
-        // The beds in use: one owner per bed, as a colonist has a single bed.
-        var strangers = owners.Count - related > 0;
-        var thought = owners.Count >= setup.Config.CrowdedBeds && strangers ? mood.SleptCrowded
-            : owners.Count >= 2 && !strangers ? mood.FamilyHome
-            : null;
-        FeelLevel(simulation, colonist, thought, [mood.SleptCrowded, mood.FamilyHome]);
+        return count == people.Count;
     }
 
     /// <summary>What a colonist thinks after eating sitting in a dining room: that it ate at a table, and the room's quality.</summary>

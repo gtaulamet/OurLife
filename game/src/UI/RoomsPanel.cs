@@ -36,6 +36,7 @@ public partial class RoomsPanel : PanelContainer
     private VBoxContainer _beds = null!;
     private string _signature = string.Empty;
     private bool _turnedLayerOn;
+    private bool _settingLayer;
     private double _sinceRefresh;
     private int _chosenRoom = -1;
     private EntityId _familyOf;
@@ -57,6 +58,7 @@ public partial class RoomsPanel : PanelContainer
         panel.AddChild(panel._column);
         panel._column.AddChild(new Label { Text = "ui.rooms.title" });
         panel._layer = new Button { Text = "ui.rooms.overlay", ToggleMode = true, FocusMode = FocusModeEnum.None, SizeFlagsHorizontal = SizeFlags.ShrinkBegin };
+        view.RoomLayer.ShownChanged += panel.OnLayerChanged;
         panel._layer.Pressed += () => view.RoomLayer.Shown = !view.RoomLayer.Shown;
         panel._column.AddChild(panel._layer);
 
@@ -95,6 +97,7 @@ public partial class RoomsPanel : PanelContainer
     {
         _services.Localizer.LocaleChanged -= OnLocaleChanged;
         VisibilityChanged -= OnVisibilityChanged;
+        _view.RoomLayer.ShownChanged -= OnLayerChanged;
     }
 
     public void Toggle()
@@ -104,6 +107,15 @@ public partial class RoomsPanel : PanelContainer
         {
             _signature = string.Empty;
             Refresh();
+        }
+    }
+
+    /// <summary>Whoever else turns the layer on or off (the key, the button) takes it over: closing the list no longer turns it off.</summary>
+    private void OnLayerChanged()
+    {
+        if (!_settingLayer)
+        {
+            _turnedLayerOn = false;
         }
     }
 
@@ -117,14 +129,18 @@ public partial class RoomsPanel : PanelContainer
         {
             if (!_view.RoomLayer.Shown)
             {
+                _settingLayer = true;
                 _view.RoomLayer.Shown = true;
+                _settingLayer = false;
                 _turnedLayerOn = true;
             }
         }
         else if (_turnedLayerOn)
         {
             _turnedLayerOn = false;
+            _settingLayer = true;
             _view.RoomLayer.Shown = false;
+            _settingLayer = false;
         }
     }
 
