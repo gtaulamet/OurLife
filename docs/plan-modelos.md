@@ -8,13 +8,13 @@ Los archivos van en `game/assets/models/ourlife/`. Las fuentes de trabajo (imág
 
 | Fase | Contenido | Modelos | Hechos |
 |---|---|---|---|
-| 1 | Puestos de trabajo y cuna (imprescindibles) | 5 | 0 |
+| 1 | Puestos de trabajo y cuna (imprescindibles) | 5 | 5 |
 | 2 | Objetos de comida y materiales | 10 | 0 |
 | 3 | Objetos de hierro, piedra y herramientas | 8 | 0 |
 | 4 | Cultivos (3 cultivos × 3 etapas) | 9 | 0 |
 | 5 | Muebles opcionales (mesa, cama, silla, baúl) | 4 | 0 |
 | 6 | Piezas opcionales (puerta, escalera, rampa, tocones) | 5 | 0 |
-| | **Total** | **41** (32 sin los opcionales) | **0** |
+| | **Total** | **41** (32 sin los opcionales) | **5** |
 
 Actualizar la columna "Hechos" y marcar las casillas al cerrar cada modelo. Un modelo está hecho cuando cumple todos los pasos de la sección siguiente.
 
@@ -37,15 +37,15 @@ Nada nuevo entra a mitad de una IP: si este trabajo cae en medio de una, se agen
 
 ## Fase 1: puestos de trabajo y cuna (prioridad alta)
 
-Estado (28 de octubre): los 5 `.glb` están generados en `MODELS/puestos-trabajo` y `MODELS/muebles` con el script `MODELS/generador/fase1.py` (cajas y cilindros con materiales con nombre, 244 a 408 triángulos, apoyados en Y = 0). Faltan probarlos en el juego junto a un colono, ajustar `scale` y `turn`, y pasarlos a `game/assets/models/ourlife/`; las casillas se marcan al integrarlos.
+Estado (28 de octubre): integrada. Los 5 `.glb` están en `game/assets/models/ourlife/` y en `visuals.json`: los cuatro puestos a escala 0,8 y la cuna a 0,7 con `restHeight` 0,2. Generados con `MODELS/generador/fase1.py`. Probados en la vista previa de muebles (`--furniture`), con `dotnet test` y el smoke en verde. Falta revisar a ojo la cuna con el bebé dentro y los puestos con un colono trabajando, y el color de cada material.
 
 Los cuatro puestos usan hoy la misma `table_small`.
 
-- [ ] `furniture.carpenter_bench` → `furniture_carpenter_bench.glb`. Mesa baja y robusta con tornillo de banco, serrucho colgado, algo de viruta y un tablón. Hoy: `table_small`.
-- [ ] `furniture.mason_bench` → `furniture_mason_bench.glb`. Bloque de piedra tosca sobre caballetes, con cincel y martillo y un sillar a medio tallar. Hoy: `table_small`.
-- [ ] `furniture.kitchen` → `furniture_kitchen.glb`. Hogar de piedra con olla colgada, parrilla y brasas. Se construye con masonería. Hoy: `table_small`.
-- [ ] `furniture.scriptorium` → `furniture_scriptorium.glb`. Pupitre inclinado con pergamino, tintero, pluma y un libro abierto. Hoy: `table_small`.
-- [ ] `furniture.cradle` → `furniture_cradle.glb`. Cuna de madera con balancines, más pequeña que la cama. El bebé que la ocupa usa el modelo `sit`, así que revisar que no la atraviese. Hoy: `bed_frame` a escala 0,2.
+- [x] `furniture.carpenter_bench` → `furniture_carpenter_bench.glb`. Mesa baja y robusta con tornillo de banco, serrucho colgado, algo de viruta y un tablón. Hoy: `table_small`.
+- [x] `furniture.mason_bench` → `furniture_mason_bench.glb`. Bloque de piedra tosca sobre caballetes, con cincel y martillo y un sillar a medio tallar. Hoy: `table_small`.
+- [x] `furniture.kitchen` → `furniture_kitchen.glb`. Hogar de piedra con olla colgada, parrilla y brasas. Se construye con masonería. Hoy: `table_small`.
+- [x] `furniture.scriptorium` → `furniture_scriptorium.glb`. Pupitre inclinado con pergamino, tintero, pluma y un libro abierto. Hoy: `table_small`.
+- [x] `furniture.cradle` → `furniture_cradle.glb`. Cuna de madera con balancines, más pequeña que la cama. El bebé que la ocupa usa el modelo `sit`, así que revisar que no la atraviese. Hoy: `bed_frame` a escala 0,2.
 
 ## Fase 2: objetos de comida y materiales
 

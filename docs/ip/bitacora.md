@@ -922,9 +922,15 @@ O6: `/code-review` de `main...HEAD` y cierre del hito (la presentación está he
 ### 2026-10-28: plan de modelos propios
 
 - Nuevo `docs/plan-modelos.md`: una casilla por cada uno de los 41 modelos pendientes (6 fases, de los 5 imprescindibles a los opcionales), con id visual, archivo, descripción, modelo provisorio actual y los pasos para darlo por hecho.
-- `docs/art.md` enlaza al plan. Ningún modelo está hecho todavía (0 de 41).
+- `docs/art.md` enlaza al plan. Hecho: 0 de 41 al crear el plan.
 
 ### 2026-10-28: modelos de la fase 1 generados
 
 - `MODELS/` se organiza por tipo de objeto: `puestos-trabajo`, `muebles`, `objetos/{comida,materiales,herramientas}`, `cultivos`, `construccion`, `entorno` y `generador` (scripts y vistas previas).
 - `MODELS/generador/lib.py` y `fase1.py` generan los 5 modelos de la fase 1 (banco de carpintero, banco de cantero, cocina, escritorio de copista y cuna). Pendiente: probarlos en el juego, ajustar `visuals.json` y copiarlos a `game/assets/models/ourlife/`.
+
+### 2026-10-28: fase 1 de modelos integrada
+
+- Los 5 modelos de la fase 1 están en `game/assets/models/ourlife/` (con sus `.import`) y `visuals.json` los usa: banco de carpintero, banco de cantero, cocina y escritorio de copista a escala 0,8; cuna a 0,7 con `restHeight` 0,2. Antes usaban `table_small` y `bed_frame`.
+- `dotnet build`, `dotnet test` (49 + 757 + 215) y el smoke con código 0. Capturas de la vista previa de cada mueble con `--furniture` revisadas.
+- Pendiente: ver en el juego la cuna con el bebé dentro y los puestos con un colono trabajando, y retocar escala o color si hace falta. Sigue la fase 2 (objetos de comida y materiales).
