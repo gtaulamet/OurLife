@@ -450,6 +450,20 @@ public partial class GameRoot : Node
             simulation.ApplyCommandsNow();
         }
 
+        // A bedroom and a dining room, and a bed for the first colonist's family, before time runs so the colonists use them.
+        RoomScene.Built? rooms = null;
+        if (options.Rooms && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
+        {
+            rooms = RoomScene.Build(simulation, simulation.World.Get<Position>(colonists[0]).Cell);
+            screen.Session.Enqueue(new SetFreeWillCommand(true));
+            simulation.ApplyCommandsNow();
+            if (Rooms.At(simulation, rooms.Value.BedroomCell) is { } bedroom)
+            {
+                screen.Hud.Rooms.AssignFamily(bedroom.Id, colonists[0]);
+                simulation.ApplyCommandsNow();
+            }
+        }
+
         screen.Advance(options.Ticks ?? 0);
         if (options.Hour is { } hour)
         {
@@ -463,6 +477,31 @@ public partial class GameRoot : Node
         if (options.Metals && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
         {
             PlaceMetals(screen, colonists[0]);
+        }
+
+        if (rooms is { } built)
+        {
+            // The list opens with the layer on, and choosing a room moves the camera, selects it and shows its beds.
+            foreach (var colonist in colonists.Where(simulation.World.IsAlive))
+            {
+                var at = simulation.World.Get<Position>(colonist).Cell;
+                var doing = simulation.World.TryGet<Job>(colonist, out var job) ? job.Kind.ToString() : "-";
+                GD.Print($"[rooms] {simulation.World.Get<Colonist>(colonist).Name} at ({at.X}, {at.Y}, {at.Z}): {doing}");
+            }
+
+            if (options.RoomsDining)
+            {
+                var seated = RoomScene.Seat(simulation, colonists.Where(simulation.World.IsAlive).ToList(), built.DiningCell, ticks: 600);
+                GD.Print($"[rooms] {seated} colonists sit in the dining room");
+                screen.Advance(0);
+            }
+
+            screen.Hud.Rooms.Toggle();
+            var chosen = Rooms.At(simulation, options.RoomsDining ? built.DiningCell : built.BedroomCell);
+            if (chosen is not null)
+            {
+                screen.Hud.Rooms.Choose(chosen);
+            }
         }
 
         if ((options.Inspect || options.Sheet) && colonists.Count > 0 && simulation.World.IsAlive(colonists[0]))
@@ -1142,6 +1181,7 @@ public partial class GameRoot : Node
         CheckFreeWill(screen);
         CheckProduction(screen);
         CheckKnowledge(screen);
+        CheckRooms(screen);
         CheckFarm(screen);
         screen.OpenPauseMenu();
         screen.OpenOptions();
@@ -1445,6 +1485,61 @@ public partial class GameRoot : Node
         screen.Session.Enqueue(new CreateWorkOrderCommand("iron_axe", WorkOrderMode.Count, 2));
         screen.Session.Enqueue(new CreateWorkOrderCommand("charcoal", WorkOrderMode.Count, 5));
         simulation.ApplyCommandsNow();
+    }
+
+    /// <summary>
+    /// The list of rooms and the layer: with a bedroom and a dining room built (as the capture mode does), the layer
+    /// draws both, the list has a row for each in plain text, a click on a row moves the selection, and the button of
+    /// the family gives beds with commands.
+    /// </summary>
+    private static void CheckRooms(GameScreen screen)
+    {
+        var simulation = screen.Session.Simulation;
+        var colonists = new List<EntityId>();
+        simulation.World.Query<Colonist>(colonists);
+        var scene = RoomScene.Build(simulation, simulation.World.Get<Position>(colonists[0]).Cell);
+        screen.Advance(1);
+        var panel = screen.Hud.Rooms;
+        panel.Toggle();
+        panel.Refresh();
+        var rows = panel.RowTexts.ToList();
+        if (rows.Count != 2 || rows.Any(row => row.StartsWith("ui.", StringComparison.Ordinal) || row.Contains('⟦')))
+        {
+            throw new InvalidOperationException($"the list of rooms shows [{string.Join(" | ", rows)}] for a bedroom and a dining room");
+        }
+
+        screen.View.Camera.GoTo(new Vector2(scene.BedroomCell.X, scene.BedroomCell.Y), scene.BedroomCell.Z + 1);
+        if (!screen.View.RoomLayer.Shown || screen.View.RoomLayer.RoomsShown != 2)
+        {
+            throw new InvalidOperationException($"the layer of rooms shows {screen.View.RoomLayer.RoomsShown} rooms, on {screen.View.RoomLayer.Shown}");
+        }
+
+        var bedroom = Rooms.At(simulation, scene.BedroomCell) ?? throw new InvalidOperationException("the bedroom of the scene is not a room");
+        panel.Choose(bedroom);
+        if (panel.BedRows != bedroom.Beds.Count || screen.Hud.Inspector.ShownText.Contains('⟦'))
+        {
+            throw new InvalidOperationException($"the list shows {panel.BedRows} beds for {bedroom.Beds.Count}: '{screen.Hud.Inspector.ShownText}'");
+        }
+
+        if (!panel.PressAssignFamily(0))
+        {
+            throw new InvalidOperationException("the list of rooms has no button to assign a family");
+        }
+
+        simulation.ApplyCommandsNow();
+        var owners = RoomRules.Owners(simulation, Rooms.At(simulation, scene.BedroomCell)!);
+        if (owners.Count == 0 || owners[0] != colonists[0])
+        {
+            throw new InvalidOperationException($"assigning the family gave beds to {owners.Count} colonists");
+        }
+
+        panel.Toggle();
+        if (screen.View.RoomLayer.Shown)
+        {
+            throw new InvalidOperationException("the layer of rooms stays on when the list closes");
+        }
+
+        GD.Print($"[smoke] the list shows {rows.Count} rooms, the layer draws them, and assigning a family gave beds to {owners.Count} colonists");
     }
 
     /// <summary>The knowledge panel shows the whole tree, lets a click queue a knowledge and a click again take it out.</summary>

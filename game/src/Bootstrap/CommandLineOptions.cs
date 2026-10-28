@@ -82,6 +82,12 @@ public sealed record CommandLineOptions
     /// <summary>Places a forge next to the first colonist, with an order for an axe, and gives the colonist a masterwork axe and a pickaxe, to see the fire workshops and the tools in screenshots (milestone O8).</summary>
     public bool Metals { get; init; }
 
+    /// <summary>Builds a bedroom and a dining room next to the first colonist, gives the family of the first colonist their beds, opens the list of rooms with the layer on and chooses the bedroom, to see them in screenshots (milestone O9).</summary>
+    public bool Rooms { get; init; }
+
+    /// <summary>With <c>--rooms</c>, chooses the dining room and points the camera at it, to see the colonists sitting in it.</summary>
+    public bool RoomsDining { get; init; }
+
     /// <summary>Turn the build tool on, to see the build bar in screenshots (milestone H2.4).</summary>
     public bool Build { get; init; }
 
@@ -246,6 +252,12 @@ public sealed record CommandLineOptions
                 case "--metals":
                     options = options with { Metals = true };
                     break;
+                case "--rooms":
+                    options = options with { Rooms = true };
+                    break;
+                case "--rooms-dining":
+                    options = options with { Rooms = true, RoomsDining = true };
+                    break;
                 case "--crops":
                     options = options with { Crops = true };
                     break;
@@ -395,7 +407,7 @@ public sealed record CommandLineOptions
         $"seed={Seed?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"ticks={Ticks?.ToString(CultureInfo.InvariantCulture) ?? "-"}, " +
         $"level={Level?.ToString(CultureInfo.InvariantCulture) ?? "-"}, probe={Probe}, " +
-        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, metals={Metals}, orders={Orders}, play={Play}, options={Options}, " +
+        $"zoom={Zoom?.ToString(CultureInfo.InvariantCulture) ?? "-"}, inspect={Inspect}, inspect-stockpile={InspectStockpile}, inspect-blueprint={InspectBlueprint}, inspect-furniture={InspectFurniture}, colony={Colony}, production={Production}, knowledge={Knowledge}, build={Build}, farm={Farm}, inspect-farm={InspectFarm}, metals={Metals}, rooms={Rooms}, rooms-dining={RoomsDining}, orders={Orders}, play={Play}, options={Options}, " +
         $"benchmark={BenchmarkSeconds?.ToString(CultureInfo.InvariantCulture) ?? "-"}, licenses={LicensesPath ?? "-"}, " +
         $"saves={SavesPath ?? "-"}, load={LoadSlot ?? "-"}, show={Show ?? "-"}, " +
         $"hour={Hour?.ToString(CultureInfo.InvariantCulture) ?? "-"}, season={Season ?? "-"}, " +

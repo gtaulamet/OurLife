@@ -221,7 +221,7 @@
   "job.reap.report": "Harvesting {crop}",
   "job.equip.report": "Fetching a tool",
   "job.eat_at_table.report": "Eating at the table",
-  "job.gather.report": "Gathered with the others",
+  "job.gather.report": "Gathering with the others",
 
   "ui.workshop.recipes": "Recipes",
   "ui.workshop.make": "Make {count}: {recipe}",
@@ -286,5 +286,25 @@
   "ui.inspector.crop": "{crop} crop: {percent} %",
   "ui.inspector.crop_ripe": "{crop} crop: ready to harvest",
   "ui.inspector.farm_zone": "{crop} farm zone",
-  "ui.inspector.freshness": "Freshness: {percent} %"
+  "ui.inspector.freshness": "Freshness: {percent} %",
+
+  "ui.rooms.button": "Rooms (U)",
+  "ui.rooms.title": "Rooms",
+  "ui.rooms.overlay": "Rooms layer (L)",
+  "ui.rooms.empty": "No rooms with furniture yet. Close a space with walls and a door, and put a bed or a table in it.",
+  "ui.rooms.generic": "room",
+  "ui.rooms.generic_gender": "other",
+  "ui.rooms.kind": "{level} {role}",
+  "ui.rooms.list_and": "{head} {i_sound, select, true {and} other {and}} {last}",
+  "ui.rooms.list_comma": "{head}, {next}",
+  "ui.rooms.beds": "Beds",
+  "ui.rooms.no_beds": "This room has no beds.",
+  "ui.rooms.assign_family": "Assign family",
+  "ui.rooms.assign_bed": "Assign bed",
+  "ui.rooms.free_bed": "Free",
+  "ui.inspector.room": "{level} {role}: {score, plural, one {# point} other {# points}}",
+  "ui.inspector.room_beds": "{count, plural, one {# bed} other {# beds}}",
+  "ui.inspector.room_roles": "Functions: {roles}",
+  "ui.inspector.room_owners": "Belongs to {names}",
+  "ui.inspector.sleeps_in_room": "Sleeps in a {level} {role}"
 }

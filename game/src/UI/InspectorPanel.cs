@@ -171,12 +171,64 @@ public partial class InspectorPanel : PanelContainer
             var item = NameOf(_simulation.Content.Get<ItemDef>(carried.Def), carried.Count);
             _lines.Add(text.Format("ui.inspector.carrying", ("count", carried.Count), ("item", item)));
         }
-        _lines.Add(text.Format(Beds.HasBed(_simulation, colonist, _entities) ? "ui.inspector.has_bed" : "ui.inspector.no_bed"));
+        _lines.Add(BedLine(colonist));
         foreach (var state in world.Get<Needs>(colonist).Values)
         {
             var need = _simulation.Content.Get<NeedDef>(state.Need);
             var percent = need.Max == 0 ? 0 : state.Value * 100 / need.Max;
             _lines.Add(text.Format("ui.inspector.need", ("need", text.Capitalized(NameOf(need))), ("percent", percent)));
+        }
+    }
+
+    /// <summary>Where the colonist sleeps: in a room of its level, in a bed outside any room, or nowhere.</summary>
+    private string BedLine(EntityId colonist)
+    {
+        var world = _simulation.World;
+        var text = _services.Text;
+        world.Query<Bed>(_entities);
+        foreach (var bed in _entities)
+        {
+            if (world.Get<Bed>(bed).Owner != colonist || !Beds.Fits(_simulation, bed, colonist))
+            {
+                continue;
+            }
+
+            if (Rooms.At(_simulation, world.Get<Position>(bed).Cell) is { } room)
+            {
+                return text.Format("ui.inspector.sleeps_in_room", ("role", RoomTexts.RoleName(text, room)), ("level", RoomTexts.LevelName(text, room)));
+            }
+
+            return text.Format("ui.inspector.has_bed");
+        }
+
+        return text.Format("ui.inspector.no_bed");
+    }
+
+    /// <summary>The room the cell is in: its function, level and score, its beds, its other functions and who sleeps there.</summary>
+    private void DescribeRoom(TileCoord cell)
+    {
+        if (Rooms.At(_simulation, cell) is not { } room)
+        {
+            return;
+        }
+
+        var text = _services.Text;
+        var line = RoomTexts.Line(text, room);
+        if (room.Beds.Count > 0)
+        {
+            line += ", " + text.Format("ui.inspector.room_beds", ("count", room.Beds.Count));
+        }
+
+        _lines.Add(line);
+        if (room.Roles.Count > 1)
+        {
+            _lines.Add(text.Format("ui.inspector.room_roles", ("roles", RoomTexts.Roles(text, room))));
+        }
+
+        var owners = RoomTexts.OwnerNames(text, _simulation, room);
+        if (owners.Length > 0)
+        {
+            _lines.Add(text.Format("ui.inspector.room_owners", ("names", owners)));
         }
     }
 
@@ -222,6 +274,7 @@ public partial class InspectorPanel : PanelContainer
             _lines.Add(text.Format("ui.inspector.order.channel"));
         }
 
+        DescribeRoom(cell);
         DescribeFarm(cell);
         DescribeLooseCropOrder(cell);
 

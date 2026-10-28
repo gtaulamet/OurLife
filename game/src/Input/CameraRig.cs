@@ -145,6 +145,18 @@ public partial class CameraRig : Node3D
         }
     }
 
+    /// <summary>Moves the view to a level and centres it on a cell, as the list of rooms does when one is chosen.</summary>
+    public void GoTo(Vector2 cell, int level)
+    {
+        Focus(cell);
+        level = Math.Clamp(level, 0, _maxLevel);
+        if (level != _level)
+        {
+            _level = level;
+            LevelChanged?.Invoke(level);
+        }
+    }
+
     /// <summary>Multiplies the distance to the focus: below 1 comes closer.</summary>
     private void Zoom(float factor) => _distance = Math.Clamp(_distance * factor, MinDistance, MaxDistance);
 

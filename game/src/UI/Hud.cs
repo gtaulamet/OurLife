@@ -78,6 +78,9 @@ public partial class Hud : CanvasLayer
     /// <summary>The tree of knowledge and the research queue, opened with the key or its button.</summary>
     public KnowledgePanel Knowledge { get; private set; } = null!;
 
+    /// <summary>The list of rooms and the assignment of beds, opened with the key or its button.</summary>
+    public RoomsPanel Rooms { get; private set; } = null!;
+
     private Label _research = null!;
     private HBoxContainer _researchRow = null!;
     private double _sinceResearch;
@@ -145,6 +148,8 @@ public partial class Hud : CanvasLayer
         left.AddChild(hud.Production);
         hud.Knowledge = KnowledgePanel.Create(services, session);
         left.AddChild(hud.Knowledge);
+        hud.Rooms = RoomsPanel.Create(services, session, input, view);
+        left.AddChild(hud.Rooms);
 
         hud.Inspector = InspectorPanel.Create(services, session.Simulation, session.Enqueue);
         hud.Inspector.SetAnchorsPreset(Control.LayoutPreset.TopRight);
@@ -175,10 +180,23 @@ public partial class Hud : CanvasLayer
         input.ColonyPanelRequested += hud.Colony.Toggle;
         input.ProductionPanelRequested += hud.Production.Toggle;
         input.KnowledgePanelRequested += hud.Knowledge.Toggle;
+        input.RoomPanelRequested += hud.Rooms.Toggle;
+        input.RoomLayerRequested += hud.ToggleRoomLayer;
+        input.SelectionChanged += hud.Rooms.FollowSelection;
         session.ClockChanged += hud.RefreshTimeButtons;
         view.ViewLevelChanged += hud.OnViewLevelChanged;
         hud.RefreshAll();
         return hud;
+    }
+
+    /// <summary>The key of the layer of rooms: on or off, with or without the list open.</summary>
+    private void ToggleRoomLayer()
+    {
+        _view.RoomLayer.Shown = !_view.RoomLayer.Shown;
+        if (Rooms.Visible)
+        {
+            Rooms.Refresh();
+        }
     }
 
     /// <summary>Opens the sheet of a colonist, or closes it if it shows that one; nothing without a colonist.</summary>
@@ -384,6 +402,16 @@ public partial class Hud : CanvasLayer
         var knowledge = new Button { Text = "ui.knowledge.button", FocusMode = Control.FocusModeEnum.None };
         knowledge.Pressed += () => Knowledge.Toggle();
         row.AddChild(knowledge);
+        // An icon with its name in the tooltip: the top bar has no more room for a word (docs/gdd/tamano-de-la-interfaz.md).
+        var rooms = new Button
+        {
+            Icon = RoomIcons.Role("bedroom"),
+            FocusMode = Control.FocusModeEnum.None,
+            TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            TooltipText = "ui.rooms.button",
+        };
+        rooms.Pressed += () => Rooms.Toggle();
+        row.AddChild(rooms);
 
         _level = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, CustomMinimumSize = new Vector2(90, 0), HorizontalAlignment = HorizontalAlignment.Right };
         row.AddChild(_level);

@@ -221,7 +221,7 @@
   "job.reap.report": "Cosechando {crop}",
   "job.equip.report": "Yendo a buscar una herramienta",
   "job.eat_at_table.report": "Comiendo a la mesa",
-  "job.gather.report": "Reunido con los demás",
+  "job.gather.report": "Reuniéndose con los demás",
 
   "ui.workshop.recipes": "Recetas",
   "ui.workshop.make": "Hacer {count}: {recipe}",
@@ -286,5 +286,25 @@
   "ui.inspector.crop": "Cultivo de {crop}: {percent} %",
   "ui.inspector.crop_ripe": "Cultivo de {crop}: listo para cosechar",
   "ui.inspector.farm_zone": "Zona de cultivo de {crop}",
-  "ui.inspector.freshness": "Frescura: {percent} %"
+  "ui.inspector.freshness": "Frescura: {percent} %",
+
+  "ui.rooms.button": "Habitaciones (U)",
+  "ui.rooms.title": "Habitaciones",
+  "ui.rooms.overlay": "Capa de habitaciones (L)",
+  "ui.rooms.empty": "Todavía no hay habitaciones con muebles. Cierra un espacio con muros y una puerta, y ponle una cama o una mesa.",
+  "ui.rooms.generic": "habitación",
+  "ui.rooms.generic_gender": "female",
+  "ui.rooms.kind": "{role} {level}",
+  "ui.rooms.list_and": "{head} {i_sound, select, true {e} other {y}} {last}",
+  "ui.rooms.list_comma": "{head}, {next}",
+  "ui.rooms.beds": "Camas",
+  "ui.rooms.no_beds": "Esta habitación no tiene camas.",
+  "ui.rooms.assign_family": "Asignar familia",
+  "ui.rooms.assign_bed": "Asignar cama",
+  "ui.rooms.free_bed": "Libre",
+  "ui.inspector.room": "{role} {level}: {score, plural, one {# punto} other {# puntos}}",
+  "ui.inspector.room_beds": "{count, plural, one {# cama} other {# camas}}",
+  "ui.inspector.room_roles": "Funciones: {roles}",
+  "ui.inspector.room_owners": "De {names}",
+  "ui.inspector.sleeps_in_room": "Duerme en un {role} {level}"
 }

@@ -115,6 +115,12 @@ public partial class GameInput : Node3D
     /// <summary>Raised by the key of the knowledge panel, under the same rules.</summary>
     public event Action? KnowledgePanelRequested;
 
+    /// <summary>Raised by the key of the list of rooms, under the same rules.</summary>
+    public event Action? RoomPanelRequested;
+
+    /// <summary>Raised by the key of the layer of rooms, under the same rules.</summary>
+    public event Action? RoomLayerRequested;
+
     public Selection? Selected => _selection;
 
     /// <summary>The order the next drag gives, or null to select.</summary>
@@ -384,6 +390,16 @@ public partial class GameInput : Node3D
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleKnowledge))
         {
             KnowledgePanelRequested?.Invoke();
+        }
+
+        if (Godot.Input.IsActionJustPressed(InputActions.ToggleRooms))
+        {
+            RoomPanelRequested?.Invoke();
+        }
+
+        if (Godot.Input.IsActionJustPressed(InputActions.ToggleRoomLayer))
+        {
+            RoomLayerRequested?.Invoke();
         }
 
         if (Godot.Input.IsActionJustPressed(InputActions.ToggleSheet))

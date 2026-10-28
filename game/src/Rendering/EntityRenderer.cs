@@ -3,6 +3,7 @@ using OurLife.Core.Colony;
 using OurLife.Core.Defs;
 using OurLife.Core.Ecs;
 using OurLife.Core.Entities;
+using OurLife.Core.Map;
 using OurLife.Core.Sim;
 
 namespace OurLife.Game.Rendering;
@@ -42,7 +43,8 @@ public partial class EntityRenderer : Node3D
     private const string PickUp = "pick-up";
     private const string Hold = "holding-both";
     private const string Play = "emote-yes";
-    private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold, Play];
+    private const string Sit = "sit";
+    private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold, Play, Sit];
 
     // The balloons of interactions: their icons, how long they show and fade, in real seconds, how
     // big their pixels are and how far over a head they float, in the world's units.
@@ -53,6 +55,7 @@ public partial class EntityRenderer : Node3D
     private const float BalloonGap = 0.35f;
     private readonly Dictionary<EntityId, Balloon> _balloons = [];
     private readonly List<EntityId> _expired = [];
+    private readonly List<EntityId> _furnitureScratch = [];
 
     // The model of each visual and stage in an era, found once: "<visual>.<stage>", or null if the catalog has none.
     private readonly Dictionary<(string Visual, string Stage, string? Era), VisualModel?> _staged = [];
@@ -215,7 +218,7 @@ public partial class EntityRenderer : Node3D
             else
             {
                 view.Node.Position = view.Node.Position.Lerp(target, glide);
-                view.Node.Rotation = new Vector3(0, facing ?? view.Node.Rotation.Y, 0);
+                view.Node.Rotation = new Vector3(0, facing ?? SeatedYaw(entity, view) ?? view.Node.Rotation.Y, 0);
             }
 
             var level = world.Get<Position>(entity).Z;
@@ -595,6 +598,7 @@ public partial class EntityRenderer : Node3D
             : job is { Kind: JobKind.FeedBaby, Stage: JobStage.Carrying } ? Handle
             : working && job!.Kind is JobKind.Harvest ? PickUp
             : working && job!.Kind is JobKind.Play ? Play
+            : working && job!.Kind is JobKind.EatAtTable or JobKind.Gather ? Sit
             : world.Has<Carried>(entity) ? Hold
             : Idle;
 
@@ -633,6 +637,43 @@ public partial class EntityRenderer : Node3D
             animator.SpeedScale = speed;
             view.Speed = speed;
         }
+    }
+
+    /// <summary>
+    /// The heading of a colonist sitting at a table to eat or to gather: toward the table beside its chair, so it
+    /// sits facing it. Found when it sits down and kept while it sits; null if it is not sitting.
+    /// </summary>
+    private float? SeatedYaw(EntityId entity, EntityView view)
+    {
+        var world = _simulation.World;
+        if (!world.TryGet<Job>(entity, out var job) || job.Kind is not (JobKind.EatAtTable or JobKind.Gather) || job.Stage != JobStage.Working)
+        {
+            view.SeatedAt = null;
+            return null;
+        }
+
+        var cell = world.Get<Position>(entity).Cell;
+        if (view.SeatedAt != cell)
+        {
+            view.SeatedAt = cell;
+            view.SeatYaw = null;
+            world.Query<Furniture, Position>(_furnitureScratch);
+            foreach (var piece in _furnitureScratch)
+            {
+                var at = world.Get<Position>(piece).Cell;
+                if (at.Z != cell.Z || Math.Abs(at.X - cell.X) + Math.Abs(at.Y - cell.Y) != 1
+                    || !_simulation.Content.Get<BuildableDef>(world.Get<Furniture>(piece).Buildable).Tags.Contains(RoomRules.TableTag, StringComparer.Ordinal))
+                {
+                    continue;
+                }
+
+                // The same heading a walker takes toward that neighbour (see WalkingPosition).
+                view.SeatYaw = Mathf.Atan2(at.X - cell.X, at.Y - cell.Y);
+                break;
+            }
+        }
+
+        return view.SeatYaw;
     }
 
     /// <summary>
@@ -770,5 +811,10 @@ public partial class EntityRenderer : Node3D
         public string? Playing { get; set; }
 
         public float Speed { get; set; } = -1f;
+
+        /// <summary>The cell it sat down in and the heading it faces there, found once per seat.</summary>
+        public TileCoord? SeatedAt { get; set; }
+
+        public float? SeatYaw { get; set; }
     }
 }

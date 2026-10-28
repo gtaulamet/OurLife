@@ -8,7 +8,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o9-habitaciones`: Core de O9 hecho (falta la presentación). O8 en `main`; O2 a O7 hechos |
+| Rama de trabajo | `ip4/o9-habitaciones`: O9 hecho (Core y presentación; falta `/code-review` y fusionar). O8 y la cosecha manual de O10 en `main`; O2 a O7 hechos |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
@@ -20,7 +20,7 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 En orden:
 
-1. **IP4 "Oficios"**: presentación de O9 (capa de habitaciones, inspector, lista, asignación de camas, comedor, capturas es/en, íconos), y después O10 y O11 (`docs/ip/IP4.md`). El Core de O9 está hecho.
+1. **IP4 "Oficios"**: `/code-review` de O9 y fusionarlo a `main`; después O10 (la lista de habitaciones ya está hecha, falta el panel de inventario, el orden de los atajos y el pulido a los tres tamaños de interfaz) y O11 (`docs/ip/IP4.md`).
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
 3. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos; los de cultivos ya se vieron en el juego.
 4. **Balance de IP3:** con 40 % por año, uno de cada tres deseos de un hijo se cumple. Decidido el 28 de octubre de 2026: se deja así y se revisa con las partidas de diez años de O11.
@@ -42,6 +42,16 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-28: O9, presentación de habitaciones, dormitorios y comedor
+
+- Misma rama `ip4/o9-habitaciones`. Todo en `game/`, más textos es/en; el Core no cambió, así que las huellas del smoke siguen en `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42).
+- Capa de habitaciones (`RoomLayer`, tecla L): losetas translúcidas por nivel (una paleta de gris pardo a oro) e íconos de función y nivel. Íconos de 16 × 16 con `tools/make-room-icons.py` (`game/assets/icons/rooms/`, 4 funciones y 5 niveles, `.png` e `.import` versionados). Se redibuja con `RoomsChangedEvent` y al cambiar de nivel, sólo si está prendida.
+- Lista de habitaciones (`RoomsPanel`, tecla U y botón del HUD; adelanta esa parte de O10): una fila por habitación con su función, nivel, puntaje y dueños; un clic mueve la cámara y selecciona. Debajo, las camas de la habitación elegida con un menú por cama (Libre o un colono) y el botón `Asignar familia` (un `AssignBedCommand` por cada elemento de `SuggestAssignments`). Abrir la lista prende la capa; cerrarla la apaga. El botón del HUD es un ícono con tooltip: la barra de arriba no tenía lugar para otra palabra.
+- Inspector: la celda dice "Dormitorio decente: 22 puntos, 3 camas", otras funciones y dueños; el colono, "Duerme en un dormitorio decente". Colono sentado: animación `sit` (todos los modelos de colonos la tienen, no sólo el del bebé) con `EatAtTable` o `Gather` en `Working`, de cara a la mesa.
+- Textos: 19 claves nuevas de interfaz (`ui.rooms.*`, `ui.inspector.room*`, `ui.inspector.sleeps_in_room`) con unión de nombres "y"/"e" en español. Los textos de defs del Core se revisaron y quedaron; `job.gather.report` pasó a gerundio ("Reuniéndose con los demás", "Gathering with the others"), y `room_owners` en inglés es "Belongs to {names}" (la spec decía "{names}'s").
+- Captura: `--rooms` (dormitorio y comedor junto al primer colono, la familia del primero con sus camas, lista abierta, capa prendida; con `--inspect`, el inspector del colono) y `--rooms-dining` (sienta a los colonos con el trabajo `Gather`; esperar al libre albedrío llevaba un día entero y los colonos estaban ocupados). `RoomScene` usa reflexión sobre `GameMap.SetTile` y `SetFlags`, como el smoke de cultivos con `Learn`. El smoke suma `CheckRooms`. Capturas revisadas: `game/out/rooms-{es,en}.png`, `rooms-dining-{es,en}.png`, `rooms-colonist-{es,en}.png`.
+- Nota: la fecha de la barra de arriba ya se cortaba a 1280 de ancho antes de O9 ("Día 1 de primave…"); el botón nuevo le quita unos 25 píxeles más. Se revisa en O10 con los tres tamaños de interfaz.
 
 ### 2026-10-28: O9, Core de habitaciones, dormitorios y comedor
 

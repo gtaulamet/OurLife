@@ -39,6 +39,9 @@ public partial class WorldView : Node3D
     /// <summary>The cells a farm zone would take, while the farm tool is on (<c>docs/gdd/agricultura.md</c>).</summary>
     public FarmPreview FarmCells { get; private set; } = null!;
 
+    /// <summary>The layer of rooms, off until the player turns it on (<c>docs/gdd/habitaciones.md</c>).</summary>
+    public RoomLayer RoomLayer { get; private set; } = null!;
+
     /// <summary>How many farm zone cells the view marks now, for the smoke.</summary>
     internal int FarmCellsMarked => _orders.FarmCellsMarked;
 
@@ -98,6 +101,8 @@ public partial class WorldView : Node3D
             }
             view._orders = OrderMarkers.Create(simulation, catalog, viewLevel);
             view.AddChild(view._orders);
+            view.RoomLayer = RoomLayer.Create(simulation, viewLevel);
+            view.AddChild(view.RoomLayer);
             view.Previews = FurnitureGhosts.Create(catalog, "Previews");
             view.AddChild(view.Previews);
             view.FarmCells = FarmPreview.Create();
@@ -127,6 +132,7 @@ public partial class WorldView : Node3D
         {
             _entities.Apply(simEvent);
             _orders.Apply(simEvent);
+            RoomLayer.Apply(simEvent);
             _plantsChanged |= simEvent is EntitySpawnedEvent or EntityRemovedEvent;
             if (simEvent is FarmZonesChangedEvent)
             {
@@ -218,6 +224,7 @@ public partial class WorldView : Node3D
         _map.SetViewLevel(level);
         _entities.SetViewLevel(level);
         _orders.SetViewLevel(level);
+        RoomLayer.SetViewLevel(level);
         ViewLevelChanged?.Invoke(level);
     }
 }
