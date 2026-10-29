@@ -94,6 +94,9 @@ public partial class GameInput : Node3D
     /// <summary>Raised when the crop of the farm tool changes; null means the tool is off.</summary>
     public event Action<string?>? FarmChanged;
 
+    /// <summary>A drag with the build tool planned this many pieces of the choice (the HUD warns if the material falls short).</summary>
+    public event Action<BuildChoice, int>? BuildPlaced;
+
     /// <summary>Raised when the player asks for the sheet of the selected colonist.</summary>
     public event Action? SheetRequested;
 
@@ -636,6 +639,10 @@ public partial class GameInput : Node3D
                 _session.Enqueue(_build is { } build ? new PlaceBlueprintCommand(build.Buildable, build.Material, from, to, build.Rotation)
                     : _farmCrop is { } crop ? new PlaceFarmZoneCommand(from, to, crop)
                     : new DesignateCommand(_order!.Value, from, to));
+                if (_build is { } placed && _session.Simulation.Content.TryGet<BuildableDef>(placed.Buildable, out var piece))
+                {
+                    BuildPlaced?.Invoke(placed, Construction.CellsToPlan(_session.Simulation, piece, from, to).Count);
+                }
             }
         }
         else if (screenPoint is { } clicked)

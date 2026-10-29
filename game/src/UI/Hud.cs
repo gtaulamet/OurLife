@@ -55,6 +55,14 @@ public partial class Hud : CanvasLayer
     private bool _stockChanged;
     private bool _stockWidthsChanged = true;
     private Label _hint = null!;
+
+    // Warns that a drag planned more than the colony holds of the material; it fades after a few seconds.
+    private Label _notice = null!;
+    private double _noticeLeft;
+    private const double NoticeSeconds = 6;
+
+    // The buttons of the build bar and what each one builds, to keep the stock in their tooltips up to date.
+    private readonly List<(Button Button, string Buildable, string Material)> _buildTips = [];
     private HFlowContainer _buildRow = null!;
     private HBoxContainer _farmRow = null!;
     private Button _farmButton = null!;
@@ -193,6 +201,7 @@ public partial class Hud : CanvasLayer
         hud.Inspector.SheetRequested += hud.ToggleSheet;
         input.OrderChanged += hud.OnOrderChanged;
         input.BuildChanged += hud.OnBuildChanged;
+        input.BuildPlaced += hud.OnBuildPlaced;
         input.FarmChanged += hud.OnFarmChanged;
         input.ColonyPanelRequested += () => hud.TogglePanel(hud.Colony);
         input.ProductionPanelRequested += () => hud.TogglePanel(hud.Production);
@@ -360,11 +369,17 @@ public partial class Hud : CanvasLayer
             RefreshStock();
         }
 
+        if (_noticeLeft > 0 && (_noticeLeft -= delta) <= 0)
+        {
+            _notice.Visible = false;
+        }
+
         _sinceResearch += delta;
         if (_sinceResearch >= 0.5 || _buildBarStale)
         {
             _sinceResearch = 0;
             RefreshResearch();
+            RefreshBuildCosts();
             if (_buildBarStale)
             {
                 _buildBarStale = false;
@@ -544,6 +559,9 @@ public partial class Hud : CanvasLayer
 
         _hint = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
         column.AddChild(_hint);
+        _notice = new Label { AutoTranslateMode = Node.AutoTranslateModeEnum.Disabled, Visible = false, MouseFilter = Control.MouseFilterEnum.Ignore };
+        _notice.AddThemeColorOverride("font_color", new Color(1f, 0.75f, 0.35f));
+        column.AddChild(_notice);
 
         // What to build and of what, shown while the build tool is on.
         _buildRow = new HFlowContainer { Name = "BuildBar", MouseFilter = Control.MouseFilterEnum.Ignore, Visible = false };
@@ -669,6 +687,7 @@ public partial class Hud : CanvasLayer
         var build = _input.Build;
         _buildButton.SetPressedNoSignal(build is not null);
         _buildRow.Visible = build is not null;
+        _buildTips.Clear();
         foreach (var child in _buildRow.GetChildren())
         {
             _buildRow.RemoveChild(child);
@@ -815,6 +834,87 @@ public partial class Hud : CanvasLayer
             RefreshBuildBar();
         };
         _buildRow.AddChild(button);
+        if (def is BuildableDef buildable)
+        {
+            _buildTips.Add((button, buildable.Id, choice.Material));
+        }
+        else if (def is MaterialDef)
+        {
+            _buildTips.Add((button, choice.Buildable, choice.Material));
+        }
+
+        RefreshBuildCosts();
+    }
+
+    /// <summary>The tooltip of a build button: what the piece costs, of which item, and how many the colony holds.</summary>
+    private void RefreshBuildCosts()
+    {
+        foreach (var (button, buildable, material) in _buildTips)
+        {
+            if (!button.Disabled)
+            {
+                button.TooltipAutoTranslateMode = Node.AutoTranslateModeEnum.Disabled;
+                button.TooltipText = CostText(buildable, material, withName: true, hint: false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// "Bed: 4 planks. You have 12" for the cost of a buildable of a material; the hint's version
+    /// leaves the name out. If the colony holds fewer than one piece takes, it says the plan will wait.
+    /// </summary>
+    private string CostText(string buildableId, string materialId, bool withName, bool hint)
+    {
+        var text = _services.Text;
+        var simulation = _session.Simulation;
+        var content = simulation.Content;
+        var buildable = content.Get<BuildableDef>(buildableId);
+        var itemId = BuildQueries.ItemOf(simulation, materialId);
+        if (itemId is null)
+        {
+            return string.Empty;
+        }
+
+        var item = content.Get<ItemDef>(itemId);
+        var available = BuildQueries.Available(simulation, itemId);
+        var key = (hint ? "ui.build.hint_cost" : "ui.build.cost") + (available < buildable.Cost ? "_short" : string.Empty);
+        var name = text.Format(
+            "ui.orders.name.build",
+            ("buildable", text.Format(buildable.NameKey!, ("count", 1))),
+            ("material", text.Format(content.Get<MaterialDef>(materialId).NameKey!, ("count", 1))));
+        return text.Format(
+            key,
+            ("buildable", withName ? text.Capitalized(name) : string.Empty),
+            ("count", buildable.Cost),
+            ("item", text.Format(item.NameKey!, ("count", buildable.Cost))),
+            ("available", available));
+    }
+
+    /// <summary>After a drag with the build tool: warns if the pieces take more than the colony holds, less what other plans still lack.</summary>
+    private void OnBuildPlaced(BuildChoice choice, int pieces)
+    {
+        var simulation = _session.Simulation;
+        var itemId = BuildQueries.ItemOf(simulation, choice.Material);
+        if (itemId is null || pieces <= 0)
+        {
+            return;
+        }
+
+        var needed = pieces * simulation.Content.Get<BuildableDef>(choice.Buildable).Cost;
+        var free = Math.Max(0, BuildQueries.Available(simulation, itemId) - BuildQueries.Committed(simulation, itemId));
+        if (needed <= free)
+        {
+            return;
+        }
+
+        var text = _services.Text;
+        _notice.Text = text.Format(
+            "ui.build.placed_short",
+            ("needed", needed),
+            ("item", text.Format(simulation.Content.Get<ItemDef>(itemId).NameKey!, ("count", needed))),
+            ("available", free));
+        _notice.Visible = true;
+        _noticeLeft = NoticeSeconds;
     }
 
     private void OnViewLevelChanged(int level) => RefreshLevel();
@@ -937,7 +1037,7 @@ public partial class Hud : CanvasLayer
                 "ui.orders.name.build",
                 ("buildable", text.Format(content.Get<BuildableDef>(build.Buildable).NameKey!, ("count", 1))),
                 ("material", text.Format(content.Get<MaterialDef>(build.Material).NameKey!, ("count", 1))));
-            _hint.Text = text.Format("ui.orders.hint", ("order", name));
+            _hint.Text = text.Format("ui.orders.hint", ("order", name)) + "\n" + CostText(build.Buildable, build.Material, withName: false, hint: true);
 
             // Furniture can be turned before placing it: the second line says how far.
             if (content.Get<BuildableDef>(build.Buildable).IsFurniture)

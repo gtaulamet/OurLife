@@ -7,6 +7,7 @@ using OurLife.Core.Map;
 using OurLife.Core.Sim;
 using OurLife.Game.Bootstrap;
 using OurLife.Game.Input;
+using OurLife.Game.Localization;
 
 namespace OurLife.Game.UI;
 
@@ -364,7 +365,38 @@ public partial class InspectorPanel : PanelContainer
                     ("material", NameOf(_simulation.Content.Get<MaterialDef>(plan.Material))),
                     ("delivered", plan.Delivered),
                     ("cost", buildable.Cost))));
+                AddBuildStatus(text, entity);
             }
+        }
+    }
+
+    /// <summary>Why a blueprint is not advancing, if it is not (see <see cref="BuildQueries.StatusOf"/>).</summary>
+    private void AddBuildStatus(TextResolver text, EntityId blueprint)
+    {
+        var status = BuildQueries.StatusOf(_simulation, blueprint);
+        var item = _simulation.Content.Get<ItemDef>(status.Item);
+        switch (status.Block)
+        {
+            case BuildBlock.Material:
+                _lines.Add(text.Format(
+                    "ui.inspector.wait.material",
+                    ("missing", status.Missing),
+                    ("item", text.Format(item.NameKey!, ("count", status.Missing))),
+                    ("available", status.Available)));
+                break;
+            case BuildBlock.Builder:
+                _lines.Add(text.Format("ui.inspector.wait.builder"));
+                break;
+            case BuildBlock.Unreachable:
+                _lines.Add(text.Format("ui.inspector.wait.unreachable"));
+                break;
+            default:
+                if (status.Missing > 0)
+                {
+                    _lines.Add(text.Format("ui.inspector.wait.bringing", ("item", text.Format(item.NameKey!, ("count", status.Missing)))));
+                }
+
+                break;
         }
     }
 

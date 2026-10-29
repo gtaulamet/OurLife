@@ -8,18 +8,19 @@ Registro de trabajo entre sesiones de Claude Code. Al retomar, leer **Estado act
 
 | Dato | Valor |
 |---|---|
-| Rama de trabajo | `ip4/o11-integracion` (desde `main` con O1 a O10): O11 hecho salvo el empaquetado, la publicación de `v0.4.0` y el playtest del usuario (`docs/ip/playtest-ip4.md`) |
+| Rama de trabajo | `ip4/fix-construccion` (desde `main`): arreglo de la construcción y avisos de materiales (29 de octubre). O11 sigue hecho salvo el empaquetado, la publicación de `v0.4.0` y el playtest del usuario (`docs/ip/playtest-ip4.md`) |
 | `main` | Con L2, L3 y L4 de IP3.5 (después de `v0.3.0`), también en `origin` |
 | Hitos hechos | IP1 completa (H1.1 a H1.8, `v0.1.0`), IP2 completa (H2.1 a H2.7, cerrada el 13 de octubre de 2026) IP2.5 completa (V1 a V6, cerrada el 15 de octubre de 2026) e IP3 completa (H3.1 a H3.10, cerrada el 19 de octubre de 2026, `v0.3.0`) |
 | IP en curso | IP3.5 "Libre albedrío" (`docs/ip/IP3.5.md`), desde el 19 de octubre de 2026; Oficios es IP4 |
-| Validación | `dotnet build --no-incremental` sin advertencias, 1192 tests en verde (49 + 879 + 264), smoke con código 0, benchmark de 30 s: 326 FPS y 0,10 ms por tick; el pueblo del año diez de las partidas de O11, 0,04 a 0,05 ms por tick |
-| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42); O8 (formato 18), O9 (formato 19) y O11 las dejan iguales: el smoke no fabrica herramientas, ni muebles, ni muros, ni usa el radio de los talleres |
+| Validación | `dotnet build --no-incremental` sin advertencias, 1202 tests en verde (49 + 889 + 264, con los 9 lentos), smoke con código 0, benchmark de 30 s: 326 FPS y 0,10 ms por tick; el pueblo del año diez de las partidas de O11, 0,04 a 0,05 ms por tick |
+| Huella del smoke | `2E368CE2376689E4` con `--seed 1 --ticks 5000`; `1284D40F4588F8FE` con `--seed 42 --ticks 5000`, las mismas que en `v0.3.0`: el smoke juega sin libre albedrío, y así la huella no lo incluye (criterio 3 de la spec). Con L4b cambian (el bosque no depende de la opción): `3E6090980A92B35A` (semilla 1) y `5905A0BCAA4F5860` (semilla 42). Con O3 (formato 13): `CFDA6D91EF34C721` (semilla 1) y `BC74B881EBCCDB7F` (semilla 42) . Con O6 (formato 16): `9AF8B6F29DC3B10F` (semilla 1) y `EFDFF865F9D47D99` (semilla 42). Con O7 (formato 17): `62E9519A3F9FEEE9` (semilla 1) y `D6155DFF8353CC4B` (semilla 42); O8 (formato 18), O9 (formato 19) y O11 las dejaron iguales. **Con el arreglo de la construcción (29 de octubre, sin cambio de formato)**: `2F1F34DBE70D73C1` (semilla 1) y `FEA18F67E852C184` (semilla 42): el smoke sí construye una casa y muebles, y ahora el reparto de materiales entre planos cambia |
 | Versión | `v0.3.0` publicada como release de GitHub con los zips de Windows y macOS: https://github.com/gtaulamet/OurLife/releases/tag/v0.3.0. `./tools/package-windows.ps1` y `./tools/package-macos.ps1` los vuelven a armar (no se versionan; el de macOS necesita PowerShell 7.4 o posterior) |
 
 ## Pendientes
 
 En orden:
 
+0. **Probar en el juego el arreglo de construcción** (rama `ip4/fix-construccion`): la barra de construcción dice el costo y cuántos hay, y el inspector del plano dice por qué espera. Falta `/code-review` y fusionar a `main`.
 1. **IP4 "Oficios"**: O11 está hecho salvo lo del usuario: hacer el playtest de `docs/ip/playtest-ip4.md`, `/code-review` de O9 a O11, fusionar a `main`, empaquetar y publicar `v0.4.0` (`tools/package-windows.ps1`, `tools/package-macos.ps1`, `gh release create`). No hay tag ni cambio de versión todavía.
 2. **Orden manual de cosechar cultivos maduros** (mejora de O10): falta su criterio de aceptación y los textos es/en (`docs/gdd/agricultura.md`).
 3. **Modelos propios** (`docs/plan-modelos.md`): 38 de 41 hechos; los de cultivos ya se vieron en el juego.
@@ -42,6 +43,15 @@ En orden:
 - **Mirar el valle sin render:** un programa de consola temporal que referencie `OurLife.Core` puede volcar el valle en ASCII (alturas, materiales y plantas). Así se revisó H1.4.
 
 ## Historial
+
+### 2026-10-29: arreglo de la construcción (no siempre construían camas y paredes)
+
+- Rama `ip4/fix-construccion`. Reporte del usuario: "hay maderas, pero no hacen las camas y paredes de madera".
+- **Causas** (tests en `BuildMaterialsTests`, con el contenido real): (1) información: el HUD "Madera" cuenta troncos y los muebles piden tablones (`planks`), que sólo salen del banco; el material de la barra se conserva entre piezas, y un muro de tablones gasta los de las camas; (2) error del Core: el plano al que traer material era el más cercano a la pila, así que pocas unidades en pilas chicas se repartían de a una entre muchos planos y ninguno se completaba (reproducido: 5 troncos en 5 pilas, 10 muros de 2, 5 colonos ⇒ 0 muros). Casos sin error, con test: muro de troncos sueltos o en almacén, cama con 4 tablones sí y con 3 o 0 no (logs no valen), dos camas con 6 tablones (una se construye, otra espera), prioridad de Construcción en "nunca" (nadie construye), plano en una celda cerrada (espera), pilas de dos calidades (suman). Las órdenes de producción y las recetas que gastan tablones compiten con los planos: queda en el backlog.
+- **Core**: `DecisionSystem.FindSupplyNeeded` sólo ofrece un plano sin nada entregado si lo disponible (menos lo que les falta a los ya empezados) lo cubre, y `TryRecipient` prefiere los ya empezados. Nuevo `BuildQueries` (`Available`, `Committed`, `ItemOf`, `StatusOf` → `BuildStatus`/`BuildBlock`), de sólo lectura.
+- **UI**: pista y tooltips de la barra con costo, item y existencias; aviso naranja al soltar un arrastre que pide más de lo que hay; el inspector del plano dice qué espera. 9 claves nuevas en es y en (`ui.build.*`, `ui.inspector.wait.*`). Capturas revisadas en es y en, a 100 % y 200 %, en `out/materiales/` (`barra-*` y `plano-*`).
+- **Validación**: build sin advertencias, 49 + 889 + 264 tests (incluidos los lentos). Las huellas del smoke cambian por el arreglo (ver arriba): con el código anterior daban `62E9519A3F9FEEE9` y `D6155DFF8353CC4B`.
+- Fuera: ver `docs/ip/backlog.md` (última entrada).
 
 ### 2026-10-29: O11, integración (balance, tests de tiempo, benchmark, playtest)
 

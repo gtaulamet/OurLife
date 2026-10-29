@@ -172,7 +172,7 @@ internal sealed class ColonyTestBed
     public ColonyTestBed(DefDatabase content, ulong seed, params string[] levels)
     {
         Simulation = new Simulation(seed, content);
-        Map = AsciiMap.ParseFilled(content.All<MaterialDef>(), (ushort)content.IndexOf<MaterialDef>("rock"), levels);
+        Map = AsciiMap.ParseFilled(content.All<MaterialDef>(), (ushort)content.IndexOf<MaterialDef>(content.TryGet<MaterialDef>("rock", out _) ? "rock" : "granite"), levels);
         Simulation.AttachMap(Map);
         ColonySystems.AddTo(Simulation);
     }

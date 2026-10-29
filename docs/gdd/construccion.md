@@ -131,6 +131,36 @@ Un plano ocupa una celda. No se pone en una celda con otro plano, con una orden 
 
 El i18n-specialist ajusta los textos finales; la tabla fija claves y argumentos.
 
+## Materiales y avisos (corrección de IP4)
+
+Reporte de juego: "hay maderas, pero no construyen camas ni paredes de madera". Causas encontradas:
+
+1. **Dos "maderas" distintas.** El HUD dice `Madera: N` y cuenta los troncos (`log`). Los muebles y los talleres piden el material `planks` (item `plank`, "Materiales trabajados" en el HUD), que sale del banco de carpintero. Una cama no se construye con troncos aunque haya cientos. Los muros, suelos, rampas y escaleras aceptan `timber` (troncos), `planks`, `masonry` y `ashlar`; el material elegido en la barra se conserva al cambiar de pieza si ésta lo permite, así que quien elige tablones para un muro gasta los tablones de las camas. Eso era información que faltaba: la barra no mostraba costos y el inspector no decía qué esperaba el plano.
+2. **Error del Core: unidades repartidas entre muchos planos.** Un colono que traía material elegía el plano más cercano a la pila que no tuviera a nadie trayéndole. Con pocas unidades en pilas pequeñas (por ejemplo cinco troncos sueltos de a uno y diez muros de dos troncos) cada plano recibía una unidad y ninguno se completaba nunca. Ahora se cumple esto:
+   - Un plano al que no se le ha entregado nada sólo se abastece si lo que hay en la colonia de su item, menos lo que les falta a los planos ya empezados (o con alguien en camino), alcanza para completarlo.
+   - Entre los planos abastecibles, los que ya tienen algo entregado van antes, aunque estén más lejos.
+3. Sin cambio, pero explicado: con la prioridad de Construcción en "nunca" para todos nadie trae ni construye; un plano en una celda a la que nadie llega espera para siempre; las órdenes de producción (y las recetas, como los mangos, que gastan tablones) compiten por los mismos tablones que los planos, y quien llega primero se los lleva; una pila de otra calidad cuenta igual para un plano (la calidad no se mantiene al construir).
+
+Consulta de lectura (sin cambiar el estado), en `BuildQueries`: `Available(item)` (unidades sueltas, almacenadas o cargadas), `Committed(item)` (lo que faltan los planos), `ItemOf(material)` y `StatusOf(plano)`, que devuelve `BuildStatus(Block, Item, Missing, Available)`. `Block` es `Material` (la colonia tiene menos de las que faltan), `Builder` (nadie con Construcción distinta de "nunca" y en edad de trabajar), `Unreachable` (ningún colono que construye llega a una celda junto al plano) o `None`; se evalúan en ese orden.
+
+Presentación:
+
+- La pista de la barra de construcción agrega una línea: `Cada pieza: 4 tablones. Tienes 16`; si la colonia tiene menos que lo que pide una pieza, `...: el plano esperará a que haya más`.
+- El tooltip de cada botón (pieza y material) dice `Cama de tablones: 4 tablones. Tienes 16`, con el material que hay elegido o el del botón, y se actualiza cada medio segundo.
+- Al soltar un arrastre con la herramienta, si las piezas piden más de lo que hay libre (lo que hay menos lo que ya les falta a otros planos), una línea naranja bajo la pista lo avisa durante 6 s. No bloquea: el plano espera.
+- El inspector de un plano agrega una línea: `Esperando: faltan 2 troncos; hay 0 en la colonia`, `Esperando: ningún colono tiene activa la construcción`, `Esperando: ningún colono llega hasta aquí`, o `Los colonos traen troncos` si va todo bien.
+
+| Clave | es | en |
+|---|---|---|
+| `ui.build.cost` | {buildable}: {count} {item}. Tienes {available} | {buildable}: {count} {item}. You have {available} |
+| `ui.build.cost_short` | ...: el plano esperará a que haya más | ...: the blueprint will wait for more |
+| `ui.build.hint_cost`, `ui.build.hint_cost_short` | Cada pieza: {count} {item}. Tienes {available}[: ...] | Each piece: ... |
+| `ui.build.placed_short` | Los planos piden {needed} {item} y tienes {available}: esperarán a que haya más | The blueprints ask for ... |
+| `ui.inspector.wait.material` | Esperando: faltan {missing} {item}; hay {available} en la colonia | Waiting: {missing} {item} short; the colony has {available} |
+| `ui.inspector.wait.builder`, `.unreachable`, `.bringing` | ver arriba | |
+
+Criterios: (11) cinco troncos en cinco pilas de uno y diez planos de muro de dos troncos, con cinco colonos ⇒ se construyen dos muros (antes, ninguno); (12) una cama con 4 tablones sueltos se construye, con 3 o con sólo troncos no, y `StatusOf` dice `Material` con el faltante y lo disponible; (13) sin colono que construya `StatusOf` dice `Builder`, y en una celda cerrada, `Unreachable`; (14) pilas de dos calidades de tablón suman para una cama. Tests: `BuildMaterialsTests`.
+
 ## Relieve del valle
 
 - `terrainAmplitude` en `worldgen.json` baja de 3 a 2. Con 3, en la semilla 42 no había un sitio llano de 5 × 5 cerca de la llegada para una casa; con 2 lo hay en las semillas 1, 7 y 42. Cambió las huellas.
