@@ -44,6 +44,11 @@ public partial class EntityRenderer : Node3D
     private const string Hold = "holding-both";
     private const string Play = "emote-yes";
     private const string Sit = "sit";
+
+    // The "sit" animation of the settlers moves their root back 0.135 and lifts the hips 0.16 above the cell floor, in
+    // model units (times the model's scale): what a seated colonist is brought forward and lowered, to rest on the chair.
+    private const float SeatForward = 0.125f;
+    private const float SeatDrop = 0.065f;
     private static readonly string[] LoopingAnimations = [Idle, Walk, Strike, Handle, PickUp, Hold, Play, Sit];
 
     // The balloons of interactions: their icons, how long they show and fade, in real seconds, how
@@ -217,8 +222,17 @@ public partial class EntityRenderer : Node3D
             }
             else
             {
+                var seatYaw = facing is null ? SeatedYaw(entity, view) : null;
+                if (seatYaw is { } yaw)
+                {
+                    // The sit animation shifts the model back and hangs its hips above a seat meant to be
+                    // behind it: bring it forward over the chair and lower it onto the seat.
+                    var unit = view.Node.Scale.X;
+                    target += new Vector3(Mathf.Sin(yaw) * SeatForward * unit, -SeatDrop * unit, Mathf.Cos(yaw) * SeatForward * unit);
+                }
+
                 view.Node.Position = view.Node.Position.Lerp(target, glide);
-                view.Node.Rotation = new Vector3(0, facing ?? SeatedYaw(entity, view) ?? view.Node.Rotation.Y, 0);
+                view.Node.Rotation = new Vector3(0, facing ?? seatYaw ?? view.Node.Rotation.Y, 0);
             }
 
             var level = world.Get<Position>(entity).Z;

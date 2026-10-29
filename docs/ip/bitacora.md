@@ -44,6 +44,12 @@ En orden:
 
 ## Historial
 
+### 2026-10-29: colonos sentados desfasados al comer
+
+- Hallazgo del playtest: al sentarse a comer, los colonos quedaban detrás de la silla y flotando sobre el asiento.
+- Causa: la animación `sit` de los colonos mueve la raíz 0,135 hacia atrás y deja la cadera a 0,16 del suelo (unidades del modelo), pensada para una silla detrás del colono.
+- Arreglo en `EntityRenderer`: mientras el colono está sentado (`EatAtTable` o `Gather`, en `Working`) se lo adelanta 0,125 y se lo baja 0,065 por unidad de escala del modelo, hacia la mesa. Sólo cambia el dibujo, no la simulación ni las huellas. Capturas antes y después: `game/out/sit-antes.png`, `sit-despues.png`.
+
 ### 2026-10-29: arreglo de la construcción (no siempre construían camas y paredes)
 
 - Rama `ip4/fix-construccion`. Reporte del usuario: "hay maderas, pero no hacen las camas y paredes de madera".
