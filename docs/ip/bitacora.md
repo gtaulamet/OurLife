@@ -44,6 +44,11 @@ En orden:
 
 ## Historial
 
+### 2026-10-29: redistribución diaria de las familias (partidas armadas)
+
+- Pedido: una partida con habitaciones ya constituidas debe redistribuir a los colonos sola. Nuevo `HouseholdSystem` (Core, una vez al día a las 10:00): reúne parejas y a sus hijos menores en una habitación; el vínculo de pareja prevalece sobre un extraño sin parientes en la habitación (queda sin cama y toma otra al dormir). Tests en `RoomTests` (cuatro).
+- Al activarlo, la semilla 42 de `IntegrationBalanceTests` dejó de fabricar herramientas (1 de 4): el jugador de pruebas dejaba de talar mientras `troncos + 2 × tablones ≥ 60`, y con 30 tablones guardados nunca más tenía troncos para el carbón. No es un fallo de las camas: la regla de `VillagePlayer` ahora tala también si hay menos de 10 troncos. Con eso, los 9 tests lentos pasan. Las huellas del smoke con `--ticks 5000` no cambian.
+
 ### 2026-10-29: familias bajo un mismo techo (camas)
 
 - Pedido del playtest: una pareja con camas en un dormitorio debe dormir junta, y los hijos con los padres; los hijos que crecen pueden vivir aparte y los huérfanos pueden quedarse en la habitación de sus padres.

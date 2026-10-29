@@ -1173,6 +1173,96 @@ public class RoomTests
         new[] { parents, spare }.Select(bed => village.World.Get<Bed>(bed).Owner).ShouldContain(orphan);
     }
 
+    // ---- Gathering the families of a colony already settled ----
+
+    private const int Morning = 250;
+
+    [Fact]
+    public void In_the_morning_a_couple_in_two_rooms_gathers_in_the_one_with_a_free_bed()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var mine = Furnish(village, "bed", 3, 3);
+        var theirs = Furnish(village, "bed", 11, 3);
+        var free = Furnish(village, "bed", 13, 3);
+        var (a, b) = Couple(village);
+        Assign(village, mine, a);
+        Assign(village, theirs, b);
+
+        village.Simulation.Run(Morning);
+
+        village.World.Get<Bed>(mine).Owner.IsNone.ShouldBeTrue();
+        new[] { theirs, free }.Select(bed => village.World.Get<Bed>(bed).Owner).ShouldBe([b, a], ignoreOrder: true);
+    }
+
+    [Fact]
+    public void The_couple_takes_the_bed_of_a_stranger_who_has_no_kin_in_the_room_when_there_is_no_free_one()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var mine = Furnish(village, "bed", 3, 3);
+        var stranger = Furnish(village, "bed", 5, 3);
+        var theirs = Furnish(village, "bed", 11, 3);
+        var (a, b) = Couple(village);
+        var other = village.AddColonist(8, 12, 1, name: "Other");
+        Assign(village, mine, a);
+        Assign(village, stranger, other);
+        Assign(village, theirs, b);
+
+        village.Simulation.Run(Morning);
+
+        village.World.Get<Bed>(mine).Owner.ShouldBe(a);
+        village.World.Get<Bed>(stranger).Owner.ShouldBe(b);
+        village.World.Get<Bed>(theirs).Owner.IsNone.ShouldBeTrue();
+        Beds.HasBed(village.Simulation, other).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void A_colonist_with_its_own_partner_in_the_room_is_not_sent_away_for_another_couple()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var first = Furnish(village, "bed", 3, 3);
+        var second = Furnish(village, "bed", 5, 3);
+        var theirs = Furnish(village, "bed", 11, 3);
+        var (a, _) = Couple(village);
+        var (c, d) = (village.AddColonist(8, 12, 1, name: "C"), village.AddColonist(9, 12, 1, name: "D"));
+        village.World.Add(c, new Family { Partner = Relationships.RelativeOf(village.Simulation, d) });
+        village.World.Add(d, new Family { Partner = Relationships.RelativeOf(village.Simulation, c) });
+        Assign(village, first, c);
+        Assign(village, second, d);
+        Assign(village, theirs, a);
+
+        village.Simulation.Run(Morning);
+
+        village.World.Get<Bed>(first).Owner.ShouldBe(c);
+        village.World.Get<Bed>(second).Owner.ShouldBe(d);
+        village.World.Get<Bed>(theirs).Owner.ShouldBe(a);
+    }
+
+    [Fact]
+    public void In_the_morning_a_child_who_is_not_grown_moves_to_the_room_of_its_parents_and_a_grown_one_does_not()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var parents = new[] { Furnish(village, "bed", 3, 3), Furnish(village, "bed", 4, 3) };
+        var room = new[] { Furnish(village, "bed", 5, 3) };
+        var far = Furnish(village, "bed", 11, 3);
+        var (mother, father, child) = Family(village);
+        Assign(village, parents[0], mother);
+        Assign(village, parents[1], father);
+        Assign(village, far, child);
+
+        village.Simulation.Run(Morning);
+
+        village.World.Get<Bed>(room[0]).Owner.ShouldBe(child);
+        village.World.Get<Bed>(far).Owner.IsNone.ShouldBeTrue();
+    }
+
     private static (EntityId A, EntityId B) Couple(ColonyTestBed village)
     {
         var (a, b) = (village.AddColonist(4, 8, 1, name: "A"), village.AddColonist(12, 12, 1, name: "B"));

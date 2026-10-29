@@ -95,7 +95,9 @@ internal sealed class VillagePlayer
             }
         }
 
-        if (day % 6 == 1 && Stocks.Count(simulation, "log") + (2 * Stocks.Count(simulation, "plank")) < 60)
+        // Planks do not stand in for logs: the charcoal for the forge is burnt from logs, so a village with a store of planks still chops when it has few.
+        var logs = Stocks.Count(simulation, "log");
+        if (day % 6 == 1 && (logs + (2 * Stocks.Count(simulation, "plank")) < 60 || logs < 10))
         {
             Designate(DesignationKind.Chop, -GatherRadius, GatherRadius, Math.Max(0, _arrival.Z - 3), Math.Min(_top, _arrival.Z + 3));
         }

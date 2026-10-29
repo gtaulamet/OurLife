@@ -33,5 +33,6 @@ public static class ColonySystems
         simulation.AddSystem(new SpoilageSystem(), simulation.Time.TicksPerDay, LifeSystem.MidnightOffset(simulation.Time));
         simulation.AddSystem(new AlertSystem(rules));
         simulation.AddSystem(new RoomSystem());
+        simulation.AddSystem(new HouseholdSystem(), simulation.Time.TicksPerDay, HouseholdSystem.DailyOffset(simulation.Time));
     }
 }
