@@ -67,8 +67,7 @@ public sealed partial class DecisionSystem : ISimSystem
     // and the items any of them lacks. Found when a work type with deliveries is searched.
     private readonly List<(EntityId Blueprint, string Item)> _supplyNeeded = [];
     private readonly HashSet<string> _neededItems = new(StringComparer.Ordinal);
-    private readonly List<EntityId> _supplyBlueprints = [];
-    private readonly Dictionary<string, int> _supplyLeft = new(StringComparer.Ordinal);
+    private readonly SupplyBudget _supplyBudget = new();
 
     // Cells that work under way will make unstandable: wall blueprints and the cells ordered to
     // be channelled or taken down to air. Rebuilt every tick; only looked up, never iterated.
@@ -842,68 +841,16 @@ public sealed partial class DecisionSystem : ISimSystem
     }
 
     /// <summary>
-    /// The blueprints that lack materials and nobody supplies, and the items they lack. A blueprint
-    /// nothing has been brought to is listed only if the units of its item lying around, less what the
-    /// blueprints under way still lack, cover it: otherwise a few scattered units would be shared out
-    /// among many plans and none would ever be finished.
+    /// The blueprints that lack materials and nobody supplies, and the items they lack: the sharing
+    /// out of <see cref="SupplyBudget"/>, the same rule the interface asks (<see cref="BuildQueries.StatusOf"/>).
     /// </summary>
     private void FindSupplyNeeded(Simulation simulation)
     {
-        var world = simulation.World;
+        _supplyBudget.Compute(simulation, _colonists, _entityUses);
         _supplyNeeded.Clear();
         _neededItems.Clear();
-        _supplyLeft.Clear();
-        world.Query<Blueprint, Position>(_entities);
-        _supplyBlueprints.Clear();
-        _supplyBlueprints.AddRange(_entities);
-
-        // What the blueprints under way (some brought, or somebody on the way) still lack, less what is already carried.
-        foreach (var blueprint in _supplyBlueprints)
+        foreach (var (blueprint, item) in _supplyBudget.Needed)
         {
-            var plan = world.Get<Blueprint>(blueprint);
-            var (item, missing) = Construction.Needs(simulation, plan);
-            if (missing > 0 && (plan.Delivered > 0 || _entityUses.GetValueOrDefault(blueprint) > 0))
-            {
-                _supplyLeft[item] = _supplyLeft.GetValueOrDefault(item) - missing;
-            }
-        }
-
-        foreach (var colonist in _colonists)
-        {
-            if (world.TryGet<Job>(colonist, out var job) && job.Kind == JobKind.Deliver && world.TryGet<Carried>(colonist, out var carried)
-                && world.IsAlive(job.Recipient) && world.Has<Blueprint>(job.Recipient))
-            {
-                _supplyLeft[carried.Def] = _supplyLeft.GetValueOrDefault(carried.Def) + carried.Count;
-            }
-        }
-
-        world.Query<ItemStack, Position>(_entities);
-        foreach (var pile in _entities)
-        {
-            var stack = world.Get<ItemStack>(pile);
-            _supplyLeft[stack.Def] = _supplyLeft.GetValueOrDefault(stack.Def) + stack.Count;
-        }
-
-        foreach (var blueprint in _supplyBlueprints)
-        {
-            var plan = world.Get<Blueprint>(blueprint);
-            var (item, missing) = Construction.Needs(simulation, plan);
-            if (missing == 0 || _entityUses.GetValueOrDefault(blueprint) != 0)
-            {
-                continue;
-            }
-
-            if (plan.Delivered == 0)
-            {
-                var left = _supplyLeft.GetValueOrDefault(item);
-                if (left < missing)
-                {
-                    continue;
-                }
-
-                _supplyLeft[item] = left - missing;
-            }
-
             _supplyNeeded.Add((blueprint, item));
             _neededItems.Add(item);
         }

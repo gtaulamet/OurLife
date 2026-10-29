@@ -641,6 +641,8 @@ public partial class GameInput : Node3D
                     : new DesignateCommand(_order!.Value, from, to));
                 if (_build is { } placed && _session.Simulation.Content.TryGet<BuildableDef>(placed.Buildable, out var piece))
                 {
+                    // One query, once per release (not per frame of the drag), on the state the command will find:
+                    // it applies at the next tick, so the count is "up to N pieces" for the warning, not an exact figure.
                     BuildPlaced?.Invoke(placed, Construction.CellsToPlan(_session.Simulation, piece, from, to).Count);
                 }
             }

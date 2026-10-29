@@ -20,6 +20,9 @@ public enum BuildBlock
 
     /// <summary>No colonist who builds can reach a cell next to the blueprint.</summary>
     Unreachable,
+
+    /// <summary>The colony holds enough, but the other plans and jobs claim it first.</summary>
+    Competing,
 }
 
 /// <summary>
@@ -78,44 +81,30 @@ public static class BuildQueries
         return simulation.Content.TryGet<MaterialDef>(material, out var def) ? def.BuiltFrom : null;
     }
 
-    /// <summary>Why a blueprint is not advancing. Does not change anything.</summary>
+    /// <summary>
+    /// Why a blueprint is not advancing. Does not change anything. It follows the same sharing out of
+    /// materials as the colonists (<see cref="SupplyBudget"/>), found again on each call over the
+    /// piles, blueprints and colonists, with buffers kept per simulation.
+    /// </summary>
     public static BuildStatus StatusOf(Simulation simulation, EntityId blueprint)
     {
         ArgumentNullException.ThrowIfNull(simulation);
         var world = simulation.World;
-        var plan = world.Get<Blueprint>(blueprint);
-        var (item, missing) = Construction.Needs(simulation, plan);
+        var (item, missing) = Construction.Needs(simulation, world.Get<Blueprint>(blueprint));
         var available = Available(simulation, item);
         if (missing > 0 && available < missing)
         {
             return new BuildStatus(BuildBlock.Material, item, missing, available);
         }
 
-        var cell = world.Get<Position>(blueprint).Cell;
-        var content = simulation.Content;
-        var workType = content.All<WorkTypeDef>().First(type => type.Jobs.Contains(JobKinds.Id(JobKind.Build)));
-        var defaultPriority = content.All<AiConfigDef>() is [{ } ai] ? ai.DefaultWorkPriority : WorkPriorityLevels.Lowest;
-        var sites = new List<TileCoord>();
-        WorkSites.Find(simulation.Map, JobKind.Build, cell, sites);
-        var colonists = new List<EntityId>();
-        world.Query<Colonist, Position>(colonists);
-        var anyBuilder = false;
-        foreach (var colonist in colonists)
+        var budget = SupplyBudget.For(simulation);
+        budget.Compute(simulation, null, null);
+        var block = budget.StateOf(blueprint) switch
         {
-            if (!LifeRules.DoesWork(LifeRules.Stage(simulation, colonist), workType)
-                || WorkPriorityRules.Of(world, colonist, workType.Id, defaultPriority) == WorkPriorityLevels.Never)
-            {
-                continue;
-            }
-
-            anyBuilder = true;
-            var from = world.Get<Position>(colonist).Cell;
-            if (sites.Any(site => simulation.Connectivity.AreConnected(from, site)))
-            {
-                return new BuildStatus(BuildBlock.None, item, missing, available);
-            }
-        }
-
-        return new BuildStatus(anyBuilder ? BuildBlock.Unreachable : BuildBlock.Builder, item, missing, available);
+            SupplyState.Unreachable => budget.AnyBuilder ? BuildBlock.Unreachable : BuildBlock.Builder,
+            SupplyState.Starved => BuildBlock.Competing,
+            _ => BuildBlock.None,
+        };
+        return new BuildStatus(block, item, missing, available);
     }
 }

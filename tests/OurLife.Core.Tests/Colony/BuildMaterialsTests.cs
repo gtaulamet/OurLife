@@ -171,6 +171,63 @@ public class BuildMaterialsTests
         bed.World.Store<Furniture>().Count.ShouldBe(1);
     }
 
+    [Fact]
+    public void A_plan_nobody_can_reach_does_not_keep_the_planks_from_one_that_can_be_built()
+    {
+        // The unreachable bed is placed first (lowest id) in a pocket closed by rock; the other stands in the yard.
+        var top = string.Join("\n", Enumerable.Range(0, 12).Select(y => y switch
+        {
+            2 => "##.#########",
+            >= 6 and <= 10 => "######......",
+            _ => new string('#', 12),
+        }));
+        var bed = new ColonyTestBed(RealContent.Value, 1, ColonyTestBed.Level(12, 12, '#'), top);
+        bed.AddItems("plank", 4, 8, 8, 1);
+        bed.AddColonist(7, 8, 1);
+        Place(bed, "bed", "planks", new TileCoord(2, 2, 1));
+        Place(bed, "bed", "planks", new TileCoord(10, 8, 1));
+        var plans = Plans(bed);
+        BuildQueries.StatusOf(bed.Simulation, plans[0]).Block.ShouldBe(BuildBlock.Unreachable);
+        BuildQueries.StatusOf(bed.Simulation, plans[1]).Block.ShouldBe(BuildBlock.None);
+
+        bed.Simulation.Run(1500);
+
+        bed.World.Store<Furniture>().Count.ShouldBe(1);
+        Plans(bed).ShouldBe([plans[0]]);
+    }
+
+    [Fact]
+    public void Planks_a_job_is_going_to_fetch_do_not_count_for_a_plan_and_the_status_says_who_comes_first()
+    {
+        var bed = Flat();
+        var colonist = bed.AddColonist(5, 5, 1);
+        bed.AddItems("plank", 4, 3, 3, 1);
+        var pile = new List<EntityId>();
+        bed.World.Query<ItemStack, Position>(pile);
+        Place(bed, "bed", "planks", new TileCoord(8, 8, 1));
+        var plan = Plans(bed).Single();
+        BuildQueries.StatusOf(bed.Simulation, plan).Block.ShouldBe(BuildBlock.None);
+
+        // A recipe is on its way for the whole pile.
+        bed.World.Add(colonist, new Job { Kind = JobKind.Craft, Target = pile.Single(), Cell = new TileCoord(3, 3, 1) });
+
+        BuildQueries.StatusOf(bed.Simulation, plan).ShouldBe(new BuildStatus(BuildBlock.Competing, "plank", 4, 4));
+    }
+
+    [Fact]
+    public void Planks_another_plan_claims_first_make_the_later_plan_say_so()
+    {
+        var bed = Flat();
+        bed.AddItems("plank", 6, 3, 3, 1);
+        bed.AddColonist(5, 5, 1);
+        Place(bed, "bed", "planks", new TileCoord(8, 8, 1));
+        Place(bed, "bed", "planks", new TileCoord(10, 8, 1));
+        var plans = Plans(bed);
+
+        BuildQueries.StatusOf(bed.Simulation, plans[0]).Block.ShouldBe(BuildBlock.None);
+        BuildQueries.StatusOf(bed.Simulation, plans[1]).Block.ShouldBe(BuildBlock.Competing);
+    }
+
     private static List<EntityId> Plans(ColonyTestBed bed)
     {
         var plans = new List<EntityId>();

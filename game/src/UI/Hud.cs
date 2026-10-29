@@ -59,6 +59,7 @@ public partial class Hud : CanvasLayer
     // Warns that a drag planned more than the colony holds of the material; it fades after a few seconds.
     private Label _notice = null!;
     private double _noticeLeft;
+    private Func<string>? _noticeText;
     private const double NoticeSeconds = 6;
 
     // The buttons of the build bar and what each one builds, to keep the stock in their tooltips up to date.
@@ -380,6 +381,12 @@ public partial class Hud : CanvasLayer
             _sinceResearch = 0;
             RefreshResearch();
             RefreshBuildCosts();
+            if (_input.Build is not null)
+            {
+                // "You have N" in the hint changes as the stock does.
+                RefreshHint();
+            }
+
             if (_buildBarStale)
             {
                 _buildBarStale = false;
@@ -613,6 +620,10 @@ public partial class Hud : CanvasLayer
         RefreshAll();
         RefreshBuildBar();
         RefreshAlerts(force: true);
+        if (_notice.Visible && _noticeText is not null)
+        {
+            _notice.Text = _noticeText();
+        }
     }
 
     /// <summary>
@@ -711,6 +722,8 @@ public partial class Hud : CanvasLayer
         {
             AddBuildButton(content.Get<MaterialDef>(material), material == choice.Material, choice with { Material = material });
         }
+
+        RefreshBuildCosts();
     }
 
     /// <summary>Draws the farm tool's button and bar again, after the knowledge changed without an event; for the smoke.</summary>
@@ -842,8 +855,6 @@ public partial class Hud : CanvasLayer
         {
             _buildTips.Add((button, choice.Buildable, choice.Material));
         }
-
-        RefreshBuildCosts();
     }
 
     /// <summary>The tooltip of a build button: what the piece costs, of which item, and how many the colony holds.</summary>
@@ -907,12 +918,13 @@ public partial class Hud : CanvasLayer
             return;
         }
 
-        var text = _services.Text;
-        _notice.Text = text.Format(
+        // Formatted again if the language changes while it shows.
+        _noticeText = () => _services.Text.Format(
             "ui.build.placed_short",
             ("needed", needed),
-            ("item", text.Format(simulation.Content.Get<ItemDef>(itemId).NameKey!, ("count", needed))),
+            ("item", _services.Text.Format(simulation.Content.Get<ItemDef>(itemId).NameKey!, ("count", needed))),
             ("available", free));
+        _notice.Text = _noticeText();
         _notice.Visible = true;
         _noticeLeft = NoticeSeconds;
     }
@@ -1037,7 +1049,8 @@ public partial class Hud : CanvasLayer
                 "ui.orders.name.build",
                 ("buildable", text.Format(content.Get<BuildableDef>(build.Buildable).NameKey!, ("count", 1))),
                 ("material", text.Format(content.Get<MaterialDef>(build.Material).NameKey!, ("count", 1))));
-            _hint.Text = text.Format("ui.orders.hint", ("order", name)) + "\n" + CostText(build.Buildable, build.Material, withName: false, hint: true);
+            var cost = CostText(build.Buildable, build.Material, withName: false, hint: true);
+            _hint.Text = text.Format("ui.orders.hint", ("order", name)) + (cost.Length > 0 ? "\n" + cost : string.Empty);
 
             // Furniture can be turned before placing it: the second line says how far.
             if (content.Get<BuildableDef>(build.Buildable).IsFurniture)

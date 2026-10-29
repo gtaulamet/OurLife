@@ -154,6 +154,7 @@
   "ui.inspector.wait.material": "Waiting: {missing} {item} short; the colony has {available}",
   "ui.inspector.wait.builder": "Waiting: no colonist has construction turned on",
   "ui.inspector.wait.unreachable": "Waiting: no colonist can reach this spot",
+  "ui.inspector.wait.competing": "Waiting: other plans use {item} first; the colony has {available}",
   "ui.orders.rotate_hint": "G rotates ({quarter} of 4)",
   "ui.inspector.furniture": "{material} {buildable}",
   "ui.inspector.bed_owner": "Belongs to {name}",

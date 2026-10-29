@@ -384,6 +384,12 @@ public partial class InspectorPanel : PanelContainer
                     ("item", text.Format(item.NameKey!, ("count", status.Missing))),
                     ("available", status.Available)));
                 break;
+            case BuildBlock.Competing:
+                _lines.Add(text.Format(
+                    "ui.inspector.wait.competing",
+                    ("item", text.Format(item.NameKey!, ("count", status.Available))),
+                    ("available", status.Available)));
+                break;
             case BuildBlock.Builder:
                 _lines.Add(text.Format("ui.inspector.wait.builder"));
                 break;

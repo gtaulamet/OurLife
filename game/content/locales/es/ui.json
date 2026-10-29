@@ -154,6 +154,7 @@
   "ui.inspector.wait.material": "Esperando: faltan {missing} {item}; hay {available} en la colonia",
   "ui.inspector.wait.builder": "Esperando: ningún colono tiene activa la construcción",
   "ui.inspector.wait.unreachable": "Esperando: ningún colono llega hasta aquí",
+  "ui.inspector.wait.competing": "Esperando: otros planos usan primero {item}; hay {available} en la colonia",
   "ui.orders.rotate_hint": "G gira ({quarter} de 4)",
   "ui.inspector.furniture": "{buildable} de {material}",
   "ui.inspector.bed_owner": "Es de {name}",
