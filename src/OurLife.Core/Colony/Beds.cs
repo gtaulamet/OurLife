@@ -33,6 +33,14 @@ public static class Beds
         return stages.Contains(stage);
     }
 
+    /// <summary>Whether the colonist is at the last stage of life (or has none): one that may leave its parents' room.</summary>
+    public static bool IsGrownUp(Simulation simulation, EntityId colonist)
+    {
+        ArgumentNullException.ThrowIfNull(simulation);
+        var stage = LifeRules.Stage(simulation, colonist);
+        return stage is null || stage.Id == LifeRules.AdultOf([.. simulation.Content.All<LifeStageDef>().OrderBy(each => each.FromYears)]).Id;
+    }
+
     /// <summary>Whether a bed belongs to a living colonist it is for.</summary>
     public static bool IsTaken(Simulation simulation, EntityId bed)
     {

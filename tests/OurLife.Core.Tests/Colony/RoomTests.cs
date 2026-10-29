@@ -1063,6 +1063,132 @@ public class RoomTests
             "[{ \"type\": \"Material\", \"id\": \"m\", \"kind\": \"stone\", \"color\": \"#000000\", \"mineWorkTicks\": 5, \"beauty\": { \"wall\": 1, \"floor\": 1, \"roof\": 2 } }]"));
     }
 
+    // ---- A family under one roof ----
+
+    [Fact]
+    public void A_colonist_who_takes_a_bed_keeps_the_next_one_in_the_room_for_its_partner()
+    {
+        var village = Village();
+        House(village);
+        var first = Furnish(village, "bed", 3, 3);
+        var second = Furnish(village, "bed", 5, 3);
+        var (a, b) = Couple(village);
+
+        Sleep(village, a);
+
+        village.World.Get<Bed>(first).Owner.ShouldBe(a);
+        village.World.Get<Bed>(second).Owner.ShouldBe(b);
+    }
+
+    [Fact]
+    public void A_partner_who_sleeps_apart_moves_to_the_room_of_the_other_when_it_has_a_free_bed()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var mine = Furnish(village, "bed", 3, 3);
+        var theirs = Furnish(village, "bed", 11, 3);
+        var free = Furnish(village, "bed", 13, 3);
+        var (a, b) = Couple(village);
+        Assign(village, mine, a);
+        Assign(village, theirs, b);
+
+        Sleep(village, a);
+
+        village.World.Get<Bed>(free).Owner.ShouldBe(a);
+        village.World.Get<Bed>(mine).Owner.ShouldBe(EntityId.None);
+        village.World.Get<Bed>(theirs).Owner.ShouldBe(b);
+    }
+
+    [Fact]
+    public void A_partner_stays_where_it_is_if_the_room_of_the_other_has_no_free_bed()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var mine = Furnish(village, "bed", 3, 3);
+        var theirs = Furnish(village, "bed", 11, 3);
+        var (a, b) = Couple(village);
+        Assign(village, mine, a);
+        Assign(village, theirs, b);
+
+        Sleep(village, a);
+
+        village.World.Get<Bed>(mine).Owner.ShouldBe(a);
+    }
+
+    [Fact]
+    public void The_children_and_the_father_get_a_bed_in_the_room_of_the_mother()
+    {
+        var village = Village();
+        House(village);
+        var beds = new[] { Furnish(village, "bed", 3, 3), Furnish(village, "bed", 4, 3), Furnish(village, "bed", 5, 3) };
+        var (mother, father, child) = Family(village);
+
+        Sleep(village, mother);
+
+        beds.Select(bed => village.World.Get<Bed>(bed).Owner).ShouldBe([mother, father, child], ignoreOrder: true);
+    }
+
+    [Fact]
+    public void A_grown_child_with_a_bed_of_its_own_stays_where_it_is_while_the_room_of_its_parents_has_a_free_bed()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var parents = Furnish(village, "bed", 3, 3);
+        Furnish(village, "bed", 5, 3);
+        var own = Furnish(village, "bed", 11, 3);
+        var (mother, _) = Couple(village);
+        var grown = village.AddColonist(12, 12, 1, name: "Grown");
+        village.World.Add(grown, new Family { Mother = Relationships.RelativeOf(village.Simulation, mother) });
+        Assign(village, parents, mother);
+        Assign(village, own, grown);
+
+        Sleep(village, grown);
+
+        village.World.Get<Bed>(own).Owner.ShouldBe(grown);
+    }
+
+    [Fact]
+    public void An_orphan_without_a_bed_takes_one_in_the_room_its_dead_parent_had_even_if_another_room_is_nearer()
+    {
+        var village = Village();
+        House(village);
+        House(village, 10, 2);
+        var parents = Furnish(village, "bed", 3, 3);
+        var spare = Furnish(village, "bed", 5, 3);
+        var nearer = Furnish(village, "bed", 11, 3);
+        var mother = village.AddColonist(12, 14, 1, name: "Mother");
+        var relative = Relationships.RelativeOf(village.Simulation, mother);
+        Assign(village, parents, mother);
+        ColonistDeath.Die(village.Simulation, mother, LocalizedText.Of("event.colonist.died"));
+        village.World.Get<Bed>(parents).Owner.ShouldBe(mother);
+        var orphan = village.AddColonist(12, 8, 1, name: "Orphan");
+        village.World.Add(orphan, new Family { Mother = relative });
+
+        Sleep(village, orphan);
+
+        village.World.Get<Bed>(nearer).Owner.IsNone.ShouldBeTrue();
+        new[] { parents, spare }.Select(bed => village.World.Get<Bed>(bed).Owner).ShouldContain(orphan);
+    }
+
+    private static (EntityId A, EntityId B) Couple(ColonyTestBed village)
+    {
+        var (a, b) = (village.AddColonist(4, 8, 1, name: "A"), village.AddColonist(12, 12, 1, name: "B"));
+        village.World.Add(a, new Family { Partner = Relationships.RelativeOf(village.Simulation, b) });
+        village.World.Add(b, new Family { Partner = Relationships.RelativeOf(village.Simulation, a) });
+        return (a, b);
+    }
+
+    /// <summary>Lets the night come and tires the colonist, so it goes to sleep.</summary>
+    private static void Sleep(ColonyTestBed village, EntityId colonist)
+    {
+        village.Simulation.Run(Night);
+        village.Need(colonist, "rest").Value = 2_000;
+        village.Simulation.Run(30);
+    }
+
     // ---- Helpers ----
 
     private static ColonyTestBed Village(ulong seed = 1) =>

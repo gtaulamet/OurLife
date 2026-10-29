@@ -44,6 +44,13 @@ En orden:
 
 ## Historial
 
+### 2026-10-29: familias bajo un mismo techo (camas)
+
+- Pedido del playtest: una pareja con camas en un dormitorio debe dormir junta, y los hijos con los padres; los hijos que crecen pueden vivir aparte y los huérfanos pueden quedarse en la habitación de sus padres.
+- Core: `GoToSleep` y `BedOf` pasaron a `DecisionSystem.Beds.cs`. Sin cama, el colono elige la libre en la habitación de su pariente más cercano (pareja, padres aunque hayan muerto, hijos, hermanos); al tomar una cama guarda la siguiente libre para su pareja, hijos y padres sin cama; la pareja (y un hijo menor respecto de sus padres) se muda a la habitación del otro si tiene una cama libre. Nadie es echado de su cama. Sin formato nuevo: las huellas del smoke con `--ticks 5000` no cambian.
+- Tests nuevos en `RoomTests` (pareja, mudanza, sin cama libre, familia con hijo, hijo adulto, huérfano). Spec en `habitaciones.md`.
+- Pendiente: probarlo jugando; la rama `ip4/fix-sentarse` (colonos sentados) sigue sin fusionar a `main`.
+
 ### 2026-10-29: colonos sentados desfasados al comer
 
 - Hallazgo del playtest: al sentarse a comer, los colonos quedaban detrás de la silla y flotando sobre el asiento.
