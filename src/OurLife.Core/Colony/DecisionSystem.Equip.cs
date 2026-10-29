@@ -36,7 +36,7 @@ public sealed partial class DecisionSystem
         }
 
         var from = world.Get<Position>(colonist).Cell;
-        var reach = _rules.Ai.CraftFetchRadius * PathFinder.StraightCost;
+        var reach = _rules.Ai.ToolFetchRadius * PathFinder.StraightCost;
         var storage = Storage(simulation);
         var best = EntityId.None;
         var bestSpeed = -1;

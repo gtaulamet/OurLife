@@ -117,9 +117,10 @@ public class FarmContentTests
         }
 
         simulation.Run(500);
-        // Six rounds of half a game day; the cheapest counts, so a busy machine does not fail what the code does not cost.
-        var ticks = simulation.Time.TicksPerDay / 2;
-        var best = Timing.BestRoundMs(8, _ => simulation.Run(ticks)) / ticks;
+        // Six rounds (and the warm-up one) of a whole game day each, so every round crosses a midnight and carries the daily sweeps
+        // and the growth of the crops; the cheapest counts, so a busy machine does not fail what the code does not cost.
+        var ticks = simulation.Time.TicksPerDay;
+        var best = Timing.BestRoundMs(6, _ => simulation.Run(ticks)) / ticks;
 
         best.ShouldBeLessThan(0.1);
     }

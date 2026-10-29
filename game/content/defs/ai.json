@@ -14,6 +14,7 @@
     "defaultWorkPriority": 3,
     "idleAlertHours": 2,
     "craftFetchRadius": 45,
+    "toolFetchRadius": 30,
     "eatChoiceRadius": 15
   }
 ]

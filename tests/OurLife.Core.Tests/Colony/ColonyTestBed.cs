@@ -15,7 +15,7 @@ namespace OurLife.Core.Tests.Colony;
 /// </summary>
 internal sealed class ColonyTestBed
 {
-    public const string ContentJson = """
+    public static readonly string ContentJson = RealAiRadii.Fill("""
         [
           { "type": "Material", "id": "rock", "kind": "stone", "color": "#8C7F7D", "mineWorkTicks": 30,
             "minedItem": "stone", "minedItemChance": 10000 },
@@ -68,7 +68,7 @@ internal sealed class ColonyTestBed
           { "type": "Quality", "id": "masterwork", "order": 4, "below": 9999, "valuePercent": 200, "comfortPercent": 130 },
           { "type": "AiConfig", "id": "default", "eatTicksPerUnit": 20, "wanderRadius": 6,
             "wanderWaitMin": 60, "wanderWaitMax": 300, "unreachableCooldownTicks": 600, "recheckTicks": 30,
-            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2, "craftFetchRadius": 30, "eatChoiceRadius": 15 },
+            "nightStartHour": 21, "nightEndHour": 6, "deconstructRefundPercent": 50, "defaultWorkPriority": 3, "idleAlertHours": 2, "craftFetchRadius": @CRAFT_RADIUS@, "toolFetchRadius": @TOOL_RADIUS@, "eatChoiceRadius": 15 },
           { "type": "LifePace", "id": "normal", "lifeDaysPerDay": 1 },
           { "type": "LifePace", "id": "fast", "lifeDaysPerDay": 4, "default": true },
           { "type": "LifePace", "id": "very_fast", "lifeDaysPerDay": 8 },
@@ -154,7 +154,7 @@ internal sealed class ColonyTestBed
             "foundingCouple": { "minYears": 20, "maxYears": 30, "opinion": 70, "romance": 100 },
             "items": [{ "item": "provisions", "count": 30 }] }
         ]
-        """;
+        """);
 
     private static readonly Lazy<DefDatabase> ContentLazy = new(() => TestContent.WithDefs(ContentJson));
 

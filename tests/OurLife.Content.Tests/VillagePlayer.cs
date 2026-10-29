@@ -22,6 +22,12 @@ internal sealed class VillagePlayer
     private const int HouseSize = 5;
     private const int SearchRadius = 60;
 
+    private static readonly string[] IronTools = ["iron_axe", "iron_pickaxe", "iron_hoe", "iron_hammer"];
+
+    private static readonly int[] StockpileSizes = [6, 4, 3];
+
+    private static readonly (int X, int Y)[] Steps = [(1, 0), (-1, 0), (0, 1), (0, -1)];
+
     private static readonly string[] ResearchOrder =
         ["agriculture", "cereals", "milling", "stonecutting", "charcoal_burning", "metallurgy", "ironwork", "food_preservation", "joinery", "silviculture"];
 
@@ -78,7 +84,7 @@ internal sealed class VillagePlayer
         // More room for the stores as the village grows: a stockpile on flat open ground every twenty days, the biggest that fits.
         if (day % 20 == 10 && day <= 450)
         {
-            foreach (var size in new[] { 6, 4, 3 })
+            foreach (var size in StockpileSizes)
             {
                 if (FindSpot(size, 0) is { } room)
                 {
@@ -130,58 +136,43 @@ internal sealed class VillagePlayer
         var beds = _simulation.World.Store<Bed>().Count;
         var commands = _simulation.Commands;
 
-        // The first project that is ready and finds room goes up; the rest wait for another day.
-        bool Try(string id, bool ready, Func<bool> place)
+        // The first project that is ready and finds room goes up; the rest wait for another day. The work orders that go with a project
+        // are given only once it is placed: a project that finds no room does not repeat its orders every day.
+        bool Try(string id, bool ready, Func<bool> place, Action? orders = null)
         {
             if (_done.Contains(id) || !ready || !place())
             {
                 return false;
             }
 
+            orders?.Invoke();
             _done.Add(id);
             return true;
         }
 
+        void Keep(string item, int count) => commands.Enqueue(new CreateWorkOrderCommand(item, WorkOrderMode.Keep, count));
+
         _ = Try("scriptorium", planks >= 6, () => Furniture("scriptorium", "planks"))
-            || Try("bench", planks >= 6, () =>
-            {
-                commands.Enqueue(new CreateWorkOrderCommand("plank", WorkOrderMode.Keep, 30));
-                return Furniture("carpenter_bench", "planks");
-            })
+            || Try("bench", planks >= 6, () => Furniture("carpenter_bench", "planks"), () => Keep("plank", 30))
             || Try("house1", day > 3 && planks >= 12, () => House(day))
-            || Try("kitchen", stone >= 8, () =>
-            {
-                commands.Enqueue(new CreateWorkOrderCommand("pottage", WorkOrderMode.Keep, 6));
-                return Furniture("kitchen", "masonry");
-            })
+            || Try("kitchen", stone >= 8, () => Furniture("kitchen", "masonry"), () => Keep("pottage", 6))
             || Try("hall", day > 10 && planks >= 14, Hall)
-            || Try("wheat", known.Contains("milling") && day > _simulation.Time.DaysPerYear, () =>
+            || Try("wheat", known.Contains("milling") && day > _simulation.Time.DaysPerYear, () => Field("wheat", 8, 8), () =>
             {
-                commands.Enqueue(new CreateWorkOrderCommand("flour", WorkOrderMode.Keep, 12));
-                commands.Enqueue(new CreateWorkOrderCommand("bread", WorkOrderMode.Keep, 20));
-                return Field("wheat", 8, 8);
+                Keep("flour", 12);
+                Keep("bread", 20);
             })
             || Try("peas", known.Contains("agriculture") && _done.Contains("wheat"), () => Field("peas", 5, 6))
             || Try("cabbage", known.Contains("agriculture") && _done.Contains("peas"), () => Field("cabbage", 5, 6))
-            || Try("kiln", known.Contains("charcoal_burning") && stone >= 8, () =>
+            || Try("kiln", known.Contains("charcoal_burning") && stone >= 8, () => Furniture("charcoal_kiln", "masonry"), () => Keep("charcoal", 6))
+            || Try("bloomery", known.Contains("metallurgy") && stone >= 12, () => Furniture("bloomery", "masonry"), () => Keep("iron_ingot", 4))
+            || Try("forge", known.Contains("ironwork") && stone >= 12, () => Furniture("forge", "masonry"), () =>
             {
-                commands.Enqueue(new CreateWorkOrderCommand("charcoal", WorkOrderMode.Keep, 6));
-                return Furniture("charcoal_kiln", "masonry");
-            })
-            || Try("bloomery", known.Contains("metallurgy") && stone >= 12, () =>
-            {
-                commands.Enqueue(new CreateWorkOrderCommand("iron_ingot", WorkOrderMode.Keep, 4));
-                return Furniture("bloomery", "masonry");
-            })
-            || Try("forge", known.Contains("ironwork") && stone >= 12, () =>
-            {
-                commands.Enqueue(new CreateWorkOrderCommand("handle", WorkOrderMode.Keep, 4));
-                foreach (var tool in new[] { "iron_axe", "iron_pickaxe", "iron_hoe", "iron_hammer" })
+                Keep("handle", 4);
+                foreach (var tool in IronTools)
                 {
                     commands.Enqueue(new CreateWorkOrderCommand(tool, WorkOrderMode.Count, 1));
                 }
-
-                return Furniture("forge", "masonry");
             })
             || (_done.Contains("house1") && day - _lastHouseDay >= 12 && _bedsPlaced < population + 2 && planks >= 13 && House(day));
     }
@@ -224,7 +215,7 @@ internal sealed class VillagePlayer
                 continue;
             }
 
-            if (new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }.Any(step => map.IsStandable(cell.X + step.Item1, cell.Y + step.Item2, cell.Z)))
+            if (Steps.Any(step => map.IsStandable(cell.X + step.X, cell.Y + step.Y, cell.Z)))
             {
                 _simulation.Commands.Enqueue(new DesignateCommand(DesignationKind.Mine, cell, cell));
                 ordered++;

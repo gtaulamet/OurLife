@@ -12,6 +12,7 @@ Simulador de colonias estilo Dwarf Fortress hecho con Godot 4.7 (.NET) y C#. La 
 ```powershell
 dotnet build OurLife.sln
 dotnet test OurLife.sln
+dotnet test OurLife.sln --filter "Category!=Slow"   # camino rápido
 & $env:GODOT_BIN --headless --path game -- --smoke   # código de salida 0 = OK
 ```
 

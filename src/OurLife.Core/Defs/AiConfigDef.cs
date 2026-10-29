@@ -41,9 +41,15 @@ public sealed class AiConfigDef : Def
 
     /// <summary>
     /// Farthest from a workshop, in cells, a pile can be for a colonist to fetch it as an
-    /// ingredient (see "El trabajo craft" in <c>docs/gdd/oficios.md</c>).
+    /// ingredient (see "El trabajo craft" in <c>docs/gdd/oficios.md</c>); it is also the reach of the "waiting for ingredients" state of a work order.
     /// </summary>
     public required int CraftFetchRadius { get; init; }
+
+    /// <summary>
+    /// Farthest from a colonist, in cells, a stored tool can be for the colonist to go and fetch it (see "Herramientas" in
+    /// <c>docs/gdd/oficios.md</c>).
+    /// </summary>
+    public required int ToolFetchRadius { get; init; }
 
     /// <summary>
     /// A colonist who is hungry, but not starving, chooses among the piles of food within this many
@@ -111,6 +117,11 @@ public sealed class AiConfigDef : Def
         if (CraftFetchRadius <= 0)
         {
             yield return "craftFetchRadius must be positive.";
+        }
+
+        if (ToolFetchRadius <= 0)
+        {
+            yield return "toolFetchRadius must be positive.";
         }
 
         if (EatChoiceRadius < 0)

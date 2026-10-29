@@ -205,16 +205,28 @@ public class DiscoveryTests
     [Fact]
     public void Discovering_on_digging_costs_far_less_than_a_hundredth_of_a_millisecond_per_cell()
     {
-        var map = AsciiMap.Parse(Enumerable.Repeat(ColonyTestBed.Level(40, 40, '#'), 20).Append(ColonyTestBed.Level(40, 40, ' ')).ToArray());
         const int Digs = 8_000;
+        const int Rounds = 6;
 
-        // The cheapest of several rounds counts; digging a cell twice is harmless.
-        var perDigMs = Timing.BestRoundMs(6, _ =>
+        // Every round digs its own fresh map (one more for the warm-up round): on a map that was already dug the cells are discovered
+        // and the rounds would measure almost empty writes, not the first discovery of a cell. The maps are built before the clock starts.
+        var maps = Enumerable.Range(0, Rounds + 1).Select(_ =>
         {
+            var fresh = AsciiMap.Parse(Enumerable.Repeat(ColonyTestBed.Level(40, 40, '#'), 20).Append(ColonyTestBed.Level(40, 40, ' ')).ToArray());
+            fresh.ComputeDiscovered();
+            return fresh;
+        }).ToArray();
+
+        // The cheapest of several rounds counts.
+        var perDigMs = Timing.BestRoundMs(Rounds, round =>
+        {
+            var map = maps[round];
             for (var i = 0; i < Digs; i++)
             {
                 map.SetTile(i % 40, (i / 40) % 40, 1 + (i / 1600), TileShape.Floor, GameMap.NoMaterial, TileFlags.None);
             }
+
+            map.IsDiscovered(0, 0, 1).ShouldBeTrue();
         }) / Digs;
         perDigMs.ShouldBeLessThan(0.02);
     }
