@@ -44,6 +44,11 @@ En orden:
 
 ## Historial
 
+### 2026-10-29: paquetes de v0.4.0 preparados (sin publicar)
+
+- `config/version` pasó a `0.4.0` (rama `ip4/release-0.4.0`). `tools/package-windows.ps1` y `tools/package-macos.ps1` generaron `builds/OurLife-v0.4.0-windows-x86_64.zip` (79 MB, smoke del ejecutable exportado en 0) y `builds/OurLife-v0.4.0-macos-universal.zip` (131 MB). La carpeta `builds/` no se versiona.
+- Falta: playtest del usuario (`docs/ip/playtest-ip4.md`), fusionar la rama, etiquetar `v0.4.0` y `gh release create` con los zips, previa confirmación. No hay script de Linux; los zips de Linux de versiones anteriores se hicieron aparte.
+
 ### 2026-10-29: redistribución diaria de las familias (partidas armadas)
 
 - Pedido: una partida con habitaciones ya constituidas debe redistribuir a los colonos sola. Nuevo `HouseholdSystem` (Core, una vez al día a las 10:00): reúne parejas y a sus hijos menores en una habitación; el vínculo de pareja prevalece sobre un extraño sin parientes en la habitación (queda sin cama y toma otra al dormir). Tests en `RoomTests` (cuatro).
